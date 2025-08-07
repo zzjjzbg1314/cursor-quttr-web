@@ -68,8 +68,8 @@ spring:
 
 # 微信配置
 wechat:
-  app-id: ${WECHAT_APP_ID:your_wechat_app_id}
-  app-secret: ${WECHAT_APP_SECRET:your_wechat_app_secret}
+  app-id: ${WECHAT_APP_ID:your_wechat_app_id_here}
+  app-secret: ${WECHAT_APP_SECRET:your_wechat_app_secret_here}
   code2-session-url: https://api.weixin.qq.com/sns/jscode2session
   user-info-url: https://api.weixin.qq.com/sns/userinfo
 
