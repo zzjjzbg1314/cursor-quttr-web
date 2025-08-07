@@ -9,6 +9,13 @@ spring:
   profiles:
     active: dev
 
+# 微信配置
+wechat:
+  app-id: ${WECHAT_APP_ID:your_wechat_app_id}
+  app-secret: ${WECHAT_APP_SECRET:your_wechat_app_secret}
+  code2-session-url: https://api.weixin.qq.com/sns/jscode2session
+  user-info-url: https://api.weixin.qq.com/sns/userinfo
+
 # 日志配置
 logging:
   level:
