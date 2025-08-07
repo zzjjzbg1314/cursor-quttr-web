@@ -4,8 +4,8 @@ import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.WechatLoginRequest;
 import com.example.cursorquitterweb.dto.WechatUserInfo;
 import com.example.cursorquitterweb.service.WechatService;
+import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/wechat")
 public class WechatController {
     
-    private static final Logger logger = LoggerFactory.getLogger(WechatController.class);
+    private static final Logger logger = LogUtil.getLogger(WechatController.class);
     
     @Autowired
     private WechatService wechatService;
@@ -29,22 +29,23 @@ public class WechatController {
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<WechatUserInfo>> login(@RequestBody WechatLoginRequest request) {
+        LogUtil.logInfo(logger, "收到微信登录请求，授权码: {}", request.getCode());
+        
         try {
-            logger.info("收到微信登录请求，授权码: {}", request.getCode());
-            
             if (request.getCode() == null || request.getCode().trim().isEmpty()) {
+                LogUtil.logWarn(logger, "微信登录失败：授权码为空");
                 return ResponseEntity.badRequest()
                         .body(ApiResponse.error("授权码不能为空"));
             }
             
             WechatUserInfo userInfo = wechatService.login(request.getCode());
             
-            logger.info("微信登录成功，用户信息: {}", userInfo);
+            LogUtil.logInfo(logger, "微信登录成功，用户信息: {}", userInfo);
             
             return ResponseEntity.ok(ApiResponse.success(userInfo));
             
         } catch (Exception e) {
-            logger.error("微信登录失败", e);
+            LogUtil.logError(logger, "微信登录失败", e);
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("微信登录失败: " + e.getMessage()));
         }
@@ -55,6 +56,7 @@ public class WechatController {
      */
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> health() {
+        LogUtil.logDebug(logger, "微信服务健康检查");
         return ResponseEntity.ok(ApiResponse.success("微信服务正常"));
     }
 } 

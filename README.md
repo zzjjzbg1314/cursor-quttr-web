@@ -1,6 +1,6 @@
 # Cursor Quitter Web - Spring Boot 项目
 
-这是一个基于Spring Boot 2.7.18和Java 8的Web应用程序，支持微信登录功能。
+这是一个基于Spring Boot 2.7.18和Java 8的Web应用程序，支持微信登录功能和完整的日志中心。
 
 ## 技术栈
 
@@ -9,6 +9,8 @@
 - **构建工具**: Maven
 - **Web框架**: Spring Boot Web Starter
 - **测试框架**: Spring Boot Test
+- **日志框架**: Logback + SLF4J
+- **AOP框架**: Spring AOP
 
 ## 项目结构
 
@@ -19,23 +21,31 @@ cursor-quitter-web/
 │   │   ├── java/
 │   │   │   └── com/example/cursorquitterweb/
 │   │   │       ├── CursorQuitterWebApplication.java
+│   │   │       ├── aspect/
+│   │   │       │   └── LogAspect.java
 │   │   │       ├── config/
 │   │   │       │   ├── WechatConfig.java
 │   │   │       │   └── WebConfig.java
 │   │   │       ├── controller/
 │   │   │       │   ├── HelloController.java
-│   │   │       │   └── WechatController.java
+│   │   │       │   ├── WechatController.java
+│   │   │       │   └── LogController.java
 │   │   │       ├── dto/
 │   │   │       │   ├── ApiResponse.java
 │   │   │       │   ├── WechatLoginRequest.java
 │   │   │       │   └── WechatUserInfo.java
-│   │   │       └── service/
-│   │   │           ├── WechatService.java
-│   │   │           └── impl/
-│   │   │               └── WechatServiceImpl.java
+│   │   │       ├── service/
+│   │   │       │   ├── WechatService.java
+│   │   │       │   └── impl/
+│   │   │       │       └── WechatServiceImpl.java
+│   │   │       ├── task/
+│   │   │       │   └── LogCleanupTask.java
+│   │   │       └── util/
+│   │   │           └── LogUtil.java
 │   │   └── resources/
 │   │       ├── application.yml
-│   │       └── application-dev.yml
+│   │       ├── application-dev.yml
+│   │       └── logback-spring.xml
 │   └── test/
 │       └── java/
 │           └── com/example/cursorquitterweb/
@@ -43,8 +53,12 @@ cursor-quitter-web/
 │               ├── controller/
 │               │   ├── HelloControllerTest.java
 │               │   └── WechatControllerTest.java
+├── logs/                                    # 日志文件目录
+├── docs/
+│   └── api-examples.md
 ├── pom.xml
-└── README.md
+├── README.md
+└── start.sh
 ```
 
 ## 快速开始
@@ -106,7 +120,101 @@ cursor-quitter-web/
 - **健康检查**: http://localhost:8080/api/health
 - **微信登录**: http://localhost:8080/api/wechat/login
 - **微信健康检查**: http://localhost:8080/api/wechat/health
+- **日志管理**: http://localhost:8080/api/logs/level
 - **Actuator健康检查**: http://localhost:8080/actuator/health
+
+## 日志中心
+
+### 日志文件结构
+
+项目使用Logback作为日志框架，日志文件按功能分类存储：
+
+```
+logs/
+├── system.log              # 系统日志
+├── error.log               # 错误日志
+├── wechat.log              # 微信相关日志
+├── sql.log                 # SQL日志
+└── system.2024-01-01.0.log # 历史日志文件
+```
+
+### 日志级别
+
+- **DEBUG**: 调试信息，包含方法调用、参数等详细信息
+- **INFO**: 一般信息，如业务操作、系统状态等
+- **WARN**: 警告信息，如配置问题、性能警告等
+- **ERROR**: 错误信息，如异常、系统错误等
+
+### 日志保留策略
+
+- **保留时间**: 7天
+- **文件大小**: 单个日志文件最大100MB
+- **清理时间**: 每天凌晨2点自动清理过期日志
+
+### 日志管理API
+
+#### 获取当前日志级别
+```bash
+GET /api/logs/level
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "root": "INFO",
+    "com.example.cursorquitterweb": "DEBUG",
+    "org.springframework.web": "INFO"
+  }
+}
+```
+
+#### 设置日志级别
+```bash
+POST /api/logs/level?loggerName=com.example.cursorquitterweb&level=DEBUG
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "message": "设置日志级别成功"
+}
+```
+
+#### 获取日志文件信息
+```bash
+GET /api/logs/files
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "logHome": "logs/",
+    "files": [
+      "system.log",
+      "error.log",
+      "wechat.log",
+      "sql.log"
+    ]
+  }
+}
+```
+
+### 日志配置
+
+#### 开发环境
+- 控制台输出：DEBUG级别
+- 文件输出：INFO级别
+- SQL日志：DEBUG级别
+
+#### 生产环境
+- 控制台输出：WARN级别
+- 文件输出：INFO级别
+- SQL日志：关闭
 
 ## API接口
 
@@ -181,17 +289,6 @@ cursor-quitter-web/
    - nickname: 用户昵称（默认为"微信用户"）
    - headimgurl: 用户头像URL（默认为空）
 
-### 配置说明
-
-#### 开发环境配置
-- 端口: 8080
-- 日志级别: DEBUG
-- 包含H2数据库配置（可选）
-
-#### 生产环境配置
-- 端口: 8080
-- 日志级别: INFO
-
 ## 开发说明
 
 1. 项目使用Spring Boot 2.7.18，兼容Java 8
@@ -199,6 +296,8 @@ cursor-quitter-web/
 3. 集成了Spring Boot Actuator用于监控
 4. 包含完整的测试用例
 5. 支持微信小程序登录功能
+6. 完整的日志中心，支持日志轮转和自动清理
+7. AOP切面，自动记录方法调用日志
 
 ## 构建和部署
 
