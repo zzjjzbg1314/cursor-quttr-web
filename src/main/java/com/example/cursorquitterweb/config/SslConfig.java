@@ -16,7 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 /**
- * SSL配置类
+ * SSL配置类，包含SSL证书验证和HTTP到HTTPS重定向功能
  */
 @Configuration
 public class SslConfig {
@@ -35,8 +35,11 @@ public class SslConfig {
     @Value("${server.ssl.enabled:false}")
     private boolean sslEnabled;
     
+    @Value("${server.port:443}")
+    private int httpsPort;
+    
     /**
-     * 配置Tomcat服务器工厂，支持HTTPS
+     * 配置Tomcat服务器工厂，支持HTTPS和HTTP重定向
      */
     @Bean
     public ServletWebServerFactory servletContainer() {
@@ -45,6 +48,10 @@ public class SslConfig {
         // 验证证书文件是否存在
         if (sslEnabled && validateKeyStore()) {
             LogUtil.logInfo(logger, "SSL证书配置成功，证书路径: {}", keyStorePath);
+            
+            // 添加HTTP连接器，重定向到HTTPS
+            tomcat.addAdditionalTomcatConnectors(createHttpConnector());
+            LogUtil.logInfo(logger, "配置HTTP到HTTPS重定向，HTTPS端口: {}", httpsPort);
         } else if (sslEnabled) {
             LogUtil.logWarn(logger, "SSL证书配置失败，将使用HTTP模式");
         } else {
@@ -87,5 +94,18 @@ public class SslConfig {
             LogUtil.logError(logger, "KeyStore验证失败", e);
             return false;
         }
+    }
+    
+    /**
+     * 创建HTTP连接器
+     */
+    private org.apache.catalina.connector.Connector createHttpConnector() {
+        org.apache.catalina.connector.Connector connector = new org.apache.catalina.connector.Connector("org.apache.coyote.http11.Http11NioProtocol");
+        connector.setScheme("http");
+        connector.setPort(80);
+        connector.setSecure(false);
+        connector.setRedirectPort(httpsPort);
+        
+        return connector;
     }
 } 

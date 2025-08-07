@@ -27,8 +27,7 @@ cursor-quitter-web/
 │   │   │       ├── config/
 │   │   │       │   ├── WechatConfig.java
 │   │   │       │   ├── WebConfig.java
-│   │   │       │   ├── SslConfig.java
-│   │   │       │   └── HttpToHttpsRedirectConfig.java
+│   │   │       │   └── SslConfig.java
 │   │   │       ├── controller/
 │   │   │       │   ├── HelloController.java
 │   │   │       │   ├── WechatController.java
@@ -64,7 +63,8 @@ cursor-quitter-web/
 ├── logs/                                    # 日志文件目录
 ├── docs/
 │   ├── api-examples.md
-│   └── logging-guide.md
+│   ├── logging-guide.md
+│   └── configuration-guide.md
 ├── pom.xml
 ├── README.md
 └── start.sh

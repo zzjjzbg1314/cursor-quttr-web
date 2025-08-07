@@ -1,7 +1,7 @@
 server:
   port: 8080
   ssl:
-    enabled: ${SSL_ENABLED:false}
+    enabled: ${SSL_ENABLED:true}
     key-store: classpath:kejiapi.cn.jks
     key-store-password: ${SSL_KEY_STORE_PASSWORD:ussis711}
     key-store-type: JKS
