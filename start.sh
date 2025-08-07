@@ -35,6 +35,33 @@ if [ ! -f "src/main/resources/application.yml" ]; then
     exit 1
 fi
 
+# 检查SSL证书
+echo "检查SSL证书..."
+if [ -f "src/main/resources/kejiapi.cn.jks" ]; then
+    echo "✓ 找到SSL证书文件: kejiapi.cn.jks"
+    
+    # 检查SSL环境变量
+    if [ -z "$SSL_KEY_STORE_PASSWORD" ]; then
+        echo "警告: 未设置SSL_KEY_STORE_PASSWORD环境变量"
+        echo "请设置SSL证书密码:"
+        echo "export SSL_KEY_STORE_PASSWORD=your_keystore_password"
+        echo ""
+    else
+        echo "✓ SSL证书密码已配置"
+    fi
+    
+    if [ -z "$SSL_KEY_ALIAS" ]; then
+        echo "警告: 未设置SSL_KEY_ALIAS环境变量，将使用默认别名: kejiapi.cn"
+        echo "请设置SSL证书别名:"
+        echo "export SSL_KEY_ALIAS=kejiapi.cn"
+        echo ""
+    else
+        echo "✓ SSL证书别名已配置: $SSL_KEY_ALIAS"
+    fi
+else
+    echo "警告: 未找到SSL证书文件，将使用HTTP模式"
+fi
+
 # 检查微信配置
 echo "检查微信配置..."
 if [ -z "$WECHAT_APP_ID" ] && [ -z "$WECHAT_APP_SECRET" ]; then
@@ -61,8 +88,13 @@ fi
 
 # 启动应用
 echo "启动应用..."
-echo "应用将在 http://localhost:8080 启动"
-echo "微信登录接口: http://localhost:8080/api/wechat/login"
+if [ -f "src/main/resources/kejiapi.cn.jks" ] && [ ! -z "$SSL_KEY_STORE_PASSWORD" ]; then
+    echo "应用将在 https://localhost:8080 启动（HTTPS模式）"
+    echo "微信登录接口: https://localhost:8080/api/wechat/login"
+else
+    echo "应用将在 http://localhost:8080 启动（HTTP模式）"
+    echo "微信登录接口: http://localhost:8080/api/wechat/login"
+fi
 echo "按 Ctrl+C 停止应用"
 echo ""
 

@@ -1,6 +1,6 @@
 # Cursor Quitter Web - Spring Boot 项目
 
-这是一个基于Spring Boot 2.7.18和Java 8的Web应用程序，支持微信登录功能和完整的日志中心。
+这是一个基于Spring Boot 2.7.18和Java 8的Web应用程序，支持微信登录功能、完整的日志中心和HTTPS安全访问。
 
 ## 技术栈
 
@@ -11,6 +11,7 @@
 - **测试框架**: Spring Boot Test
 - **日志框架**: Logback + SLF4J
 - **AOP框架**: Spring AOP
+- **安全协议**: HTTPS/SSL
 
 ## 项目结构
 
@@ -25,11 +26,14 @@ cursor-quitter-web/
 │   │   │       │   └── LogAspect.java
 │   │   │       ├── config/
 │   │   │       │   ├── WechatConfig.java
-│   │   │       │   └── WebConfig.java
+│   │   │       │   ├── WebConfig.java
+│   │   │       │   ├── SslConfig.java
+│   │   │       │   └── HttpToHttpsRedirectConfig.java
 │   │   │       ├── controller/
 │   │   │       │   ├── HelloController.java
 │   │   │       │   ├── WechatController.java
-│   │   │       │   └── LogController.java
+│   │   │       │   ├── LogController.java
+│   │   │       │   └── SslController.java
 │   │   │       ├── dto/
 │   │   │       │   ├── ApiResponse.java
 │   │   │       │   ├── WechatLoginRequest.java
@@ -44,8 +48,8 @@ cursor-quitter-web/
 │   │   │           └── LogUtil.java
 │   │   └── resources/
 │   │       ├── application.yml
-│   │       ├── application-dev.yml
-│   │       └── logback-spring.xml
+│   │       ├── logback-spring.xml
+│   │       └── kejiapi.cn.jks
 │   └── test/
 │       └── java/
 │           └── com/example/cursorquitterweb/
@@ -53,9 +57,14 @@ cursor-quitter-web/
 │               ├── controller/
 │               │   ├── HelloControllerTest.java
 │               │   └── WechatControllerTest.java
+│               ├── config/
+│               │   └── SslConfigTest.java
+│               └── util/
+│                   └── LogUtilTest.java
 ├── logs/                                    # 日志文件目录
 ├── docs/
-│   └── api-examples.md
+│   ├── api-examples.md
+│   └── logging-guide.md
 ├── pom.xml
 ├── README.md
 └── start.sh
@@ -68,6 +77,30 @@ cursor-quitter-web/
 - Java 8 或更高版本
 - Maven 3.6 或更高版本
 - 微信小程序AppID和AppSecret
+- SSL证书文件（可选）
+
+### 配置SSL证书
+
+1. **准备SSL证书**
+   - 将JKS证书文件放在 `src/main/resources/` 目录下
+   - 默认证书文件名：`kejiapi.cn.jks`
+
+2. **配置环境变量**
+   ```bash
+   export SSL_KEY_STORE_PASSWORD=your_keystore_password
+   export SSL_KEY_ALIAS=kejiapi.cn
+   ```
+
+3. **或者直接在application.yml中配置**
+   ```yaml
+   server:
+     ssl:
+       enabled: true
+       key-store: classpath:kejiapi.cn.jks
+       key-store-password: your_keystore_password
+       key-store-type: JKS
+       key-alias: kejiapi.cn
+   ```
 
 ### 配置微信登录
 
@@ -115,13 +148,103 @@ cursor-quitter-web/
 
 应用启动后，可以通过以下URL访问：
 
+#### HTTP模式（默认）
 - **主页**: http://localhost:8080
 - **Hello接口**: http://localhost:8080/api/hello
 - **健康检查**: http://localhost:8080/api/health
 - **微信登录**: http://localhost:8080/api/wechat/login
 - **微信健康检查**: http://localhost:8080/api/wechat/health
 - **日志管理**: http://localhost:8080/api/logs/level
+- **SSL信息**: http://localhost:8080/api/ssl/info
 - **Actuator健康检查**: http://localhost:8080/actuator/health
+
+#### HTTPS模式（需要配置SSL证书）
+- **主页**: https://localhost:8080
+- **Hello接口**: https://localhost:8080/api/hello
+- **健康检查**: https://localhost:8080/api/health
+- **微信登录**: https://localhost:8080/api/wechat/login
+- **微信健康检查**: https://localhost:8080/api/wechat/health
+- **日志管理**: https://localhost:8080/api/logs/level
+- **SSL信息**: https://localhost:8080/api/ssl/info
+- **Actuator健康检查**: https://localhost:8080/actuator/health
+
+## HTTPS配置
+
+### SSL证书管理
+
+项目支持JKS格式的SSL证书，提供以下功能：
+
+1. **证书验证**
+   - 自动验证证书文件是否存在
+   - 验证证书别名是否正确
+   - 检查证书有效期
+
+2. **HTTP到HTTPS重定向**
+   - 启用SSL时自动将HTTP请求重定向到HTTPS
+   - 支持80端口到443端口的重定向
+
+3. **证书信息查询**
+   - 查看证书详细信息
+   - 检查证书有效期
+   - 监控证书状态
+
+### SSL配置示例
+
+```yaml
+server:
+  port: 8080
+  ssl:
+    enabled: ${SSL_ENABLED:false}  # 可选择是否启用HTTPS
+    key-store: classpath:kejiapi.cn.jks
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:your_keystore_password}
+    key-store-type: JKS
+    key-alias: ${SSL_KEY_ALIAS:kejiapi.cn}
+```
+
+### SSL管理API
+
+#### 获取SSL证书信息
+```bash
+GET /api/ssl/info
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "enabled": true,
+    "keyStorePath": "classpath:kejiapi.cn.jks",
+    "keyAlias": "kejiapi.cn",
+    "keyStoreExists": true,
+    "keyStoreSize": 1,
+    "certificate": {
+      "subject": "CN=kejiapi.cn",
+      "issuer": "CN=Let's Encrypt Authority X3",
+      "serialNumber": "1234567890",
+      "notBefore": "2024-01-01T00:00:00",
+      "notAfter": "2024-04-01T00:00:00"
+    }
+  }
+}
+```
+
+#### 检查SSL状态
+```bash
+GET /api/ssl/status
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "enabled": true,
+    "secure": true,
+    "protocol": "HTTPS"
+  }
+}
+```
 
 ## 日志中心
 
@@ -203,18 +326,6 @@ GET /api/logs/files
   }
 }
 ```
-
-### 日志配置
-
-#### 开发环境
-- 控制台输出：DEBUG级别
-- 文件输出：INFO级别
-- SQL日志：DEBUG级别
-
-#### 生产环境
-- 控制台输出：WARN级别
-- 文件输出：INFO级别
-- SQL日志：关闭
 
 ## API接口
 
@@ -298,6 +409,7 @@ GET /api/logs/files
 5. 支持微信小程序登录功能
 6. 完整的日志中心，支持日志轮转和自动清理
 7. AOP切面，自动记录方法调用日志
+8. HTTPS安全访问，支持SSL证书管理
 
 ## 构建和部署
 
@@ -311,6 +423,21 @@ mvn spring-boot:run
 mvn clean package
 java -jar target/cursor-quitter-web-0.0.1-SNAPSHOT.jar
 ```
+
+### 生产环境部署
+
+1. **设置环境变量**
+   ```bash
+   export SSL_KEY_STORE_PASSWORD=your_keystore_password
+   export SSL_KEY_ALIAS=kejiapi.cn
+   export WECHAT_APP_ID=your_wechat_app_id
+   export WECHAT_APP_SECRET=your_wechat_app_secret
+   ```
+
+2. **启动应用**
+   ```bash
+   java -jar target/cursor-quitter-web-0.0.1-SNAPSHOT.jar
+   ```
 
 ## 许可证
 
