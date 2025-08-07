@@ -71,7 +71,13 @@ public class SslConfig {
                 return false;
             }
             
-            ClassPathResource resource = new ClassPathResource(keyStorePath);
+            // 去掉classpath:前缀，因为ClassPathResource不需要这个前缀
+            String resourcePath = keyStorePath;
+            if (resourcePath.startsWith("classpath:")) {
+                resourcePath = resourcePath.substring("classpath:".length());
+            }
+            
+            ClassPathResource resource = new ClassPathResource(resourcePath);
             if (!resource.exists()) {
                 LogUtil.logError(logger, "KeyStore文件不存在: {}", keyStorePath);
                 return false;
