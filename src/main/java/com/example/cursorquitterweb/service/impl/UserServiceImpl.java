@@ -18,7 +18,6 @@ import java.util.UUID;
  * 用户服务实现类
  */
 @Service
-@Transactional
 public class UserServiceImpl implements UserService {
     
     private static final Logger logger = LogUtil.getLogger(UserServiceImpl.class);
@@ -27,30 +26,35 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findById(UUID id) {
         logger.debug("查找用户，ID: {}", id);
         return userRepository.findById(id);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByWechatOpenid(String wechatOpenid) {
         logger.debug("根据微信openid查找用户: {}", wechatOpenid);
         return userRepository.findByWechatOpenid(wechatOpenid);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByWechatUnionid(String wechatUnionid) {
         logger.debug("根据微信unionid查找用户: {}", wechatUnionid);
         return userRepository.findByWechatUnionid(wechatUnionid);
     }
     
     @Override
+    @Transactional
     public User save(User user) {
         logger.debug("保存用户: {}", user);
         return userRepository.save(user);
     }
     
     @Override
+    @Transactional
     public User createUser(String wechatOpenid, String nickname, String avatarUrl) {
         logger.info("创建新用户，微信openid: {}, 昵称: {}", wechatOpenid, nickname);
         
@@ -64,6 +68,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional
     public User updateUser(User user) {
         logger.debug("更新用户信息: {}", user);
         user.preUpdate();
@@ -71,41 +76,48 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional
     public void deleteUser(UUID id) {
         logger.info("删除用户，ID: {}", id);
         userRepository.deleteById(id);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByWechatOpenid(String wechatOpenid) {
         return userRepository.existsByWechatOpenid(wechatOpenid);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<User> searchByNickname(String nickname) {
         logger.debug("根据昵称搜索用户: {}", nickname);
         return userRepository.findByNicknameContainingIgnoreCase(nickname);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<User> findByCity(String city) {
         logger.debug("根据城市查询用户: {}", city);
         return userRepository.findByCity(city);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<User> findByProvince(String province) {
         logger.debug("根据省份查询用户: {}", province);
         return userRepository.findByProvince(province);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<User> findByRegistrationTimeBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
         logger.debug("根据注册时间范围查询用户，开始时间: {}, 结束时间: {}", startTime, endTime);
         return userRepository.findByRegistrationTimeBetween(startTime, endTime);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsersNeedingChallengeReset() {
         logger.debug("获取需要重置挑战的用户");
         OffsetDateTime now = OffsetDateTime.now();
@@ -113,6 +125,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional
     public void resetUserChallengeTime(UUID userId) {
         logger.info("重置用户挑战时间，用户ID: {}", userId);
         Optional<User> userOpt = userRepository.findById(userId);
@@ -127,12 +140,14 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional(readOnly = true)
     public long countUsersByRegistrationTimeBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
         logger.debug("统计指定时间范围内的注册用户数，开始时间: {}, 结束时间: {}", startTime, endTime);
         return userRepository.countUsersByRegistrationTimeBetween(startTime, endTime);
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> countUsersByGender() {
         logger.debug("根据性别统计用户数");
         return userRepository.countUsersByGender();

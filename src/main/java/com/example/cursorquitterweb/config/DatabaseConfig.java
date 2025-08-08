@@ -1,12 +1,13 @@
 package com.example.cursorquitterweb.config;
 
-import org.hibernate.dialect.PostgreSQLDialect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.sql.Types;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * 数据库配置类
@@ -17,17 +18,12 @@ import java.sql.Types;
 public class DatabaseConfig {
     
     /**
-     * 自定义PostgreSQL方言，支持UUID类型
+     * 配置事务管理器
      */
     @Bean
-    public PostgreSQLDialect postgreSQLDialect() {
-        return new PostgreSQLDialect() {
-            @Override
-            protected void registerColumnType(int code, String name) {
-                super.registerColumnType(code, name);
-                // 注册UUID类型
-                registerColumnType(Types.OTHER, "uuid");
-            }
-        };
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        return transactionManager;
     }
 }

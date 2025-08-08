@@ -1,7 +1,9 @@
 server:
   port: 8080
+  http:
+    port: 8080
   ssl:
-    enabled: ${SSL_ENABLED:true}
+    enabled: ${SSL_ENABLED:false}
     key-store: classpath:kejiapi.cn.jks
     key-store-password: ${SSL_KEY_STORE_PASSWORD:ussis711}
     key-store-type: JKS
@@ -16,7 +18,7 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: org.postgresql.Driver
     # 阿里云PostgreSQL连接URL格式：jdbc:postgresql://host:port/database
-    url: ${DATABASE_URL:jdbc:postgresql://pgm-bp1e87276l1jnkd00o.pg.rds.aliyuncs.com:5432/keji}
+    url: ${DATABASE_URL:jdbc:postgresql://pgm-bp1e87276l1jnkd00o.pg.rds.aliyuncs.com:5432/keji?autoCommit=false}
     username: keji
     password: Yiluxiangbei1314!
     
@@ -34,8 +36,10 @@ spring:
       test-on-return: false
       pool-prepared-statements: true
       max-pool-prepared-statement-per-connection-size: 20
-      filters: stat,wall,log4j
+      filters: stat,wall
       connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      # 禁用自动提交
+      default-auto-commit: false
       web-stat-filter:
         enabled: true
         url-pattern: /*
@@ -54,7 +58,6 @@ spring:
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
         # PostgreSQL特定配置
@@ -63,6 +66,10 @@ spring:
         # 连接池配置
         connection:
           provider_disables_autocommit: true
+        # 事务配置
+        transaction:
+          jta:
+            platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
     open-in-view: false
     # 数据库平台配置
     database-platform: org.hibernate.dialect.PostgreSQLDialect
