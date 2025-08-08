@@ -38,6 +38,9 @@ public class SslConfig {
     @Value("${server.port:443}")
     private int httpsPort;
     
+    @Value("${server.http.port:8080}")
+    private int httpPort;
+    
     /**
      * 配置Tomcat服务器工厂，支持HTTPS和HTTP重定向
      */
@@ -51,7 +54,7 @@ public class SslConfig {
             
             // 添加HTTP连接器，重定向到HTTPS
             tomcat.addAdditionalTomcatConnectors(createHttpConnector());
-            LogUtil.logInfo(logger, "配置HTTP到HTTPS重定向，HTTPS端口: {}", httpsPort);
+            LogUtil.logInfo(logger, "配置HTTP到HTTPS重定向，HTTP端口: {}, HTTPS端口: {}", httpPort, httpsPort);
         } else if (sslEnabled) {
             LogUtil.logWarn(logger, "SSL证书配置失败，将使用HTTP模式");
         } else {
@@ -108,7 +111,7 @@ public class SslConfig {
     private org.apache.catalina.connector.Connector createHttpConnector() {
         org.apache.catalina.connector.Connector connector = new org.apache.catalina.connector.Connector("org.apache.coyote.http11.Http11NioProtocol");
         connector.setScheme("http");
-        connector.setPort(80);
+        connector.setPort(httpPort);
         connector.setSecure(false);
         connector.setRedirectPort(httpsPort);
         
