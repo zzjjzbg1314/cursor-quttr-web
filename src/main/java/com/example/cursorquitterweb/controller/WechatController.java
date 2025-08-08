@@ -52,13 +52,9 @@ public class WechatController {
             
             User user;
             if (existingUser.isPresent()) {
-                // 用户已存在，更新信息
+                // 用户已存在，直接使用现有用户信息，不做任何更新
                 user = existingUser.get();
-                user.setNickname(wechatUserInfo.getNickname());
-                user.setAvatarUrl(wechatUserInfo.getHeadimgurl());
-                user.setWechatUnionid(wechatUserInfo.getUnionid());
-                user = userService.updateUser(user);
-                LogUtil.logInfo(logger, "用户信息已更新，用户ID: {}", user.getId());
+                LogUtil.logInfo(logger, "用户已存在，用户ID: {}", user.getId());
             } else {
                 // 创建新用户
                 user = userService.createUser(
