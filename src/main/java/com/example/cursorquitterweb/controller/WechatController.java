@@ -3,12 +3,16 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.WechatLoginRequest;
 import com.example.cursorquitterweb.dto.WechatUserInfo;
+import com.example.cursorquitterweb.entity.User;
+import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.WechatService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 /**
  * 微信登录控制器
@@ -21,6 +25,9 @@ public class WechatController {
     
     @Autowired
     private WechatService wechatService;
+    
+    @Autowired
+    private UserService userService;
     
     /**
      * 微信登录接口
@@ -38,11 +45,37 @@ public class WechatController {
                         .body(ApiResponse.error("授权码不能为空"));
             }
             
-            WechatUserInfo userInfo = wechatService.login(request.getCode());
+            WechatUserInfo wechatUserInfo = wechatService.login(request.getCode());
             
-            LogUtil.logInfo(logger, "微信登录成功，用户信息: {}", userInfo);
+            // 检查用户是否已存在
+            Optional<User> existingUser = userService.findByWechatOpenid(wechatUserInfo.getOpenId());
             
-            return ResponseEntity.ok(ApiResponse.success(userInfo));
+            User user;
+            if (existingUser.isPresent()) {
+                // 用户已存在，更新信息
+                user = existingUser.get();
+                user.setNickname(wechatUserInfo.getNickname());
+                user.setAvatarUrl(wechatUserInfo.getHeadimgurl());
+                user.setWechatUnionid(wechatUserInfo.getUnionid());
+                user = userService.updateUser(user);
+                LogUtil.logInfo(logger, "用户信息已更新，用户ID: {}", user.getId());
+            } else {
+                // 创建新用户
+                user = userService.createUser(
+                    wechatUserInfo.getOpenId(),
+                    wechatUserInfo.getNickname(),
+                    wechatUserInfo.getHeadimgurl()
+                );
+                if (wechatUserInfo.getUnionid() != null) {
+                    user.setWechatUnionid(wechatUserInfo.getUnionid());
+                    userService.updateUser(user);
+                }
+                LogUtil.logInfo(logger, "新用户创建成功，用户ID: {}", user.getId());
+            }
+            
+            LogUtil.logInfo(logger, "微信登录成功，用户信息: {}", wechatUserInfo);
+            
+            return ResponseEntity.ok(ApiResponse.success(wechatUserInfo));
             
         } catch (Exception e) {
             LogUtil.logError(logger, "微信登录失败", e);

@@ -11,13 +11,14 @@ spring:
   application:
     name: cursor-quitter-web
 
-  # 数据库配置
+  # 数据库配置 - 阿里云PostgreSQL
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: org.postgresql.Driver
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/cursor_quitter_web}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:password}
+    # 阿里云PostgreSQL连接URL格式：jdbc:postgresql://host:port/database
+    url: ${DATABASE_URL:jdbc:postgresql://pgm-bp1e87276l1jnkd00o.pg.rds.aliyuncs.com:5432/keji}
+    username: keji
+    password: Yiluxiangbei1314!
     
     # Druid连接池配置
     druid:
@@ -46,17 +47,25 @@ spring:
         login-username: admin
         login-password: admin
 
-  # JPA配置
+  # JPA配置 - 针对PostgreSQL优化
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${DDL_AUTO:validate}  # 可以通过环境变量控制，测试时设置为create-drop
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
+        # PostgreSQL特定配置
+        jdbc:
+          time_zone: UTC
+        # 连接池配置
+        connection:
+          provider_disables_autocommit: true
     open-in-view: false
+    # 数据库平台配置
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   # Flyway数据库迁移配置
   flyway:
@@ -65,6 +74,10 @@ spring:
     locations: classpath:db/migration
     table: flyway_schema_history
     validate-on-migrate: true
+    # PostgreSQL特定配置
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    sql-migration-suffixes: .sql
 
 # 微信配置
 wechat:
@@ -79,8 +92,8 @@ logging:
   level:
     com.example.cursorquitterweb: DEBUG
     org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:false}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${HIBERNATE_SQL_LOG:false}
     com.alibaba.druid: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
