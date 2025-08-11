@@ -41,8 +41,8 @@ WHERE wechat_unionid IS NOT NULL ;
 -- 2. 创建posts表
 CREATE TABLE IF NOT EXISTS "public"."posts"
 (
- "post_id" bigserial NOT NULL,
- "user_id" bigint NOT NULL,
+ "post_id" uuid NOT NULL DEFAULT gen_random_uuid(),
+ "user_id" uuid NOT NULL,
  "user_nickname" character varying(100) NOT NULL,
  "user_stage" character varying(50) NOT NULL,
  "title" character varying(255) NOT NULL,
@@ -52,7 +52,8 @@ CREATE TABLE IF NOT EXISTS "public"."posts"
  "updated_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
  "like_count" integer NOT NULL DEFAULT 0,
  "comment_count" integer NOT NULL DEFAULT 0,
-CONSTRAINT "pk_public_posts" PRIMARY KEY ("post_id")
+CONSTRAINT "pk_public_posts" PRIMARY KEY ("post_id"),
+CONSTRAINT "fk_posts_user_id" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE
 )
 WITH (
     FILLFACTOR = 100,
@@ -63,30 +64,21 @@ WITH (
 CREATE INDEX IF NOT EXISTS "idx_posts_user_id" 
 ON "public"."posts" USING btree ( "user_id" ) ;
 
-CREATE INDEX IF NOT EXISTS "idx_posts_user_nickname" 
-ON "public"."posts" USING btree ( "user_nickname" ) ;
+CREATE INDEX IF NOT EXISTS "idx_posts_created_at" 
+ON "public"."posts" USING btree ( "created_at" DESC ) ;
+
+CREATE INDEX IF NOT EXISTS "idx_posts_title" 
+ON "public"."posts" USING btree ( "title" ) ;
 
 CREATE INDEX IF NOT EXISTS "idx_posts_user_stage" 
 ON "public"."posts" USING btree ( "user_stage" ) ;
-
-CREATE INDEX IF NOT EXISTS "idx_posts_created_at" 
-ON "public"."posts" USING btree ( "created_at" ) ;
-
-CREATE INDEX IF NOT EXISTS "idx_posts_like_count" 
-ON "public"."posts" USING btree ( "like_count" ) ;
-
-CREATE INDEX IF NOT EXISTS "idx_posts_comment_count" 
-ON "public"."posts" USING btree ( "comment_count" ) ;
-
-CREATE INDEX IF NOT EXISTS "idx_posts_is_deleted" 
-ON "public"."posts" USING btree ( "is_deleted" ) ;
 
 -- 3. 创建comments表
 CREATE TABLE IF NOT EXISTS "public"."comments"
 (
  "comment_id" bigserial NOT NULL,
  "post_id" bigint NOT NULL,
- "user_id" bigint NOT NULL,
+ "user_id" uuid NOT NULL,
  "user_nickname" character varying(100) NOT NULL,
  "user_stage" character varying(50) NOT NULL,
  "content" text NOT NULL,
@@ -94,7 +86,8 @@ CREATE TABLE IF NOT EXISTS "public"."comments"
  "created_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
  "updated_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 CONSTRAINT "pk_public_comments" PRIMARY KEY ("comment_id"),
-CONSTRAINT "fk_comments_post_id" FOREIGN KEY ("post_id") REFERENCES "public"."posts" ("post_id") ON DELETE CASCADE
+CONSTRAINT "fk_comments_post_id" FOREIGN KEY ("post_id") REFERENCES "public"."posts" ("post_id") ON DELETE CASCADE,
+CONSTRAINT "fk_comments_user_id" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE
 )
 WITH (
     FILLFACTOR = 100,
@@ -162,6 +155,34 @@ COMMENT ON COLUMN "public"."comments"."content" IS '评论内容';
 COMMENT ON COLUMN "public"."comments"."is_deleted" IS '是否删除';
 COMMENT ON COLUMN "public"."comments"."created_at" IS '创建时间';
 COMMENT ON COLUMN "public"."comments"."updated_at" IS '更新时间';
+
+-- 4. 创建post_likes表
+CREATE TABLE IF NOT EXISTS "public"."post_likes"
+(
+ "post_id" bigint NOT NULL ,
+ "like_count" integer NOT NULL DEFAULT 0 ,
+ "updated_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+CONSTRAINT "pk_public_post_likes" PRIMARY KEY ("post_id") ,
+CONSTRAINT "post_likes_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("post_id") ON UPDATE NO ACTION ON DELETE CASCADE ,
+CONSTRAINT "post_likes_like_count_check"  CHECK (like_count >= 0) NOT VALID 
+)
+WITH (
+    FILLFACTOR = 100,
+    OIDS = FALSE
+);
+
+-- 创建post_likes表索引
+CREATE INDEX IF NOT EXISTS "idx_post_likes_like_count" 
+ON "public"."post_likes" USING btree ( "like_count" ) ;
+
+CREATE INDEX IF NOT EXISTS "idx_post_likes_updated_at" 
+ON "public"."post_likes" USING btree ( "updated_at" ) ;
+
+-- 添加post_likes表注释
+COMMENT ON TABLE "public"."post_likes" IS '帖子点赞表';
+COMMENT ON COLUMN "public"."post_likes"."post_id" IS '帖子ID';
+COMMENT ON COLUMN "public"."post_likes"."like_count" IS '点赞数';
+COMMENT ON COLUMN "public"."post_likes"."updated_at" IS '更新时间';
 
 -- 显示创建结果
 SELECT 'Tables created successfully!' as result;

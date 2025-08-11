@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.entity;
 
 import javax.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 /**
  * 帖子实体类
@@ -12,12 +13,12 @@ import java.time.OffsetDateTime;
 public class Post {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "post_id")
-    private Long postId;
+    private UUID postId;
     
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private UUID userId;
     
     @Column(name = "user_nickname", nullable = false, length = 100)
     private String userNickname;
@@ -40,21 +41,13 @@ public class Post {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
-    @Column(name = "like_count", nullable = false)
-    private Integer likeCount = 0;
-    
-    @Column(name = "comment_count", nullable = false)
-    private Integer commentCount = 0;
-    
     public Post() {
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
         this.isDeleted = false;
-        this.likeCount = 0;
-        this.commentCount = 0;
     }
     
-    public Post(Long userId, String userNickname, String userStage, String title, String content) {
+    public Post(UUID userId, String userNickname, String userStage, String title, String content) {
         this();
         this.userId = userId;
         this.userNickname = userNickname;
@@ -64,19 +57,19 @@ public class Post {
     }
     
     // Getters and Setters
-    public Long getPostId() {
+    public UUID getPostId() {
         return postId;
     }
     
-    public void setPostId(Long postId) {
+    public void setPostId(UUID postId) {
         this.postId = postId;
     }
     
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
     
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
     
@@ -136,22 +129,6 @@ public class Post {
         this.updatedAt = updatedAt;
     }
     
-    public Integer getLikeCount() {
-        return likeCount;
-    }
-    
-    public void setLikeCount(Integer likeCount) {
-        this.likeCount = likeCount;
-    }
-    
-    public Integer getCommentCount() {
-        return commentCount;
-    }
-    
-    public void setCommentCount(Integer commentCount) {
-        this.commentCount = commentCount;
-    }
-    
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
@@ -169,8 +146,6 @@ public class Post {
                 ", isDeleted=" + isDeleted +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                ", likeCount=" + likeCount +
-                ", commentCount=" + commentCount +
                 '}';
     }
 }

@@ -1,11 +1,13 @@
 package com.example.cursorquitterweb.dto;
 
+import java.util.UUID;
+
 /**
  * 创建帖子请求DTO
  */
 public class CreatePostRequest {
     
-    private Long userId;
+    private UUID userId;
     
     private String userNickname;
     
@@ -17,7 +19,7 @@ public class CreatePostRequest {
     
     public CreatePostRequest() {}
     
-    public CreatePostRequest(Long userId, String userNickname, String userStage, String title, String content) {
+    public CreatePostRequest(UUID userId, String userNickname, String userStage, String title, String content) {
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
@@ -26,11 +28,11 @@ public class CreatePostRequest {
     }
     
     // Getters and Setters
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
     
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
     

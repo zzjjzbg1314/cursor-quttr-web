@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 帖子服务实现类
@@ -24,18 +25,18 @@ public class PostServiceImpl implements PostService {
     private PostRepository postRepository;
     
     @Override
-    public Optional<Post> findById(Long postId) {
+    public Optional<Post> findById(UUID postId) {
         return postRepository.findByPostIdAndIsDeletedFalse(postId);
     }
     
     @Override
-    public Post createPost(Long userId, String userNickname, String userStage, String title, String content) {
+    public Post createPost(UUID userId, String userNickname, String userStage, String title, String content) {
         Post post = new Post(userId, userNickname, userStage, title, content);
         return postRepository.save(post);
     }
     
     @Override
-    public Post updatePost(Long postId, String title, String content) {
+    public Post updatePost(UUID postId, String title, String content) {
         Optional<Post> optionalPost = postRepository.findByPostIdAndIsDeletedFalse(postId);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
@@ -48,17 +49,17 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
-    public void deletePost(Long postId) {
+    public void deletePost(UUID postId) {
         postRepository.softDeletePost(postId, OffsetDateTime.now());
     }
     
     @Override
-    public List<Post> findByUserId(Long userId) {
+    public List<Post> findByUserId(UUID userId) {
         return postRepository.findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId);
     }
     
     @Override
-    public Page<Post> findByUserId(Long userId, Pageable pageable) {
+    public Page<Post> findByUserId(UUID userId, Pageable pageable) {
         return postRepository.findByUserIdAndIsDeletedFalse(pageable, userId);
     }
     
@@ -98,37 +99,7 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
-    public List<Post> getHotPostsByLikes() {
-        return postRepository.findTop10ByIsDeletedFalseOrderByLikeCountDesc();
-    }
-    
-    @Override
-    public List<Post> getHotPostsByComments() {
-        return postRepository.findTop10ByIsDeletedFalseOrderByCommentCountDesc();
-    }
-    
-    @Override
-    public void likePost(Long postId) {
-        postRepository.incrementLikeCount(postId, OffsetDateTime.now());
-    }
-    
-    @Override
-    public void unlikePost(Long postId) {
-        postRepository.decrementLikeCount(postId, OffsetDateTime.now());
-    }
-    
-    @Override
-    public void incrementCommentCount(Long postId) {
-        postRepository.incrementCommentCount(postId, OffsetDateTime.now());
-    }
-    
-    @Override
-    public void decrementCommentCount(Long postId) {
-        postRepository.decrementCommentCount(postId, OffsetDateTime.now());
-    }
-    
-    @Override
-    public long countByUserId(Long userId) {
+    public long countByUserId(UUID userId) {
         return postRepository.countByUserIdAndIsDeletedFalse(userId);
     }
     

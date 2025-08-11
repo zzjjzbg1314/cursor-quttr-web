@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 帖子控制器
@@ -50,7 +51,7 @@ public class PostController {
      * 根据ID获取帖子
      */
     @GetMapping("/{postId}")
-    public ApiResponse<Post> getPost(@PathVariable Long postId) {
+    public ApiResponse<Post> getPost(@PathVariable UUID postId) {
         try {
             Optional<Post> post = postService.findById(postId);
             if (post.isPresent()) {
@@ -67,7 +68,7 @@ public class PostController {
      * 更新帖子
      */
     @PutMapping("/{postId}")
-    public ApiResponse<Post> updatePost(@PathVariable Long postId, @RequestBody UpdatePostRequest request) {
+    public ApiResponse<Post> updatePost(@PathVariable UUID postId, @RequestBody UpdatePostRequest request) {
         try {
             Post post = postService.updatePost(postId, request.getTitle(), request.getContent());
             return ApiResponse.success("帖子更新成功", post);
@@ -80,7 +81,7 @@ public class PostController {
      * 删除帖子
      */
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> deletePost(@PathVariable Long postId) {
+    public ApiResponse<String> deletePost(@PathVariable UUID postId) {
         try {
             postService.deletePost(postId);
             return ApiResponse.success("帖子删除成功", null);
@@ -113,7 +114,7 @@ public class PostController {
      * 根据用户ID获取帖子
      */
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<Post>> getPostsByUserId(@PathVariable Long userId) {
+    public ApiResponse<List<Post>> getPostsByUserId(@PathVariable UUID userId) {
         try {
             List<Post> posts = postService.findByUserId(userId);
             return ApiResponse.success("获取用户帖子成功", posts);
@@ -175,58 +176,6 @@ public class PostController {
     }
     
     /**
-     * 获取热门帖子（按点赞数）
-     */
-    @GetMapping("/hot/likes")
-    public ApiResponse<List<Post>> getHotPostsByLikes() {
-        try {
-            List<Post> posts = postService.getHotPostsByLikes();
-            return ApiResponse.success("获取热门帖子成功", posts);
-        } catch (Exception e) {
-            return ApiResponse.error("获取热门帖子失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 获取热门帖子（按评论数）
-     */
-    @GetMapping("/hot/comments")
-    public ApiResponse<List<Post>> getHotPostsByComments() {
-        try {
-            List<Post> posts = postService.getHotPostsByComments();
-            return ApiResponse.success("获取热门帖子成功", posts);
-        } catch (Exception e) {
-            return ApiResponse.error("获取热门帖子失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 点赞帖子
-     */
-    @PostMapping("/{postId}/like")
-    public ApiResponse<String> likePost(@PathVariable Long postId) {
-        try {
-            postService.likePost(postId);
-            return ApiResponse.success("点赞成功", null);
-        } catch (Exception e) {
-            return ApiResponse.error("点赞失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 取消点赞帖子
-     */
-    @PostMapping("/{postId}/unlike")
-    public ApiResponse<String> unlikePost(@PathVariable Long postId) {
-        try {
-            postService.unlikePost(postId);
-            return ApiResponse.success("取消点赞成功", null);
-        } catch (Exception e) {
-            return ApiResponse.error("取消点赞失败: " + e.getMessage());
-        }
-    }
-    
-    /**
      * 根据时间范围获取帖子
      */
     @GetMapping("/time-range")
@@ -247,7 +196,7 @@ public class PostController {
      * 统计用户的帖子数量
      */
     @GetMapping("/count/user/{userId}")
-    public ApiResponse<Long> countPostsByUserId(@PathVariable Long userId) {
+    public ApiResponse<Long> countPostsByUserId(@PathVariable UUID userId) {
         try {
             long count = postService.countByUserId(userId);
             return ApiResponse.success("统计用户帖子数量成功", count);

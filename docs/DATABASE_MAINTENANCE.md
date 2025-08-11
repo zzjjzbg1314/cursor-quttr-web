@@ -11,11 +11,13 @@
 1. **users表** - 用户信息
 2. **posts表** - 帖子内容  
 3. **comments表** - 评论信息
+4. **post_likes表** - 帖子点赞统计
 
 ### 表关系
 
 ```
 users (1) ←→ (N) posts (1) ←→ (N) comments
+posts (1) ←→ (1) post_likes
 ```
 
 ## 初始化数据库

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 评论服务实现类
@@ -24,18 +25,18 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository commentRepository;
     
     @Override
-    public Optional<Comment> findById(Long commentId) {
+    public Optional<Comment> findById(UUID commentId) {
         return commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
     }
     
     @Override
-    public Comment createComment(Long postId, Long userId, String userNickname, String userStage, String content) {
+    public Comment createComment(UUID postId, UUID userId, String userNickname, String userStage, String content) {
         Comment comment = new Comment(postId, userId, userNickname, userStage, content);
         return commentRepository.save(comment);
     }
     
     @Override
-    public Comment updateComment(Long commentId, String content) {
+    public Comment updateComment(UUID commentId, String content) {
         Optional<Comment> optionalComment = commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
         if (optionalComment.isPresent()) {
             Comment comment = optionalComment.get();
@@ -47,27 +48,27 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public void deleteComment(Long commentId) {
+    public void deleteComment(UUID commentId) {
         commentRepository.softDeleteComment(commentId, OffsetDateTime.now());
     }
     
     @Override
-    public List<Comment> findByPostId(Long postId) {
+    public List<Comment> findByPostId(UUID postId) {
         return commentRepository.findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(postId);
     }
     
     @Override
-    public Page<Comment> findByPostId(Long postId, Pageable pageable) {
+    public Page<Comment> findByPostId(UUID postId, Pageable pageable) {
         return commentRepository.findByPostIdAndIsDeletedFalse(pageable, postId);
     }
     
     @Override
-    public List<Comment> findByUserId(Long userId) {
+    public List<Comment> findByUserId(UUID userId) {
         return commentRepository.findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId);
     }
     
     @Override
-    public Page<Comment> findByUserId(Long userId, Pageable pageable) {
+    public Page<Comment> findByUserId(UUID userId, Pageable pageable) {
         return commentRepository.findByUserIdAndIsDeletedFalse(pageable, userId);
     }
     
@@ -102,12 +103,12 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public long countByPostId(Long postId) {
+    public long countByPostId(UUID postId) {
         return commentRepository.countByPostIdAndIsDeletedFalse(postId);
     }
     
     @Override
-    public long countByUserId(Long userId) {
+    public long countByUserId(UUID userId) {
         return commentRepository.countByUserIdAndIsDeletedFalse(userId);
     }
     
@@ -117,7 +118,7 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public void deleteCommentsByPostId(Long postId) {
+    public void deleteCommentsByPostId(UUID postId) {
         commentRepository.softDeleteCommentsByPostId(postId, OffsetDateTime.now());
     }
 }

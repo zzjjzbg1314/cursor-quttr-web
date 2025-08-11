@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.entity;
 
 import javax.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 /**
  * 评论实体类
@@ -12,15 +13,15 @@ import java.time.OffsetDateTime;
 public class Comment {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
-    private Long commentId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "comment_id", columnDefinition = "UUID")
+    private UUID commentId;
     
-    @Column(name = "post_id", nullable = false)
-    private Long postId;
+    @Column(name = "post_id", nullable = false, columnDefinition = "UUID")
+    private UUID postId;
     
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
+    private UUID userId;
     
     @Column(name = "user_nickname", nullable = false, length = 100)
     private String userNickname;
@@ -46,7 +47,7 @@ public class Comment {
         this.isDeleted = false;
     }
     
-    public Comment(Long postId, Long userId, String userNickname, String userStage, String content) {
+    public Comment(UUID postId, UUID userId, String userNickname, String userStage, String content) {
         this();
         this.postId = postId;
         this.userId = userId;
@@ -56,27 +57,27 @@ public class Comment {
     }
     
     // Getters and Setters
-    public Long getCommentId() {
+    public UUID getCommentId() {
         return commentId;
     }
     
-    public void setCommentId(Long commentId) {
+    public void setCommentId(UUID commentId) {
         this.commentId = commentId;
     }
     
-    public Long getPostId() {
+    public UUID getPostId() {
         return postId;
     }
     
-    public void setPostId(Long postId) {
+    public void setPostId(UUID postId) {
         this.postId = postId;
     }
     
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
     
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
     

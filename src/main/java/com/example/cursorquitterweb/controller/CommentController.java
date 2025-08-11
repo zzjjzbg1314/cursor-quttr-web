@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.UUID;
 
 /**
  * 评论控制器
@@ -50,7 +52,7 @@ public class CommentController {
      * 根据ID获取评论
      */
     @GetMapping("/{commentId}")
-    public ApiResponse<Comment> getComment(@PathVariable Long commentId) {
+    public ApiResponse<Comment> getComment(@PathVariable UUID commentId) {
         try {
             Optional<Comment> comment = commentService.findById(commentId);
             if (comment.isPresent()) {
@@ -67,7 +69,7 @@ public class CommentController {
      * 更新评论
      */
     @PutMapping("/{commentId}")
-    public ApiResponse<Comment> updateComment(@PathVariable Long commentId, @RequestBody UpdateCommentRequest request) {
+    public ApiResponse<Comment> updateComment(@PathVariable UUID commentId, @RequestBody UpdateCommentRequest request) {
         try {
             Comment comment = commentService.updateComment(commentId, request.getContent());
             return ApiResponse.success("评论更新成功", comment);
@@ -80,7 +82,7 @@ public class CommentController {
      * 删除评论
      */
     @DeleteMapping("/{commentId}")
-    public ApiResponse<String> deleteComment(@PathVariable Long commentId) {
+    public ApiResponse<String> deleteComment(@PathVariable UUID commentId) {
         try {
             commentService.deleteComment(commentId);
             return ApiResponse.success("评论删除成功", null);
@@ -93,7 +95,7 @@ public class CommentController {
      * 根据帖子ID获取评论列表
      */
     @GetMapping("/post/{postId}")
-    public ApiResponse<List<Comment>> getCommentsByPostId(@PathVariable Long postId) {
+    public ApiResponse<List<Comment>> getCommentsByPostId(@PathVariable UUID postId) {
         try {
             List<Comment> comments = commentService.findByPostId(postId);
             return ApiResponse.success("获取帖子评论成功", comments);
@@ -107,7 +109,7 @@ public class CommentController {
      */
     @GetMapping("/post/{postId}/page")
     public ApiResponse<Page<Comment>> getCommentsByPostIdPage(
-            @PathVariable Long postId,
+            @PathVariable UUID postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -127,7 +129,7 @@ public class CommentController {
      * 根据用户ID获取评论
      */
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<Comment>> getCommentsByUserId(@PathVariable Long userId) {
+    public ApiResponse<List<Comment>> getCommentsByUserId(@PathVariable UUID userId) {
         try {
             List<Comment> comments = commentService.findByUserId(userId);
             return ApiResponse.success("获取用户评论成功", comments);
@@ -216,7 +218,7 @@ public class CommentController {
      * 统计帖子的评论数量
      */
     @GetMapping("/count/post/{postId}")
-    public ApiResponse<Long> countCommentsByPostId(@PathVariable Long postId) {
+    public ApiResponse<Long> countCommentsByPostId(@PathVariable UUID postId) {
         try {
             long count = commentService.countByPostId(postId);
             return ApiResponse.success("统计帖子评论数量成功", count);
@@ -229,7 +231,7 @@ public class CommentController {
      * 统计用户的评论数量
      */
     @GetMapping("/count/user/{userId}")
-    public ApiResponse<Long> countCommentsByUserId(@PathVariable Long userId) {
+    public ApiResponse<Long> countCommentsByUserId(@PathVariable UUID userId) {
         try {
             long count = commentService.countByUserId(userId);
             return ApiResponse.success("统计用户评论数量成功", count);

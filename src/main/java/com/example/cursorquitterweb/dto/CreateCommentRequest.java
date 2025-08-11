@@ -1,19 +1,21 @@
 package com.example.cursorquitterweb.dto;
 
+import java.util.UUID;
+
 /**
  * 创建评论请求DTO
  */
 public class CreateCommentRequest {
     
-    private Long postId;
-    private Long userId;
+    private UUID postId;
+    private UUID userId;
     private String userNickname;
     private String userStage;
     private String content;
     
     public CreateCommentRequest() {}
     
-    public CreateCommentRequest(Long postId, Long userId, String userNickname, String userStage, String content) {
+    public CreateCommentRequest(UUID postId, UUID userId, String userNickname, String userStage, String content) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
@@ -22,19 +24,19 @@ public class CreateCommentRequest {
     }
     
     // Getters and Setters
-    public Long getPostId() {
+    public UUID getPostId() {
         return postId;
     }
     
-    public void setPostId(Long postId) {
+    public void setPostId(UUID postId) {
         this.postId = postId;
     }
     
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
     
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
     

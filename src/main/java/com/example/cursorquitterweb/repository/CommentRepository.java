@@ -12,37 +12,38 @@ import org.springframework.stereotype.Repository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 评论数据访问接口
  */
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, Long> {
+public interface CommentRepository extends JpaRepository<Comment, UUID> {
     
     /**
      * 根据评论ID查找评论（排除已删除的）
      */
-    Optional<Comment> findByCommentIdAndIsDeletedFalse(Long commentId);
+    Optional<Comment> findByCommentIdAndIsDeletedFalse(UUID commentId);
     
     /**
      * 根据帖子ID查找所有评论（排除已删除的）
      */
-    List<Comment> findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(Long postId);
+    List<Comment> findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(UUID postId);
     
     /**
      * 根据帖子ID分页查找评论（排除已删除的）
      */
-    Page<Comment> findByPostIdAndIsDeletedFalse(Pageable pageable, Long postId);
+    Page<Comment> findByPostIdAndIsDeletedFalse(Pageable pageable, UUID postId);
     
     /**
      * 根据用户ID查找用户的所有评论（排除已删除的）
      */
-    List<Comment> findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
+    List<Comment> findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID userId);
     
     /**
      * 根据用户ID分页查找用户的评论（排除已删除的）
      */
-    Page<Comment> findByUserIdAndIsDeletedFalse(Pageable pageable, Long userId);
+    Page<Comment> findByUserIdAndIsDeletedFalse(Pageable pageable, UUID userId);
     
     /**
      * 根据用户昵称查找评论（排除已删除的）
@@ -77,12 +78,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     /**
      * 统计帖子的评论数量（排除已删除的）
      */
-    long countByPostIdAndIsDeletedFalse(Long postId);
+    long countByPostIdAndIsDeletedFalse(UUID postId);
     
     /**
      * 统计用户的评论数量（排除已删除的）
      */
-    long countByUserIdAndIsDeletedFalse(Long userId);
+    long countByUserIdAndIsDeletedFalse(UUID userId);
     
     /**
      * 统计指定时间范围内的评论数量（排除已删除的）
@@ -94,12 +95,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      */
     @Modifying
     @Query("UPDATE Comment c SET c.isDeleted = true, c.updatedAt = :updatedAt WHERE c.commentId = :commentId")
-    void softDeleteComment(@Param("commentId") Long commentId, @Param("updatedAt") OffsetDateTime updatedAt);
+    void softDeleteComment(@Param("commentId") UUID commentId, @Param("updatedAt") OffsetDateTime updatedAt);
     
     /**
      * 根据帖子ID软删除所有评论
      */
     @Modifying
     @Query("UPDATE Comment c SET c.isDeleted = true, c.updatedAt = :updatedAt WHERE c.postId = :postId")
-    void softDeleteCommentsByPostId(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
+    void softDeleteCommentsByPostId(@Param("postId") UUID postId, @Param("updatedAt") OffsetDateTime updatedAt);
 }

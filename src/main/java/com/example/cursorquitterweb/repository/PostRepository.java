@@ -12,27 +12,28 @@ import org.springframework.stereotype.Repository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 帖子数据访问接口
  */
 @Repository
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, UUID> {
     
     /**
      * 根据帖子ID查找帖子（排除已删除的）
      */
-    Optional<Post> findByPostIdAndIsDeletedFalse(Long postId);
+    Optional<Post> findByPostIdAndIsDeletedFalse(UUID postId);
     
     /**
      * 根据用户ID查找用户的所有帖子（排除已删除的）
      */
-    List<Post> findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(Long userId);
+    List<Post> findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID userId);
     
     /**
      * 根据用户ID分页查找用户的所有帖子（排除已删除的）
      */
-    Page<Post> findByUserIdAndIsDeletedFalse(Pageable pageable, Long userId);
+    Page<Post> findByUserIdAndIsDeletedFalse(Pageable pageable, UUID userId);
     
     /**
      * 根据用户昵称查找帖子（排除已删除的）
@@ -70,19 +71,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByCreatedAtBetweenAndIsDeletedFalseOrderByCreatedAtDesc(OffsetDateTime startTime, OffsetDateTime endTime);
     
     /**
-     * 根据点赞数排序查找热门帖子（排除已删除的）
-     */
-    List<Post> findTop10ByIsDeletedFalseOrderByLikeCountDesc();
-    
-    /**
-     * 根据评论数排序查找热门帖子（排除已删除的）
-     */
-    List<Post> findTop10ByIsDeletedFalseOrderByCommentCountDesc();
-    
-    /**
      * 统计用户的帖子数量（排除已删除的）
      */
-    long countByUserIdAndIsDeletedFalse(Long userId);
+    long countByUserIdAndIsDeletedFalse(UUID userId);
     
     /**
      * 统计指定时间范围内的帖子数量（排除已删除的）
@@ -94,33 +85,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      */
     @Modifying
     @Query("UPDATE Post p SET p.isDeleted = true, p.updatedAt = :updatedAt WHERE p.postId = :postId")
-    void softDeletePost(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
-    
-    /**
-     * 增加点赞数
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1, p.updatedAt = :updatedAt WHERE p.postId = :postId")
-    void incrementLikeCount(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
-    
-    /**
-     * 减少点赞数
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.likeCount = GREATEST(p.likeCount - 1, 0), p.updatedAt = :updatedAt WHERE p.postId = :postId")
-    void decrementLikeCount(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
-    
-    /**
-     * 增加评论数
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1, p.updatedAt = :updatedAt WHERE p.postId = :postId")
-    void incrementCommentCount(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
-    
-    /**
-     * 减少评论数
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.commentCount = GREATEST(p.commentCount - 1, 0), p.updatedAt = :updatedAt WHERE p.postId = :postId")
-    void decrementCommentCount(@Param("postId") Long postId, @Param("updatedAt") OffsetDateTime updatedAt);
+    void softDeletePost(@Param("postId") UUID postId, @Param("updatedAt") OffsetDateTime updatedAt);
 }
