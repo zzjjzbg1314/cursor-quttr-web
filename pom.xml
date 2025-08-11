@@ -48,11 +48,7 @@
             <version>1.2.8</version>
         </dependency>
 
-        <!-- Flyway数据库迁移 -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
+
 
         <!-- H2数据库（用于测试） -->
         <dependency>

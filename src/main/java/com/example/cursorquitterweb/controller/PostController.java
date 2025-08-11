@@ -80,10 +80,10 @@ public class PostController {
      * 删除帖子
      */
     @DeleteMapping("/{postId}")
-    public ApiResponse<Void> deletePost(@PathVariable Long postId) {
+    public ApiResponse<String> deletePost(@PathVariable Long postId) {
         try {
             postService.deletePost(postId);
-            return ApiResponse.success(null, "帖子删除成功");
+            return ApiResponse.success("帖子删除成功", null);
         } catch (Exception e) {
             return ApiResponse.error("删除帖子失败: " + e.getMessage());
         }
@@ -129,7 +129,7 @@ public class PostController {
     public ApiResponse<List<Post>> getPostsByUserNickname(@PathVariable String userNickname) {
         try {
             List<Post> posts = postService.findByUserNickname(userNickname);
-            return ApiResponse.success(posts, "获取用户帖子成功");
+            return ApiResponse.success("获取用户帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取用户帖子失败: " + e.getMessage());
         }
@@ -142,7 +142,7 @@ public class PostController {
     public ApiResponse<List<Post>> getPostsByUserStage(@PathVariable String userStage) {
         try {
             List<Post> posts = postService.findByUserStage(userStage);
-            return ApiResponse.success(posts, "获取用户阶段帖子成功");
+            return ApiResponse.success("获取用户阶段帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取用户阶段帖子失败: " + e.getMessage());
         }
@@ -155,7 +155,7 @@ public class PostController {
     public ApiResponse<List<Post>> searchPostsByTitle(@RequestParam String title) {
         try {
             List<Post> posts = postService.searchByTitle(title);
-            return ApiResponse.success(posts, "搜索帖子成功");
+            return ApiResponse.success("搜索帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("搜索帖子失败: " + e.getMessage());
         }
@@ -168,7 +168,7 @@ public class PostController {
     public ApiResponse<List<Post>> searchPostsByContent(@RequestParam String content) {
         try {
             List<Post> posts = postService.searchByContent(content);
-            return ApiResponse.success(posts, "搜索帖子成功");
+            return ApiResponse.success("搜索帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("搜索帖子失败: " + e.getMessage());
         }
@@ -181,7 +181,7 @@ public class PostController {
     public ApiResponse<List<Post>> getHotPostsByLikes() {
         try {
             List<Post> posts = postService.getHotPostsByLikes();
-            return ApiResponse.success(posts, "获取热门帖子成功");
+            return ApiResponse.success("获取热门帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取热门帖子失败: " + e.getMessage());
         }
@@ -194,7 +194,7 @@ public class PostController {
     public ApiResponse<List<Post>> getHotPostsByComments() {
         try {
             List<Post> posts = postService.getHotPostsByComments();
-            return ApiResponse.success(posts, "获取热门帖子成功");
+            return ApiResponse.success("获取热门帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取热门帖子失败: " + e.getMessage());
         }
@@ -204,10 +204,10 @@ public class PostController {
      * 点赞帖子
      */
     @PostMapping("/{postId}/like")
-    public ApiResponse<Void> likePost(@PathVariable Long postId) {
+    public ApiResponse<String> likePost(@PathVariable Long postId) {
         try {
             postService.likePost(postId);
-            return ApiResponse.success(null, "点赞成功");
+            return ApiResponse.success("点赞成功", null);
         } catch (Exception e) {
             return ApiResponse.error("点赞失败: " + e.getMessage());
         }
@@ -217,10 +217,10 @@ public class PostController {
      * 取消点赞帖子
      */
     @PostMapping("/{postId}/unlike")
-    public ApiResponse<Void> unlikePost(@PathVariable Long postId) {
+    public ApiResponse<String> unlikePost(@PathVariable Long postId) {
         try {
             postService.unlikePost(postId);
-            return ApiResponse.success(null, "取消点赞成功");
+            return ApiResponse.success("取消点赞成功", null);
         } catch (Exception e) {
             return ApiResponse.error("取消点赞失败: " + e.getMessage());
         }
@@ -237,7 +237,7 @@ public class PostController {
             OffsetDateTime start = OffsetDateTime.parse(startTime);
             OffsetDateTime end = OffsetDateTime.parse(endTime);
             List<Post> posts = postService.findByTimeRange(start, end);
-            return ApiResponse.success(posts, "获取时间范围帖子成功");
+            return ApiResponse.success("获取时间范围帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取时间范围帖子失败: " + e.getMessage());
         }
@@ -250,7 +250,7 @@ public class PostController {
     public ApiResponse<Long> countPostsByUserId(@PathVariable Long userId) {
         try {
             long count = postService.countByUserId(userId);
-            return ApiResponse.success(count, "统计用户帖子数量成功");
+            return ApiResponse.success("统计用户帖子数量成功", count);
         } catch (Exception e) {
             return ApiResponse.error("统计用户帖子数量失败: " + e.getMessage());
         }
@@ -267,7 +267,7 @@ public class PostController {
             OffsetDateTime start = OffsetDateTime.parse(startTime);
             OffsetDateTime end = OffsetDateTime.parse(endTime);
             long count = postService.countByTimeRange(start, end);
-            return ApiResponse.success(count, "统计时间范围帖子数量成功");
+            return ApiResponse.success("统计时间范围帖子数量成功", count);
         } catch (Exception e) {
             return ApiResponse.error("统计时间范围帖子数量失败: " + e.getMessage());
         }
