@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.Post;
+import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -73,6 +74,16 @@ public interface PostService {
      * 获取所有帖子
      */
     List<Post> getAllPosts();
+    
+    /**
+     * 获取所有帖子（分页，包含点赞数）
+     */
+    Page<PostWithUpvotesDto> getAllPostsWithUpvotes(Pageable pageable);
+    
+    /**
+     * 获取所有帖子（包含点赞数）
+     */
+    List<PostWithUpvotesDto> getAllPostsWithUpvotes();
     
     /**
      * 根据时间范围查找帖子

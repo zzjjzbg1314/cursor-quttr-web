@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreatePostRequest;
+import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.dto.UpdatePostRequest;
 import com.example.cursorquitterweb.entity.Post;
 import com.example.cursorquitterweb.service.PostService;
@@ -93,7 +94,7 @@ public class PostController {
      * 获取所有帖子（分页）
      */
     @GetMapping("/getAllPosts")
-    public ApiResponse<Page<Post>> getAllPosts(
+    public ApiResponse<Page<PostWithUpvotesDto>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -102,7 +103,7 @@ public class PostController {
             Sort sort = sortDir.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Post> posts = postService.getAllPosts(pageable);
+            Page<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes(pageable);
             return ApiResponse.success("获取帖子列表成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
