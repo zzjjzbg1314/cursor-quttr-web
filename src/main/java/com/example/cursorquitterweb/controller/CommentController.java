@@ -16,16 +16,14 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.UUID;
 
 /**
  * 评论控制器
  */
 @RestController
 @RequestMapping("/api/comments")
-@CrossOrigin(origins = "*")
 public class CommentController {
-    
+
     @Autowired
     private CommentService commentService;
     

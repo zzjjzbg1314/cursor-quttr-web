@@ -22,7 +22,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/posts")
-@CrossOrigin(origins = "*")
 public class PostController {
     
     @Autowired
@@ -93,7 +92,7 @@ public class PostController {
     /**
      * 获取所有帖子（分页）
      */
-    @GetMapping
+    @GetMapping("/getAllPosts")
     public ApiResponse<Page<Post>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

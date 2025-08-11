@@ -17,7 +17,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/post-likes")
-@CrossOrigin(origins = "*")
 public class PostLikeController {
     
     @Autowired
