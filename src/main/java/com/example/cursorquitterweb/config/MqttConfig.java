@@ -52,29 +52,105 @@ public class MqttConfig {
      */
     @Bean
     public MqttClient mqttClient() throws MqttException {
-        MqttClient mqttClient = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
+        System.out.println("=== MQTT客户端创建开始 ===");
+        System.out.println("MQTT Broker URL: " + brokerUrl);
+        System.out.println("MQTT Client ID: " + clientId);
+        System.out.println("MQTT Connection Timeout: " + connectionTimeout + " seconds");
+        System.out.println("MQTT Keep Alive Interval: " + keepAliveInterval + " seconds");
+        System.out.println("MQTT Clean Session: " + cleanSession);
+        System.out.println("MQTT Auto Reconnect: " + autoReconnect);
         
-        MqttConnectOptions options = new MqttConnectOptions();
-        options.setCleanSession(cleanSession);
-        options.setConnectionTimeout(connectionTimeout);
-        options.setKeepAliveInterval(keepAliveInterval);
-        options.setAutomaticReconnect(autoReconnect);
-        
-        // 优先使用阿里云AccessKey认证
-        if (accessKey != null && !accessKey.isEmpty() && secretKey != null && !secretKey.isEmpty()) {
-            // 阿里云MQTT使用AccessKey作为用户名，SecretKey作为密码
-            options.setUserName(accessKey);
-            options.setPassword(secretKey.toCharArray());
-        } else if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-            // 备用：传统用户名密码认证
-            options.setUserName(username);
-            options.setPassword(password.toCharArray());
-        } else {
+        try {
+            System.out.println("正在创建MQTT客户端...");
+            MqttClient mqttClient = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
+            System.out.println("MQTT客户端创建成功: " + mqttClient.getClientId());
+            
+            System.out.println("正在配置MQTT连接选项...");
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(cleanSession);
+            options.setConnectionTimeout(connectionTimeout);
+            options.setKeepAliveInterval(keepAliveInterval);
+            options.setAutomaticReconnect(autoReconnect);
+            
+            System.out.println("MQTT连接选项配置完成");
+            
+            // 优先使用阿里云AccessKey认证
+            if (accessKey != null && !accessKey.isEmpty() && secretKey != null && !secretKey.isEmpty()) {
+                System.out.println("使用阿里云AccessKey认证方式");
+                System.out.println("AccessKey: " + accessKey.substring(0, Math.min(accessKey.length(), 8)) + "...");
+                System.out.println("SecretKey: " + secretKey.substring(0, Math.min(secretKey.length(), 8)) + "...");
+                // 阿里云MQTT使用AccessKey作为用户名，SecretKey作为密码
+                options.setUserName(accessKey);
+                options.setPassword(secretKey.toCharArray());
+            } else if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+                System.out.println("使用传统用户名密码认证方式");
+                System.out.println("Username: " + username);
+                System.out.println("Password: " + password.substring(0, Math.min(password.length(), 8)) + "...");
+                // 备用：传统用户名密码认证
+                options.setUserName(username);
+                options.setPassword(password.toCharArray());
+            } else {
+                System.out.println("警告: 未配置任何认证信息，将使用匿名连接");
+            }
+            
+            System.out.println("正在连接到MQTT Broker: " + brokerUrl);
+            System.out.println("连接超时时间: " + connectionTimeout + " 秒");
+            
+            long startTime = System.currentTimeMillis();
+            mqttClient.connect(options);
+            long endTime = System.currentTimeMillis();
+            
+            System.out.println("MQTT连接成功! 耗时: " + (endTime - startTime) + " ms");
+            System.out.println("客户端ID: " + mqttClient.getClientId());
+            System.out.println("服务器URI: " + mqttClient.getServerURI());
+            System.out.println("连接状态: " + (mqttClient.isConnected() ? "已连接" : "未连接"));
+            
+            // 设置连接丢失回调
+            mqttClient.setCallback(new org.eclipse.paho.client.mqttv3.MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    System.out.println("=== MQTT连接丢失 ===");
+                    System.out.println("连接丢失时间: " + java.time.LocalDateTime.now());
+                    System.out.println("丢失原因: " + cause.getMessage());
+                    cause.printStackTrace();
+                }
+                
+                @Override
+                public void messageArrived(String topic, org.eclipse.paho.client.mqttv3.MqttMessage message) {
+                    System.out.println("=== MQTT消息到达 ===");
+                    System.out.println("主题: " + topic);
+                    System.out.println("消息内容: " + new String(message.getPayload()));
+                    System.out.println("QoS: " + message.getQos());
+                }
+                
+                @Override
+                public void deliveryComplete(org.eclipse.paho.client.mqttv3.IMqttDeliveryToken token) {
+                    System.out.println("=== MQTT消息投递完成 ===");
+                    System.out.println("投递完成时间: " + java.time.LocalDateTime.now());
+                }
+            });
+            
+            System.out.println("MQTT回调设置完成");
+            System.out.println("=== MQTT客户端创建完成 ===");
+            
+            return mqttClient;
+            
+        } catch (MqttException e) {
+            System.out.println("=== MQTT客户端创建失败 ===");
+            System.out.println("错误代码: " + e.getReasonCode());
+            System.out.println("错误消息: " + e.getMessage());
+            System.out.println("错误原因: " + e.getCause());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            System.out.println("=== MQTT客户端创建过程中发生未知错误 ===");
+            System.out.println("错误类型: " + e.getClass().getSimpleName());
+            System.out.println("错误消息: " + e.getMessage());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
+            throw new MqttException(e);
         }
-        
-        mqttClient.connect(options);
-        
-        return mqttClient;
     }
     
     // Getter方法

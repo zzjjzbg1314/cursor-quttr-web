@@ -33,13 +33,49 @@ public class ChatServiceImpl implements ChatService {
     
     @Override
     public boolean sendMessage(ChatMessageRequest request, String ipAddress) {
+        System.out.println("=== 聊天消息发送开始 ===");
+        System.out.println("发送时间: " + LocalDateTime.now());
+        System.out.println("发送者IP: " + ipAddress);
+        System.out.println("消息内容: " + request.getContent());
+        System.out.println("发送者昵称: " + request.getNickName());
+        System.out.println("用户阶段: " + request.getUserStage());
+        System.out.println("消息类型: " + request.getMsgType());
+        
         try {
+            // 检查MQTT客户端状态
+            if (mqttClient == null) {
+                System.out.println("错误: MQTT客户端为空");
+                return false;
+            }
+            
+            System.out.println("MQTT客户端状态检查:");
+            System.out.println("  客户端ID: " + mqttClient.getClientId());
+            System.out.println("  服务器URI: " + mqttClient.getServerURI());
+            System.out.println("  连接状态: " + (mqttClient.isConnected() ? "已连接" : "未连接"));
+            
+            if (!mqttClient.isConnected()) {
+                System.out.println("警告: MQTT客户端未连接，尝试重新连接...");
+                try {
+                    // 这里可以添加重连逻辑
+                    System.out.println("MQTT重连功能需要手动实现");
+                } catch (Exception reconnectException) {
+                    System.out.println("MQTT重连失败: " + reconnectException.getMessage());
+                    return false;
+                }
+            }
+            
             // 通过MQTT广播消息
             broadcastMessage(request, ipAddress);
-            logger.info("聊天消息已通过MQTT广播: {}", request.getContent());
+            System.out.println("聊天消息已通过MQTT广播: " + request.getContent());
+            System.out.println("=== 聊天消息发送成功 ===");
             return true;
             
         } catch (Exception e) {
+            System.out.println("=== 聊天消息发送失败 ===");
+            System.out.println("错误类型: " + e.getClass().getSimpleName());
+            System.out.println("错误消息: " + e.getMessage());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
             logger.error("发送聊天消息失败", e);
             return false;
         }
@@ -49,11 +85,17 @@ public class ChatServiceImpl implements ChatService {
      * 通过MQTT广播消息
      */
     private void broadcastMessage(ChatMessageRequest request, String ipAddress) {
+        System.out.println("=== MQTT消息广播开始 ===");
+        System.out.println("广播时间: " + LocalDateTime.now());
+        
         try {
             // 使用配置的主题
             String topic = mqttTopicPrefix;
+            System.out.println("MQTT主题: " + topic);
+            System.out.println("MQTT主题前缀配置: " + mqttTopicPrefix);
             
             // 创建简化的消息内容，只包含必要信息
+            System.out.println("正在创建消息DTO...");
             ChatMessageDto messageDto = new ChatMessageDto();
             messageDto.setNickName(request.getNickName());
             messageDto.setUserStage(request.getUserStage());
@@ -61,24 +103,63 @@ public class ChatServiceImpl implements ChatService {
             messageDto.setMsgType(request.getMsgType());
             messageDto.setTimestamp(LocalDateTime.now());
             
+            System.out.println("消息DTO创建完成:");
+            System.out.println("  昵称: " + messageDto.getNickName());
+            System.out.println("  用户阶段: " + messageDto.getUserStage());
+            System.out.println("  内容: " + messageDto.getContent());
+            System.out.println("  消息类型: " + messageDto.getMsgType());
+            System.out.println("  时间戳: " + messageDto.getTimestamp());
+            
             // 转换为JSON
+            System.out.println("正在序列化消息为JSON...");
             String payload = objectMapper.writeValueAsString(messageDto);
+            System.out.println("JSON序列化完成，长度: " + payload.length() + " 字符");
+            System.out.println("JSON内容: " + payload);
             
             // 创建MQTT消息
+            System.out.println("正在创建MQTT消息...");
             MqttMessage mqttMessage = new MqttMessage(payload.getBytes());
             mqttMessage.setQos(1); // 至少一次传递
+            System.out.println("MQTT消息创建完成，QoS: " + mqttMessage.getQos());
+            System.out.println("消息大小: " + mqttMessage.getPayload().length + " 字节");
             
             // 发布消息
+            System.out.println("正在发布MQTT消息到主题: " + topic);
+            long publishStartTime = System.currentTimeMillis();
+            
             mqttClient.publish(topic, mqttMessage);
             
+            long publishEndTime = System.currentTimeMillis();
+            System.out.println("MQTT消息发布成功! 耗时: " + (publishEndTime - publishStartTime) + " ms");
+            System.out.println("消息已通过MQTT广播到主题: " + topic);
+            System.out.println("消息内容: " + request.getContent());
+            
             logger.info("消息已通过MQTT广播到主题: {}, 内容: {}", topic, request.getContent());
+            System.out.println("=== MQTT消息广播完成 ===");
             
         } catch (JsonProcessingException e) {
+            System.out.println("=== JSON序列化失败 ===");
+            System.out.println("序列化错误: " + e.getMessage());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
             logger.error("序列化聊天消息失败", e);
             throw new RuntimeException("序列化聊天消息失败", e);
         } catch (MqttException e) {
+            System.out.println("=== MQTT广播消息失败 ===");
+            System.out.println("MQTT错误代码: " + e.getReasonCode());
+            System.out.println("MQTT错误消息: " + e.getMessage());
+            System.out.println("MQTT错误原因: " + e.getCause());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
             logger.error("MQTT广播消息失败", e);
             throw new RuntimeException("MQTT广播消息失败", e);
+        } catch (Exception e) {
+            System.out.println("=== MQTT广播过程中发生未知错误 ===");
+            System.out.println("错误类型: " + e.getClass().getSimpleName());
+            System.out.println("错误消息: " + e.getMessage());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
+            throw new RuntimeException("MQTT广播过程中发生未知错误", e);
         }
     }
     
