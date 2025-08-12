@@ -108,6 +108,9 @@ mqtt:
   password: ${MQTT_PASSWORD:}
   connection:
     timeout: ${MQTT_CONNECTION_TIMEOUT:30}
+    retry:
+      count: ${MQTT_CONNECTION_RETRY_COUNT:3}
+      delay: ${MQTT_CONNECTION_RETRY_DELAY:5000}
   keep:
     alive:
       interval: ${MQTT_KEEP_ALIVE_INTERVAL:60}
@@ -115,6 +118,8 @@ mqtt:
     session: ${MQTT_CLEAN_SESSION:true}
   auto:
     reconnect: ${MQTT_AUTO_RECONNECT:true}
+  max:
+    inflight: ${MQTT_MAX_INFLIGHT:1000}
   # 阿里云MQTT实例信息
   instance:
     id: your_instance_id_here
