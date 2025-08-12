@@ -93,6 +93,36 @@ wechat:
   code2-session-url: https://api.weixin.qq.com/sns/jscode2session
   user-info-url: https://api.weixin.qq.com/sns/userinfo
 
+
+# MQTT配置 - 阿里云MQTT
+mqtt:
+  broker:
+    url: ${MQTT_BROKER_URL:tcp://your_instance_id_here.mqtt.aliyuncs.com:1883}
+  client:
+    id: ${MQTT_CLIENT_ID:GID_QUITTR_${random.uuid}}
+  # 阿里云AccessKey认证
+  access-key: your_access_key_here
+  secret-key: your_secret_key_here
+  # 传统用户名密码认证（可选）m
+  username: ${MQTT_USERNAME:}
+  password: ${MQTT_PASSWORD:}
+  connection:
+    timeout: ${MQTT_CONNECTION_TIMEOUT:30}
+  keep:
+    alive:
+      interval: ${MQTT_KEEP_ALIVE_INTERVAL:60}
+  clean:
+    session: ${MQTT_CLEAN_SESSION:true}
+  auto:
+    reconnect: ${MQTT_AUTO_RECONNECT:true}
+  # 阿里云MQTT实例信息
+  instance:
+    id: your_instance_id_here
+  group:
+    id: GID_QUITTR
+  topic:
+    prefix: CHAT_OFFICIAL_GROUP
+
 # 日志配置
 logging:
   config: classpath:logback-spring.xml

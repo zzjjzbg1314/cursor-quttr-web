@@ -26,7 +26,8 @@ public class HomeController {
             "微信登录功能",
             "完整的日志中心",
             "HTTPS安全访问",
-            "SSL证书管理"
+            "SSL证书管理",
+            "群组聊天功能"
         });
         appInfo.put("endpoints", new String[]{
             "/api/hello - 欢迎信息",
@@ -36,7 +37,9 @@ public class HomeController {
             "/api/ssl/info - SSL证书信息",
             "/api/ssl/status - SSL状态",
             "/api/logs/level - 日志级别",
-            "/api/logs/files - 日志文件信息"
+            "/api/logs/files - 日志文件信息",
+            "/api/chat/sendMsg - 发送聊天消息",
+            "/api/chat/info - 聊天功能信息"
         });
         
         return ApiResponse.success(appInfo);
