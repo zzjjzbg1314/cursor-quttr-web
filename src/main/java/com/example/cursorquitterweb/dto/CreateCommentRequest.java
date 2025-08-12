@@ -1,21 +1,19 @@
 package com.example.cursorquitterweb.dto;
 
-import java.util.UUID;
-
 /**
  * 创建评论请求DTO
  */
 public class CreateCommentRequest {
     
-    private UUID postId;
-    private UUID userId;
+    private String postId;  // 改为String类型，便于前端传递
+    private String userId;  // 改为String类型，便于前端传递
     private String userNickname;
     private String userStage;
     private String content;
     
     public CreateCommentRequest() {}
     
-    public CreateCommentRequest(UUID postId, UUID userId, String userNickname, String userStage, String content) {
+    public CreateCommentRequest(String postId, String userId, String userNickname, String userStage, String content) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
@@ -24,19 +22,19 @@ public class CreateCommentRequest {
     }
     
     // Getters and Setters
-    public UUID getPostId() {
+    public String getPostId() {
         return postId;
     }
     
-    public void setPostId(UUID postId) {
+    public void setPostId(String postId) {
         this.postId = postId;
     }
     
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
     
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     
@@ -67,8 +65,8 @@ public class CreateCommentRequest {
     @Override
     public String toString() {
         return "CreateCommentRequest{" +
-                "postId=" + postId +
-                ", userId=" + userId +
+                "postId='" + postId + '\'' +
+                ", userId='" + userId + '\'' +
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
                 ", content='" + content + '\'' +

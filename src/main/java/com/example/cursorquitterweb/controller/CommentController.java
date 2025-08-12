@@ -30,7 +30,7 @@ public class CommentController {
     /**
      * 创建新评论
      */
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<Comment> createComment(@RequestBody CreateCommentRequest request) {
         try {
             Comment comment = commentService.createComment(
@@ -66,7 +66,7 @@ public class CommentController {
     /**
      * 更新评论
      */
-    @PutMapping("/{commentId}")
+    @PutMapping("/{commentId}/update")
     public ApiResponse<Comment> updateComment(@PathVariable UUID commentId, @RequestBody UpdateCommentRequest request) {
         try {
             Comment comment = commentService.updateComment(commentId, request.getContent());
@@ -79,7 +79,7 @@ public class CommentController {
     /**
      * 删除评论
      */
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/{commentId}/delete")
     public ApiResponse<String> deleteComment(@PathVariable UUID commentId) {
         try {
             commentService.deleteComment(commentId);
@@ -178,7 +178,7 @@ public class CommentController {
     /**
      * 获取所有评论（分页）
      */
-    @GetMapping
+    @GetMapping("/getAllComments")
     public ApiResponse<Page<Comment>> getAllComments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

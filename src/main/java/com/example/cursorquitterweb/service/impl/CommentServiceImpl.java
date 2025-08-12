@@ -30,9 +30,17 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public Comment createComment(UUID postId, UUID userId, String userNickname, String userStage, String content) {
-        Comment comment = new Comment(postId, userId, userNickname, userStage, content);
-        return commentRepository.save(comment);
+    public Comment createComment(String postId, String userId, String userNickname, String userStage, String content) {
+        try {
+            // 将String类型的ID转换为UUID类型
+            UUID postUuid = UUID.fromString(postId);
+            UUID userUuid = UUID.fromString(userId);
+            
+            Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, content);
+            return commentRepository.save(comment);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("无效的UUID格式: " + e.getMessage());
+        }
     }
     
     @Override

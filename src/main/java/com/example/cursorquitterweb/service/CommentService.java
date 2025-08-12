@@ -22,7 +22,7 @@ public interface CommentService {
     /**
      * 创建新评论
      */
-    Comment createComment(UUID postId, UUID userId, String userNickname, String userStage, String content);
+    Comment createComment(String postId, String userId, String userNickname, String userStage, String content);
     
     /**
      * 更新评论内容
