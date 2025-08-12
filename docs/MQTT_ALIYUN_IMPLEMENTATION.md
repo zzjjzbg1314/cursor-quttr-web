@@ -86,7 +86,7 @@ export MQTT_INSTANCE_ID=your_instance_id_here
 # 接入点地址
 export MQTT_ENDPOINT=your_instance_id_here.mqtt.aliyuncs.com
 
-# AccessKey和SecretKey
+# AccessKey和SecretKey - 请使用你自己的凭据
 export MQTT_ACCESS_KEY=your_access_key_here
 export MQTT_SECRET_KEY=your_secret_key_here
 

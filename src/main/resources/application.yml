@@ -101,9 +101,9 @@ mqtt:
     id: ${MQTT_INSTANCE_ID:your_instance_id_here}
   # 接入点地址
   endpoint: ${MQTT_ENDPOINT:your_instance_id_here.mqtt.aliyuncs.com}
-  # 阿里云AccessKey认证
-  access-key: ${MQTT_ACCESS_KEY:your_access_key_here}
-  secret-key: ${MQTT_SECRET_KEY:your_secret_key_here}
+  # 阿里云AccessKey认证 - 请通过环境变量设置
+  access-key: ${MQTT_ACCESS_KEY:}
+  secret-key: ${MQTT_SECRET_KEY:}
   # MQ4IoT客户端配置
   group:
     id: ${MQTT_GROUP_ID:GID_QUITTR}

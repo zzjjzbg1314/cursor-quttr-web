@@ -330,3 +330,7 @@ export SHOW_SQL=false
 ## 许可证
 
 本项目采用MIT许可证。 
+
+echo 'export MQTT_ACCESS_KEY="your-access-key-id"' >> ~/.bashrc
+echo 'export MQTT_SECRET_KEY="your-access-key-secret"' >> ~/.bashrc
+source ~/.bashrc

@@ -27,11 +27,11 @@ public class MqttConfig {
     @Value("${mqtt.endpoint:your_instance_id_here.mqtt.aliyuncs.com}")
     private String endPoint;
     
-    @Value("${mqtt.access-key:}")
-    private String accessKey;
-    
-    @Value("${mqtt.secret-key:}")
-    private String secretKey;
+//    @Value("${mqtt.access-key:}")
+//    private String accessKey;
+//
+//    @Value("${mqtt.secret-key:}")
+//    private String secretKey;
     
     @Value("${mqtt.group.id:GID_QUITTR}")
     private String groupId;
@@ -54,6 +54,11 @@ public class MqttConfig {
      */
     @Bean
     public MqttClient mqttClient() throws Exception {
+        String accessKey = "your_access_key_here";
+        /**
+         * 账号 secretKey，从账号系统控制台获取，仅在Signature鉴权模式下需要设置
+         */
+        String secretKey = "your_secret_key_here";
         System.out.println("=== MQTT客户端创建开始（阿里云MQ4IoT官方方式） ===");
         System.out.println("Instance ID: " + instanceId);
         System.out.println("End Point: " + endPoint);
@@ -186,14 +191,14 @@ public class MqttConfig {
     public String getEndPoint() {
         return endPoint;
     }
-    
-    public String getAccessKey() {
-        return accessKey;
-    }
-    
-    public String getSecretKey() {
-        return secretKey;
-    }
+//
+//    public String getAccessKey() {
+//        return accessKey;
+//    }
+//
+//    public String getSecretKey() {
+//        return secretKey;
+//    }
     
     public String getGroupId() {
         return groupId;

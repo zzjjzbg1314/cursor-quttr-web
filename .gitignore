@@ -43,4 +43,18 @@ logs/
 
 ### Application Properties ###
 application-local.yml
-application-prod.yml 
+application-prod.yml
+
+### Environment Variables ###
+.env
+.env.local
+.env.prod
+.env.*.local
+
+### Secrets and Keys ###
+*.pem
+*.key
+*.p12
+*.jks
+secrets/
+keys/ 
