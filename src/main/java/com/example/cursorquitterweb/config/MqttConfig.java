@@ -201,8 +201,8 @@ public class MqttConfig {
                         public void checkServerTrusted(X509Certificate[] certs, String authType) { }
                     }
                 };
-                
-                SSLContext sslContext = SSLContext.getInstance("TLS");
+
+                SSLContext sslContext = SSLContext.getInstance("TLSv1.2"); // 明确指定版本
                 sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
                 
                 options.setSocketFactory(sslContext.getSocketFactory());
