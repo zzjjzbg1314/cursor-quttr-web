@@ -17,7 +17,7 @@ import org.springframework.context.annotation.PropertySource;
 public class MqttConfig {
     
 
-    @Value("${mqtt.broker.url:tcp://your_instance_id_here.mqtt.aliyuncs.com:1883}")
+    @Value("${mqtt.broker.url:ssl://your_instance_id_here.mqtt.aliyuncs.com:8883}")
     private String brokerUrl;
     
     @Value("${mqtt.client.id:GID_QUITTR_${random.uuid}}")
