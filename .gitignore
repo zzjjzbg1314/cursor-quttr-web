@@ -44,6 +44,7 @@ logs/
 ### Application Properties ###
 application-local.yml
 application-prod.yml
+application-template.yml
 
 ### Environment Variables ###
 .env

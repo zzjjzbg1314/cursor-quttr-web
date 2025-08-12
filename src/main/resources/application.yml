@@ -98,26 +98,20 @@ wechat:
 mqtt:
   # 阿里云MQ4IoT实例信息
   instance:
-    id: ${MQTT_INSTANCE_ID:your_instance_id_here}
+    id: ${MQTT_INSTANCE_ID:}
   # 接入点地址
-  endpoint: ${MQTT_ENDPOINT:your_instance_id_here.mqtt.aliyuncs.com}
-  # 阿里云AccessKey认证 - 请通过环境变量设置
+  endpoint: ${MQTT_ENDPOINT:}
+  # 阿里云AccessKey认证 - 必须通过环境变量设置
   access-key: ${MQTT_ACCESS_KEY:}
   secret-key: ${MQTT_SECRET_KEY:}
-  
-  # 调试信息 - 显示实际读取的值
-  debug:
-    access-key: ${MQTT_ACCESS_KEY:NOT_SET}
-    secret-key: ${MQTT_SECRET_KEY:NOT_SET}
-    instance-id: ${MQTT_INSTANCE_ID:NOT_SET}
   # MQ4IoT客户端配置
   group:
-    id: ${MQTT_GROUP_ID:GID_QUITTR}
+    id: ${MQTT_GROUP_ID:}
   device:
-    id: ${MQTT_DEVICE_ID:${random.uuid}}
+    id: ${MQTT_DEVICE_ID:}
   # 主题配置
   parent:
-    topic: ${MQTT_PARENT_TOPIC:CHAT_OFFICIAL_GROUP}
+    topic: ${MQTT_PARENT_TOPIC:}
   # QoS配置
   qos:
     level: ${MQTT_QOS_LEVEL:0}
