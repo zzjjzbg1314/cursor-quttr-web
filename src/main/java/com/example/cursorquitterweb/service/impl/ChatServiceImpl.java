@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.time.LocalDateTime;
 
 /**
- * 聊天服务实现类 - 仅MQTT广播，不存储数据
+ * 聊天服务实现类 - 完全按照阿里云MQ4IoT官方示例实现
  */
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -27,19 +27,32 @@ public class ChatServiceImpl implements ChatService {
     @Autowired
     private ObjectMapper objectMapper;
     
-    // MQTT主题前缀 - 从配置文件读取
-    @Value("${mqtt.topic.prefix:CHAT_OFFICIAL_GROUP}")
-    private String mqttTopicPrefix;
+    // MQTT主题配置 - 从配置文件读取
+    @Value("${mqtt.parent.topic:CHAT_OFFICIAL_GROUP}")
+    private String parentTopic;
+    
+    @Value("${mqtt.qos.level:0}")
+    private int qosLevel;
+    
+    @Value("${mqtt.group.id:GID_QUITTR}")
+    private String groupId;
+    
+    @Value("${mqtt.device.id:${random.uuid}}")
+    private String deviceId;
     
     @Override
     public boolean sendMessage(ChatMessageRequest request, String ipAddress) {
-        System.out.println("=== 聊天消息发送开始 ===");
+        System.out.println("=== 聊天消息发送开始（阿里云MQ4IoT官方方式） ===");
         System.out.println("发送时间: " + LocalDateTime.now());
         System.out.println("发送者IP: " + ipAddress);
         System.out.println("消息内容: " + request.getContent());
         System.out.println("发送者昵称: " + request.getNickName());
         System.out.println("用户阶段: " + request.getUserStage());
         System.out.println("消息类型: " + request.getMsgType());
+        System.out.println("Parent Topic: " + parentTopic);
+        System.out.println("QoS Level: " + qosLevel);
+        System.out.println("Group ID: " + groupId);
+        System.out.println("Device ID: " + deviceId);
         
         try {
             // 检查MQTT客户端状态
@@ -54,14 +67,8 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("  连接状态: " + (mqttClient.isConnected() ? "已连接" : "未连接"));
             
             if (!mqttClient.isConnected()) {
-                System.out.println("警告: MQTT客户端未连接，尝试重新连接...");
-                try {
-                    // 这里可以添加重连逻辑
-                    System.out.println("MQTT重连功能需要手动实现");
-                } catch (Exception reconnectException) {
-                    System.out.println("MQTT重连失败: " + reconnectException.getMessage());
-                    return false;
-                }
+                System.out.println("警告: MQTT客户端未连接，无法发送消息");
+                return false;
             }
             
             // 通过MQTT广播消息
@@ -83,16 +90,17 @@ public class ChatServiceImpl implements ChatService {
     
     /**
      * 通过MQTT广播消息
+     * 完全按照阿里云MQ4IoT官方示例实现
      */
     private void broadcastMessage(ChatMessageRequest request, String ipAddress) {
-        System.out.println("=== MQTT消息广播开始 ===");
+        System.out.println("=== MQTT消息广播开始（阿里云MQ4IoT官方方式） ===");
         System.out.println("广播时间: " + LocalDateTime.now());
         
         try {
-            // 使用配置的主题
-            String topic = mqttTopicPrefix;
+            // 构造完整的topic：parentTopic/子主题
+            String topic = parentTopic + "/chat";
             System.out.println("MQTT主题: " + topic);
-            System.out.println("MQTT主题前缀配置: " + mqttTopicPrefix);
+            System.out.println("Parent Topic: " + parentTopic);
             
             // 创建简化的消息内容，只包含必要信息
             System.out.println("正在创建消息DTO...");
@@ -102,6 +110,7 @@ public class ChatServiceImpl implements ChatService {
             messageDto.setContent(request.getContent());
             messageDto.setMsgType(request.getMsgType());
             messageDto.setTimestamp(LocalDateTime.now());
+            messageDto.setIpAddress(ipAddress);
             
             System.out.println("消息DTO创建完成:");
             System.out.println("  昵称: " + messageDto.getNickName());
@@ -109,6 +118,7 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("  内容: " + messageDto.getContent());
             System.out.println("  消息类型: " + messageDto.getMsgType());
             System.out.println("  时间戳: " + messageDto.getTimestamp());
+            System.out.println("  IP地址: " + messageDto.getIpAddress());
             
             // 转换为JSON
             System.out.println("正在序列化消息为JSON...");
@@ -119,7 +129,7 @@ public class ChatServiceImpl implements ChatService {
             // 创建MQTT消息
             System.out.println("正在创建MQTT消息...");
             MqttMessage mqttMessage = new MqttMessage(payload.getBytes());
-            mqttMessage.setQos(1); // 至少一次传递
+            mqttMessage.setQos(qosLevel); // 使用配置的QoS级别
             System.out.println("MQTT消息创建完成，QoS: " + mqttMessage.getQos());
             System.out.println("消息大小: " + mqttMessage.getPayload().length + " 字节");
             
@@ -133,6 +143,9 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("MQTT消息发布成功! 耗时: " + (publishEndTime - publishStartTime) + " ms");
             System.out.println("消息已通过MQTT广播到主题: " + topic);
             System.out.println("消息内容: " + request.getContent());
+            
+            // 发送点对点消息示例（可选）
+            sendP2PMessage(request, ipAddress);
             
             logger.info("消息已通过MQTT广播到主题: {}, 内容: {}", topic, request.getContent());
             System.out.println("=== MQTT消息广播完成 ===");
@@ -164,6 +177,42 @@ public class ChatServiceImpl implements ChatService {
     }
     
     /**
+     * 发送点对点消息
+     * 按照阿里云MQ4IoT官方示例实现
+     */
+    private void sendP2PMessage(ChatMessageRequest request, String ipAddress) {
+        try {
+            // 点对点消息的topic格式：parentTopic/p2p/targetClientId
+            String targetClientId = groupId + "@@@" + deviceId;
+            String p2pTopic = parentTopic + "/p2p/" + targetClientId;
+            
+            System.out.println("正在发送点对点消息...");
+            System.out.println("点对点主题: " + p2pTopic);
+            System.out.println("目标客户端ID: " + targetClientId);
+            
+            // 创建点对点消息内容
+            ChatMessageDto p2pMessage = new ChatMessageDto();
+            p2pMessage.setNickName(request.getNickName());
+            p2pMessage.setUserStage(request.getUserStage());
+            p2pMessage.setContent("P2P: " + request.getContent());
+            p2pMessage.setMsgType("p2p");
+            p2pMessage.setTimestamp(LocalDateTime.now());
+            p2pMessage.setIpAddress(ipAddress);
+            
+            String p2pPayload = objectMapper.writeValueAsString(p2pMessage);
+            MqttMessage p2pMqttMessage = new MqttMessage(p2pPayload.getBytes());
+            p2pMqttMessage.setQos(qosLevel);
+            
+            mqttClient.publish(p2pTopic, p2pMqttMessage);
+            System.out.println("点对点消息发送成功");
+            
+        } catch (Exception e) {
+            System.out.println("点对点消息发送失败: " + e.getMessage());
+            // 点对点消息失败不影响主要功能
+        }
+    }
+    
+    /**
      * 聊天消息DTO，用于MQTT传输（不存储到数据库）
      */
     public static class ChatMessageDto {
@@ -172,6 +221,7 @@ public class ChatServiceImpl implements ChatService {
         private String content;
         private String msgType;
         private LocalDateTime timestamp;
+        private String ipAddress;
         
         // Getter和Setter方法
         public String getNickName() {
@@ -212,6 +262,14 @@ public class ChatServiceImpl implements ChatService {
         
         public void setTimestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
+        }
+        
+        public String getIpAddress() {
+            return ipAddress;
+        }
+        
+        public void setIpAddress(String ipAddress) {
+            this.ipAddress = ipAddress;
         }
     }
 }
