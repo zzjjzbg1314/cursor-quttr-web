@@ -98,7 +98,8 @@ public class ChatServiceImpl implements ChatService {
         
         try {
             // 构造完整的topic：parentTopic/子主题
-            String topic = parentTopic + "/chat";
+//            String topic = parentTopic + "/chat";
+            String topic = parentTopic;
             System.out.println("MQTT主题: " + topic);
             System.out.println("Parent Topic: " + parentTopic);
             
@@ -145,7 +146,7 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("消息内容: " + request.getContent());
             
             // 发送点对点消息示例（可选）
-            sendP2PMessage(request, ipAddress);
+//            sendP2PMessage(request, ipAddress);
             
             logger.info("消息已通过MQTT广播到主题: {}, 内容: {}", topic, request.getContent());
             System.out.println("=== MQTT消息广播完成 ===");
