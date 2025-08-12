@@ -31,7 +31,7 @@ public class PostController {
     /**
      * 创建新帖子
      */
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<Post> createPost(@RequestBody CreatePostRequest request) {
         try {
             Post post = postService.createPost(
@@ -67,7 +67,7 @@ public class PostController {
     /**
      * 更新帖子
      */
-    @PutMapping("/{postId}")
+    @PutMapping("/{postId}/update")
     public ApiResponse<Post> updatePost(@PathVariable UUID postId, @RequestBody UpdatePostRequest request) {
         try {
             Post post = postService.updatePost(postId, request.getTitle(), request.getContent());
@@ -80,7 +80,7 @@ public class PostController {
     /**
      * 删除帖子
      */
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/{postId}/delete")
     public ApiResponse<String> deletePost(@PathVariable UUID postId) {
         try {
             postService.deletePost(postId);
@@ -91,7 +91,7 @@ public class PostController {
     }
     
     /**
-     * 获取所有帖子（分页）
+     * 获取所有帖子（分页，包含点赞数）
      */
     @GetMapping("/getAllPosts")
     public ApiResponse<Page<PostWithUpvotesDto>> getAllPosts(
@@ -104,6 +104,19 @@ public class PostController {
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
             Page<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes(pageable);
+            return ApiResponse.success("获取帖子列表成功", posts);
+        } catch (Exception e) {
+            return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取所有帖子（包含点赞数，不分页）
+     */
+    @GetMapping("/getAllPostsList")
+    public ApiResponse<List<PostWithUpvotesDto>> getAllPostsList() {
+        try {
+            List<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes();
             return ApiResponse.success("获取帖子列表成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
