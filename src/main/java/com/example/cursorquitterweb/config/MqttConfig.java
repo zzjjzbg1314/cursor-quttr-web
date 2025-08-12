@@ -27,11 +27,11 @@ public class MqttConfig {
     @Value("${mqtt.endpoint:your_instance_id_here.mqtt.aliyuncs.com}")
     private String endPoint;
     
-//    @Value("${mqtt.access-key:}")
-//    private String accessKey;
-//
-//    @Value("${mqtt.secret-key:}")
-//    private String secretKey;
+    @Value("${mqtt.access-key:}")
+    private String accessKey;
+
+    @Value("${mqtt.secret-key:}")
+    private String secretKey;
     
     @Value("${mqtt.group.id:GID_QUITTR}")
     private String groupId;
@@ -54,16 +54,31 @@ public class MqttConfig {
      */
     @Bean
     public MqttClient mqttClient() throws Exception {
-        String accessKey = "your_access_key_here";
-        /**
-         * 账号 secretKey，从账号系统控制台获取，仅在Signature鉴权模式下需要设置
-         */
-        String secretKey = "your_secret_key_here";
         System.out.println("=== MQTT客户端创建开始（阿里云MQ4IoT官方方式） ===");
+        
+        // 检查环境变量
+        System.out.println("=== 环境变量检查 ===");
+        System.out.println("系统环境变量 MQTT_ACCESS_KEY: " + System.getenv("MQTT_ACCESS_KEY"));
+        System.out.println("系统环境变量 MQTT_SECRET_KEY: " + System.getenv("MQTT_SECRET_KEY"));
+        System.out.println("系统环境变量 MQTT_INSTANCE_ID: " + System.getenv("MQTT_INSTANCE_ID"));
+        
+        // 检查注入的值
+        System.out.println("=== 注入值检查 ===");
         System.out.println("Instance ID: " + instanceId);
         System.out.println("End Point: " + endPoint);
-        System.out.println("Access Key: " + accessKey.substring(0, Math.min(accessKey.length(), 8)) + "...");
-        System.out.println("Secret Key: " + secretKey.substring(0, Math.min(secretKey.length(), 8)) + "...");
+        System.out.println("Access Key: " + (accessKey != null && !accessKey.isEmpty() ? accessKey.substring(0, Math.min(accessKey.length(), 8)) + "..." : "NULL或空"));
+        System.out.println("Secret Key: " + (secretKey != null && !secretKey.isEmpty() ? secretKey.substring(0, Math.min(secretKey.length(), 8)) + "..." : "NULL或空"));
+        
+        // 验证关键参数
+        if (accessKey == null || accessKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("MQTT_ACCESS_KEY 环境变量未设置或为空");
+        }
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("MQTT_SECRET_KEY 环境变量未设置或为空");
+        }
+        if (instanceId == null || instanceId.trim().isEmpty()) {
+            throw new IllegalArgumentException("MQTT_INSTANCE_ID 环境变量未设置或为空");
+        }
         System.out.println("Group ID: " + groupId);
         System.out.println("Device ID: " + deviceId);
         System.out.println("Parent Topic: " + parentTopic);
@@ -191,14 +206,14 @@ public class MqttConfig {
     public String getEndPoint() {
         return endPoint;
     }
-//
-//    public String getAccessKey() {
-//        return accessKey;
-//    }
-//
-//    public String getSecretKey() {
-//        return secretKey;
-//    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
     
     public String getGroupId() {
         return groupId;

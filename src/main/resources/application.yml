@@ -104,6 +104,12 @@ mqtt:
   # 阿里云AccessKey认证 - 请通过环境变量设置
   access-key: ${MQTT_ACCESS_KEY:}
   secret-key: ${MQTT_SECRET_KEY:}
+  
+  # 调试信息 - 显示实际读取的值
+  debug:
+    access-key: ${MQTT_ACCESS_KEY:NOT_SET}
+    secret-key: ${MQTT_SECRET_KEY:NOT_SET}
+    instance-id: ${MQTT_INSTANCE_ID:NOT_SET}
   # MQ4IoT客户端配置
   group:
     id: ${MQTT_GROUP_ID:GID_QUITTR}
