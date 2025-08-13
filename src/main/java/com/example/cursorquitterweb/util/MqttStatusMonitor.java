@@ -21,7 +21,7 @@ public class MqttStatusMonitor {
     /**
      * 每30秒检查一次MQTT连接状态
      */
-    @Scheduled(fixedRate = 30000)
+//    @Scheduled(fixedRate = 30000)
     public void checkMqttStatus() {
         System.out.println("=== MQTT连接状态检查 ===");
         System.out.println("检查时间: " + LocalDateTime.now());
