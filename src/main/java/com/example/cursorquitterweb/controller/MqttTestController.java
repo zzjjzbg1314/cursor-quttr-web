@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.util.MqttStatusMonitor;
+import com.example.cursorquitterweb.util.MqttConnectionManager;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class MqttTestController {
     
     @Autowired
     private MqttStatusMonitor mqttStatusMonitor;
+    
+    @Autowired
+    private MqttConnectionManager mqttConnectionManager;
     
     /**
      * 获取MQTT连接状态
@@ -248,6 +252,80 @@ public class MqttTestController {
         }
         
         System.out.println("=== MQTT测试消息发布API调用完成 ===");
+        return result;
+    }
+    
+    /**
+     * 使用新的连接管理器进行重连
+     */
+    @PostMapping("/reconnect-v2")
+    public Map<String, Object> reconnectWithManager() {
+        System.out.println("=== MQTT重连管理器API调用 ===");
+        System.out.println("重连时间: " + LocalDateTime.now());
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            boolean reconnected = mqttConnectionManager.manualReconnect();
+            result.put("success", reconnected);
+            result.put("reconnected", reconnected);
+            result.put("message", reconnected ? "MQTT重连成功" : "MQTT重连失败");
+            result.put("timestamp", LocalDateTime.now().toString());
+            
+            System.out.println("重连管理器结果: " + (reconnected ? "成功" : "失败"));
+            
+        } catch (Exception e) {
+            System.out.println("MQTT重连管理器过程中发生错误:");
+            System.out.println("  错误类型: " + e.getClass().getSimpleName());
+            System.out.println("  错误消息: " + e.getMessage());
+            System.out.println("  堆栈跟踪:");
+            e.printStackTrace();
+            
+            result.put("success", false);
+            result.put("reconnected", false);
+            result.put("error", "重连失败: " + e.getMessage());
+            result.put("timestamp", LocalDateTime.now().toString());
+        }
+        
+        System.out.println("=== MQTT重连管理器API调用完成 ===");
+        return result;
+    }
+    
+    /**
+     * 获取连接管理器状态
+     */
+    @GetMapping("/manager-status")
+    public Map<String, Object> getManagerStatus() {
+        System.out.println("=== MQTT连接管理器状态查询API调用 ===");
+        System.out.println("查询时间: " + LocalDateTime.now());
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            String status = mqttConnectionManager.getConnectionStatus();
+            String stats = mqttConnectionManager.getReconnectStats();
+            
+            result.put("success", true);
+            result.put("status", status);
+            result.put("stats", stats);
+            result.put("timestamp", LocalDateTime.now().toString());
+            
+            System.out.println("连接管理器状态: " + status);
+            System.out.println("重连统计: " + stats);
+            
+        } catch (Exception e) {
+            System.out.println("MQTT连接管理器状态查询过程中发生错误:");
+            System.out.println("  错误类型: " + e.getClass().getSimpleName());
+            System.out.println("  错误消息: " + e.getMessage());
+            System.out.println("  堆栈跟踪:");
+            e.printStackTrace();
+            
+            result.put("success", false);
+            result.put("error", "状态查询失败: " + e.getMessage());
+            result.put("timestamp", LocalDateTime.now().toString());
+        }
+        
+        System.out.println("=== MQTT连接管理器状态查询API调用完成 ===");
         return result;
     }
 }

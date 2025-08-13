@@ -22,7 +22,8 @@ public class ConnectionOptionWrapper {
     
     private static final int MQTT_VERSION_3_1_1 = 4;
     
-    public ConnectionOptionWrapper(String instanceId, String accessKey, String secretKey, String clientId) 
+    public ConnectionOptionWrapper(String instanceId, String accessKey, String secretKey, String clientId,
+                                 int connectionTimeout, int keepAliveInterval, boolean autoReconnect) 
             throws NoSuchAlgorithmException, InvalidKeyException {
         System.out.println("=== 创建ConnectionOptionWrapper ===");
         System.out.println("Instance ID: " + instanceId);
@@ -50,17 +51,17 @@ public class ConnectionOptionWrapper {
         
         // 设置其他连接选项
         mqttConnectOptions.setCleanSession(false);
-        mqttConnectOptions.setKeepAliveInterval(90);
-        mqttConnectOptions.setAutomaticReconnect(true);
+        mqttConnectOptions.setKeepAliveInterval(keepAliveInterval);
+        mqttConnectOptions.setAutomaticReconnect(autoReconnect);
         mqttConnectOptions.setMqttVersion(MQTT_VERSION_3_1_1);
-        mqttConnectOptions.setConnectionTimeout(5000);
+        mqttConnectOptions.setConnectionTimeout(connectionTimeout * 1000); // 转换为毫秒
         
         System.out.println("MQTT连接选项配置完成");
         System.out.println("Clean Session: false");
-        System.out.println("Keep Alive Interval: 90");
-        System.out.println("Automatic Reconnect: true");
+        System.out.println("Keep Alive Interval: " + keepAliveInterval);
+        System.out.println("Automatic Reconnect: " + autoReconnect);
         System.out.println("MQTT Version: 3.1.1");
-        System.out.println("Connection Timeout: 5000ms");
+        System.out.println("Connection Timeout: " + connectionTimeout + "s");
     }
     
     /**

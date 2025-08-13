@@ -48,6 +48,27 @@ public class MqttConfig {
     @Value("${mqtt.port.tcp:1883}")
     private int tcpPort;
     
+    @Value("${mqtt.port.ssl:8883}")
+    private int sslPort;
+    
+    @Value("${mqtt.connection.use-ssl:true}")
+    private boolean useSsl;
+    
+    @Value("${mqtt.connection.timeout:30}")
+    private int connectionTimeout;
+    
+    @Value("${mqtt.connection.keep-alive:120}")
+    private int keepAliveInterval;
+    
+    @Value("${mqtt.connection.auto-reconnect:true}")
+    private boolean autoReconnect;
+    
+    @Value("${mqtt.connection.reconnect-delay:5000}")
+    private int reconnectDelay;
+    
+    @Value("${mqtt.connection.max-reconnect-attempts:10}")
+    private int maxReconnectAttempts;
+    
     /**
      * 创建MQTT客户端
      * 完全按照阿里云MQ4IoT官方示例实现
@@ -89,13 +110,20 @@ public class MqttConfig {
         String clientId = groupId + "@@@" + deviceId;
         System.out.println("Client ID: " + clientId);
         
-        // 构造连接URL - 使用TCP连接
-        String brokerUrl = "tcp://" + endPoint + ":" + tcpPort;
-        System.out.println("使用TCP连接: " + brokerUrl);
+        // 构造连接URL - 根据配置选择SSL或TCP连接
+        String brokerUrl;
+        if (useSsl) {
+            brokerUrl = "ssl://" + endPoint + ":" + sslPort;
+            System.out.println("使用SSL连接: " + brokerUrl);
+        } else {
+            brokerUrl = "tcp://" + endPoint + ":" + tcpPort;
+            System.out.println("使用TCP连接: " + brokerUrl);
+        }
         
         // 创建ConnectionOptionWrapper
         ConnectionOptionWrapper connectionOptionWrapper = new ConnectionOptionWrapper(
-            instanceId, accessKey, secretKey, clientId);
+            instanceId, accessKey, secretKey, clientId, 
+            connectionTimeout, keepAliveInterval, autoReconnect);
         
         // 创建MQTT客户端
         System.out.println("正在创建MQTT客户端...");
@@ -105,6 +133,14 @@ public class MqttConfig {
         // 设置发送超时时间，防止无限阻塞
         mqttClient.setTimeToWait(5000);
         System.out.println("MQTT客户端创建成功，发送超时时间: 5000ms");
+        
+        // 输出连接配置信息
+        System.out.println("=== MQTT连接配置信息 ===");
+        System.out.println("连接超时时间: " + connectionTimeout + " 秒");
+        System.out.println("保持连接间隔: " + keepAliveInterval + " 秒");
+        System.out.println("自动重连: " + (autoReconnect ? "启用" : "禁用"));
+        System.out.println("重连延迟: " + reconnectDelay + " 毫秒");
+        System.out.println("最大重连次数: " + maxReconnectAttempts);
         
         // 创建线程池
         final ExecutorService executorService = new ThreadPoolExecutor(

@@ -115,9 +115,24 @@ mqtt:
   # QoS配置
   qos:
     level: ${MQTT_QOS_LEVEL:0}
-  # 连接配置 - 使用TCP连接
+  # 连接配置 - 使用SSL连接（推荐）或TCP连接
   port:
+    ssl: ${MQTT_SSL_PORT:8883}
     tcp: ${MQTT_TCP_PORT:1883}
+  # 连接选项
+  connection:
+    # 使用SSL连接（推荐）
+    use-ssl: ${MQTT_USE_SSL:true}
+    # 连接超时时间（秒）
+    timeout: ${MQTT_CONNECTION_TIMEOUT:30}
+    # 保持连接间隔（秒）
+    keep-alive: ${MQTT_KEEP_ALIVE:120}
+    # 自动重连
+    auto-reconnect: ${MQTT_AUTO_RECONNECT:true}
+    # 重连延迟（毫秒）
+    reconnect-delay: ${MQTT_RECONNECT_DELAY:5000}
+    # 最大重连次数
+    max-reconnect-attempts: ${MQTT_MAX_RECONNECT_ATTEMPTS:10}
 
 # 日志配置
 logging:
