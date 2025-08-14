@@ -319,7 +319,7 @@ public class ChatController {
      */
     @GetMapping("/messages/latest")
     public ApiResponse<List<ChatMessageDocument>> getLatestChatMessages(
-            @RequestParam(defaultValue = "20") int limit) {
+            @RequestParam(defaultValue = "50") int limit) {
         try {
             logger.info("获取最新聊天消息: limit={}", limit);
             
