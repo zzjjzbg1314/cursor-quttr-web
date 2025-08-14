@@ -43,6 +43,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * 群聊消息搜索服务实现类 - 直接调用阿里云ES API
@@ -58,6 +59,12 @@ import java.util.stream.Collectors;
  * - 201状态码虽然表示成功，但可能抛出异常，需要特殊处理
  * - 即使出现异常，201状态码仍然被视为成功操作
  * - 批量操作中特别关注201状态码的响应处理
+ * 
+ * 排序策略：
+ * - getLatestMessages方法：按时间倒序查询获取最新数据，然后反转列表
+ * - 确保返回的是最新的limit条数据，且按时间正序排列（旧消息在前，新消息在后）
+ * - 这样设计便于前端按时间顺序加载和显示消息
+ * - 其他查询方法保持原有的排序逻辑
  */
 @Service
 public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
@@ -509,12 +516,19 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
         try {
             SearchRequest searchRequest = new SearchRequest(INDEX_NAME);
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            // 按时间倒序查询，获取最新的limit条数据
             searchSourceBuilder.sort("createAt", SortOrder.DESC);
             searchSourceBuilder.size(limit);
             searchRequest.source(searchSourceBuilder);
             
             SearchResponse response = elasticsearchClient.search(searchRequest, RequestOptions.DEFAULT);
-            return convertSearchResponseToDocuments(response);
+            List<ChatMessageDocument> documents = convertSearchResponseToDocuments(response);
+            
+            // 反转列表，让最新的消息显示在最后，符合前端加载的预期
+            // 这样前端可以按时间顺序显示：旧消息在上，新消息在下
+            Collections.reverse(documents);
+            
+            return documents;
         } catch (Exception e) {
             logger.error("获取最新消息失败: {}", e.getMessage(), e);
             return new ArrayList<>();
@@ -527,12 +541,19 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
             SearchRequest searchRequest = new SearchRequest(INDEX_NAME);
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             searchSourceBuilder.query(QueryBuilders.termQuery("msgType", msgType));
+            // 按时间倒序查询，获取最新的limit条数据
             searchSourceBuilder.sort("createAt", SortOrder.DESC);
             searchSourceBuilder.size(limit);
             searchRequest.source(searchSourceBuilder);
             
             SearchResponse response = elasticsearchClient.search(searchRequest, RequestOptions.DEFAULT);
-            return convertSearchResponseToDocuments(response);
+            List<ChatMessageDocument> documents = convertSearchResponseToDocuments(response);
+            
+            // 反转列表，让最新的消息显示在最后，符合前端加载的预期
+            // 这样前端可以按时间顺序显示：旧消息在上，新消息在下
+            Collections.reverse(documents);
+            
+            return documents;
         } catch (Exception e) {
             logger.error("根据类型获取最新消息失败: {}", e.getMessage(), e);
             return new ArrayList<>();
