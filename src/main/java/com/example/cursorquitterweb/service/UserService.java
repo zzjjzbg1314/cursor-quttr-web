@@ -91,4 +91,49 @@ public interface UserService {
      * 根据性别统计用户数
      */
     List<Object[]> countUsersByGender();
+    
+    /**
+     * 更新用户最佳挑战记录
+     * @param userId 用户ID
+     * @param newRecord 新的挑战记录天数
+     * @return 更新后的用户对象
+     */
+    User updateBestRecord(UUID userId, Integer newRecord);
+    
+    /**
+     * 获取用户最佳挑战记录
+     * @param userId 用户ID
+     * @return 最佳挑战记录天数
+     */
+    Integer getBestRecord(UUID userId);
+    
+    /**
+     * 获取挑战记录排行榜（按最佳记录降序排列）
+     * @param limit 限制返回数量
+     * @return 用户排行榜列表
+     */
+    List<User> getChallengeLeaderboard(int limit);
+    
+    /**
+     * 检查并更新最佳记录（如果新记录更好）
+     * @param userId 用户ID
+     * @param currentRecord 当前挑战记录天数
+     * @return 是否更新了最佳记录
+     */
+    boolean checkAndUpdateBestRecord(UUID userId, Integer currentRecord);
+    
+    /**
+     * 根据最佳挑战记录范围查询用户
+     * @param minRecord 最小记录
+     * @param maxRecord 最大记录
+     * @return 用户列表
+     */
+    List<User> findByBestRecordBetween(Integer minRecord, Integer maxRecord);
+    
+    /**
+     * 统计达到指定挑战记录的用户数量
+     * @param minRecord 最小记录
+     * @return 用户数量
+     */
+    long countUsersByBestRecordGreaterThanOrEqualTo(Integer minRecord);
 }

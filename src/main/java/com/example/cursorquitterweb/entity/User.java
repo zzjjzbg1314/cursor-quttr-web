@@ -50,6 +50,9 @@ public class User {
     @Column(name = "challenge_reset_time", nullable = false)
     private OffsetDateTime challengeResetTime;
     
+    @Column(name = "best_record", nullable = false)
+    private Integer bestRecord = 1;
+    
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
@@ -165,6 +168,14 @@ public class User {
         this.challengeResetTime = challengeResetTime;
     }
     
+    public Integer getBestRecord() {
+        return bestRecord;
+    }
+    
+    public void setBestRecord(Integer bestRecord) {
+        this.bestRecord = bestRecord;
+    }
+    
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
@@ -201,6 +212,7 @@ public class User {
                 ", language='" + language + '\'' +
                 ", registrationTime=" + registrationTime +
                 ", challengeResetTime=" + challengeResetTime +
+                ", bestRecord=" + bestRecord +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -70,4 +70,28 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @Query("SELECT u.gender, COUNT(u) FROM User u WHERE u.gender IS NOT NULL GROUP BY u.gender")
     List<Object[]> countUsersByGender();
+    
+    /**
+     * 根据最佳挑战记录获取排行榜（降序排列）
+     */
+    @Query("SELECT u FROM User u WHERE u.bestRecord IS NOT NULL ORDER BY u.bestRecord DESC")
+    List<User> findTopUsersByBestRecordOrderByBestRecordDesc();
+    
+    /**
+     * 根据最佳挑战记录获取排行榜（降序排列，限制数量）
+     */
+    @Query("SELECT u FROM User u WHERE u.bestRecord IS NOT NULL ORDER BY u.bestRecord DESC")
+    List<User> findTopUsersByBestRecordOrderByBestRecordDesc(org.springframework.data.domain.Pageable pageable);
+    
+    /**
+     * 根据最佳挑战记录范围查询用户
+     */
+    @Query("SELECT u FROM User u WHERE u.bestRecord BETWEEN :minRecord AND :maxRecord ORDER BY u.bestRecord DESC")
+    List<User> findByBestRecordBetween(@Param("minRecord") Integer minRecord, @Param("maxRecord") Integer maxRecord);
+    
+    /**
+     * 统计达到指定挑战记录的用户数量
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.bestRecord >= :minRecord")
+    long countUsersByBestRecordGreaterThanOrEqualTo(@Param("minRecord") Integer minRecord);
 }

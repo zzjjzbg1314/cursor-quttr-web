@@ -152,4 +152,85 @@ public class UserServiceImpl implements UserService {
         logger.debug("根据性别统计用户数");
         return userRepository.countUsersByGender();
     }
+    
+    @Override
+    @Transactional
+    public User updateBestRecord(UUID userId, Integer newRecord) {
+        logger.info("更新用户最佳挑战记录，用户ID: {}, 新记录: {}", userId, newRecord);
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setBestRecord(newRecord);
+            user.preUpdate();
+            User savedUser = userRepository.save(user);
+            logger.info("用户最佳挑战记录更新成功，用户ID: {}, 新记录: {}", userId, newRecord);
+            return savedUser;
+        } else {
+            logger.warn("用户不存在，无法更新最佳挑战记录，用户ID: {}", userId);
+            throw new RuntimeException("用户不存在，用户ID: " + userId);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getBestRecord(UUID userId) {
+        logger.debug("获取用户最佳挑战记录，用户ID: {}", userId);
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            return userOpt.get().getBestRecord();
+        } else {
+            logger.warn("用户不存在，无法获取最佳挑战记录，用户ID: {}", userId);
+            return null;
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getChallengeLeaderboard(int limit) {
+        logger.debug("获取挑战记录排行榜，限制数量: {}", limit);
+        org.springframework.data.domain.PageRequest pageRequest = 
+            org.springframework.data.domain.PageRequest.of(0, limit);
+        return userRepository.findTopUsersByBestRecordOrderByBestRecordDesc(pageRequest);
+    }
+    
+    @Override
+    @Transactional
+    public boolean checkAndUpdateBestRecord(UUID userId, Integer currentRecord) {
+        logger.debug("检查并更新用户最佳挑战记录，用户ID: {}, 当前记录: {}", userId, currentRecord);
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            Integer currentBestRecord = user.getBestRecord();
+            
+            if (currentBestRecord == null || currentRecord > currentBestRecord) {
+                user.setBestRecord(currentRecord);
+                user.preUpdate();
+                userRepository.save(user);
+                logger.info("用户最佳挑战记录已更新，用户ID: {}, 原记录: {}, 新记录: {}", 
+                           userId, currentBestRecord, currentRecord);
+                return true;
+            } else {
+                logger.debug("当前记录未超过最佳记录，无需更新，用户ID: {}, 当前记录: {}, 最佳记录: {}", 
+                           userId, currentRecord, currentBestRecord);
+                return false;
+            }
+        } else {
+            logger.warn("用户不存在，无法检查最佳挑战记录，用户ID: {}", userId);
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findByBestRecordBetween(Integer minRecord, Integer maxRecord) {
+        logger.debug("根据最佳挑战记录范围查询用户，最小记录: {}, 最大记录: {}", minRecord, maxRecord);
+        return userRepository.findByBestRecordBetween(minRecord, maxRecord);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long countUsersByBestRecordGreaterThanOrEqualTo(Integer minRecord) {
+        logger.debug("统计达到指定挑战记录的用户数量，最小记录: {}", minRecord);
+        return userRepository.countUsersByBestRecordGreaterThanOrEqualTo(minRecord);
+    }
 }

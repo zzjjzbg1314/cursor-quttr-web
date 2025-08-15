@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -200,6 +201,107 @@ public class UserController {
         logger.info("获取性别统计信息");
         List<Object[]> stats = userService.countUsersByGender();
         return ApiResponse.success(stats);
+    }
+    
+    /**
+     * 获取用户最佳挑战记录
+     */
+    @GetMapping("/{id}/best-record")
+    public ApiResponse<Integer> getUserBestRecord(@PathVariable UUID id) {
+        logger.info("获取用户最佳挑战记录，ID: {}", id);
+        
+        if (!userService.findById(id).isPresent()) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        Integer bestRecord = userService.getBestRecord(id);
+        return ApiResponse.success(bestRecord);
+    }
+    
+    /**
+     * 更新用户最佳挑战记录
+     */
+    @PutMapping("/{id}/best-record")
+    public ApiResponse<User> updateUserBestRecord(@PathVariable UUID id, @RequestBody UpdateBestRecordRequest request) {
+        logger.info("更新用户最佳挑战记录，ID: {}, 新记录: {}", id, request.getNewRecord());
+        
+        if (!userService.findById(id).isPresent()) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        try {
+            User updatedUser = userService.updateBestRecord(id, request.getNewRecord());
+            return ApiResponse.success("最佳挑战记录更新成功", updatedUser);
+        } catch (Exception e) {
+            logger.error("更新最佳挑战记录失败，用户ID: {}, 错误: {}", id, e.getMessage());
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 检查并更新用户最佳挑战记录
+     */
+    @PostMapping("/{id}/check-best-record")
+    public ApiResponse<Boolean> checkAndUpdateBestRecord(@PathVariable UUID id, @RequestBody UpdateBestRecordRequest request) {
+        logger.info("检查并更新用户最佳挑战记录，ID: {}, 当前记录: {}", id, request.getNewRecord());
+        
+        if (!userService.findById(id).isPresent()) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        boolean updated = userService.checkAndUpdateBestRecord(id, request.getNewRecord());
+        if (updated) {
+            return ApiResponse.success("最佳挑战记录已更新", true);
+        } else {
+            return ApiResponse.success("当前记录未超过最佳记录", false);
+        }
+    }
+    
+    /**
+     * 获取挑战记录排行榜
+     */
+    @GetMapping("/leaderboard")
+    public ApiResponse<List<User>> getChallengeLeaderboard(@RequestParam(defaultValue = "10") int limit) {
+        logger.info("获取挑战记录排行榜，限制数量: {}", limit);
+        
+        if (limit <= 0 || limit > 100) {
+            return ApiResponse.error("限制数量必须在1-100之间");
+        }
+        
+        List<User> leaderboard = userService.getChallengeLeaderboard(limit);
+        return ApiResponse.success(leaderboard);
+    }
+    
+    /**
+     * 根据挑战记录范围查询用户
+     */
+    @GetMapping("/best-record/range")
+    public ApiResponse<List<User>> getUsersByBestRecordRange(
+            @RequestParam Integer minRecord,
+            @RequestParam Integer maxRecord) {
+        logger.info("根据挑战记录范围查询用户，最小记录: {}, 最大记录: {}", minRecord, maxRecord);
+        
+        if (minRecord == null || maxRecord == null || minRecord < 0 || maxRecord < minRecord) {
+            return ApiResponse.error("记录范围参数无效");
+        }
+        
+        List<User> users = userService.findByBestRecordBetween(minRecord, maxRecord);
+        return ApiResponse.success(users);
+    }
+    
+    /**
+     * 统计达到指定挑战记录的用户数量
+     */
+    @GetMapping("/stats/best-record")
+    public ApiResponse<Long> getBestRecordStats(@RequestParam Integer minRecord) {
+        logger.info("统计达到指定挑战记录的用户数量，最小记录: {}", minRecord);
+        
+        if (minRecord == null || minRecord < 0) {
+            return ApiResponse.error("最小记录参数无效");
+        }
+        
+        long count = userService.countUsersByBestRecordGreaterThanOrEqualTo(minRecord);
+        return ApiResponse.success(count);
     }
     
     /**
