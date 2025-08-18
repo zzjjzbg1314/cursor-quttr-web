@@ -305,6 +305,21 @@ public class UserController {
     }
     
     /**
+     * 查询用户在挑战榜单中的排名
+     */
+    @GetMapping("/{id}/rank")
+    public ApiResponse<Long> getUserRankInLeaderboard(@PathVariable UUID id) {
+        logger.info("查询用户挑战榜单排名，ID: {}", id);
+        
+        Long rank = userService.getUserRankInLeaderboard(id);
+        if (rank != null) {
+            return ApiResponse.success("排名查询成功", rank);
+        } else {
+            return ApiResponse.error("用户不存在或没有最佳记录");
+        }
+    }
+    
+    /**
      * 创建用户请求DTO
      */
     public static class CreateUserRequest {

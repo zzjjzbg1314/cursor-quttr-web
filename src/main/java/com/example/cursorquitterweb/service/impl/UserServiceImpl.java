@@ -233,4 +233,27 @@ public class UserServiceImpl implements UserService {
         logger.debug("统计达到指定挑战记录的用户数量，最小记录: {}", minRecord);
         return userRepository.countUsersByBestRecordGreaterThanOrEqualTo(minRecord);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Long getUserRankInLeaderboard(UUID userId) {
+        logger.debug("查询用户在挑战榜单中的排名，用户ID: {}", userId);
+        
+        // 首先检查用户是否存在且有最佳记录
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.warn("用户不存在，无法查询排名，用户ID: {}", userId);
+            return null;
+        }
+        
+        User user = userOpt.get();
+        if (user.getBestRecord() == null) {
+            logger.warn("用户没有最佳记录，无法查询排名，用户ID: {}", userId);
+            return null;
+        }
+        
+        Long rank = userRepository.findUserRankInLeaderboard(userId);
+        logger.debug("用户排名查询完成，用户ID: {}, 排名: {}", userId, rank);
+        return rank;
+    }
 }

@@ -136,4 +136,11 @@ public interface UserService {
      * @return 用户数量
      */
     long countUsersByBestRecordGreaterThanOrEqualTo(Integer minRecord);
+    
+    /**
+     * 查询用户在挑战榜单中的排名
+     * @param userId 用户ID
+     * @return 用户排名（从1开始，如果用户不存在或没有最佳记录则返回null）
+     */
+    Long getUserRankInLeaderboard(UUID userId);
 }

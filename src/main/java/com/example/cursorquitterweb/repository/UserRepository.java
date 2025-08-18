@@ -94,4 +94,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @Query("SELECT COUNT(u) FROM User u WHERE u.bestRecord >= :minRecord")
     long countUsersByBestRecordGreaterThanOrEqualTo(@Param("minRecord") Integer minRecord);
+    
+    /**
+     * 查询用户在挑战榜单中的排名
+     * @param userId 用户ID
+     * @return 用户排名（从1开始，如果用户不存在或没有最佳记录则返回null）
+     */
+    @Query("SELECT COUNT(u) + 1 FROM User u WHERE u.bestRecord > (SELECT u2.bestRecord FROM User u2 WHERE u2.id = :userId) AND u.bestRecord IS NOT NULL")
+    Long findUserRankInLeaderboard(@Param("userId") UUID userId);
 }
