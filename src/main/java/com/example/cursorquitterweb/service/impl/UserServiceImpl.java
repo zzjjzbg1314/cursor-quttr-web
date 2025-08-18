@@ -208,6 +208,28 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<UserLeaderboardDto> getChallengeLeaderboardPage(int page, int size) {
+        logger.debug("分页查询挑战记录排行榜，页码: {}, 每页大小: {}", page, size);
+        
+        // 创建分页请求
+        org.springframework.data.domain.PageRequest pageRequest = 
+            org.springframework.data.domain.PageRequest.of(page, size);
+        
+        // 查询分页数据
+        org.springframework.data.domain.Page<User> userPage = 
+            userRepository.findTopUsersByBestRecordOrderByBestRecordDesc(pageRequest);
+        
+        // 转换为DTO并保持分页信息
+        org.springframework.data.domain.Page<UserLeaderboardDto> dtoPage = userPage.map(
+            user -> new UserLeaderboardDto(user.getNickname(), user.getBestRecord())
+        );
+        
+        logger.debug("分页查询完成，总记录数: {}, 当前页记录数: {}", dtoPage.getTotalElements(), dtoPage.getContent().size());
+        return dtoPage;
+    }
+    
+    @Override
     @Transactional
     public boolean checkAndUpdateBestRecord(UUID userId, Integer currentRecord) {
         logger.debug("检查并更新用户最佳挑战记录，用户ID: {}, 当前记录: {}", userId, currentRecord);

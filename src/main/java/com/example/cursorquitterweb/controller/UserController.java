@@ -275,6 +275,27 @@ public class UserController {
     }
     
     /**
+     * 分页查询挑战记录排行榜
+     */
+    @GetMapping("/leaderboard/page")
+    public ApiResponse<org.springframework.data.domain.Page<UserLeaderboardDto>> getChallengeLeaderboardPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        logger.info("分页查询挑战记录排行榜，页码: {}, 每页大小: {}", page, size);
+        
+        if (page < 0) {
+            return ApiResponse.error("页码不能小于0");
+        }
+        if (size <= 0 || size > 100) {
+            return ApiResponse.error("每页大小必须在1-100之间");
+        }
+        
+        org.springframework.data.domain.Page<UserLeaderboardDto> leaderboardPage = 
+            userService.getChallengeLeaderboardPage(page, size);
+        return ApiResponse.success(leaderboardPage);
+    }
+    
+    /**
      * 根据挑战记录范围查询用户
      */
     @GetMapping("/best-record/range")

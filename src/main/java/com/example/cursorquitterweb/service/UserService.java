@@ -124,6 +124,14 @@ public interface UserService {
     List<UserLeaderboardDto> getChallengeLeaderboardSimple(int limit);
     
     /**
+     * 分页查询挑战记录排行榜（简化版，只包含必要字段）
+     * @param page 页码（从0开始）
+     * @param size 每页大小
+     * @return 分页的用户排行榜数据
+     */
+    org.springframework.data.domain.Page<UserLeaderboardDto> getChallengeLeaderboardPage(int page, int size);
+    
+    /**
      * 检查并更新最佳记录（如果新记录更好）
      * @param userId 用户ID
      * @param currentRecord 当前挑战记录天数
