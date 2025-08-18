@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
+import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -261,14 +262,14 @@ public class UserController {
      * 获取挑战记录排行榜
      */
     @GetMapping("/leaderboard")
-    public ApiResponse<List<User>> getChallengeLeaderboard(@RequestParam(defaultValue = "30") int limit) {
+    public ApiResponse<List<UserLeaderboardDto>> getChallengeLeaderboard(@RequestParam(defaultValue = "30") int limit) {
         logger.info("获取挑战记录排行榜，限制数量: {}", limit);
         
         if (limit <= 0 || limit > 100) {
             return ApiResponse.error("限制数量必须在1-100之间");
         }
         
-        List<User> leaderboard = userService.getChallengeLeaderboard(limit);
+        List<UserLeaderboardDto> leaderboard = userService.getChallengeLeaderboardSimple(limit);
         return ApiResponse.success(leaderboard);
     }
     

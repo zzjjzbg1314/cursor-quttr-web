@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.User;
+import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -113,6 +114,13 @@ public interface UserService {
      * @return 用户排行榜列表
      */
     List<User> getChallengeLeaderboard(int limit);
+    
+    /**
+     * 获取挑战记录排行榜（简化版，只包含必要字段）
+     * @param limit 限制返回数量
+     * @return 用户排行榜简化列表
+     */
+    List<UserLeaderboardDto> getChallengeLeaderboardSimple(int limit);
     
     /**
      * 检查并更新最佳记录（如果新记录更好）

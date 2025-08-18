@@ -4,6 +4,7 @@ import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.repository.UserRepository;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
+import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -191,6 +193,17 @@ public class UserServiceImpl implements UserService {
         org.springframework.data.domain.PageRequest pageRequest = 
             org.springframework.data.domain.PageRequest.of(0, limit);
         return userRepository.findTopUsersByBestRecordOrderByBestRecordDesc(pageRequest);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserLeaderboardDto> getChallengeLeaderboardSimple(int limit) {
+        logger.debug("获取挑战记录排行榜（简化版），限制数量: {}", limit);
+        List<User> users = getChallengeLeaderboard(limit);
+        
+        return users.stream()
+            .map(user -> new UserLeaderboardDto(user.getNickname(), user.getBestRecord()))
+            .collect(Collectors.toList());
     }
     
     @Override
