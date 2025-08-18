@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
+import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -309,12 +310,12 @@ public class UserController {
      * 查询用户在挑战榜单中的排名
      */
     @GetMapping("/{id}/rank")
-    public ApiResponse<Long> getUserRankInLeaderboard(@PathVariable UUID id) {
+    public ApiResponse<UserRankDto> getUserRankInLeaderboard(@PathVariable UUID id) {
         logger.info("查询用户挑战榜单排名，ID: {}", id);
         
-        Long rank = userService.getUserRankInLeaderboard(id);
-        if (rank != null) {
-            return ApiResponse.success("排名查询成功", rank);
+                 UserRankDto rankInfo = userService.getUserRankAndBestRecord(id);
+        if (rankInfo != null) {
+            return ApiResponse.success("排名查询成功", rankInfo);
         } else {
             return ApiResponse.error("用户不存在或没有最佳记录");
         }

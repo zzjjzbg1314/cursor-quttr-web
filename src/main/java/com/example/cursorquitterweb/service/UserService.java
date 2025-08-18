@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
+import com.example.cursorquitterweb.dto.UserRankDto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -151,4 +152,11 @@ public interface UserService {
      * @return 用户排名（从1开始，如果用户不存在或没有最佳记录则返回null）
      */
     Long getUserRankInLeaderboard(UUID userId);
+    
+    /**
+     * 查询用户在挑战榜单中的排名和最佳成绩
+     * @param userId 用户ID
+     * @return 用户排名和最佳成绩信息
+     */
+    UserRankDto getUserRankAndBestRecord(UUID userId);
 }

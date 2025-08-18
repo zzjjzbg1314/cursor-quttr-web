@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.repository.UserRepository;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
+import com.example.cursorquitterweb.dto.UserRankDto;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -268,5 +269,31 @@ public class UserServiceImpl implements UserService {
         Long rank = userRepository.findUserRankInLeaderboard(userId);
         logger.debug("用户排名查询完成，用户ID: {}, 排名: {}", userId, rank);
         return rank;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public UserRankDto getUserRankAndBestRecord(UUID userId) {
+        logger.debug("查询用户排名和最佳成绩，用户ID: {}", userId);
+        
+        // 首先检查用户是否存在且有最佳记录
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.warn("用户不存在，无法查询排名和最佳成绩，用户ID: {}", userId);
+            return null;
+        }
+        
+        User user = userOpt.get();
+        if (user.getBestRecord() == null) {
+            logger.warn("用户没有最佳记录，无法查询排名和最佳成绩，用户ID: {}", userId);
+            return null;
+        }
+        
+        Long rank = userRepository.findUserRankInLeaderboard(userId);
+        UserRankDto result = new UserRankDto(rank, user.getBestRecord());
+        
+        logger.debug("用户排名和最佳成绩查询完成，用户ID: {}, 排名: {}, 最佳成绩: {}", 
+                   userId, rank, user.getBestRecord());
+        return result;
     }
 }
