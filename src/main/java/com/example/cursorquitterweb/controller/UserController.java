@@ -261,7 +261,7 @@ public class UserController {
      * 获取挑战记录排行榜
      */
     @GetMapping("/leaderboard")
-    public ApiResponse<List<User>> getChallengeLeaderboard(@RequestParam(defaultValue = "10") int limit) {
+    public ApiResponse<List<User>> getChallengeLeaderboard(@RequestParam(defaultValue = "30") int limit) {
         logger.info("获取挑战记录排行榜，限制数量: {}", limit);
         
         if (limit <= 0 || limit > 100) {
