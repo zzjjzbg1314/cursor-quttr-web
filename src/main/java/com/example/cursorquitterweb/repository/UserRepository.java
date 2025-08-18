@@ -84,6 +84,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findTopUsersByBestRecordOrderByBestRecordDesc(org.springframework.data.domain.Pageable pageable);
     
     /**
+     * 根据最佳挑战记录获取排行榜（降序排列，分页查询）
+     */
+    @Query("SELECT u FROM User u WHERE u.bestRecord IS NOT NULL ORDER BY u.bestRecord DESC")
+    org.springframework.data.domain.Page<User> findTopUsersByBestRecordOrderByBestRecordDescPage(org.springframework.data.domain.Pageable pageable);
+    
+    /**
      * 根据最佳挑战记录范围查询用户
      */
     @Query("SELECT u FROM User u WHERE u.bestRecord BETWEEN :minRecord AND :maxRecord ORDER BY u.bestRecord DESC")

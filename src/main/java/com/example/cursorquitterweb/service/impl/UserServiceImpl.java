@@ -218,7 +218,7 @@ public class UserServiceImpl implements UserService {
         
         // 查询分页数据
         org.springframework.data.domain.Page<User> userPage = 
-            userRepository.findTopUsersByBestRecordOrderByBestRecordDesc(pageRequest);
+            userRepository.findTopUsersByBestRecordOrderByBestRecordDescPage(pageRequest);
         
         // 转换为DTO并保持分页信息
         org.springframework.data.domain.Page<UserLeaderboardDto> dtoPage = userPage.map(
