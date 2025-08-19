@@ -44,6 +44,17 @@ public class UserController {
     }
     
     /**
+     * 初始化用户信息
+     * 返回一个包含所有基础字段信息的用户对象
+     */
+    @GetMapping("/init")
+    public ApiResponse<User> initUser() {
+        logger.info("初始化用户信息");
+        User user = User.initUser();
+        return ApiResponse.success("用户初始化成功", user);
+    }
+    
+    /**
      * 创建新用户
      */
     @PostMapping

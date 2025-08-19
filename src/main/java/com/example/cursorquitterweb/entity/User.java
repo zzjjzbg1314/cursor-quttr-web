@@ -142,6 +142,24 @@ public class User {
         this.updatedAt = OffsetDateTime.now();
     }
     
+    /**
+     * 初始化一个包含所有基础字段信息的用户
+     * @return 初始化后的用户对象
+     */
+    public static User initUser() {
+        User user = new User();
+        user.setNickname("新用户");
+        user.setAvatarUrl("https://example.com/default-avatar.jpg");
+        user.setGender((short) 0); // 0: 未知, 1: 男, 2: 女
+        user.setLanguage("zh_CN");
+        user.setBestRecord(1);
+        user.setChallengeResetTime(OffsetDateTime.now());
+        user.setRegistrationTime(OffsetDateTime.now());
+        user.setBestRecord(1);
+
+        return user;
+    }
+    
     @Override
     public String toString() {
         return "User{" +
