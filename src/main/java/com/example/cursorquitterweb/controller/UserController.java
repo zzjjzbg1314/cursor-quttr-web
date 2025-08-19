@@ -51,7 +51,8 @@ public class UserController {
     public ApiResponse<User> initUser() {
         logger.info("初始化用户信息");
         User user = User.initUser();
-        return ApiResponse.success("用户初始化成功", user);
+        User savedUser = userService.save(user);
+        return ApiResponse.success("用户初始化并保存成功", savedUser);
     }
     
     /**

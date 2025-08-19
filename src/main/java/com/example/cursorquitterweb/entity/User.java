@@ -155,8 +155,7 @@ public class User {
         user.setBestRecord(1);
         user.setChallengeResetTime(OffsetDateTime.now());
         user.setRegistrationTime(OffsetDateTime.now());
-        user.setBestRecord(1);
-
+        
         return user;
     }
     
