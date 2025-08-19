@@ -45,6 +45,11 @@ public interface UserService {
     List<User> searchByNickname(String nickname);
     
     /**
+     * 根据手机号查询用户
+     */
+    Optional<User> findByPhoneNumber(String phoneNumber);
+    
+    /**
      * 根据注册时间范围查询用户
      */
     List<User> findByRegistrationTimeBetween(OffsetDateTime startTime, OffsetDateTime endTime);

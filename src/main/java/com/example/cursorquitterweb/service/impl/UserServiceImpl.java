@@ -79,6 +79,13 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional(readOnly = true)
+    public Optional<User> findByPhoneNumber(String phoneNumber) {
+        logger.debug("根据手机号查询用户: {}", phoneNumber);
+        return userRepository.findByPhoneNumber(phoneNumber);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<User> findByRegistrationTimeBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
         logger.debug("根据注册时间范围查询用户，开始时间: {}, 结束时间: {}", startTime, endTime);
         return userRepository.findByRegistrationTimeBetween(startTime, endTime);

@@ -29,6 +29,9 @@ public class User {
     @Column(name = "language")
     private String language = "zh_CN";
     
+    @Column(name = "phone_number")
+    private String phoneNumber;
+    
     @Column(name = "registration_time", nullable = false)
     private OffsetDateTime registrationTime;
     
@@ -97,6 +100,14 @@ public class User {
         this.language = language;
     }
     
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+    
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+    
     public OffsetDateTime getRegistrationTime() {
         return registrationTime;
     }
@@ -152,6 +163,7 @@ public class User {
         user.setAvatarUrl("https://example.com/default-avatar.jpg");
         user.setGender((short) 0); // 0: 未知, 1: 男, 2: 女
         user.setLanguage("zh_CN");
+        user.setPhoneNumber(null); // 手机号字段不初始化，允许为空
         user.setBestRecord(1);
         user.setChallengeResetTime(OffsetDateTime.now());
         user.setRegistrationTime(OffsetDateTime.now());
@@ -167,6 +179,7 @@ public class User {
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", gender=" + gender +
                 ", language='" + language + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
                 ", registrationTime=" + registrationTime +
                 ", challengeResetTime=" + challengeResetTime +
                 ", bestRecord=" + bestRecord +

@@ -91,6 +91,9 @@ public class UserController {
         if (request.getLanguage() != null) {
             user.setLanguage(request.getLanguage());
         }
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
         
         User updatedUser = userService.updateUser(user);
         return ApiResponse.success("用户信息更新成功", updatedUser);
@@ -119,6 +122,20 @@ public class UserController {
         logger.info("搜索用户，昵称: {}", nickname);
         List<User> users = userService.searchByNickname(nickname);
         return ApiResponse.success(users);
+    }
+    
+    /**
+     * 根据手机号查询用户
+     */
+    @GetMapping("/phone/{phoneNumber}")
+    public ApiResponse<User> getUserByPhoneNumber(@PathVariable String phoneNumber) {
+        logger.info("根据手机号查询用户: {}", phoneNumber);
+        Optional<User> user = userService.findByPhoneNumber(phoneNumber);
+        if (user.isPresent()) {
+            return ApiResponse.success(user.get());
+        } else {
+            return ApiResponse.error("用户不存在");
+        }
     }
     
     /**
@@ -340,6 +357,7 @@ public class UserController {
         private String avatarUrl;
         private Short gender;
         private String language;
+        private String phoneNumber;
         
         // Getters and Setters
         public String getNickname() {
@@ -372,6 +390,14 @@ public class UserController {
         
         public void setLanguage(String language) {
             this.language = language;
+        }
+        
+        public String getPhoneNumber() {
+            return phoneNumber;
+        }
+        
+        public void setPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
         }
     }
 }

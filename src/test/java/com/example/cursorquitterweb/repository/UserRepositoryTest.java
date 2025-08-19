@@ -73,4 +73,37 @@ public class UserRepositoryTest {
         assertTrue(foundUser.isPresent());
         assertEquals("测试用户", foundUser.get().getNickname());
     }
+    
+    @Test
+    public void testFindByPhoneNumber() {
+        // 创建测试用户
+        User user = new User("测试用户");
+        user.setPhoneNumber("13800138000");
+        entityManager.persistAndFlush(user);
+        
+        // 根据手机号查找用户
+        Optional<User> foundUser = userRepository.findByPhoneNumber("13800138000");
+        
+        // 验证查找结果
+        assertTrue(foundUser.isPresent());
+        assertEquals("测试用户", foundUser.get().getNickname());
+        assertEquals("13800138000", foundUser.get().getPhoneNumber());
+    }
+    
+    @Test
+    public void testPhoneNumberUniqueness() {
+        // 创建第一个用户
+        User user1 = new User("用户1");
+        user1.setPhoneNumber("13800138000");
+        entityManager.persistAndFlush(user1);
+        
+        // 创建第二个用户，使用相同的手机号
+        User user2 = new User("用户2");
+        user2.setPhoneNumber("13800138000");
+        
+        // 验证手机号唯一性约束
+        assertThrows(Exception.class, () -> {
+            entityManager.persistAndFlush(user2);
+        });
+    }
 }
