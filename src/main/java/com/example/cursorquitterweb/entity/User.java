@@ -17,12 +17,6 @@ public class User {
     @Column(name = "id")
     private UUID id;
     
-    @Column(name = "wechat_openid", nullable = false, unique = true)
-    private String wechatOpenid;
-    
-    @Column(name = "wechat_unionid")
-    private String wechatUnionid;
-    
     @Column(name = "nickname")
     private String nickname;
     
@@ -31,15 +25,6 @@ public class User {
     
     @Column(name = "gender")
     private Short gender;
-    
-    @Column(name = "country")
-    private String country;
-    
-    @Column(name = "province")
-    private String province;
-    
-    @Column(name = "city")
-    private String city;
     
     @Column(name = "language")
     private String language = "zh_CN";
@@ -66,9 +51,9 @@ public class User {
         this.updatedAt = OffsetDateTime.now();
     }
     
-    public User(String wechatOpenid) {
+    public User(String nickname) {
         this();
-        this.wechatOpenid = wechatOpenid;
+        this.nickname = nickname;
     }
     
     // Getters and Setters
@@ -78,22 +63,6 @@ public class User {
     
     public void setId(UUID id) {
         this.id = id;
-    }
-    
-    public String getWechatOpenid() {
-        return wechatOpenid;
-    }
-    
-    public void setWechatOpenid(String wechatOpenid) {
-        this.wechatOpenid = wechatOpenid;
-    }
-    
-    public String getWechatUnionid() {
-        return wechatUnionid;
-    }
-    
-    public void setWechatUnionid(String wechatUnionid) {
-        this.wechatUnionid = wechatUnionid;
     }
     
     public String getNickname() {
@@ -118,30 +87,6 @@ public class User {
     
     public void setGender(Short gender) {
         this.gender = gender;
-    }
-    
-    public String getCountry() {
-        return country;
-    }
-    
-    public void setCountry(String country) {
-        this.country = country;
-    }
-    
-    public String getProvince() {
-        return province;
-    }
-    
-    public void setProvince(String province) {
-        this.province = province;
-    }
-    
-    public String getCity() {
-        return city;
-    }
-    
-    public void setCity(String city) {
-        this.city = city;
     }
     
     public String getLanguage() {
@@ -201,14 +146,9 @@ public class User {
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", wechatOpenid='" + wechatOpenid + '\'' +
-                ", wechatUnionid='" + wechatUnionid + '\'' +
                 ", nickname='" + nickname + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", gender=" + gender +
-                ", country='" + country + '\'' +
-                ", province='" + province + '\'' +
-                ", city='" + city + '\'' +
                 ", language='" + language + '\'' +
                 ", registrationTime=" + registrationTime +
                 ", challengeResetTime=" + challengeResetTime +

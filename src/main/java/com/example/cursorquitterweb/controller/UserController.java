@@ -44,31 +44,13 @@ public class UserController {
     }
     
     /**
-     * 根据微信openid获取用户信息
-     */
-    @GetMapping("/wechat/{openid}")
-    public ApiResponse<User> getUserByWechatOpenid(@PathVariable String openid) {
-        logger.info("根据微信openid获取用户信息: {}", openid);
-        Optional<User> user = userService.findByWechatOpenid(openid);
-        if (user.isPresent()) {
-            return ApiResponse.success(user.get());
-        } else {
-            return ApiResponse.error("用户不存在");
-        }
-    }
-    
-    /**
      * 创建新用户
      */
     @PostMapping
     public ApiResponse<User> createUser(@RequestBody CreateUserRequest request) {
-        logger.info("创建新用户，微信openid: {}, 昵称: {}", request.getWechatOpenid(), request.getNickname());
+        logger.info("创建新用户，昵称: {}", request.getNickname());
         
-        if (userService.existsByWechatOpenid(request.getWechatOpenid())) {
-            return ApiResponse.error("用户已存在");
-        }
-        
-        User user = userService.createUser(request.getWechatOpenid(), request.getNickname(), request.getAvatarUrl());
+        User user = userService.createUser(request.getNickname(), request.getAvatarUrl());
         return ApiResponse.success("用户创建成功", user);
     }
     
@@ -93,15 +75,6 @@ public class UserController {
         }
         if (request.getGender() != null) {
             user.setGender(request.getGender());
-        }
-        if (request.getCountry() != null) {
-            user.setCountry(request.getCountry());
-        }
-        if (request.getProvince() != null) {
-            user.setProvince(request.getProvince());
-        }
-        if (request.getCity() != null) {
-            user.setCity(request.getCity());
         }
         if (request.getLanguage() != null) {
             user.setLanguage(request.getLanguage());
@@ -133,26 +106,6 @@ public class UserController {
     public ApiResponse<List<User>> searchUsers(@RequestParam String nickname) {
         logger.info("搜索用户，昵称: {}", nickname);
         List<User> users = userService.searchByNickname(nickname);
-        return ApiResponse.success(users);
-    }
-    
-    /**
-     * 根据城市查询用户
-     */
-    @GetMapping("/city/{city}")
-    public ApiResponse<List<User>> getUsersByCity(@PathVariable String city) {
-        logger.info("根据城市查询用户: {}", city);
-        List<User> users = userService.findByCity(city);
-        return ApiResponse.success(users);
-    }
-    
-    /**
-     * 根据省份查询用户
-     */
-    @GetMapping("/province/{province}")
-    public ApiResponse<List<User>> getUsersByProvince(@PathVariable String province) {
-        logger.info("根据省份查询用户: {}", province);
-        List<User> users = userService.findByProvince(province);
         return ApiResponse.success(users);
     }
     
@@ -346,19 +299,10 @@ public class UserController {
      * 创建用户请求DTO
      */
     public static class CreateUserRequest {
-        private String wechatOpenid;
         private String nickname;
         private String avatarUrl;
         
         // Getters and Setters
-        public String getWechatOpenid() {
-            return wechatOpenid;
-        }
-        
-        public void setWechatOpenid(String wechatOpenid) {
-            this.wechatOpenid = wechatOpenid;
-        }
-        
         public String getNickname() {
             return nickname;
         }
@@ -383,9 +327,6 @@ public class UserController {
         private String nickname;
         private String avatarUrl;
         private Short gender;
-        private String country;
-        private String province;
-        private String city;
         private String language;
         
         // Getters and Setters
@@ -411,30 +352,6 @@ public class UserController {
         
         public void setGender(Short gender) {
             this.gender = gender;
-        }
-        
-        public String getCountry() {
-            return country;
-        }
-        
-        public void setCountry(String country) {
-            this.country = country;
-        }
-        
-        public String getProvince() {
-            return province;
-        }
-        
-        public void setProvince(String province) {
-            this.province = province;
-        }
-        
-        public String getCity() {
-            return city;
-        }
-        
-        public void setCity(String city) {
-            this.city = city;
         }
         
         public String getLanguage() {

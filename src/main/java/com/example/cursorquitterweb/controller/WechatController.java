@@ -47,8 +47,11 @@ public class WechatController {
             
             WechatUserInfo wechatUserInfo = wechatService.login(request.getCode());
             
-            // 检查用户是否已存在
-            Optional<User> existingUser = userService.findByWechatOpenid(wechatUserInfo.getOpenId());
+            // 检查用户是否已存在（通过昵称查找，因为微信昵称通常比较唯一）
+            Optional<User> existingUser = userService.searchByNickname(wechatUserInfo.getNickname())
+                .stream()
+                .filter(user -> user.getNickname().equals(wechatUserInfo.getNickname()))
+                .findFirst();
             
             User user;
             if (existingUser.isPresent()) {
@@ -58,14 +61,9 @@ public class WechatController {
             } else {
                 // 创建新用户
                 user = userService.createUser(
-                    wechatUserInfo.getOpenId(),
                     wechatUserInfo.getNickname(),
                     wechatUserInfo.getHeadimgurl()
                 );
-                if (wechatUserInfo.getUnionid() != null) {
-                    user.setWechatUnionid(wechatUserInfo.getUnionid());
-                    userService.updateUser(user);
-                }
                 LogUtil.logInfo(logger, "新用户创建成功，用户ID: {}", user.getId());
             }
             

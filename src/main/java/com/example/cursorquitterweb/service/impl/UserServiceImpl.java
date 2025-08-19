@@ -36,20 +36,6 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    @Transactional(readOnly = true)
-    public Optional<User> findByWechatOpenid(String wechatOpenid) {
-        logger.debug("根据微信openid查找用户: {}", wechatOpenid);
-        return userRepository.findByWechatOpenid(wechatOpenid);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<User> findByWechatUnionid(String wechatUnionid) {
-        logger.debug("根据微信unionid查找用户: {}", wechatUnionid);
-        return userRepository.findByWechatUnionid(wechatUnionid);
-    }
-    
-    @Override
     @Transactional
     public User save(User user) {
         logger.debug("保存用户: {}", user);
@@ -58,11 +44,10 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional
-    public User createUser(String wechatOpenid, String nickname, String avatarUrl) {
-        logger.info("创建新用户，微信openid: {}, 昵称: {}", wechatOpenid, nickname);
+    public User createUser(String nickname, String avatarUrl) {
+        logger.info("创建新用户，昵称: {}", nickname);
         
-        User user = new User(wechatOpenid);
-        user.setNickname(nickname);
+        User user = new User(nickname);
         user.setAvatarUrl(avatarUrl);
         
         User savedUser = userRepository.save(user);
@@ -87,29 +72,9 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional(readOnly = true)
-    public boolean existsByWechatOpenid(String wechatOpenid) {
-        return userRepository.existsByWechatOpenid(wechatOpenid);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
     public List<User> searchByNickname(String nickname) {
         logger.debug("根据昵称搜索用户: {}", nickname);
         return userRepository.findByNicknameContainingIgnoreCase(nickname);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> findByCity(String city) {
-        logger.debug("根据城市查询用户: {}", city);
-        return userRepository.findByCity(city);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> findByProvince(String province) {
-        logger.debug("根据省份查询用户: {}", province);
-        return userRepository.findByProvince(province);
     }
     
     @Override
