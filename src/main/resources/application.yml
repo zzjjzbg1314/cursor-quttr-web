@@ -116,6 +116,17 @@ wechat:
   code2-session-url: https://api.weixin.qq.com/sns/jscode2session
   user-info-url: https://api.weixin.qq.com/sns/userinfo
 
+# 阿里云OSS配置
+aliyun:
+  oss:
+    endpoint: ${ALIYUN_OSS_ENDPOINT:https://oss-cn-beijing.aliyuncs.com}
+    access-key-id: ${MQTT_ACCESS_KEY:}
+    access-key-secret: ${MQTT_SECRET_KEY:}
+    bucket-name: quittr
+    # 视频文件目录前缀
+    video-prefix: ${ALIYUN_OSS_VIDEO_PREFIX:library/}
+    # 签名URL过期时间（秒）
+    url-expiration: ${ALIYUN_OSS_URL_EXPIRATION:3600}
 
 # MQTT配置 - 阿里云MQ4IoT（完全按照官方示例）
 mqtt:
