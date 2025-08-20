@@ -1,37 +1,37 @@
-//package com.example.cursorquitterweb.service.impl;
-//
-//import com.example.cursorquitterweb.dto.ChatMessageRequest;
-//import com.example.cursorquitterweb.service.ChatService;
-//import com.example.cursorquitterweb.entity.elasticsearch.ChatMessageDocument;
-//import com.example.cursorquitterweb.service.ChatMessageSearchService;
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import org.eclipse.paho.client.mqttv3.*;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Service;
-//import org.springframework.beans.factory.annotation.Value;
-//
-//import java.time.LocalDateTime;
-//
-///**
-// * 聊天服务实现类 - 完全按照阿里云MQ4IoT官方示例实现
-// */
-//@Service
-//public class ChatServiceImpl implements ChatService {
-//
-//    private static final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
-//
+package com.example.cursorquitterweb.service.impl;
+
+import com.example.cursorquitterweb.dto.ChatMessageRequest;
+import com.example.cursorquitterweb.service.ChatService;
+import com.example.cursorquitterweb.entity.elasticsearch.ChatMessageDocument;
+import com.example.cursorquitterweb.service.ChatMessageSearchService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.paho.client.mqttv3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.time.LocalDateTime;
+
+/**
+ * 聊天服务实现类 - 完全按照阿里云MQ4IoT官方示例实现
+ */
+@Service
+public class ChatServiceImpl implements ChatService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
+
 //    @Autowired
 //    private MqttClient mqttClient;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    @Autowired
-//    private ChatMessageSearchService chatMessageSearchService;
-//
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private ChatMessageSearchService chatMessageSearchService;
+
 //    // MQTT主题配置 - 从配置文件读取
 //    @Value("${mqtt.parent.topic:CHAT_OFFICIAL_GROUP}")
 //    private String parentTopic;
@@ -44,7 +44,7 @@
 //
 //    @Value("${mqtt.device.id:${random.uuid}}")
 //    private String deviceId;
-//
+
 //    @Override
 //    public boolean sendMessage(ChatMessageRequest request, String ipAddress) {
 //        System.out.println("=== 聊天消息发送开始（阿里云MQ4IoT官方方式） ===");
@@ -92,11 +92,11 @@
 //            return false;
 //        }
 //    }
-//
-//    /**
-//     * 通过MQTT广播消息
-//     * 完全按照阿里云MQ4IoT官方示例实现
-//     */
+
+    /**
+     * 通过MQTT广播消息
+     * 完全按照阿里云MQ4IoT官方示例实现
+     */
 //    private void broadcastMessage(ChatMessageRequest request, String ipAddress) {
 //        System.out.println("=== MQTT消息广播开始（阿里云MQ4IoT官方方式） ===");
 //        System.out.println("广播时间: " + LocalDateTime.now());
@@ -181,11 +181,11 @@
 //            throw new RuntimeException("MQTT广播过程中发生未知错误", e);
 //        }
 //    }
-//
-//    /**
-//     * 发送点对点消息
-//     * 按照阿里云MQ4IoT官方示例实现
-//     */
+
+    /**
+     * 发送点对点消息
+     * 按照阿里云MQ4IoT官方示例实现
+     */
 //    private void sendP2PMessage(ChatMessageRequest request, String ipAddress) {
 //        try {
 //            // 点对点消息的topic格式：parentTopic/p2p/targetClientId
@@ -217,10 +217,10 @@
 //            // 点对点消息失败不影响主要功能
 //        }
 //    }
-//
-//    /**
-//     * 聊天消息DTO，用于MQTT传输（不存储到数据库）
-//     */
+
+    /**
+     * 聊天消息DTO，用于MQTT传输（不存储到数据库）
+     */
 //    public static class ChatMessageDto {
 //        private String nickName;
 //        private String userStage;
@@ -278,44 +278,44 @@
 //            this.ipAddress = ipAddress;
 //        }
 //    }
-//
-//    @Override
-//    public boolean sendChatMessage(ChatMessageRequest request) {
-//        System.out.println("=== 聊天消息发送到Elasticsearch索引开始 ===");
-//        System.out.println("发送时间: " + LocalDateTime.now());
-//        System.out.println("消息内容: " + request.getContent());
-//        System.out.println("发送者昵称: " + request.getNickName());
-//        System.out.println("用户阶段: " + request.getUserStage());
-//        System.out.println("消息类型: " + request.getMsgType());
-//
-//        try {
-//            // 将ChatMessageRequest转换为ChatMessageDocument
-//            ChatMessageDocument document = new ChatMessageDocument(
-//                    request.getNickName(),
-//                    request.getUserStage(),
-//                    request.getContent(),
-//                    request.getMsgType()
-//            );
-//
-//            System.out.println("正在创建Elasticsearch文档...");
-//            System.out.println("文档内容:");
-//            System.out.println("  昵称: " + document.getNickName());
-//            System.out.println("  用户阶段: " + document.getUserStage());
-//            System.out.println("  内容: " + document.getContent());
-//            System.out.println("  消息类型: " + document.getMsgType());
-//            System.out.println("  创建时间: " + document.getCreateAt());
-//
-//            // 存储到Elasticsearch索引
-//            System.out.println("正在存储到Elasticsearch索引...");
-//            return chatMessageSearchService.saveMessage(document);
-//        } catch (Exception e) {
-//            System.out.println("=== 聊天消息发送到Elasticsearch索引失败 ===");
-//            System.out.println("错误类型: " + e.getClass().getSimpleName());
-//            System.out.println("错误消息: " + e.getMessage());
-//            System.out.println("堆栈跟踪:");
-//            e.printStackTrace();
-//            logger.error("发送聊天消息到Elasticsearch索引失败", e);
-//            return false;
-//        }
-//    }
-//}
+
+    @Override
+    public boolean sendChatMessage(ChatMessageRequest request) {
+        System.out.println("=== 聊天消息发送到Elasticsearch索引开始 ===");
+        System.out.println("发送时间: " + LocalDateTime.now());
+        System.out.println("消息内容: " + request.getContent());
+        System.out.println("发送者昵称: " + request.getNickName());
+        System.out.println("用户阶段: " + request.getUserStage());
+        System.out.println("消息类型: " + request.getMsgType());
+
+        try {
+            // 将ChatMessageRequest转换为ChatMessageDocument
+            ChatMessageDocument document = new ChatMessageDocument(
+                    request.getNickName(),
+                    request.getUserStage(),
+                    request.getContent(),
+                    request.getMsgType()
+            );
+
+            System.out.println("正在创建Elasticsearch文档...");
+            System.out.println("文档内容:");
+            System.out.println("  昵称: " + document.getNickName());
+            System.out.println("  用户阶段: " + document.getUserStage());
+            System.out.println("  内容: " + document.getContent());
+            System.out.println("  消息类型: " + document.getMsgType());
+            System.out.println("  创建时间: " + document.getCreateAt());
+
+            // 存储到Elasticsearch索引
+            System.out.println("正在存储到Elasticsearch索引...");
+            return chatMessageSearchService.saveMessage(document);
+        } catch (Exception e) {
+            System.out.println("=== 聊天消息发送到Elasticsearch索引失败 ===");
+            System.out.println("错误类型: " + e.getClass().getSimpleName());
+            System.out.println("错误消息: " + e.getMessage());
+            System.out.println("堆栈跟踪:");
+            e.printStackTrace();
+            logger.error("发送聊天消息到Elasticsearch索引失败", e);
+            return false;
+        }
+    }
+}

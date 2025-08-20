@@ -19,6 +19,8 @@ public class ChatMessageRequest {
     
     @NotBlank(message = "消息类型不能为空")
     private String msgType;
+
+
     
     // 构造函数
     public ChatMessageRequest() {}
