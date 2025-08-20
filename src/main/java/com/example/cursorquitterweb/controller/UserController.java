@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import com.example.cursorquitterweb.dto.BindPhoneRequest;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
@@ -325,6 +326,31 @@ public class UserController {
     }
     
     /**
+     * 绑定手机号码
+     * 根据手机号查询是否已存在绑定的用户
+     * 如果存在，返回已绑定的用户信息
+     * 如果不存在，将手机号绑定到指定用户
+     */
+    @PostMapping("/bind-phone")
+    public ApiResponse<User> bindPhoneNumber(@RequestBody BindPhoneRequest request) {
+        logger.info("绑定手机号码，用户ID: {}, 手机号: {}", request.getUserId(), request.getPhoneNumber());
+        
+        try {
+            // 将String类型的userId转换为UUID
+            UUID userId = UUID.fromString(request.getUserId());
+            User resultUser = userService.bindPhoneNumber(userId, request.getPhoneNumber());
+            return ApiResponse.success("手机号绑定成功", resultUser);
+        } catch (IllegalArgumentException e) {
+            logger.error("用户ID格式无效: {}", request.getUserId());
+            return ApiResponse.error("用户ID格式无效");
+        } catch (Exception e) {
+            logger.error("手机号绑定失败，用户ID: {}, 手机号: {}, 错误: {}", 
+                request.getUserId(), request.getPhoneNumber(), e.getMessage());
+            return ApiResponse.error("绑定失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 创建用户请求DTO
      */
     public static class CreateUserRequest {
@@ -400,4 +426,6 @@ public class UserController {
             this.phoneNumber = phoneNumber;
         }
     }
+
+
 }

@@ -290,4 +290,33 @@ public class UserServiceImpl implements UserService {
                    userId, rank, user.getBestRecord());
         return result;
     }
+    
+    @Override
+    @Transactional
+    public User bindPhoneNumber(UUID userId, String phoneNumber) {
+        logger.info("绑定手机号码，用户ID: {}, 手机号: {}", userId, phoneNumber);
+        
+        // 首先检查手机号是否已经被其他用户绑定
+        Optional<User> existingUser = userRepository.findByPhoneNumber(phoneNumber);
+        if (existingUser.isPresent()) {
+            logger.info("手机号已被绑定，返回已绑定的用户信息，手机号: {}, 用户ID: {}", 
+                       phoneNumber, existingUser.get().getId());
+            return existingUser.get();
+        }
+        
+        // 手机号未被绑定，查找指定用户并绑定手机号
+        Optional<User> targetUser = userRepository.findById(userId);
+        if (!targetUser.isPresent()) {
+            logger.error("目标用户不存在，无法绑定手机号，用户ID: {}", userId);
+            throw new RuntimeException("用户不存在");
+        }
+        
+        User user = targetUser.get();
+        user.setPhoneNumber(phoneNumber);
+        user.preUpdate();
+        
+        User savedUser = userRepository.save(user);
+        logger.info("手机号绑定成功，用户ID: {}, 手机号: {}", userId, phoneNumber);
+        return savedUser;
+    }
 }

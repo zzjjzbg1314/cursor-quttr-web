@@ -147,4 +147,15 @@ public interface UserService {
      * @return 用户排名和最佳成绩信息
      */
     UserRankDto getUserRankAndBestRecord(UUID userId);
+    
+    /**
+     * 绑定手机号码
+     * 根据手机号查询是否已存在绑定的用户
+     * 如果存在，返回已绑定的用户信息
+     * 如果不存在，将手机号绑定到指定用户
+     * @param userId 用户ID
+     * @param phoneNumber 手机号码
+     * @return 用户对象（已绑定的用户或更新后的用户）
+     */
+    User bindPhoneNumber(UUID userId, String phoneNumber);
 }
