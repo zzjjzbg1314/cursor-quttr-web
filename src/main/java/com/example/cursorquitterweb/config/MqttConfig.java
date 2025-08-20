@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * MQTT配置类 - 完全按照阿里云MQ4IoT官方示例实现
  */
-@Configuration
-@PropertySource("classpath:application.yml")
+//@Configuration
+//@PropertySource("classpath:application.yml")
 public class MqttConfig {
     
     @Value("${mqtt.instance.id:your_instance_id_here}")
