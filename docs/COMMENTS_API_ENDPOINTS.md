@@ -23,6 +23,7 @@ http://localhost:8080/api/comments
     "userId": "uuid-string",
     "userNickname": "用户昵称",
     "userStage": "用户阶段",
+    "avatarUrl": "用户头像链接",
     "content": "评论内容"
 }
 ```
@@ -38,6 +39,7 @@ http://localhost:8080/api/comments
         "userId": "uuid-string",
         "userNickname": "用户昵称",
         "userStage": "用户阶段",
+        "avatarUrl": "用户头像链接",
         "content": "评论内容",
         "isDeleted": false,
         "createdAt": "2025-08-11T10:55:28.335+00:00",
@@ -82,7 +84,8 @@ http://localhost:8080/api/comments
 **请求体** (UpdateCommentRequest):
 ```json
 {
-    "content": "更新后的评论内容"
+    "content": "更新后的评论内容",
+    "avatarUrl": "更新后的用户头像链接"
 }
 ```
 
@@ -97,6 +100,7 @@ http://localhost:8080/api/comments
         "userId": "uuid-string",
         "userNickname": "用户昵称",
         "userStage": "用户阶段",
+        "avatarUrl": "更新后的用户头像链接",
         "content": "更新后的评论内容",
         "isDeleted": false,
         "createdAt": "2025-08-11T10:55:28.335+00:00",
@@ -266,6 +270,7 @@ http://localhost:8080/api/comments
 - `userId`: 用户ID (UUID)
 - `userNickname`: 用户昵称
 - `userStage`: 用户阶段
+- `avatarUrl`: 用户头像链接
 - `content`: 评论内容
 
 ### UpdateCommentRequest
@@ -273,6 +278,7 @@ http://localhost:8080/api/comments
 更新评论请求DTO：
 
 - `content`: 评论内容
+- `avatarUrl`: 用户头像链接
 
 ### Comment
 
@@ -283,6 +289,7 @@ http://localhost:8080/api/comments
 - `userId`: 用户ID (UUID)
 - `userNickname`: 用户昵称
 - `userStage`: 用户阶段
+- `avatarUrl`: 用户头像链接
 - `content`: 评论内容
 - `isDeleted`: 是否已删除
 - `createdAt`: 创建时间

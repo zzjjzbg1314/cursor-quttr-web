@@ -38,6 +38,7 @@ public class CommentController {
                 request.getUserId(),
                 request.getUserNickname(),
                 request.getUserStage(),
+                request.getAvatarUrl(),
                 request.getContent()
             );
             return ApiResponse.success("评论创建成功", comment);
@@ -69,7 +70,7 @@ public class CommentController {
     @PutMapping("/{commentId}/update")
     public ApiResponse<Comment> updateComment(@PathVariable UUID commentId, @RequestBody UpdateCommentRequest request) {
         try {
-            Comment comment = commentService.updateComment(commentId, request.getContent());
+            Comment comment = commentService.updateComment(commentId, request.getContent(), request.getAvatarUrl());
             return ApiResponse.success("评论更新成功", comment);
         } catch (Exception e) {
             return ApiResponse.error("更新评论失败: " + e.getMessage());

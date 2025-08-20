@@ -29,6 +29,9 @@ public class Comment {
     @Column(name = "user_stage", nullable = false, length = 50)
     private String userStage;
     
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+    
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
@@ -53,6 +56,16 @@ public class Comment {
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
+        this.content = content;
+    }
+    
+    public Comment(UUID postId, UUID userId, String userNickname, String userStage, String avatarUrl, String content) {
+        this();
+        this.postId = postId;
+        this.userId = userId;
+        this.userNickname = userNickname;
+        this.userStage = userStage;
+        this.avatarUrl = avatarUrl;
         this.content = content;
     }
     
@@ -95,6 +108,14 @@ public class Comment {
     
     public void setUserStage(String userStage) {
         this.userStage = userStage;
+    }
+    
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
     
     public String getContent() {
@@ -142,6 +163,7 @@ public class Comment {
                 ", userId=" + userId +
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
                 ", isDeleted=" + isDeleted +
                 ", createdAt=" + createdAt +

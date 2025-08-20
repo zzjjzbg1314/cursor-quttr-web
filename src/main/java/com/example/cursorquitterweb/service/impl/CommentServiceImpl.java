@@ -30,13 +30,13 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public Comment createComment(String postId, String userId, String userNickname, String userStage, String content) {
+    public Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl, String content) {
         try {
             // 将String类型的ID转换为UUID类型
             UUID postUuid = UUID.fromString(postId);
             UUID userUuid = UUID.fromString(userId);
             
-            Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, content);
+            Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content);
             return commentRepository.save(comment);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("无效的UUID格式: " + e.getMessage());
@@ -49,6 +49,21 @@ public class CommentServiceImpl implements CommentService {
         if (optionalComment.isPresent()) {
             Comment comment = optionalComment.get();
             comment.setContent(content);
+            comment.setUpdatedAt(OffsetDateTime.now());
+            return commentRepository.save(comment);
+        }
+        throw new RuntimeException("评论不存在或已被删除");
+    }
+    
+    @Override
+    public Comment updateComment(UUID commentId, String content, String avatarUrl) {
+        Optional<Comment> optionalComment = commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
+        if (optionalComment.isPresent()) {
+            Comment comment = optionalComment.get();
+            comment.setContent(content);
+            if (avatarUrl != null) {
+                comment.setAvatarUrl(avatarUrl);
+            }
             comment.setUpdatedAt(OffsetDateTime.now());
             return commentRepository.save(comment);
         }

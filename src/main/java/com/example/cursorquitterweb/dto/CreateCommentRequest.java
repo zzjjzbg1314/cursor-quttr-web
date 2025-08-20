@@ -9,6 +9,7 @@ public class CreateCommentRequest {
     private String userId;  // 改为String类型，便于前端传递
     private String userNickname;
     private String userStage;
+    private String avatarUrl;
     private String content;
     
     public CreateCommentRequest() {}
@@ -18,6 +19,15 @@ public class CreateCommentRequest {
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
+        this.content = content;
+    }
+    
+    public CreateCommentRequest(String postId, String userId, String userNickname, String userStage, String avatarUrl, String content) {
+        this.postId = postId;
+        this.userId = userId;
+        this.userNickname = userNickname;
+        this.userStage = userStage;
+        this.avatarUrl = avatarUrl;
         this.content = content;
     }
     
@@ -54,6 +64,14 @@ public class CreateCommentRequest {
         this.userStage = userStage;
     }
     
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+    
     public String getContent() {
         return content;
     }
@@ -69,6 +87,7 @@ public class CreateCommentRequest {
                 ", userId='" + userId + '\'' +
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
                 '}';
     }

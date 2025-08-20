@@ -22,12 +22,17 @@ public interface CommentService {
     /**
      * 创建新评论
      */
-    Comment createComment(String postId, String userId, String userNickname, String userStage, String content);
+    Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl, String content);
     
     /**
      * 更新评论内容
      */
     Comment updateComment(UUID commentId, String content);
+    
+    /**
+     * 更新评论内容和头像
+     */
+    Comment updateComment(UUID commentId, String content, String avatarUrl);
     
     /**
      * 删除评论（软删除）
