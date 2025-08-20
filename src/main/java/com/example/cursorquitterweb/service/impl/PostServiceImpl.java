@@ -42,6 +42,12 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
+    public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String title, String content) {
+        Post post = new Post(userId, userNickname, userStage, avatarUrl, title, content);
+        return postRepository.save(post);
+    }
+    
+    @Override
     public Post updatePost(UUID postId, String title, String content) {
         Optional<Post> optionalPost = postRepository.findByPostIdAndIsDeletedFalse(postId);
         if (optionalPost.isPresent()) {
@@ -160,6 +166,7 @@ public class PostServiceImpl implements PostService {
                 post.getUserId(),
                 post.getUserNickname(),
                 post.getUserStage(),
+                post.getAvatarUrl(),
                 post.getTitle(),
                 post.getContent(),
                 post.getIsDeleted(),

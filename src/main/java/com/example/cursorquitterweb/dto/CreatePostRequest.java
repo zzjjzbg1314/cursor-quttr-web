@@ -13,6 +13,8 @@ public class CreatePostRequest {
     
     private String userStage;
     
+    private String avatarUrl;
+    
     private String title;
     
     private String content;
@@ -23,6 +25,15 @@ public class CreatePostRequest {
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
+        this.title = title;
+        this.content = content;
+    }
+    
+    public CreatePostRequest(UUID userId, String userNickname, String userStage, String avatarUrl, String title, String content) {
+        this.userId = userId;
+        this.userNickname = userNickname;
+        this.userStage = userStage;
+        this.avatarUrl = avatarUrl;
         this.title = title;
         this.content = content;
     }
@@ -52,6 +63,14 @@ public class CreatePostRequest {
         this.userStage = userStage;
     }
     
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+    
     public String getTitle() {
         return title;
     }
@@ -74,6 +93,7 @@ public class CreatePostRequest {
                 "userId=" + userId +
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 '}';

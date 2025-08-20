@@ -12,6 +12,9 @@ public class PostWithUpvotesDto {
     private UUID userId;
     private String userNickname;
     private String userStage;
+    
+    private String avatarUrl;
+    
     private String title;
     private String content;
     private Boolean isDeleted;
@@ -28,6 +31,22 @@ public class PostWithUpvotesDto {
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
+        this.title = title;
+        this.content = content;
+        this.isDeleted = isDeleted;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.upvotes = upvotes;
+    }
+    
+    public PostWithUpvotesDto(UUID postId, UUID userId, String userNickname, String userStage, String avatarUrl,
+                             String title, String content, Boolean isDeleted, 
+                             OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes) {
+        this.postId = postId;
+        this.userId = userId;
+        this.userNickname = userNickname;
+        this.userStage = userStage;
+        this.avatarUrl = avatarUrl;
         this.title = title;
         this.content = content;
         this.isDeleted = isDeleted;
@@ -67,6 +86,14 @@ public class PostWithUpvotesDto {
     
     public void setUserStage(String userStage) {
         this.userStage = userStage;
+    }
+    
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
     
     public String getTitle() {
@@ -124,6 +151,7 @@ public class PostWithUpvotesDto {
                 ", userId=" + userId +
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", isDeleted=" + isDeleted +

@@ -38,6 +38,7 @@ public class PostController {
                 request.getUserId(),
                 request.getUserNickname(),
                 request.getUserStage(),
+                request.getAvatarUrl(),
                 request.getTitle(),
                 request.getContent()
             );

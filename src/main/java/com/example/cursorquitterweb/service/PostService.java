@@ -26,6 +26,11 @@ public interface PostService {
     Post createPost(UUID userId, String userNickname, String userStage, String title, String content);
     
     /**
+     * 创建新帖子（包含头像URL）
+     */
+    Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String title, String content);
+    
+    /**
      * 更新帖子信息
      */
     Post updatePost(UUID postId, String title, String content);

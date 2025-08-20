@@ -56,7 +56,7 @@ public class UserController {
         int randomNumber = (int) (Math.random() * 1100) + 1;
         String avatarUrl = "https://my-avatar-images.oss-cn-hangzhou.aliyuncs.com/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
         
-        // 生成随机昵称：KJ + 12位随机字母数字组合
+        // 生成随机昵称：KJ + 12位随机字母数字组合p
         String randomNickname = generateRandomNickname();
         
         User user = User.initUser();
