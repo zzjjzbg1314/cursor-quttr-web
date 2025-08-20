@@ -51,9 +51,34 @@ public class UserController {
     @PostMapping("/init")
     public ApiResponse<User> initUser() {
         logger.info("初始化用户信息");
+        
+        // 生成1到1100之间的随机数字
+        int randomNumber = (int) (Math.random() * 1100) + 1;
+        String avatarUrl = "https://my-avatar-images.oss-cn-hangzhou.aliyuncs.com/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
+        
+        // 生成随机昵称：KJ + 12位随机字母数字组合
+        String randomNickname = generateRandomNickname();
+        
         User user = User.initUser();
+        user.setNickname(randomNickname);
+        user.setAvatarUrl(avatarUrl);
         User savedUser = userService.save(user);
         return ApiResponse.success("用户初始化并保存成功", savedUser);
+    }
+    
+    /**
+     * 生成随机昵称：KJ + 12位随机字母数字组合
+     */
+    private String generateRandomNickname() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder("KJ");
+        
+        for (int i = 0; i < 12; i++) {
+            int randomIndex = (int) (Math.random() * chars.length());
+            sb.append(chars.charAt(randomIndex));
+        }
+        
+        return sb.toString();
     }
     
     /**
