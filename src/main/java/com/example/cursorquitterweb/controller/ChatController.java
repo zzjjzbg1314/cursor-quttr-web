@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.dto.ChatMessageRequest;
 import com.example.cursorquitterweb.entity.elasticsearch.ChatMessageDocument;
 import com.example.cursorquitterweb.service.ChatService;
 import com.example.cursorquitterweb.service.ChatMessageSearchService;
+import com.example.cursorquitterweb.util.ElasticsearchIndexUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class ChatController {
     @Autowired
     private ChatMessageSearchService chatMessageSearchService;
 
+    @Autowired
+    private ElasticsearchIndexUpdater elasticsearchIndexUpdater;
+
     /**
      * 发送聊天消息
      * @param request 聊天消息请求
@@ -50,9 +54,9 @@ public class ChatController {
         try {
             // 获取客户端IP地址
             String ipAddress = getClientIpAddress(httpRequest);
-            logger.info("收到聊天消息请求: 用户={}, 阶段={}, 类型={}, 内容={}, IP={}",
+            logger.info("收到聊天消息请求: 用户={}, 阶段={}, 类型={}, 内容={}, 头像={}, IP={}",
                        request.getNickName(), request.getUserStage(),
-                       request.getMsgType(), request.getContent(), ipAddress);
+                       request.getMsgType(), request.getContent(), request.getAvatarUrl(), ipAddress);
 
             // 发送消息
             boolean success = chatService.sendChatMessage(request);
@@ -102,9 +106,9 @@ public class ChatController {
     @PostMapping("/sendToIndex")
     public ApiResponse<String> sendChatMessage(@Valid @RequestBody ChatMessageRequest request) {
         try {
-            logger.info("收到聊天消息索引请求: 用户={}, 阶段={}, 类型={}, 内容={}",
+            logger.info("收到聊天消息索引请求: 用户={}, 阶段={}, 类型={}, 内容={}, 头像={}",
                        request.getNickName(), request.getUserStage(),
-                       request.getMsgType(), request.getContent());
+                       request.getMsgType(), request.getContent(), request.getAvatarUrl());
 
             // 发送消息到Elasticsearch索引
             boolean success = chatService.sendChatMessage(request);
@@ -423,6 +427,52 @@ public class ChatController {
         } catch (Exception e) {
             logger.error("根据用户阶段查询聊天消息时发生错误", e);
             return ApiResponse.error("查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 手动更新ES索引映射，添加avatarUrl字段
+     * @return API响应
+     */
+    @PostMapping("/updateIndexMapping")
+    public ApiResponse<String> updateIndexMapping() {
+        try {
+            logger.info("开始手动更新ES索引映射...");
+            
+            boolean success = elasticsearchIndexUpdater.addAvatarUrlField();
+            
+            if (success) {
+                return ApiResponse.success("ES索引映射更新成功，avatarUrl字段已添加");
+            } else {
+                return ApiResponse.error("ES索引映射更新失败");
+            }
+            
+        } catch (Exception e) {
+            logger.error("更新ES索引映射时发生错误", e);
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 自动检查并更新ES索引映射（如果需要）
+     * @return API响应
+     */
+    @PostMapping("/autoUpdateIndexMapping")
+    public ApiResponse<String> autoUpdateIndexMapping() {
+        try {
+            logger.info("开始自动检查并更新ES索引映射...");
+            
+            boolean success = elasticsearchIndexUpdater.autoUpdateIfNeeded();
+            
+            if (success) {
+                return ApiResponse.success("ES索引映射检查/更新完成");
+            } else {
+                return ApiResponse.error("ES索引映射更新失败");
+            }
+            
+        } catch (Exception e) {
+            logger.error("自动更新ES索引映射时发生错误", e);
+            return ApiResponse.error("更新失败: " + e.getMessage());
         }
     }
 }

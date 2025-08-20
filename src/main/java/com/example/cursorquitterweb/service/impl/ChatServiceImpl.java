@@ -284,9 +284,10 @@ public class ChatServiceImpl implements ChatService {
         System.out.println("=== 聊天消息发送到Elasticsearch索引开始 ===");
         System.out.println("发送时间: " + LocalDateTime.now());
         System.out.println("消息内容: " + request.getContent());
-        System.out.println("发送者昵称: " + request.getNickName());
-        System.out.println("用户阶段: " + request.getUserStage());
-        System.out.println("消息类型: " + request.getMsgType());
+                    System.out.println("发送者昵称: " + request.getNickName());
+            System.out.println("用户阶段: " + request.getUserStage());
+            System.out.println("消息类型: " + request.getMsgType());
+            System.out.println("头像URL: " + request.getAvatarUrl());
 
         try {
             // 将ChatMessageRequest转换为ChatMessageDocument
@@ -294,7 +295,8 @@ public class ChatServiceImpl implements ChatService {
                     request.getNickName(),
                     request.getUserStage(),
                     request.getContent(),
-                    request.getMsgType()
+                    request.getMsgType(),
+                    request.getAvatarUrl()
             );
 
             System.out.println("正在创建Elasticsearch文档...");
@@ -303,6 +305,7 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("  用户阶段: " + document.getUserStage());
             System.out.println("  内容: " + document.getContent());
             System.out.println("  消息类型: " + document.getMsgType());
+            System.out.println("  头像URL: " + document.getAvatarUrl());
             System.out.println("  创建时间: " + document.getCreateAt());
 
             // 存储到Elasticsearch索引

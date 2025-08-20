@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.entity.elasticsearch.ChatMessageDocument;
 import com.example.cursorquitterweb.service.ChatMessageSearchService;
+import com.example.cursorquitterweb.util.ElasticsearchIndexUpdater;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
@@ -44,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.Collections;
+import javax.annotation.PostConstruct;
 
 /**
  * 群聊消息搜索服务实现类 - 直接调用阿里云ES API
@@ -125,6 +127,9 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
 
     @Autowired
     private RestHighLevelClient elasticsearchClient;
+
+    @Autowired
+    private ElasticsearchIndexUpdater elasticsearchIndexUpdater;
 
     @Override
     public ChatMessageDocument indexMessage(ChatMessageDocument message) {
@@ -748,6 +753,36 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
         } catch (IOException e) {
             logger.error("创建索引失败: {}", e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * 在服务启动时自动检查并更新索引映射
+     * 暂时禁用自动更新，避免启动错误
+     */
+    @PostConstruct
+    public void autoUpdateIndexMapping() {
+        try {
+            logger.info("服务启动，ES索引映射自动更新功能已暂时禁用");
+            logger.info("如需更新索引映射，请手动调用 /api/chat/updateIndexMapping 接口");
+            
+            // 暂时注释掉自动更新逻辑，避免启动错误
+            /*
+            if (indexExists()) {
+                logger.info("索引已存在，尝试更新映射以添加avatarUrl字段...");
+                boolean updated = elasticsearchIndexUpdater.addAvatarUrlField();
+                if (updated) {
+                    logger.info("索引映射更新成功");
+                } else {
+                    logger.warn("索引映射更新失败，可能需要手动处理");
+                }
+            } else {
+                logger.info("索引不存在，将在首次使用时创建");
+            }
+            */
+            
+        } catch (Exception e) {
+            logger.error("自动更新索引映射时发生错误: {}", e.getMessage(), e);
         }
     }
 
