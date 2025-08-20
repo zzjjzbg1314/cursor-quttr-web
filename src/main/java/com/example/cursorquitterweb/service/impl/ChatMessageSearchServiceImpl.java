@@ -722,6 +722,10 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
             msgTypeField.put("type", "keyword");
             properties.put("msgType", msgTypeField);
             
+            Map<String, Object> avatarUrlField = new HashMap<>();
+            avatarUrlField.put("type", "keyword");
+            properties.put("avatarUrl", avatarUrlField);
+            
             Map<String, Object> createAtField = new HashMap<>();
             createAtField.put("type", "date");
             createAtField.put("format", "yyyy-MM-dd'T'HH:mm:ss");
@@ -762,6 +766,7 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
         map.put("userStage", message.getUserStage());
         map.put("content", message.getContent());
         map.put("msgType", message.getMsgType());
+        map.put("avatarUrl", message.getAvatarUrl());
         
         // 修复日期格式，确保与阿里云ES的date格式完全兼容
         if (message.getCreateAt() != null) {
@@ -794,6 +799,7 @@ public class ChatMessageSearchServiceImpl implements ChatMessageSearchService {
             document.setUserStage((String) source.get("userStage"));
             document.setContent((String) source.get("content"));
             document.setMsgType((String) source.get("msgType"));
+            document.setAvatarUrl((String) source.get("avatarUrl"));
             
             // 解析日期
             String createAtStr = (String) source.get("createAt");

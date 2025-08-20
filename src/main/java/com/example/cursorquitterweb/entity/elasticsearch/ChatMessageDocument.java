@@ -31,6 +31,9 @@ public class ChatMessageDocument {
     @Field(type = FieldType.Keyword, index = true)
     private String msgType;
 
+    @Field(type = FieldType.Keyword)
+    private String avatarUrl;
+
     @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
     private LocalDateTime createAt;
 
@@ -45,11 +48,21 @@ public class ChatMessageDocument {
         this.createAt = LocalDateTime.now();
     }
 
-    public ChatMessageDocument(String nickName, String userStage, String content, String msgType, LocalDateTime createAt) {
+    public ChatMessageDocument(String nickName, String userStage, String content, String msgType, String avatarUrl) {
         this.nickName = nickName;
         this.userStage = userStage;
         this.content = content;
         this.msgType = msgType;
+        this.avatarUrl = avatarUrl;
+        this.createAt = LocalDateTime.now();
+    }
+
+    public ChatMessageDocument(String nickName, String userStage, String content, String msgType, String avatarUrl, LocalDateTime createAt) {
+        this.nickName = nickName;
+        this.userStage = userStage;
+        this.content = content;
+        this.msgType = msgType;
+        this.avatarUrl = avatarUrl;
         this.createAt = createAt;
     }
 
@@ -94,6 +107,14 @@ public class ChatMessageDocument {
         this.msgType = msgType;
     }
 
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public LocalDateTime getCreateAt() {
         return createAt;
     }
@@ -110,6 +131,7 @@ public class ChatMessageDocument {
                 ", userStage='" + userStage + '\'' +
                 ", content='" + content + '\'' +
                 ", msgType='" + msgType + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", createAt=" + createAt +
                 '}';
     }
