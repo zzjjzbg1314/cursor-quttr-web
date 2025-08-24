@@ -1,13 +1,11 @@
 package com.example.cursorquitterweb.dto;
 
-import java.util.UUID;
-
 /**
  * 创建康复日记请求DTO
  */
 public class CreateRecoveryJournalRequest {
     
-    private UUID userId;
+    private String userId;
     
     private String title;
     
@@ -15,18 +13,18 @@ public class CreateRecoveryJournalRequest {
     
     public CreateRecoveryJournalRequest() {}
     
-    public CreateRecoveryJournalRequest(UUID userId, String title, String content) {
+    public CreateRecoveryJournalRequest(String userId, String title, String content) {
         this.userId = userId;
         this.title = title;
         this.content = content;
     }
     
     // Getters and Setters
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
     
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     
@@ -49,7 +47,7 @@ public class CreateRecoveryJournalRequest {
     @Override
     public String toString() {
         return "CreateRecoveryJournalRequest{" +
-                "userId=" + userId +
+                "userId='" + userId + '\'' +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 '}';

@@ -40,8 +40,9 @@ public class RecoveryJournalController {
         logger.info("创建康复日记，用户ID: {}, 标题: {}", request.getUserId(), request.getTitle());
         
         try {
+            UUID userUuid = UUID.fromString(request.getUserId());
             RecoveryJournal journal = recoveryJournalService.createJournal(
-                    request.getUserId(), 
+                    userUuid, 
                     request.getTitle(), 
                     request.getContent()
             );
