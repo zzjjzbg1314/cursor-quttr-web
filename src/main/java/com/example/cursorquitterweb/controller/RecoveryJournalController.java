@@ -35,7 +35,7 @@ public class RecoveryJournalController {
     /**
      * 创建康复日记
      */
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<RecoveryJournal> createJournal(@RequestBody CreateRecoveryJournalRequest request) {
         logger.info("创建康复日记，用户ID: {}, 标题: {}", request.getUserId(), request.getTitle());
         
