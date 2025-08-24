@@ -73,7 +73,7 @@ public class RecoveryJournalController {
     /**
      * 更新康复日记
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     public ApiResponse<RecoveryJournal> updateJournal(
             @PathVariable UUID id, 
             @RequestBody UpdateRecoveryJournalRequest request) {
@@ -98,7 +98,7 @@ public class RecoveryJournalController {
     /**
      * 删除康复日记
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public ApiResponse<Void> deleteJournal(@PathVariable UUID id) {
         logger.info("删除康复日记，ID: {}", id);
         
@@ -117,8 +117,8 @@ public class RecoveryJournalController {
     /**
      * 获取用户的康复日记列表
      */
-    @GetMapping("/user/{userId}")
-    public ApiResponse<List<RecoveryJournalDto>> getUserJournals(@PathVariable UUID userId) {
+    @GetMapping("/user")
+    public ApiResponse<List<RecoveryJournalDto>> getUserJournals(@RequestParam UUID userId) {
         logger.info("获取用户康复日记列表，用户ID: {}", userId);
         
         try {
@@ -133,17 +133,21 @@ public class RecoveryJournalController {
     /**
      * 分页获取用户的康复日记
      */
-    @GetMapping("/user/{userId}/page")
+    @GetMapping("/page")
     public ApiResponse<Page<RecoveryJournalDto>> getUserJournalsPage(
-            @PathVariable UUID userId,
+            @RequestParam String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         logger.info("分页获取用户康复日记，用户ID: {}, 页码: {}, 大小: {}", userId, page, size);
         
         try {
+            UUID userUuid = UUID.fromString(userId);
             Pageable pageable = PageRequest.of(page, size);
-            Page<RecoveryJournalDto> journalPage = recoveryJournalService.findByUserId(userId, pageable);
+            Page<RecoveryJournalDto> journalPage = recoveryJournalService.findByUserId(userUuid, pageable);
             return ApiResponse.success(journalPage);
+        } catch (IllegalArgumentException e) {
+            logger.warn("用户ID格式错误: {}", userId);
+            return ApiResponse.error("用户ID格式错误");
         } catch (Exception e) {
             logger.error("分页获取用户康复日记时发生错误", e);
             return ApiResponse.error("获取康复日记列表失败");
@@ -153,9 +157,9 @@ public class RecoveryJournalController {
     /**
      * 根据时间范围获取用户的康复日记
      */
-    @GetMapping("/user/{userId}/date-range")
+    @GetMapping("/date-range")
     public ApiResponse<List<RecoveryJournalDto>> getUserJournalsByDateRange(
-            @PathVariable UUID userId,
+            @RequestParam UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endTime) {
         logger.info("根据时间范围获取用户康复日记，用户ID: {}, 开始时间: {}, 结束时间: {}", userId, startTime, endTime);
@@ -172,9 +176,9 @@ public class RecoveryJournalController {
     /**
      * 关键词搜索康复日记
      */
-    @GetMapping("/user/{userId}/search")
+    @GetMapping("/search")
     public ApiResponse<List<RecoveryJournalDto>> searchJournals(
-            @PathVariable UUID userId,
+            @RequestParam UUID userId,
             @RequestParam String keyword) {
         logger.info("关键词搜索康复日记，用户ID: {}, 关键词: {}", userId, keyword);
         
@@ -190,8 +194,8 @@ public class RecoveryJournalController {
     /**
      * 获取用户康复日记统计信息
      */
-    @GetMapping("/user/{userId}/stats")
-    public ApiResponse<Object> getUserJournalStats(@PathVariable UUID userId) {
+    @GetMapping("/stats")
+    public ApiResponse<Object> getUserJournalStats(@RequestParam UUID userId) {
         logger.info("获取用户康复日记统计信息，用户ID: {}", userId);
         
         try {
@@ -216,8 +220,8 @@ public class RecoveryJournalController {
     /**
      * 获取用户最近的一篇康复日记
      */
-    @GetMapping("/user/{userId}/latest")
-    public ApiResponse<RecoveryJournalDto> getLatestJournal(@PathVariable UUID userId) {
+    @GetMapping("/latest")
+    public ApiResponse<RecoveryJournalDto> getLatestJournal(@RequestParam UUID userId) {
         logger.info("获取用户最新康复日记，用户ID: {}", userId);
         
         try {
