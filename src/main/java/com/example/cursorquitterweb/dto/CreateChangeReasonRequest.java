@@ -2,7 +2,6 @@ package com.example.cursorquitterweb.dto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.UUID;
 
 /**
  * 创建改变理由请求DTO
@@ -10,7 +9,7 @@ import java.util.UUID;
 public class CreateChangeReasonRequest {
     
     @NotNull(message = "用户ID不能为空")
-    private UUID userId;
+    private String userId;
     
     @NotBlank(message = "改变理由内容不能为空")
     private String content;
@@ -18,17 +17,17 @@ public class CreateChangeReasonRequest {
     // 构造函数
     public CreateChangeReasonRequest() {}
     
-    public CreateChangeReasonRequest(UUID userId, String content) {
+    public CreateChangeReasonRequest(String userId, String content) {
         this.userId = userId;
         this.content = content;
     }
     
     // Getter和Setter方法
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
     
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     

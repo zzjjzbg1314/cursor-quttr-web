@@ -24,7 +24,7 @@ public class ChangeReasonServiceImpl implements ChangeReasonService {
     
     @Override
     public ChangeReason createChangeReason(CreateChangeReasonRequest request) {
-        ChangeReason changeReason = new ChangeReason(request.getUserId(), request.getContent());
+        ChangeReason changeReason = new ChangeReason(UUID.fromString(request.getUserId()), request.getContent());
         return changeReasonRepository.save(changeReason);
     }
     

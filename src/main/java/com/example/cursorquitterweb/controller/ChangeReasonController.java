@@ -18,7 +18,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/change-reasons")
-@CrossOrigin(origins = "*")
 public class ChangeReasonController {
     
     @Autowired
