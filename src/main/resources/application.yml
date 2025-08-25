@@ -54,7 +54,7 @@ spring:
   # JPA配置 - 针对PostgreSQL优化
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:validate}  # 可以通过环境变量控制，测试时设置为create-drop
+      ddl-auto: ${DDL_AUTO:update}  # 临时改为 update，允许自动更新数据库模式
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
