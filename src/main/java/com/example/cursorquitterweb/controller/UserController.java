@@ -14,6 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -336,6 +337,49 @@ public class UserController {
     }
     
     /**
+     * 更新用户挑战开始时间
+     */
+    @PutMapping("/{id}/challenge-start-time")
+    public ApiResponse<User> updateChallengeStartTime(
+            @PathVariable String id,
+            @RequestBody UpdateChallengeStartTimeRequest request) {
+        logger.info("更新用户挑战开始时间，ID: {}, 新开始时间: {}", id, request.getNewStartTime());
+        
+        if (request.getNewStartTime() == null || request.getNewStartTime().trim().isEmpty()) {
+            return ApiResponse.error("新的开始时间不能为空");
+        }
+        
+        try {
+            // 将字符串时间转换为OffsetDateTime
+            OffsetDateTime newStartTime = OffsetDateTime.parse(request.getNewStartTime());
+            User updatedUser = userService.updateChallengeStartTime(id, newStartTime);
+            return ApiResponse.success("挑战开始时间更新成功", updatedUser);
+        } catch (DateTimeParseException e) {
+            logger.error("时间格式解析失败，用户ID: {}, 时间字符串: {}, 错误: {}", id, request.getNewStartTime(), e.getMessage());
+            return ApiResponse.error("时间格式无效，请使用ISO 8601格式（如：2024-01-15T10:00:00+08:00）");
+        } catch (Exception e) {
+            logger.error("更新挑战开始时间失败，用户ID: {}, 错误: {}", id, e.getMessage());
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户挑战开始时间
+     */
+    @GetMapping("/{id}/challenge-start-time")
+    public ApiResponse<OffsetDateTime> getChallengeStartTime(@PathVariable UUID id) {
+        logger.info("获取用户挑战开始时间，ID: {}", id);
+        
+        Optional<User> userOpt = userService.findById(id);
+        if (!userOpt.isPresent()) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        User user = userOpt.get();
+        return ApiResponse.success("获取挑战开始时间成功", user.getChallengeResetTime());
+    }
+    
+    /**
      * 查询用户在挑战榜单中的排名
      */
     @GetMapping("/{id}/rank")
@@ -449,6 +493,22 @@ public class UserController {
         
         public void setPhoneNumber(String phoneNumber) {
             this.phoneNumber = phoneNumber;
+        }
+    }
+    
+    /**
+     * 更新挑战开始时间请求DTO
+     */
+    public static class UpdateChallengeStartTimeRequest {
+        private String newStartTime;
+        
+        // Getters and Setters
+        public String getNewStartTime() {
+            return newStartTime;
+        }
+        
+        public void setNewStartTime(String newStartTime) {
+            this.newStartTime = newStartTime;
         }
     }
 

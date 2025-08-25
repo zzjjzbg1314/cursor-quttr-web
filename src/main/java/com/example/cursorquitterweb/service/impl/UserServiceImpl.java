@@ -319,4 +319,30 @@ public class UserServiceImpl implements UserService {
         logger.info("手机号绑定成功，用户ID: {}, 手机号: {}", userId, phoneNumber);
         return savedUser;
     }
+    
+    @Override
+    @Transactional
+    public User updateChallengeStartTime(String userId, OffsetDateTime newStartTime) {
+        logger.info("更新用户挑战开始时间，用户ID: {}, 新开始时间: {}", userId, newStartTime);
+        
+        try {
+            UUID uuid = UUID.fromString(userId);
+            Optional<User> userOpt = userRepository.findById(uuid);
+            if (!userOpt.isPresent()) {
+                logger.error("用户不存在，无法更新挑战开始时间，用户ID: {}", userId);
+                throw new RuntimeException("用户不存在");
+            }
+            
+            User user = userOpt.get();
+            user.setChallengeResetTime(newStartTime);
+            user.preUpdate();
+            
+            User savedUser = userRepository.save(user);
+            logger.info("挑战开始时间更新成功，用户ID: {}, 新开始时间: {}", userId, newStartTime);
+            return savedUser;
+        } catch (IllegalArgumentException e) {
+            logger.error("用户ID格式无效: {}", userId);
+            throw new RuntimeException("用户ID格式无效");
+        }
+    }
 }

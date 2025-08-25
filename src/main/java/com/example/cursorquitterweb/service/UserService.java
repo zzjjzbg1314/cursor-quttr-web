@@ -158,4 +158,12 @@ public interface UserService {
      * @return 用户对象（已绑定的用户或更新后的用户）
      */
     User bindPhoneNumber(UUID userId, String phoneNumber);
+    
+    /**
+     * 更新用户挑战开始时间
+     * @param userId 用户ID
+     * @param newStartTime 新的挑战开始时间
+     * @return 更新后的用户对象
+     */
+    User updateChallengeStartTime(String userId, OffsetDateTime newStartTime);
 }

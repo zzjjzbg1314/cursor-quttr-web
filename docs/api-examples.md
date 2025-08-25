@@ -54,6 +54,72 @@ Content-Type: application/json
 }
 ```
 
+## 用户相关接口
+
+### 更新用户挑战开始时间
+
+**接口地址：** `PUT /api/users/{id}/challenge-start-time`
+
+**请求参数：**
+- `id`: 用户ID字符串 (路径参数)
+- `newStartTime`: 新的挑战开始时间字符串 (请求体，支持ISO 8601格式)
+
+**请求示例：**
+```bash
+curl -X PUT "http://localhost:8080/api/users/123e4567-e89b-12d3-a456-426614174000/challenge-start-time" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "newStartTime": "2024-01-15T10:00:00+08:00"
+  }'
+```
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "message": "挑战开始时间更新成功",
+  "data": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "nickname": "用户昵称",
+    "challengeResetTime": "2024-01-15T10:00:00+08:00",
+    "bestRecord": 30,
+    "registrationTime": "2024-01-01T00:00:00+08:00"
+  }
+}
+```
+
+**说明：**
+- 此接口用于修改用户的挑战开始时间
+- 时间格式使用ISO 8601标准，支持时区偏移
+- 更新成功后，用户的挑战计时将从新的开始时间重新计算
+- 只有存在的用户ID才能更新，否则会返回错误信息
+
+### 获取用户挑战开始时间
+
+**接口地址：** `GET /api/users/{id}/challenge-start-time`
+
+**请求参数：**
+- `id`: 用户ID (路径参数)
+
+**请求示例：**
+```bash
+curl -X GET "http://localhost:8080/api/users/123e4567-e89b-12d3-a456-426614174000/challenge-start-time"
+```
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "message": "获取挑战开始时间成功",
+  "data": "2024-01-15T10:00:00+08:00"
+}
+```
+
+**说明：**
+- 此接口用于查询用户当前的挑战开始时间
+- 返回的时间格式为ISO 8601标准，包含时区信息
+- 可用于前端显示用户的挑战计时状态
+
 ## 测试步骤
 
 ### 1. 获取微信授权码
