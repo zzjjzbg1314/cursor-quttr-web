@@ -25,6 +25,22 @@ public class UserTest {
     }
     
     @Test
+    public void testQuitReasonField() {
+        User user = new User("测试用户");
+        
+        // 测试戒色原因字段的默认值
+        assertNull(user.getQuitReason());
+        
+        // 测试设置戒色原因
+        user.setQuitReason("为了健康生活");
+        assertEquals("为了健康生活", user.getQuitReason());
+        
+        // 测试清空戒色原因
+        user.setQuitReason(null);
+        assertNull(user.getQuitReason());
+    }
+    
+    @Test
     public void testInitUser() {
         User user = User.initUser();
         
@@ -34,6 +50,7 @@ public class UserTest {
         assertEquals((short) 0, user.getGender());
         assertEquals("zh_CN", user.getLanguage());
         assertEquals(1, user.getBestRecord());
+        assertNull(user.getQuitReason());
         
         // 验证手机号字段不初始化
         assertNull(user.getPhoneNumber());
@@ -48,5 +65,16 @@ public class UserTest {
         
         // 验证toString包含手机号字段
         assertTrue(userString.contains("phoneNumber='13800138000'"));
+    }
+    
+    @Test
+    public void testToStringWithQuitReason() {
+        User user = new User("测试用户");
+        user.setQuitReason("为了健康生活");
+        
+        String userString = user.toString();
+        
+        // 验证toString包含戒色原因字段
+        assertTrue(userString.contains("quitReason='为了健康生活'"));
     }
 }

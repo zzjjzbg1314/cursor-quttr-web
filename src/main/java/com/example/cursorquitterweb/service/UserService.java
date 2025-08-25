@@ -166,4 +166,12 @@ public interface UserService {
      * @return 更新后的用户对象
      */
     User updateChallengeStartTime(String userId, OffsetDateTime newStartTime);
+    
+    /**
+     * 更新用户戒色原因
+     * @param userId 用户ID
+     * @param quitReason 戒色原因
+     * @return 更新后的用户对象
+     */
+    User updateQuitReason(UUID userId, String quitReason);
 }

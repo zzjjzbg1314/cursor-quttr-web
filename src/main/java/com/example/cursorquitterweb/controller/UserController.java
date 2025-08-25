@@ -90,6 +90,10 @@ public class UserController {
         logger.info("创建新用户，昵称: {}", request.getNickname());
         
         User user = userService.createUser(request.getNickname(), request.getAvatarUrl());
+        if (request.getQuitReason() != null) {
+            user.setQuitReason(request.getQuitReason());
+            user = userService.updateUser(user);
+        }
         return ApiResponse.success("用户创建成功", user);
     }
     
@@ -120,6 +124,9 @@ public class UserController {
         }
         if (request.getPhoneNumber() != null) {
             user.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (request.getQuitReason() != null) {
+            user.setQuitReason(request.getQuitReason());
         }
         
         User updatedUser = userService.updateUser(user);
@@ -340,25 +347,34 @@ public class UserController {
      * 更新用户挑战开始时间
      */
     @PutMapping("/{id}/challenge-start-time")
-    public ApiResponse<User> updateChallengeStartTime(
-            @PathVariable String id,
-            @RequestBody UpdateChallengeStartTimeRequest request) {
-        logger.info("更新用户挑战开始时间，ID: {}, 新开始时间: {}", id, request.getNewStartTime());
-        
-        if (request.getNewStartTime() == null || request.getNewStartTime().trim().isEmpty()) {
-            return ApiResponse.error("新的开始时间不能为空");
-        }
+    public ApiResponse<User> updateChallengeStartTime(@PathVariable String id, @RequestBody UpdateChallengeStartTimeRequest request) {
+        logger.info("更新用户挑战开始时间，用户ID: {}", id);
         
         try {
-            // 将字符串时间转换为OffsetDateTime
             OffsetDateTime newStartTime = OffsetDateTime.parse(request.getNewStartTime());
             User updatedUser = userService.updateChallengeStartTime(id, newStartTime);
             return ApiResponse.success("挑战开始时间更新成功", updatedUser);
         } catch (DateTimeParseException e) {
-            logger.error("时间格式解析失败，用户ID: {}, 时间字符串: {}, 错误: {}", id, request.getNewStartTime(), e.getMessage());
-            return ApiResponse.error("时间格式无效，请使用ISO 8601格式（如：2024-01-15T10:00:00+08:00）");
+            logger.error("时间格式解析失败: {}", request.getNewStartTime());
+            return ApiResponse.error("时间格式无效，请使用ISO-8601格式");
         } catch (Exception e) {
-            logger.error("更新挑战开始时间失败，用户ID: {}, 错误: {}", id, e.getMessage());
+            logger.error("更新挑战开始时间失败: {}", e.getMessage());
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新用户戒色原因
+     */
+    @PutMapping("/{id}/quit-reason")
+    public ApiResponse<User> updateQuitReason(@PathVariable UUID id, @RequestBody UpdateQuitReasonRequest request) {
+        logger.info("更新用户戒色原因，用户ID: {}", id);
+        
+        try {
+            User updatedUser = userService.updateQuitReason(id, request.getQuitReason());
+            return ApiResponse.success("戒色原因更新成功", updatedUser);
+        } catch (Exception e) {
+            logger.error("更新戒色原因失败: {}", e.getMessage());
             return ApiResponse.error("更新失败: " + e.getMessage());
         }
     }
@@ -425,6 +441,7 @@ public class UserController {
     public static class CreateUserRequest {
         private String nickname;
         private String avatarUrl;
+        private String quitReason;
         
         // Getters and Setters
         public String getNickname() {
@@ -442,6 +459,14 @@ public class UserController {
         public void setAvatarUrl(String avatarUrl) {
             this.avatarUrl = avatarUrl;
         }
+        
+        public String getQuitReason() {
+            return quitReason;
+        }
+        
+        public void setQuitReason(String quitReason) {
+            this.quitReason = quitReason;
+        }
     }
     
     /**
@@ -453,6 +478,7 @@ public class UserController {
         private Short gender;
         private String language;
         private String phoneNumber;
+        private String quitReason;
         
         // Getters and Setters
         public String getNickname() {
@@ -494,6 +520,14 @@ public class UserController {
         public void setPhoneNumber(String phoneNumber) {
             this.phoneNumber = phoneNumber;
         }
+        
+        public String getQuitReason() {
+            return quitReason;
+        }
+        
+        public void setQuitReason(String quitReason) {
+            this.quitReason = quitReason;
+        }
     }
     
     /**
@@ -512,5 +546,20 @@ public class UserController {
         }
     }
 
+    /**
+     * 更新用户戒色原因请求DTO
+     */
+    public static class UpdateQuitReasonRequest {
+        private String quitReason;
+
+        // Getters and Setters
+        public String getQuitReason() {
+            return quitReason;
+        }
+
+        public void setQuitReason(String quitReason) {
+            this.quitReason = quitReason;
+        }
+    }
 
 }

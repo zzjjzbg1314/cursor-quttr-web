@@ -345,4 +345,24 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户ID格式无效");
         }
     }
+    
+    @Override
+    @Transactional
+    public User updateQuitReason(UUID userId, String quitReason) {
+        logger.info("更新用户戒色原因，用户ID: {}, 戒色原因: {}", userId, quitReason);
+        
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.error("用户不存在，无法更新戒色原因，用户ID: {}", userId);
+            throw new RuntimeException("用户不存在");
+        }
+        
+        User user = userOpt.get();
+        user.setQuitReason(quitReason);
+        user.preUpdate();
+        
+        User savedUser = userRepository.save(user);
+        logger.info("戒色原因更新成功，用户ID: {}, 戒色原因: {}", userId, quitReason);
+        return savedUser;
+    }
 }

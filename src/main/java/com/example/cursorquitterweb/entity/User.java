@@ -41,6 +41,9 @@ public class User {
     @Column(name = "best_record", nullable = false)
     private Integer bestRecord = 1;
     
+    @Column(name = "quit_reason")
+    private String quitReason;
+    
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
@@ -132,6 +135,14 @@ public class User {
         this.bestRecord = bestRecord;
     }
     
+    public String getQuitReason() {
+        return quitReason;
+    }
+    
+    public void setQuitReason(String quitReason) {
+        this.quitReason = quitReason;
+    }
+    
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
@@ -165,6 +176,7 @@ public class User {
         user.setLanguage("zh_CN");
         user.setPhoneNumber(null); // 手机号字段不初始化，允许为空
         user.setBestRecord(1);
+        user.setQuitReason(null); // 戒色原因字段不初始化，允许为空
         user.setChallengeResetTime(OffsetDateTime.now());
         user.setRegistrationTime(OffsetDateTime.now());
         
@@ -183,6 +195,7 @@ public class User {
                 ", registrationTime=" + registrationTime +
                 ", challengeResetTime=" + challengeResetTime +
                 ", bestRecord=" + bestRecord +
+                ", quitReason='" + quitReason + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
