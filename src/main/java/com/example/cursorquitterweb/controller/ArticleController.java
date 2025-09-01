@@ -35,7 +35,24 @@ public class ArticleController {
     public ApiResponse<Article> createArticle(@RequestBody CreateArticleRequest request) {
         try {
             Article article;
-            if (request.getStatus() != null) {
+            if (request.getContent() != null && request.getStatus() != null) {
+                article = articleService.createArticle(
+                    request.getType(),
+                    request.getPostImg(),
+                    request.getColor(),
+                    request.getTitle(),
+                    request.getContent(),
+                    request.getStatus()
+                );
+            } else if (request.getContent() != null) {
+                article = articleService.createArticle(
+                    request.getType(),
+                    request.getPostImg(),
+                    request.getColor(),
+                    request.getTitle(),
+                    request.getContent()
+                );
+            } else if (request.getStatus() != null) {
                 article = articleService.createArticle(
                     request.getType(),
                     request.getPostImg(),
@@ -80,13 +97,25 @@ public class ArticleController {
     @PutMapping("/{articleId}/update")
     public ApiResponse<Article> updateArticle(@PathVariable UUID articleId, @RequestBody UpdateArticleRequest request) {
         try {
-            Article article = articleService.updateArticle(
-                articleId,
-                request.getType(),
-                request.getPostImg(),
-                request.getColor(),
-                request.getTitle()
-            );
+            Article article;
+            if (request.getContent() != null) {
+                article = articleService.updateArticle(
+                    articleId,
+                    request.getType(),
+                    request.getPostImg(),
+                    request.getColor(),
+                    request.getTitle(),
+                    request.getContent()
+                );
+            } else {
+                article = articleService.updateArticle(
+                    articleId,
+                    request.getType(),
+                    request.getPostImg(),
+                    request.getColor(),
+                    request.getTitle()
+                );
+            }
             return ApiResponse.success("文章更新成功", article);
         } catch (Exception e) {
             return ApiResponse.error("更新文章失败: " + e.getMessage());

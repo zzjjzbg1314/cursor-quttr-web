@@ -26,14 +26,24 @@ public interface ArticleService {
     Article createArticle(String type, String postImg, String color, String title);
     
     /**
-     * 创建新文章（包含状态）
+     * 创建新文章（包含内容）
      */
-    Article createArticle(String type, String postImg, String color, String title, String status);
+    Article createArticle(String type, String postImg, String color, String title, String content);
+    
+    /**
+     * 创建新文章（包含内容和状态）
+     */
+    Article createArticle(String type, String postImg, String color, String title, String content, String status);
     
     /**
      * 更新文章信息
      */
     Article updateArticle(UUID articleId, String type, String postImg, String color, String title);
+    
+    /**
+     * 更新文章信息（包含内容）
+     */
+    Article updateArticle(UUID articleId, String type, String postImg, String color, String title, String content);
     
     /**
      * 更新文章状态

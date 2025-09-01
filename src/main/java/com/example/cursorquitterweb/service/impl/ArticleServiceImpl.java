@@ -42,8 +42,14 @@ public class ArticleServiceImpl implements ArticleService {
     }
     
     @Override
-    public Article createArticle(String type, String postImg, String color, String title, String status) {
-        Article article = new Article(type, postImg, color, title, status);
+    public Article createArticle(String type, String postImg, String color, String title, String content) {
+        Article article = new Article(type, postImg, color, title, content);
+        return articleRepository.save(article);
+    }
+    
+    @Override
+    public Article createArticle(String type, String postImg, String color, String title, String content, String status) {
+        Article article = new Article(type, postImg, color, title, content, status);
         return articleRepository.save(article);
     }
     
@@ -56,6 +62,21 @@ public class ArticleServiceImpl implements ArticleService {
             article.setPostImg(postImg);
             article.setColor(color);
             article.setTitle(title);
+            return articleRepository.save(article);
+        }
+        throw new RuntimeException("文章不存在");
+    }
+    
+    @Override
+    public Article updateArticle(UUID articleId, String type, String postImg, String color, String title, String content) {
+        Optional<Article> optionalArticle = articleRepository.findById(articleId);
+        if (optionalArticle.isPresent()) {
+            Article article = optionalArticle.get();
+            article.setType(type);
+            article.setPostImg(postImg);
+            article.setColor(color);
+            article.setTitle(title);
+            article.setContent(content);
             return articleRepository.save(article);
         }
         throw new RuntimeException("文章不存在");

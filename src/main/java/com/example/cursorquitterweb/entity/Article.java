@@ -31,6 +31,9 @@ public class Article {
     @Column(name = "title", columnDefinition = "TEXT")
     private String title;
     
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+    
     @Column(name = "createAt")
     private OffsetDateTime createAt;
     
@@ -55,12 +58,22 @@ public class Article {
         this.title = title;
     }
     
-    public Article(String type, String postImg, String color, String title, String status) {
+    public Article(String type, String postImg, String color, String title, String content) {
         this();
         this.type = type;
         this.postImg = postImg;
         this.color = color;
         this.title = title;
+        this.content = content;
+    }
+    
+    public Article(String type, String postImg, String color, String title, String content, String status) {
+        this();
+        this.type = type;
+        this.postImg = postImg;
+        this.color = color;
+        this.title = title;
+        this.content = content;
         this.status = status;
     }
     
@@ -103,6 +116,14 @@ public class Article {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
     }
     
     public OffsetDateTime getCreateAt() {
@@ -153,6 +174,7 @@ public class Article {
                 ", postImg='" + postImg + '\'' +
                 ", color='" + color + '\'' +
                 ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
                 ", createAt=" + createAt +
                 ", status='" + status + '\'' +
                 ", sectionsCount=" + (sections != null ? sections.size() : 0) +

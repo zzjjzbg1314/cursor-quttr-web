@@ -13,6 +13,8 @@ public class UpdateArticleRequest {
     
     private String title;
     
+    private String content;
+    
     public UpdateArticleRequest() {}
     
     public UpdateArticleRequest(String type, String postImg, String color, String title) {
@@ -20,6 +22,14 @@ public class UpdateArticleRequest {
         this.postImg = postImg;
         this.color = color;
         this.title = title;
+    }
+    
+    public UpdateArticleRequest(String type, String postImg, String color, String title, String content) {
+        this.type = type;
+        this.postImg = postImg;
+        this.color = color;
+        this.title = title;
+        this.content = content;
     }
     
     // Getters and Setters
@@ -55,6 +65,14 @@ public class UpdateArticleRequest {
         this.title = title;
     }
     
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
+    }
+    
     @Override
     public String toString() {
         return "UpdateArticleRequest{" +
@@ -62,6 +80,7 @@ public class UpdateArticleRequest {
                 ", postImg='" + postImg + '\'' +
                 ", color='" + color + '\'' +
                 ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
                 '}';
     }
 }

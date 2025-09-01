@@ -27,7 +27,7 @@ public class ArticleSectionController {
     /**
      * 创建文章章节
      */
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<ArticleSection>> createSection(@Valid @RequestBody CreateArticleSectionRequest request) {
         try {
             ArticleSection section = articleSectionService.createSection(request);

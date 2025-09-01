@@ -13,6 +13,8 @@ public class CreateArticleRequest {
     
     private String title;
     
+    private String content;
+    
     private String status;
     
     public CreateArticleRequest() {}
@@ -25,11 +27,21 @@ public class CreateArticleRequest {
         this.status = "active";
     }
     
-    public CreateArticleRequest(String type, String postImg, String color, String title, String status) {
+    public CreateArticleRequest(String type, String postImg, String color, String title, String content) {
         this.type = type;
         this.postImg = postImg;
         this.color = color;
         this.title = title;
+        this.content = content;
+        this.status = "active";
+    }
+    
+    public CreateArticleRequest(String type, String postImg, String color, String title, String content, String status) {
+        this.type = type;
+        this.postImg = postImg;
+        this.color = color;
+        this.title = title;
+        this.content = content;
         this.status = status;
     }
     
@@ -66,6 +78,14 @@ public class CreateArticleRequest {
         this.title = title;
     }
     
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
+    }
+    
     public String getStatus() {
         return status;
     }
@@ -81,6 +101,7 @@ public class CreateArticleRequest {
                 ", postImg='" + postImg + '\'' +
                 ", color='" + color + '\'' +
                 ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
                 ", status='" + status + '\'' +
                 '}';
     }

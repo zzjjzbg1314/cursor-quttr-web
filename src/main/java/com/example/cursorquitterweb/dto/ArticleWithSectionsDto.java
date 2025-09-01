@@ -17,6 +17,7 @@ public class ArticleWithSectionsDto {
     private String postImg;
     private String color;
     private String title;
+    private String content;
     private OffsetDateTime createAt;
     private String status;
     private List<ArticleSection> sections;
@@ -29,6 +30,7 @@ public class ArticleWithSectionsDto {
         this.postImg = article.getPostImg();
         this.color = article.getColor();
         this.title = article.getTitle();
+        this.content = article.getContent();
         this.createAt = article.getCreateAt();
         this.status = article.getStatus();
         this.sections = sections;
@@ -75,6 +77,14 @@ public class ArticleWithSectionsDto {
         this.title = title;
     }
     
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
+    }
+    
     public OffsetDateTime getCreateAt() {
         return createAt;
     }
@@ -107,6 +117,7 @@ public class ArticleWithSectionsDto {
                 ", postImg='" + postImg + '\'' +
                 ", color='" + color + '\'' +
                 ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
                 ", createAt=" + createAt +
                 ", status='" + status + '\'' +
                 ", sectionsCount=" + (sections != null ? sections.size() : 0) +
