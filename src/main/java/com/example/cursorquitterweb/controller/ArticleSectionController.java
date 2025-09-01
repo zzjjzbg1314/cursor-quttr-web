@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreateArticleSectionRequest;
+import com.example.cursorquitterweb.dto.CreateMultipleArticleSectionsRequest;
 import com.example.cursorquitterweb.dto.UpdateArticleSectionRequest;
 import com.example.cursorquitterweb.entity.ArticleSection;
 import com.example.cursorquitterweb.service.ArticleSectionService;
@@ -18,7 +19,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/article-sections")
-@CrossOrigin(origins = "*")
 public class ArticleSectionController {
     
     @Autowired
@@ -28,12 +28,25 @@ public class ArticleSectionController {
      * 创建文章章节
      */
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<ArticleSection>> createSection(@Valid @RequestBody CreateArticleSectionRequest request) {
+    public ResponseEntity<ApiResponse<ArticleSection>> createSection(@Valid @RequestBody CreateArticleSectionRequest request, @RequestParam String articleId) {
         try {
-            ArticleSection section = articleSectionService.createSection(request);
+            ArticleSection section = articleSectionService.createSection(request, articleId);
             return ResponseEntity.ok(ApiResponse.success("章节创建成功", section));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("创建章节失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 批量创建文章章节
+     */
+    @PostMapping("/create-multiple")
+    public ResponseEntity<ApiResponse<List<ArticleSection>>> createMultipleSections(@Valid @RequestBody CreateMultipleArticleSectionsRequest request) {
+        try {
+            List<ArticleSection> sections = articleSectionService.createMultipleSections(request.getSections(), request.getArticleId());
+            return ResponseEntity.ok(ApiResponse.success("批量创建章节成功", sections));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("批量创建章节失败: " + e.getMessage()));
         }
     }
     

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.ArrayList;
 
 /**
  * 文章章节服务层
@@ -25,21 +26,50 @@ public class ArticleSectionService {
     /**
      * 创建文章章节
      */
-    public ArticleSection createSection(CreateArticleSectionRequest request) {
+    public ArticleSection createSection(CreateArticleSectionRequest request, String articleId) {
         // 如果没有指定章节索引，自动设置为下一个索引
         if (request.getSectionIndex() == null) {
-            Integer maxIndex = articleSectionRepository.findMaxSectionIndexByArticleId(request.getArticleId());
+            Integer maxIndex = articleSectionRepository.findMaxSectionIndexByArticleId(UUID.fromString(articleId));
             request.setSectionIndex(maxIndex != null ? maxIndex + 1 : 0);
         }
         
         ArticleSection section = new ArticleSection(
-            request.getArticleId(),
+            UUID.fromString(articleId),
             request.getTitle(),
             request.getSectionContent(),
             request.getSectionIndex()
         );
         
         return articleSectionRepository.save(section);
+    }
+    
+    /**
+     * 批量创建文章章节
+     */
+    public List<ArticleSection> createMultipleSections(List<CreateArticleSectionRequest> requests, String articleId) {
+        List<ArticleSection> createdSections = new ArrayList<>();
+        
+        // 获取当前最大索引
+        Integer maxIndex = articleSectionRepository.findMaxSectionIndexByArticleId(UUID.fromString(articleId));
+        int currentIndex = maxIndex != null ? maxIndex + 1 : 0;
+        
+        for (CreateArticleSectionRequest request : requests) {
+            // 如果没有指定章节索引，自动设置为下一个索引
+            if (request.getSectionIndex() == null) {
+                request.setSectionIndex(currentIndex++);
+            }
+            
+            ArticleSection section = new ArticleSection(
+                UUID.fromString(articleId),
+                request.getTitle(),
+                request.getSectionContent(),
+                request.getSectionIndex()
+            );
+            
+            createdSections.add(articleSectionRepository.save(section));
+        }
+        
+        return createdSections;
     }
     
     /**
