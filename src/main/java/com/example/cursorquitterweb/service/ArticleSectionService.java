@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 文章章节服务层
@@ -46,13 +48,44 @@ public class ArticleSectionService {
     /**
      * 批量创建文章章节
      */
+    @Transactional
     public List<ArticleSection> createMultipleSections(List<CreateArticleSectionRequest> requests, String articleId) {
         List<ArticleSection> createdSections = new ArrayList<>();
+        UUID articleUuid = UUID.fromString(articleId);
+        
+        // 验证请求
+        if (requests == null || requests.isEmpty()) {
+            throw new RuntimeException("章节列表不能为空");
+        }
+        
+        // 使用数据库锁来防止并发问题
+        // 先锁定该文章的所有章节记录
+        List<ArticleSection> existingSections = articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleUuid);
         
         // 获取当前最大索引
-        Integer maxIndex = articleSectionRepository.findMaxSectionIndexByArticleId(UUID.fromString(articleId));
-        int currentIndex = maxIndex != null ? maxIndex + 1 : 0;
+        Integer maxIndex = existingSections.isEmpty() ? -1 : 
+            existingSections.stream().mapToInt(ArticleSection::getSectionIndex).max().orElse(-1);
+        int currentIndex = maxIndex + 1;
         
+        // 验证所有请求的索引
+        Set<Integer> usedIndexes = new HashSet<>();
+        for (CreateArticleSectionRequest request : requests) {
+            if (request.getSectionIndex() != null) {
+                int specifiedIndex = request.getSectionIndex();
+                // 检查是否与现有索引冲突
+                boolean indexExists = existingSections.stream()
+                    .anyMatch(section -> section.getSectionIndex().equals(specifiedIndex));
+                if (indexExists) {
+                    throw new RuntimeException("章节索引 " + specifiedIndex + " 已存在，请使用不同的索引");
+                }
+                // 检查是否与当前批次中的其他索引冲突
+                if (!usedIndexes.add(specifiedIndex)) {
+                    throw new RuntimeException("章节索引 " + specifiedIndex + " 在当前请求中重复");
+                }
+            }
+        }
+        
+        // 批量创建章节
         for (CreateArticleSectionRequest request : requests) {
             // 如果没有指定章节索引，自动设置为下一个索引
             if (request.getSectionIndex() == null) {
@@ -60,13 +93,21 @@ public class ArticleSectionService {
             }
             
             ArticleSection section = new ArticleSection(
-                UUID.fromString(articleId),
+                articleUuid,
                 request.getTitle(),
                 request.getSectionContent(),
                 request.getSectionIndex()
             );
             
-            createdSections.add(articleSectionRepository.save(section));
+            try {
+                createdSections.add(articleSectionRepository.save(section));
+            } catch (Exception e) {
+                // 如果出现唯一约束冲突，抛出更友好的错误信息
+                if (e.getMessage().contains("uk_article_section_article_id_index")) {
+                    throw new RuntimeException("章节索引 " + request.getSectionIndex() + " 已存在，可能是并发操作导致的冲突");
+                }
+                throw e;
+            }
         }
         
         return createdSections;

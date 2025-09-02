@@ -45,6 +45,12 @@ public class ArticleSectionController {
         try {
             List<ArticleSection> sections = articleSectionService.createMultipleSections(request.getSections(), request.getArticleId());
             return ResponseEntity.ok(ApiResponse.success("批量创建章节成功", sections));
+        } catch (RuntimeException e) {
+            // 处理并发冲突等业务异常
+            if (e.getMessage().contains("已存在") || e.getMessage().contains("冲突")) {
+                return ResponseEntity.status(409).body(ApiResponse.error("并发冲突: " + e.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("批量创建章节失败: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("批量创建章节失败: " + e.getMessage()));
         }
