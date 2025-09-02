@@ -81,4 +81,9 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
      * 根据状态查找文章
      */
     List<Article> findByStatus(String status);
+    
+    /**
+     * 查找所有文章，按创建时间倒序排列
+     */
+    List<Article> findAllByOrderByCreateAtDesc();
 }

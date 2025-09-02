@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
+import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
 import com.example.cursorquitterweb.entity.Article;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -130,4 +131,9 @@ public interface ArticleService {
      * 根据ID获取带详细章节信息的文章
      */
     Optional<ArticleWithDetailedSectionsDto> findArticleWithDetailedSectionsById(UUID articleId);
+    
+    /**
+     * 获取所有文章并按type分组，按创建时间排序
+     */
+    ArticlesGroupedByTypeDto getAllArticlesGroupedByType();
 }

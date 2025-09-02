@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
+import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
 import com.example.cursorquitterweb.entity.Article;
 import com.example.cursorquitterweb.entity.ArticleSection;
 import com.example.cursorquitterweb.repository.ArticleRepository;
@@ -15,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 文章服务实现类
@@ -195,5 +198,17 @@ public class ArticleServiceImpl implements ArticleService {
             return Optional.of(dto);
         }
         return Optional.empty();
+    }
+    
+    @Override
+    public ArticlesGroupedByTypeDto getAllArticlesGroupedByType() {
+        // 获取所有文章，按创建时间排序
+        List<Article> allArticles = articleRepository.findAllByOrderByCreateAtDesc();
+        
+        // 按type分组，每个组内的文章保持按创建时间排序
+        Map<String, List<Article>> articlesByType = allArticles.stream()
+                .collect(Collectors.groupingBy(Article::getType));
+        
+        return new ArticlesGroupedByTypeDto(articlesByType);
     }
 }

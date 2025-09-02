@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
+import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
 import com.example.cursorquitterweb.dto.CreateArticleRequest;
 import com.example.cursorquitterweb.dto.UpdateArticleRequest;
 import com.example.cursorquitterweb.entity.Article;
@@ -355,6 +356,19 @@ public class ArticleController {
             }
         } catch (Exception e) {
             return ApiResponse.error("获取带详细章节信息的文章失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取所有文章数据，按type分组，分组后每个type内的文章按创建时间排序
+     */
+    @GetMapping("/grouped-by-type")
+    public ApiResponse<ArticlesGroupedByTypeDto> getAllArticlesGroupedByType() {
+        try {
+            ArticlesGroupedByTypeDto articlesGroupedByType = articleService.getAllArticlesGroupedByType();
+            return ApiResponse.success("获取按type分组的文章成功", articlesGroupedByType);
+        } catch (Exception e) {
+            return ApiResponse.error("获取按type分组的文章失败: " + e.getMessage());
         }
     }
 }
