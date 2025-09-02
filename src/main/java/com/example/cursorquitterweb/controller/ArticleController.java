@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
+import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
 import com.example.cursorquitterweb.dto.CreateArticleRequest;
 import com.example.cursorquitterweb.dto.UpdateArticleRequest;
 import com.example.cursorquitterweb.entity.Article;
@@ -336,6 +337,24 @@ public class ArticleController {
             return ApiResponse.success("获取带章节的文章成功", articlesWithSections);
         } catch (Exception e) {
             return ApiResponse.error("获取带章节的文章失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据ID获取带详细章节信息的文章
+     * 返回文章信息和关联的所有章节细节，章节按sectionIndex排序
+     */
+    @GetMapping("/{articleId}/with-detailed-sections")
+    public ApiResponse<ArticleWithDetailedSectionsDto> getArticleWithDetailedSections(@PathVariable UUID articleId) {
+        try {
+            Optional<ArticleWithDetailedSectionsDto> articleWithDetailedSections = articleService.findArticleWithDetailedSectionsById(articleId);
+            if (articleWithDetailedSections.isPresent()) {
+                return ApiResponse.success("获取带详细章节信息的文章成功", articleWithDetailedSections.get());
+            } else {
+                return ApiResponse.error("文章不存在");
+            }
+        } catch (Exception e) {
+            return ApiResponse.error("获取带详细章节信息的文章失败: " + e.getMessage());
         }
     }
 }

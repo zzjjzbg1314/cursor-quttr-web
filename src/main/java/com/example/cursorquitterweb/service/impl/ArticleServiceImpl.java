@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
+import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
 import com.example.cursorquitterweb.entity.Article;
 import com.example.cursorquitterweb.entity.ArticleSection;
 import com.example.cursorquitterweb.repository.ArticleRepository;
@@ -182,5 +183,17 @@ public class ArticleServiceImpl implements ArticleService {
                     return new ArticleWithSectionsDto(article, sections);
                 })
                 .collect(java.util.stream.Collectors.toList());
+    }
+    
+    @Override
+    public Optional<ArticleWithDetailedSectionsDto> findArticleWithDetailedSectionsById(UUID articleId) {
+        Optional<Article> optionalArticle = articleRepository.findByArticleIdAndStatus(articleId, "active");
+        if (optionalArticle.isPresent()) {
+            Article article = optionalArticle.get();
+            List<ArticleSection> sections = articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleId);
+            ArticleWithDetailedSectionsDto dto = new ArticleWithDetailedSectionsDto(article, sections);
+            return Optional.of(dto);
+        }
+        return Optional.empty();
     }
 }
