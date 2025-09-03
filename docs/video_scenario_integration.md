@@ -123,7 +123,7 @@ DELETE /api/video-scenarios/{videoId}
 GET /api/video-scenarios?page=0&size=20&sortBy=createAt&sortDir=desc
 ```
 
-#### 2. 根据类型获取视频场景
+#### 2. 根据类型获取视频场景（按创建时间正序排列）
 ```
 GET /api/video-scenarios/type/{type}
 ```
@@ -193,7 +193,7 @@ VideoScenario videoScenario = videoScenarioService.createVideoScenario(
 
 ### 查询视频场景
 ```java
-// 根据类型查找
+// 根据类型查找（按创建时间正序排列）
 List<VideoScenario> meditationVideos = videoScenarioService.findByType("冥想");
 
 // 根据标题搜索

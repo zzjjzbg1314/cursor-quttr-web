@@ -71,7 +71,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public List<VideoScenario> findByType(String type) {
-        return videoScenarioRepository.findByTypeOrderByCreateAtDesc(type);
+        return videoScenarioRepository.findByTypeOrderByCreateAtAsc(type);
     }
     
     @Override

@@ -186,7 +186,7 @@ public class VideoScenarioController {
     }
     
     /**
-     * 根据类型获取视频场景
+     * 根据类型获取视频场景（按创建时间正序排列）
      */
     @GetMapping("/type/{type}")
     public ResponseEntity<ApiResponse<List<VideoScenarioDto>>> getVideoScenariosByType(@PathVariable String type) {

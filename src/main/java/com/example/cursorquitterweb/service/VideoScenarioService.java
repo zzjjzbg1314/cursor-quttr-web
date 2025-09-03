@@ -39,7 +39,7 @@ public interface VideoScenarioService {
     void deleteVideoScenario(UUID videoId);
     
     /**
-     * 根据类型查找视频场景
+     * 根据类型查找视频场景（按创建时间正序排列）
      */
     List<VideoScenario> findByType(String type);
     

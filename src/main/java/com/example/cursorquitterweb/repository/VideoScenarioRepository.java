@@ -26,9 +26,9 @@ public interface VideoScenarioRepository extends JpaRepository<VideoScenario, UU
     Optional<VideoScenario> findByVideoId(UUID videoId);
     
     /**
-     * 根据类型查找视频场景，按创建时间倒序排列
+     * 根据类型查找视频场景，按创建时间正序排列
      */
-    List<VideoScenario> findByTypeOrderByCreateAtDesc(String type);
+    List<VideoScenario> findByTypeOrderByCreateAtAsc(String type);
     
     /**
      * 根据类型分页查找视频场景，按创建时间倒序排列
