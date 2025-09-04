@@ -101,12 +101,12 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public Page<VideoScenario> getAllVideoScenarios(Pageable pageable) {
-        return videoScenarioRepository.findAllByOrderByCreateAtDesc(pageable);
+        return videoScenarioRepository.findAll(pageable);
     }
     
     @Override
     public List<VideoScenario> getAllVideoScenarios() {
-        return videoScenarioRepository.findAllByOrderByCreateAtDesc();
+        return videoScenarioRepository.findAll();
     }
     
     @Override

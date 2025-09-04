@@ -166,9 +166,30 @@ public class VideoScenarioController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,
             @RequestParam(defaultValue = "createAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir) {
         try {
             logger.info("获取所有视频场景，页码: {}, 大小: {}, 排序: {} {}", page, size, sortBy, sortDir);
+            
+            // 验证排序字段名
+            String[] validSortFields = {"videoId", "type", "title", "subtitle", "image", "audiourl", "videourl", "color", "quotes", "author", "createAt", "updateAt"};
+            boolean isValidSortField = false;
+            for (String field : validSortFields) {
+                if (field.equals(sortBy)) {
+                    isValidSortField = true;
+                    break;
+                }
+            }
+            
+            if (!isValidSortField) {
+                logger.warn("无效的排序字段: {}, 使用默认字段: createAt", sortBy);
+                sortBy = "createAt";
+            }
+            
+            // 验证排序方向
+            if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+                logger.warn("无效的排序方向: {}, 使用默认方向: desc", sortDir);
+                sortDir = "desc";
+            }
             
             Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
