@@ -61,6 +61,11 @@ public interface VideoScenarioRepository extends JpaRepository<VideoScenario, UU
     List<VideoScenario> findAllByOrderByCreateAtDesc();
     
     /**
+     * 分页查找所有视频场景，支持动态排序
+     */
+    Page<VideoScenario> findAll(Pageable pageable);
+    
+    /**
      * 分页查找所有视频场景，按创建时间倒序排列
      */
     Page<VideoScenario> findAllByOrderByCreateAtDesc(Pageable pageable);

@@ -166,7 +166,7 @@ public class VideoScenarioController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,
             @RequestParam(defaultValue = "createAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir) {
         try {
             logger.info("获取所有视频场景，页码: {}, 大小: {}, 排序: {} {}", page, size, sortBy, sortDir);
             
