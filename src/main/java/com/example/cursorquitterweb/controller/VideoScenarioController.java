@@ -161,10 +161,10 @@ public class VideoScenarioController {
     /**
      * 获取所有视频场景（分页）
      */
-    @GetMapping
+    @GetMapping("/getAllVideoScenarios")
     public ResponseEntity<ApiResponse<Page<VideoScenarioDto>>> getAllVideoScenarios(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "100") int size,
             @RequestParam(defaultValue = "createAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         try {
