@@ -45,8 +45,8 @@ public class MusicService {
      * 创建新音乐
      */
     public Music createMusic(String title, String subtitle, String time, String image, 
-                            String videourl, String audiourl, String quotes, String author) {
-        Music music = new Music(title, subtitle, time, image, videourl, audiourl, quotes, author);
+                            String videourl, String audiourl, String quotes, String author, String color) {
+        Music music = new Music(title, subtitle, time, image, videourl, audiourl, quotes, author, color);
         return musicRepository.save(music);
     }
     
@@ -62,7 +62,7 @@ public class MusicService {
      * 更新音乐信息（通过ID）
      */
     public Music updateMusic(UUID id, String title, String subtitle, String time, String image, 
-                            String videourl, String audiourl, String quotes, String author) {
+                            String videourl, String audiourl, String quotes, String author, String color) {
         Music music = musicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("音乐不存在，ID: " + id));
         
@@ -74,6 +74,7 @@ public class MusicService {
         music.setAudiourl(audiourl);
         music.setQuotes(quotes);
         music.setAuthor(author);
+        music.setColor(color);
         
         return musicRepository.save(music);
     }
@@ -316,6 +317,19 @@ public class MusicService {
     }
     
     /**
+     * 更新音乐主题颜色
+     */
+    public Music updateColor(UUID id, String color) {
+        Optional<Music> musicOpt = musicRepository.findById(id);
+        if (musicOpt.isPresent()) {
+            Music music = musicOpt.get();
+            music.setColor(color);
+            return musicRepository.save(music);
+        }
+        throw new RuntimeException("音乐不存在");
+    }
+    
+    /**
      * 统计音乐总数
      */
     @Transactional(readOnly = true)
@@ -341,7 +355,8 @@ public class MusicService {
                 music.getCreateAt(),
                 music.getUpdateAt(),
                 music.getQuotes(),
-                music.getAuthor()
+                music.getAuthor(),
+                music.getColor()
         );
     }
     

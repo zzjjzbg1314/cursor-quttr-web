@@ -13,11 +13,12 @@ public class UpdateMusicRequest {
     private String audiourl;
     private String quotes;
     private String author;
+    private String color;
     
     public UpdateMusicRequest() {}
     
     public UpdateMusicRequest(String title, String subtitle, String time, String image, 
-                             String videourl, String audiourl, String quotes, String author) {
+                             String videourl, String audiourl, String quotes, String author, String color) {
         this.title = title;
         this.subtitle = subtitle;
         this.time = time;
@@ -26,6 +27,7 @@ public class UpdateMusicRequest {
         this.audiourl = audiourl;
         this.quotes = quotes;
         this.author = author;
+        this.color = color;
     }
     
     // Getters and Setters
@@ -93,6 +95,14 @@ public class UpdateMusicRequest {
         this.author = author;
     }
     
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        this.color = color;
+    }
+    
     @Override
     public String toString() {
         return "UpdateMusicRequest{" +
@@ -104,6 +114,7 @@ public class UpdateMusicRequest {
                 ", audiourl='" + audiourl + '\'' +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +
+                ", color='" + color + '\'' +
                 '}';
     }
 }

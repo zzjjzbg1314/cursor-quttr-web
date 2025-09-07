@@ -20,12 +20,13 @@ public class MusicDto {
     private OffsetDateTime updateAt;
     private String quotes;
     private String author;
+    private String color;
     
     public MusicDto() {}
     
     public MusicDto(UUID id, String title, String subtitle, String time, String image, 
                     String videourl, String audiourl, OffsetDateTime createAt, OffsetDateTime updateAt,
-                    String quotes, String author) {
+                    String quotes, String author, String color) {
         this.id = id;
         this.title = title;
         this.subtitle = subtitle;
@@ -37,6 +38,7 @@ public class MusicDto {
         this.updateAt = updateAt;
         this.quotes = quotes;
         this.author = author;
+        this.color = color;
     }
     
     // Getters and Setters
@@ -128,6 +130,14 @@ public class MusicDto {
         this.author = author;
     }
     
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        this.color = color;
+    }
+    
     @Override
     public String toString() {
         return "MusicDto{" +
@@ -142,6 +152,7 @@ public class MusicDto {
                 ", updateAt=" + updateAt +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +
+                ", color='" + color + '\'' +
                 '}';
     }
 }

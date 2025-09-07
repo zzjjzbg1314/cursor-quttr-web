@@ -20,10 +20,12 @@ public class CreateMusicRequest {
     @NotBlank(message = "音乐作者不能为空")
     private String author;
     
+    private String color;
+    
     public CreateMusicRequest() {}
     
     public CreateMusicRequest(String title, String subtitle, String time, String image, 
-                             String videourl, String audiourl, String quotes, String author) {
+                             String videourl, String audiourl, String quotes, String author, String color) {
         this.title = title;
         this.subtitle = subtitle;
         this.time = time;
@@ -32,6 +34,7 @@ public class CreateMusicRequest {
         this.audiourl = audiourl;
         this.quotes = quotes;
         this.author = author;
+        this.color = color;
     }
     
     // Getters and Setters
@@ -99,6 +102,14 @@ public class CreateMusicRequest {
         this.author = author;
     }
     
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        this.color = color;
+    }
+    
     @Override
     public String toString() {
         return "CreateMusicRequest{" +
@@ -110,6 +121,7 @@ public class CreateMusicRequest {
                 ", audiourl='" + audiourl + '\'' +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +
+                ", color='" + color + '\'' +
                 '}';
     }
 }

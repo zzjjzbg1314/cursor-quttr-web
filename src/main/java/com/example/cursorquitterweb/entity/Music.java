@@ -47,13 +47,16 @@ public class Music {
     @Column(name = "author")
     private String author;
     
+    @Column(name = "color")
+    private String color;
+    
     public Music() {
         this.createAt = OffsetDateTime.now();
         this.updateAt = OffsetDateTime.now();
     }
     
     public Music(String title, String subtitle, String time, String image, 
-                 String videourl, String audiourl, String quotes, String author) {
+                 String videourl, String audiourl, String quotes, String author, String color) {
         this();
         this.title = title;
         this.subtitle = subtitle;
@@ -63,6 +66,7 @@ public class Music {
         this.audiourl = audiourl;
         this.quotes = quotes;
         this.author = author;
+        this.color = color;
     }
     
     // Getters and Setters
@@ -154,6 +158,14 @@ public class Music {
         this.author = author;
     }
     
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        this.color = color;
+    }
+    
     @PreUpdate
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
@@ -173,6 +185,7 @@ public class Music {
                 ", updateAt=" + updateAt +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +
+                ", color='" + color + '\'' +
                 '}';
     }
 }

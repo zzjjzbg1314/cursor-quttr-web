@@ -63,7 +63,8 @@ public class MusicController {
             request.getVideourl(),
             request.getAudiourl(),
             request.getQuotes(),
-            request.getAuthor()
+            request.getAuthor(),
+            request.getColor()
         );
         return ApiResponse.success("音乐创建成功", music);
     }
@@ -104,6 +105,9 @@ public class MusicController {
         }
         if (request.getAuthor() != null) {
             music.setAuthor(request.getAuthor());
+        }
+        if (request.getColor() != null) {
+            music.setColor(request.getColor());
         }
         
         Music updatedMusic = musicService.updateMusic(music);
@@ -381,6 +385,22 @@ public class MusicController {
     }
     
     /**
+     * 更新音乐主题颜色
+     */
+    @PutMapping("/{id}/color")
+    public ApiResponse<Music> updateColor(@PathVariable UUID id, @RequestBody UpdateColorRequest request) {
+        logger.info("更新音乐主题颜色，ID: {}", id);
+        
+        try {
+            Music updatedMusic = musicService.updateColor(id, request.getColor());
+            return ApiResponse.success("主题颜色更新成功", updatedMusic);
+        } catch (RuntimeException e) {
+            logger.error("更新主题颜色失败，音乐ID: {}, 错误: {}", id, e.getMessage());
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 获取所有音乐
      */
     @GetMapping("/getAllMusic")
@@ -412,6 +432,7 @@ public class MusicController {
         private String audiourl;
         private String quotes;
         private String author;
+        private String color;
         
         // Getters and Setters
         public String getTitle() {
@@ -476,6 +497,14 @@ public class MusicController {
         
         public void setAuthor(String author) {
             this.author = author;
+        }
+        
+        public String getColor() {
+            return color;
+        }
+        
+        public void setColor(String color) {
+            this.color = color;
         }
     }
     
@@ -491,6 +520,7 @@ public class MusicController {
         private String audiourl;
         private String quotes;
         private String author;
+        private String color;
         
         // Getters and Setters
         public String getTitle() {
@@ -555,6 +585,14 @@ public class MusicController {
         
         public void setAuthor(String author) {
             this.author = author;
+        }
+        
+        public String getColor() {
+            return color;
+        }
+        
+        public void setColor(String color) {
+            this.color = color;
         }
     }
     
@@ -571,6 +609,22 @@ public class MusicController {
         
         public void setUrl(String url) {
             this.url = url;
+        }
+    }
+    
+    /**
+     * 更新颜色请求DTO
+     */
+    public static class UpdateColorRequest {
+        private String color;
+        
+        // Getters and Setters
+        public String getColor() {
+            return color;
+        }
+        
+        public void setColor(String color) {
+            this.color = color;
         }
     }
 }
