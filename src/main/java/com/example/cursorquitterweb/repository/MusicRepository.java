@@ -40,6 +40,11 @@ public interface MusicRepository extends JpaRepository<Music, UUID> {
     List<Music> findAllByOrderByCreateAtDesc();
     
     /**
+     * 查找所有音乐，按创建时间升序排列
+     */
+    List<Music> findAllByOrderByCreateAtAsc();
+    
+    /**
      * 分页查找所有音乐，支持动态排序
      */
     Page<Music> findAll(Pageable pageable);

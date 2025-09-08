@@ -238,11 +238,11 @@ public class MusicService {
     }
     
     /**
-     * 获取所有音乐
+     * 获取所有音乐（按创建时间升序排列）
      */
     @Transactional(readOnly = true)
     public List<Music> getAllMusic() {
-        return musicRepository.findAllByOrderByCreateAtDesc();
+        return musicRepository.findAllByOrderByCreateAtAsc();
     }
     
     /**
