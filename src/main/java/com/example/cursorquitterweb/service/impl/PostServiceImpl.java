@@ -4,6 +4,7 @@ import com.example.cursorquitterweb.entity.Post;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.repository.PostRepository;
 import com.example.cursorquitterweb.repository.PostLikeRepository;
+import com.example.cursorquitterweb.repository.CommentRepository;
 import com.example.cursorquitterweb.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,9 @@ public class PostServiceImpl implements PostService {
     
     @Autowired
     private PostLikeRepository postLikeRepository;
+    
+    @Autowired
+    private CommentRepository commentRepository;
     
     @Override
     public Optional<Post> findById(UUID postId) {
@@ -156,6 +160,15 @@ public class PostServiceImpl implements PostService {
             upvotes = 0;
         }
         
+        // 获取评论数，如果查不到默认为0
+        Integer commentCount = 0;
+        try {
+            commentCount = (int) commentRepository.countByPostIdAndIsDeletedFalse(post.getPostId());
+        } catch (Exception e) {
+            // 如果查询失败，使用默认值0
+            commentCount = 0;
+        }
+        
         return new PostWithUpvotesDto(
                 post.getPostId(),
                 post.getUserId(),
@@ -166,7 +179,8 @@ public class PostServiceImpl implements PostService {
                 post.getIsDeleted(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                upvotes
+                upvotes,
+                commentCount
         );
     }
 }

@@ -20,12 +20,13 @@ public class PostWithUpvotesDto {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private Integer upvotes; // 点赞数
+    private Integer commentCount; // 评论数
     
     public PostWithUpvotesDto() {}
     
     public PostWithUpvotesDto(UUID postId, UUID userId, String userNickname, String userStage, 
                              String content, Boolean isDeleted, 
-                             OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes) {
+                             OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes, Integer commentCount) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
@@ -35,11 +36,12 @@ public class PostWithUpvotesDto {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.upvotes = upvotes;
+        this.commentCount = commentCount;
     }
     
     public PostWithUpvotesDto(UUID postId, UUID userId, String userNickname, String userStage, String avatarUrl,
                              String content, Boolean isDeleted, 
-                             OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes) {
+                             OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes, Integer commentCount) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
@@ -50,6 +52,7 @@ public class PostWithUpvotesDto {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.upvotes = upvotes;
+        this.commentCount = commentCount;
     }
     
     // Getters and Setters
@@ -134,6 +137,14 @@ public class PostWithUpvotesDto {
         this.upvotes = upvotes;
     }
     
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+    
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
+    }
+    
     @Override
     public String toString() {
         return "PostWithUpvotesDto{" +
@@ -147,6 +158,7 @@ public class PostWithUpvotesDto {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", upvotes=" + upvotes +
+                ", commentCount=" + commentCount +
                 '}';
     }
 }
