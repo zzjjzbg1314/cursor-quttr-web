@@ -10,7 +10,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.UUID;
 
 /**
  * 帖子点赞控制器
@@ -56,9 +55,10 @@ public class PostLikeController {
      * 点赞帖子
      */
     @PostMapping("/{postId}/like")
-    public ApiResponse<PostLike> likePost(@PathVariable UUID postId) {
+    public ApiResponse<PostLike> likePost(@PathVariable String postId) {
         try {
-            PostLike postLike = postLikeService.likePost(postId);
+            UUID uuid = UUID.fromString(postId);
+            PostLike postLike = postLikeService.likePost(uuid);
             return ApiResponse.success("点赞成功", postLike);
         } catch (Exception e) {
             return ApiResponse.error("点赞失败: " + e.getMessage());
@@ -69,9 +69,10 @@ public class PostLikeController {
      * 取消点赞帖子
      */
     @PostMapping("/{postId}/unlike")
-    public ApiResponse<PostLike> unlikePost(@PathVariable UUID postId) {
+    public ApiResponse<PostLike> unlikePost(@PathVariable String postId) {
         try {
-            PostLike postLike = postLikeService.unlikePost(postId);
+            UUID uuid = UUID.fromString(postId);
+            PostLike postLike = postLikeService.unlikePost(uuid);
             if (postLike != null) {
                 return ApiResponse.success("取消点赞成功", postLike);
             } else {
