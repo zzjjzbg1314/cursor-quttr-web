@@ -45,10 +45,6 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      */
     List<Post> findByUserStageAndIsDeletedFalseOrderByCreatedAtDesc(String userStage);
     
-    /**
-     * 根据标题模糊查询帖子（排除已删除的）
-     */
-    List<Post> findByTitleContainingIgnoreCaseAndIsDeletedFalseOrderByCreatedAtDesc(String title);
     
     /**
      * 根据内容模糊查询帖子（排除已删除的）

@@ -39,7 +39,6 @@ public class PostController {
                 request.getUserNickname(),
                 request.getUserStage(),
                 request.getAvatarUrl(),
-                request.getTitle(),
                 request.getContent()
             );
             return ApiResponse.success("帖子创建成功", post);
@@ -71,7 +70,7 @@ public class PostController {
     @PutMapping("/{postId}/update")
     public ApiResponse<Post> updatePost(@PathVariable UUID postId, @RequestBody UpdatePostRequest request) {
         try {
-            Post post = postService.updatePost(postId, request.getTitle(), request.getContent());
+            Post post = postService.updatePost(postId, request.getContent());
             return ApiResponse.success("帖子更新成功", post);
         } catch (Exception e) {
             return ApiResponse.error("更新帖子失败: " + e.getMessage());
@@ -163,18 +162,6 @@ public class PostController {
         }
     }
     
-    /**
-     * 搜索帖子（按标题）
-     */
-    @GetMapping("/search/title")
-    public ApiResponse<List<Post>> searchPostsByTitle(@RequestParam String title) {
-        try {
-            List<Post> posts = postService.searchByTitle(title);
-            return ApiResponse.success("搜索帖子成功", posts);
-        } catch (Exception e) {
-            return ApiResponse.error("搜索帖子失败: " + e.getMessage());
-        }
-    }
     
     /**
      * 搜索帖子（按内容）

@@ -36,23 +36,22 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
-    public Post createPost(UUID userId, String userNickname, String userStage, String title, String content) {
-        Post post = new Post(userId, userNickname, userStage, title, content);
+    public Post createPost(UUID userId, String userNickname, String userStage, String content) {
+        Post post = new Post(userId, userNickname, userStage, content);
         return postRepository.save(post);
     }
     
     @Override
-    public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String title, String content) {
-        Post post = new Post(userId, userNickname, userStage, avatarUrl, title, content);
+    public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content) {
+        Post post = new Post(userId, userNickname, userStage, avatarUrl, content);
         return postRepository.save(post);
     }
     
     @Override
-    public Post updatePost(UUID postId, String title, String content) {
+    public Post updatePost(UUID postId, String content) {
         Optional<Post> optionalPost = postRepository.findByPostIdAndIsDeletedFalse(postId);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-            post.setTitle(title);
             post.setContent(content);
             post.setUpdatedAt(OffsetDateTime.now());
             return postRepository.save(post);
@@ -85,10 +84,6 @@ public class PostServiceImpl implements PostService {
         return postRepository.findByUserStageAndIsDeletedFalseOrderByCreatedAtDesc(userStage);
     }
     
-    @Override
-    public List<Post> searchByTitle(String title) {
-        return postRepository.findByTitleContainingIgnoreCaseAndIsDeletedFalseOrderByCreatedAtDesc(title);
-    }
     
     @Override
     public List<Post> searchByContent(String content) {
@@ -167,7 +162,6 @@ public class PostServiceImpl implements PostService {
                 post.getUserNickname(),
                 post.getUserStage(),
                 post.getAvatarUrl(),
-                post.getTitle(),
                 post.getContent(),
                 post.getIsDeleted(),
                 post.getCreatedAt(),

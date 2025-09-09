@@ -5,24 +5,15 @@ package com.example.cursorquitterweb.dto;
  */
 public class UpdatePostRequest {
     
-    private String title;
     private String content;
     
     public UpdatePostRequest() {}
     
-    public UpdatePostRequest(String title, String content) {
-        this.title = title;
+    public UpdatePostRequest(String content) {
         this.content = content;
     }
     
     // Getters and Setters
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
     
     public String getContent() {
         return content;
@@ -35,7 +26,6 @@ public class UpdatePostRequest {
     @Override
     public String toString() {
         return "UpdatePostRequest{" +
-                "title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 '}';
     }

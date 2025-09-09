@@ -15,7 +15,6 @@ public class PostWithUpvotesDto {
     
     private String avatarUrl;
     
-    private String title;
     private String content;
     private Boolean isDeleted;
     private OffsetDateTime createdAt;
@@ -25,13 +24,12 @@ public class PostWithUpvotesDto {
     public PostWithUpvotesDto() {}
     
     public PostWithUpvotesDto(UUID postId, UUID userId, String userNickname, String userStage, 
-                             String title, String content, Boolean isDeleted, 
+                             String content, Boolean isDeleted, 
                              OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
-        this.title = title;
         this.content = content;
         this.isDeleted = isDeleted;
         this.createdAt = createdAt;
@@ -40,14 +38,13 @@ public class PostWithUpvotesDto {
     }
     
     public PostWithUpvotesDto(UUID postId, UUID userId, String userNickname, String userStage, String avatarUrl,
-                             String title, String content, Boolean isDeleted, 
+                             String content, Boolean isDeleted, 
                              OffsetDateTime createdAt, OffsetDateTime updatedAt, Integer upvotes) {
         this.postId = postId;
         this.userId = userId;
         this.userNickname = userNickname;
         this.userStage = userStage;
         this.avatarUrl = avatarUrl;
-        this.title = title;
         this.content = content;
         this.isDeleted = isDeleted;
         this.createdAt = createdAt;
@@ -96,13 +93,6 @@ public class PostWithUpvotesDto {
         this.avatarUrl = avatarUrl;
     }
     
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
     
     public String getContent() {
         return content;
@@ -152,7 +142,6 @@ public class PostWithUpvotesDto {
                 ", userNickname='" + userNickname + '\'' +
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
-                ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", isDeleted=" + isDeleted +
                 ", createdAt=" + createdAt +

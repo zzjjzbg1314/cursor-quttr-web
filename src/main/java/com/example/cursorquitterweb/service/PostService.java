@@ -23,17 +23,17 @@ public interface PostService {
     /**
      * 创建新帖子
      */
-    Post createPost(UUID userId, String userNickname, String userStage, String title, String content);
+    Post createPost(UUID userId, String userNickname, String userStage, String content);
     
     /**
      * 创建新帖子（包含头像URL）
      */
-    Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String title, String content);
+    Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content);
     
     /**
      * 更新帖子信息
      */
-    Post updatePost(UUID postId, String title, String content);
+    Post updatePost(UUID postId, String content);
     
     /**
      * 删除帖子（软删除）
@@ -60,10 +60,6 @@ public interface PostService {
      */
     List<Post> findByUserStage(String userStage);
     
-    /**
-     * 根据标题搜索帖子
-     */
-    List<Post> searchByTitle(String title);
     
     /**
      * 根据内容搜索帖子
