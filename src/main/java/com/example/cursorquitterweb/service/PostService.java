@@ -21,6 +21,11 @@ public interface PostService {
     Optional<Post> findById(UUID postId);
     
     /**
+     * 根据ID查找帖子详情（包含点赞数和评论数）
+     */
+    Optional<PostWithUpvotesDto> findByIdWithUpvotes(UUID postId);
+    
+    /**
      * 创建新帖子
      */
     Post createPost(UUID userId, String userNickname, String userStage, String content);

@@ -48,12 +48,12 @@ public class PostController {
     }
     
     /**
-     * 根据ID获取帖子
+     * 根据ID获取帖子（包含点赞数和评论数）
      */
     @GetMapping("/{postId}")
-    public ApiResponse<Post> getPost(@PathVariable UUID postId) {
+    public ApiResponse<PostWithUpvotesDto> getPost(@PathVariable UUID postId) {
         try {
-            Optional<Post> post = postService.findById(postId);
+            Optional<PostWithUpvotesDto> post = postService.findByIdWithUpvotes(postId);
             if (post.isPresent()) {
                 return ApiResponse.success("获取帖子成功", post.get());
             } else {

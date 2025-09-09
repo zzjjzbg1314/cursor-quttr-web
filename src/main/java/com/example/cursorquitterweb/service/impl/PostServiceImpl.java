@@ -40,6 +40,16 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
+    public Optional<PostWithUpvotesDto> findByIdWithUpvotes(UUID postId) {
+        Optional<Post> postOpt = postRepository.findByPostIdAndIsDeletedFalse(postId);
+        if (postOpt.isPresent()) {
+            PostWithUpvotesDto postWithUpvotes = convertToPostWithUpvotesDto(postOpt.get());
+            return Optional.of(postWithUpvotes);
+        }
+        return Optional.empty();
+    }
+    
+    @Override
     public Post createPost(UUID userId, String userNickname, String userStage, String content) {
         Post post = new Post(userId, userNickname, userStage, content);
         return postRepository.save(post);
