@@ -84,7 +84,12 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public Page<MeditateVideo> getAllMeditateVideos(Pageable pageable) {
-        return meditateVideoRepository.findAllWithQuotes(pageable);
+        Page<MeditateVideo> page = meditateVideoRepository.findAll(pageable);
+        // 在事务内预加载关联数据
+        page.getContent().forEach(meditateVideo -> {
+            meditateVideo.getMeditateQuotes().size(); // 触发懒加载
+        });
+        return page;
     }
     
     /**

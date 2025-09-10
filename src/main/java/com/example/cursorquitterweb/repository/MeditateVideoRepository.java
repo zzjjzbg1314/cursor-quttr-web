@@ -31,11 +31,6 @@ public interface MeditateVideoRepository extends JpaRepository<MeditateVideo, UU
     @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes ORDER BY mv.createAt DESC")
     List<MeditateVideo> findAllWithQuotes();
     
-    /**
-     * 分页查找所有冥想视频（包含关联数据）
-     */
-    @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes")
-    Page<MeditateVideo> findAllWithQuotes(Pageable pageable);
     
     /**
      * 根据标题模糊查询冥想视频（包含关联数据）
