@@ -12,6 +12,7 @@ public class MeditateVideoDto {
     
     private UUID id;
     private String title;
+    private String subtitle;
     private String image;
     private String videoUrl;
     private String audioUrl;
@@ -22,11 +23,12 @@ public class MeditateVideoDto {
     
     public MeditateVideoDto() {}
     
-    public MeditateVideoDto(UUID id, String title, String image, String videoUrl, 
+    public MeditateVideoDto(UUID id, String title, String subtitle, String image, String videoUrl, 
                            String audioUrl, List<String> meditateQuotes, String color,
                            OffsetDateTime createAt, OffsetDateTime updateAt) {
         this.id = id;
         this.title = title;
+        this.subtitle = subtitle;
         this.image = image;
         this.videoUrl = videoUrl;
         this.audioUrl = audioUrl;
@@ -51,6 +53,14 @@ public class MeditateVideoDto {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getSubtitle() {
+        return subtitle;
+    }
+    
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
     
     public String getImage() {
@@ -114,10 +124,11 @@ public class MeditateVideoDto {
         return "MeditateVideoDto{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
+                ", subtitle='" + subtitle + '\'' +
                 ", image='" + image + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
                 ", audioUrl='" + audioUrl + '\'' +
-                ", meditateQuotes='" + meditateQuotes + '\'' +
+                ", meditateQuotes=" + meditateQuotes +
                 ", color='" + color + '\'' +
                 ", createAt=" + createAt +
                 ", updateAt=" + updateAt +

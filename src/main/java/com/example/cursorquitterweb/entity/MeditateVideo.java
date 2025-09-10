@@ -21,6 +21,9 @@ public class MeditateVideo {
     @Column(name = "title", nullable = false)
     private String title;
     
+    @Column(name = "subtitle")
+    private String subtitle;
+    
     @Column(name = "image")
     private String image;
     
@@ -49,10 +52,11 @@ public class MeditateVideo {
         this.updateAt = OffsetDateTime.now();
     }
     
-    public MeditateVideo(String title, String image, String videoUrl, String audioUrl, 
+    public MeditateVideo(String title, String subtitle, String image, String videoUrl, String audioUrl, 
                         List<String> meditateQuotes, String color) {
         this();
         this.title = title;
+        this.subtitle = subtitle;
         this.image = image;
         this.videoUrl = videoUrl;
         this.audioUrl = audioUrl;
@@ -75,6 +79,14 @@ public class MeditateVideo {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getSubtitle() {
+        return subtitle;
+    }
+    
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
     
     public String getImage() {
@@ -143,10 +155,11 @@ public class MeditateVideo {
         return "MeditateVideo{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
+                ", subtitle='" + subtitle + '\'' +
                 ", image='" + image + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
                 ", audioUrl='" + audioUrl + '\'' +
-                ", meditateQuotes='" + meditateQuotes + '\'' +
+                ", meditateQuotes=" + meditateQuotes +
                 ", color='" + color + '\'' +
                 ", createAt=" + createAt +
                 ", updateAt=" + updateAt +

@@ -47,6 +47,7 @@ public class MeditateVideoController {
             
             MeditateVideo meditateVideo = meditateVideoService.createMeditateVideo(
                 request.getTitle(),
+                request.getSubtitle(),
                 request.getImage(),
                 request.getVideoUrl(),
                 request.getAudioUrl(),
@@ -104,6 +105,7 @@ public class MeditateVideoController {
             MeditateVideo meditateVideo = meditateVideoService.updateMeditateVideo(
                 id,
                 request.getTitle(),
+                request.getSubtitle(),
                 request.getImage(),
                 request.getVideoUrl(),
                 request.getAudioUrl(),
@@ -164,7 +166,7 @@ public class MeditateVideoController {
             logger.info("获取所有冥想视频，页码: {}, 大小: {}, 排序: {} {}", page, size, sortBy, sortDir);
             
             // 验证排序字段名
-            String[] validSortFields = {"id", "title", "image", "videoUrl", "audioUrl", "meditateQuotes", "color", "createAt", "updateAt"};
+            String[] validSortFields = {"id", "title", "subtitle", "image", "videoUrl", "audioUrl", "meditateQuotes", "color", "createAt", "updateAt"};
             boolean isValidSortField = false;
             for (String field : validSortFields) {
                 if (field.equals(sortBy)) {

@@ -11,6 +11,9 @@ public class UpdateMeditateVideoRequest {
     @Size(max = 255, message = "冥想视频标题长度不能超过255个字符")
     private String title;
     
+    @Size(max = 255, message = "副标题长度不能超过255个字符")
+    private String subtitle;
+    
     @Size(max = 1000, message = "图片链接长度不能超过1000个字符")
     private String image;
     
@@ -27,9 +30,10 @@ public class UpdateMeditateVideoRequest {
     
     public UpdateMeditateVideoRequest() {}
     
-    public UpdateMeditateVideoRequest(String title, String image, String videoUrl, 
+    public UpdateMeditateVideoRequest(String title, String subtitle, String image, String videoUrl, 
                                     String audioUrl, List<String> meditateQuotes, String color) {
         this.title = title;
+        this.subtitle = subtitle;
         this.image = image;
         this.videoUrl = videoUrl;
         this.audioUrl = audioUrl;
@@ -44,6 +48,14 @@ public class UpdateMeditateVideoRequest {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getSubtitle() {
+        return subtitle;
+    }
+    
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
     
     public String getImage() {
@@ -90,10 +102,11 @@ public class UpdateMeditateVideoRequest {
     public String toString() {
         return "UpdateMeditateVideoRequest{" +
                 "title='" + title + '\'' +
+                ", subtitle='" + subtitle + '\'' +
                 ", image='" + image + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
                 ", audioUrl='" + audioUrl + '\'' +
-                ", meditateQuotes='" + meditateQuotes + '\'' +
+                ", meditateQuotes=" + meditateQuotes +
                 ", color='" + color + '\'' +
                 '}';
     }

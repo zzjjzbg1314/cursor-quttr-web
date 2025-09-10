@@ -36,21 +36,22 @@ public class MeditateVideoService {
     /**
      * 创建新冥想视频
      */
-    public MeditateVideo createMeditateVideo(String title, String image, String videoUrl, 
+    public MeditateVideo createMeditateVideo(String title, String subtitle, String image, String videoUrl, 
                                             String audioUrl, List<String> meditateQuotes, String color) {
-        MeditateVideo meditateVideo = new MeditateVideo(title, image, videoUrl, audioUrl, meditateQuotes, color);
+        MeditateVideo meditateVideo = new MeditateVideo(title, subtitle, image, videoUrl, audioUrl, meditateQuotes, color);
         return meditateVideoRepository.save(meditateVideo);
     }
     
     /**
      * 更新冥想视频信息
      */
-    public MeditateVideo updateMeditateVideo(UUID id, String title, String image, String videoUrl, 
+    public MeditateVideo updateMeditateVideo(UUID id, String title, String subtitle, String image, String videoUrl, 
                                            String audioUrl, List<String> meditateQuotes, String color) {
         MeditateVideo meditateVideo = meditateVideoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("冥想视频不存在，ID: " + id));
         
         if (title != null) meditateVideo.setTitle(title);
+        if (subtitle != null) meditateVideo.setSubtitle(subtitle);
         if (image != null) meditateVideo.setImage(image);
         if (videoUrl != null) meditateVideo.setVideoUrl(videoUrl);
         if (audioUrl != null) meditateVideo.setAudioUrl(audioUrl);
@@ -192,6 +193,7 @@ public class MeditateVideoService {
         return new MeditateVideoDto(
                 meditateVideo.getId(),
                 meditateVideo.getTitle(),
+                meditateVideo.getSubtitle(),
                 meditateVideo.getImage(),
                 meditateVideo.getVideoUrl(),
                 meditateVideo.getAudioUrl(),
