@@ -4,6 +4,8 @@ import com.example.cursorquitterweb.entity.MeditateVideo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
@@ -16,6 +18,36 @@ import java.util.UUID;
  */
 @Repository
 public interface MeditateVideoRepository extends JpaRepository<MeditateVideo, UUID> {
+    
+    /**
+     * 根据ID查找冥想视频（包含关联数据）
+     */
+    @Query("SELECT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes WHERE mv.id = :id")
+    Optional<MeditateVideo> findByIdWithQuotes(@Param("id") UUID id);
+    
+    /**
+     * 查找所有冥想视频（包含关联数据）
+     */
+    @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes ORDER BY mv.createAt DESC")
+    List<MeditateVideo> findAllWithQuotes();
+    
+    /**
+     * 分页查找所有冥想视频（包含关联数据）
+     */
+    @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes")
+    Page<MeditateVideo> findAllWithQuotes(Pageable pageable);
+    
+    /**
+     * 根据标题模糊查询冥想视频（包含关联数据）
+     */
+    @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes WHERE mv.title LIKE %:title% ORDER BY mv.createAt DESC")
+    List<MeditateVideo> findByTitleContainingWithQuotes(@Param("title") String title);
+    
+    /**
+     * 根据颜色查找冥想视频（包含关联数据）
+     */
+    @Query("SELECT DISTINCT mv FROM MeditateVideo mv LEFT JOIN FETCH mv.meditateQuotes WHERE mv.color = :color ORDER BY mv.createAt DESC")
+    List<MeditateVideo> findByColorWithQuotes(@Param("color") String color);
     
     /**
      * 根据ID查找冥想视频

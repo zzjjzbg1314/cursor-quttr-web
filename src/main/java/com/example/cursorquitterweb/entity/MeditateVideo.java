@@ -33,7 +33,7 @@ public class MeditateVideo {
     @Column(name = "audioUrl")
     private String audioUrl;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "meditate_video_quotes", joinColumns = @JoinColumn(name = "meditate_video_id"))
     @Column(name = "quote")
     private List<String> meditateQuotes;

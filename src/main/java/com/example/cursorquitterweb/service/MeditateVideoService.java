@@ -30,7 +30,7 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public Optional<MeditateVideo> findById(UUID id) {
-        return meditateVideoRepository.findById(id);
+        return meditateVideoRepository.findByIdWithQuotes(id);
     }
     
     /**
@@ -76,7 +76,7 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public List<MeditateVideo> searchByTitle(String title) {
-        return meditateVideoRepository.findByTitleContainingIgnoreCaseOrderByCreateAtDesc(title);
+        return meditateVideoRepository.findByTitleContainingWithQuotes(title);
     }
     
     /**
@@ -84,7 +84,7 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public Page<MeditateVideo> getAllMeditateVideos(Pageable pageable) {
-        return meditateVideoRepository.findAll(pageable);
+        return meditateVideoRepository.findAllWithQuotes(pageable);
     }
     
     /**
@@ -92,7 +92,7 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public List<MeditateVideo> getAllMeditateVideos() {
-        return meditateVideoRepository.findAllByOrderByCreateAtDesc();
+        return meditateVideoRepository.findAllWithQuotes();
     }
     
     /**
@@ -164,7 +164,7 @@ public class MeditateVideoService {
      */
     @Transactional(readOnly = true)
     public List<MeditateVideo> findByColor(String color) {
-        return meditateVideoRepository.findByColorOrderByCreateAtDesc(color);
+        return meditateVideoRepository.findByColorWithQuotes(color);
     }
     
     /**
