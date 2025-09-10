@@ -175,7 +175,7 @@ public class UserServiceImpl implements UserService {
         List<User> users = getChallengeLeaderboard(limit);
         
         return users.stream()
-            .map(user -> new UserLeaderboardDto(user.getNickname(), user.getBestRecord()))
+            .map(user -> new UserLeaderboardDto(user.getNickname(), user.getAvatarUrl(), user.getBestRecord()))
             .collect(Collectors.toList());
     }
     
@@ -194,7 +194,7 @@ public class UserServiceImpl implements UserService {
         
         // 转换为DTO并保持分页信息
         org.springframework.data.domain.Page<UserLeaderboardDto> dtoPage = userPage.map(
-            user -> new UserLeaderboardDto(user.getNickname(), user.getBestRecord())
+            user -> new UserLeaderboardDto(user.getNickname(), user.getAvatarUrl(), user.getBestRecord())
         );
         
         logger.debug("分页查询完成，总记录数: {}, 当前页记录数: {}", dtoPage.getTotalElements(), dtoPage.getContent().size());

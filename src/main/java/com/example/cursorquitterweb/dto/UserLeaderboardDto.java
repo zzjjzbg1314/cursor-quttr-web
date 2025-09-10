@@ -7,12 +7,14 @@ package com.example.cursorquitterweb.dto;
 public class UserLeaderboardDto {
     
     private String nickname;
+    private String avatarUrl;
     private Integer bestRecord;
     
     public UserLeaderboardDto() {}
     
-    public UserLeaderboardDto(String nickname, Integer bestRecord) {
+    public UserLeaderboardDto(String nickname, String avatarUrl, Integer bestRecord) {
         this.nickname = nickname;
+        this.avatarUrl = avatarUrl;
         this.bestRecord = bestRecord;
     }
     
@@ -23,6 +25,14 @@ public class UserLeaderboardDto {
     
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+    
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
     
     public Integer getBestRecord() {
