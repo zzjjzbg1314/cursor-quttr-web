@@ -7,6 +7,7 @@ import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.UserService;
+import com.example.cursorquitterweb.service.RecoverJourneyService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class UserController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private RecoverJourneyService recoverJourneyService;
     
     /**
      * 根据ID获取用户信息
@@ -64,6 +68,16 @@ public class UserController {
         user.setNickname(randomNickname);
         user.setAvatarUrl(avatarUrl);
         User savedUser = userService.save(user);
+        
+        // 用户数据初始化完成后，创建一条康复记录
+        try {
+            recoverJourneyService.createRecoverJourney(savedUser.getId(), "今天注册了克己。");
+            logger.info("为用户 {} 创建初始康复记录成功", savedUser.getId());
+        } catch (Exception e) {
+            logger.error("为用户 {} 创建初始康复记录失败: {}", savedUser.getId(), e.getMessage());
+            // 不抛出异常，避免影响用户创建流程
+        }
+        
         return ApiResponse.success("用户初始化并保存成功", savedUser);
     }
     
