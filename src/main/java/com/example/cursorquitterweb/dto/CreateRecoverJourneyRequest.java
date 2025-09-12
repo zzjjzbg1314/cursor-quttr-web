@@ -1,27 +1,25 @@
 package com.example.cursorquitterweb.dto;
 
-import java.util.UUID;
-
 /**
  * 创建康复记录请求DTO
  */
 public class CreateRecoverJourneyRequest {
     
-    private UUID userId;
+    private String userId;
     private String fellContent;
     
     public CreateRecoverJourneyRequest() {}
     
-    public CreateRecoverJourneyRequest(UUID userId, String fellContent) {
+    public CreateRecoverJourneyRequest(String userId, String fellContent) {
         this.userId = userId;
         this.fellContent = fellContent;
     }
     
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
     
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     

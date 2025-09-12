@@ -23,6 +23,16 @@ public interface RecoverJourneyService {
     RecoverJourney save(RecoverJourney recoverJourney);
     
     /**
+     * 创建新的康复记录（String userId）
+     */
+    RecoverJourney createRecoverJourney(String userId);
+    
+    /**
+     * 创建新的康复记录（String userId，带感受内容）
+     */
+    RecoverJourney createRecoverJourney(String userId, String fellContent);
+    
+    /**
      * 创建新的康复记录
      */
     RecoverJourney createRecoverJourney(UUID userId);

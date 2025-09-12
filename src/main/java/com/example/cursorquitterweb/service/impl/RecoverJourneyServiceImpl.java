@@ -34,6 +34,20 @@ public class RecoverJourneyServiceImpl implements RecoverJourneyService {
     }
     
     @Override
+    public RecoverJourney createRecoverJourney(String userId) {
+        UUID uuid = UUID.fromString(userId);
+        RecoverJourney recoverJourney = new RecoverJourney(uuid);
+        return recoverJourneyRepository.save(recoverJourney);
+    }
+    
+    @Override
+    public RecoverJourney createRecoverJourney(String userId, String fellContent) {
+        UUID uuid = UUID.fromString(userId);
+        RecoverJourney recoverJourney = new RecoverJourney(uuid, fellContent);
+        return recoverJourneyRepository.save(recoverJourney);
+    }
+    
+    @Override
     public RecoverJourney createRecoverJourney(UUID userId) {
         RecoverJourney recoverJourney = new RecoverJourney(userId);
         return recoverJourneyRepository.save(recoverJourney);
