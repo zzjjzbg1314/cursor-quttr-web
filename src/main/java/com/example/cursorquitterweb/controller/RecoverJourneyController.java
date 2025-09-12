@@ -42,7 +42,7 @@ public class RecoverJourneyController {
     /**
      * 创建康复记录
      */
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<RecoverJourneyDto> createRecoverJourney(@RequestBody CreateRecoverJourneyRequest request) {
         try {
             RecoverJourney recoverJourney;
