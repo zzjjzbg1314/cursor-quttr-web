@@ -88,7 +88,7 @@ public class AppBlockScheduleServiceImpl implements AppBlockScheduleService {
     @Override
     @Transactional(readOnly = true)
     public List<AppBlockSchedule> getAllAppBlockSchedules() {
-        return appBlockScheduleRepository.findAll();
+        return appBlockScheduleRepository.findAllOrderByCreatedAtAsc();
     }
     
     @Override

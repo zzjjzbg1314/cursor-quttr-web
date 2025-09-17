@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.entity;
 
 import javax.persistence.*;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -34,9 +35,15 @@ public class AppBlockSchedule {
     @Column(name = "image")
     private String image;
     
-    public AppBlockSchedule() {}
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
+    
+    public AppBlockSchedule() {
+        this.createdAt = OffsetDateTime.now();
+    }
     
     public AppBlockSchedule(String title, String subtitle, String days, String time, String reason, String image) {
+        this();
         this.title = title;
         this.subtitle = subtitle;
         this.days = days;
@@ -102,6 +109,14 @@ public class AppBlockSchedule {
         this.image = image;
     }
     
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
     @Override
     public String toString() {
         return "AppBlockSchedule{" +
@@ -112,6 +127,7 @@ public class AppBlockSchedule {
                 ", time='" + time + '\'' +
                 ", reason='" + reason + '\'' +
                 ", image='" + image + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

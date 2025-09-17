@@ -61,4 +61,10 @@ public interface AppBlockScheduleRepository extends JpaRepository<AppBlockSchedu
      * 根据ID列表批量查询
      */
     List<AppBlockSchedule> findByIdIn(List<UUID> ids);
+    
+    /**
+     * 获取所有屏蔽计划，按创建时间正序排列
+     */
+    @Query("SELECT a FROM AppBlockSchedule a ORDER BY a.createdAt ASC")
+    List<AppBlockSchedule> findAllOrderByCreatedAtAsc();
 }
