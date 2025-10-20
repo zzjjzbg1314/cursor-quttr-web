@@ -2,18 +2,9 @@ package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.ChatMessageRequest;
 import com.example.cursorquitterweb.service.ChatService;
-import com.example.cursorquitterweb.entity.elasticsearch.ChatMessageDocument;
-import com.example.cursorquitterweb.service.ChatMessageSearchService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.paho.client.mqttv3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.time.LocalDateTime;
 
 /**
  * 聊天服务实现类 - 完全按照阿里云MQ4IoT官方示例实现
@@ -25,12 +16,6 @@ public class ChatServiceImpl implements ChatService {
 
 //    @Autowired
 //    private MqttClient mqttClient;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private ChatMessageSearchService chatMessageSearchService;
 
 //    // MQTT主题配置 - 从配置文件读取
 //    @Value("${mqtt.parent.topic:CHAT_OFFICIAL_GROUP}")
@@ -281,44 +266,16 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public boolean sendChatMessage(ChatMessageRequest request) {
-        System.out.println("=== 聊天消息发送到Elasticsearch索引开始 ===");
-        System.out.println("发送时间: " + LocalDateTime.now());
-        System.out.println("消息内容: " + request.getContent());
-                    System.out.println("发送者昵称: " + request.getNickName());
-            System.out.println("用户阶段: " + request.getUserStage());
-            System.out.println("消息类型: " + request.getMsgType());
-            System.out.println("头像URL: " + request.getAvatarUrl());
-
-        try {
-            // 将ChatMessageRequest转换为ChatMessageDocument
-            ChatMessageDocument document = new ChatMessageDocument(
-                    request.getNickName(),
-                    request.getUserStage(),
-                    request.getContent(),
-                    request.getMsgType(),
-                    request.getAvatarUrl()
-            );
-
-            System.out.println("正在创建Elasticsearch文档...");
-            System.out.println("文档内容:");
-            System.out.println("  昵称: " + document.getNickName());
-            System.out.println("  用户阶段: " + document.getUserStage());
-            System.out.println("  内容: " + document.getContent());
-            System.out.println("  消息类型: " + document.getMsgType());
-            System.out.println("  头像URL: " + document.getAvatarUrl());
-            System.out.println("  创建时间: " + document.getCreateAt());
-
-            // 存储到Elasticsearch索引
-            System.out.println("正在存储到Elasticsearch索引...");
-            return chatMessageSearchService.saveMessage(document);
-        } catch (Exception e) {
-            System.out.println("=== 聊天消息发送到Elasticsearch索引失败 ===");
-            System.out.println("错误类型: " + e.getClass().getSimpleName());
-            System.out.println("错误消息: " + e.getMessage());
-            System.out.println("堆栈跟踪:");
-            e.printStackTrace();
-            logger.error("发送聊天消息到Elasticsearch索引失败", e);
-            return false;
-        }
+        logger.info("聊天消息接收 - 昵称: {}, 内容: {}, 用户阶段: {}, 消息类型: {}", 
+                    request.getNickName(), 
+                    request.getContent(), 
+                    request.getUserStage(), 
+                    request.getMsgType());
+        
+        // TODO: 实现消息存储逻辑（Elasticsearch已移除）
+        // 可以在这里添加数据库存储或其他消息处理逻辑
+        
+        logger.warn("聊天消息功能暂未实现完整存储逻辑（Elasticsearch已移除）");
+        return true;
     }
 }
