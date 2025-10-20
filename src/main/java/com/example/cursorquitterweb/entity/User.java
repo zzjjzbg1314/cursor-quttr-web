@@ -44,6 +44,12 @@ public class User {
     @Column(name = "quit_reason")
     private String quitReason;
     
+    @Column(name = "age")
+    private Integer age;
+    
+    @Column(name = "restart_count")
+    private Integer restartCount;
+    
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
@@ -143,6 +149,22 @@ public class User {
         this.quitReason = quitReason;
     }
     
+    public Integer getAge() {
+        return age;
+    }
+    
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+    
+    public Integer getRestartCount() {
+        return restartCount;
+    }
+    
+    public void setRestartCount(Integer restartCount) {
+        this.restartCount = restartCount;
+    }
+    
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
@@ -196,6 +218,8 @@ public class User {
                 ", challengeResetTime=" + challengeResetTime +
                 ", bestRecord=" + bestRecord +
                 ", quitReason='" + quitReason + '\'' +
+                ", age=" + age +
+                ", restartCount=" + restartCount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -106,8 +106,14 @@ public class UserController {
         User user = userService.createUser(request.getNickname(), request.getAvatarUrl());
         if (request.getQuitReason() != null) {
             user.setQuitReason(request.getQuitReason());
-            user = userService.updateUser(user);
         }
+        if (request.getAge() != null) {
+            user.setAge(request.getAge());
+        }
+        if (request.getRestartCount() != null) {
+            user.setRestartCount(request.getRestartCount());
+        }
+        user = userService.updateUser(user);
         return ApiResponse.success("用户创建成功", user);
     }
     
@@ -141,6 +147,12 @@ public class UserController {
         }
         if (request.getQuitReason() != null) {
             user.setQuitReason(request.getQuitReason());
+        }
+        if (request.getAge() != null) {
+            user.setAge(request.getAge());
+        }
+        if (request.getRestartCount() != null) {
+            user.setRestartCount(request.getRestartCount());
         }
         
         User updatedUser = userService.updateUser(user);
@@ -461,6 +473,8 @@ public class UserController {
         private String nickname;
         private String avatarUrl;
         private String quitReason;
+        private Integer age;
+        private Integer restartCount;
         
         // Getters and Setters
         public String getNickname() {
@@ -486,6 +500,22 @@ public class UserController {
         public void setQuitReason(String quitReason) {
             this.quitReason = quitReason;
         }
+        
+        public Integer getAge() {
+            return age;
+        }
+        
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+        
+        public Integer getRestartCount() {
+            return restartCount;
+        }
+        
+        public void setRestartCount(Integer restartCount) {
+            this.restartCount = restartCount;
+        }
     }
     
     /**
@@ -498,6 +528,8 @@ public class UserController {
         private String language;
         private String phoneNumber;
         private String quitReason;
+        private Integer age;
+        private Integer restartCount;
         
         // Getters and Setters
         public String getNickname() {
@@ -546,6 +578,22 @@ public class UserController {
         
         public void setQuitReason(String quitReason) {
             this.quitReason = quitReason;
+        }
+        
+        public Integer getAge() {
+            return age;
+        }
+        
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+        
+        public Integer getRestartCount() {
+            return restartCount;
+        }
+        
+        public void setRestartCount(Integer restartCount) {
+            this.restartCount = restartCount;
         }
     }
     
