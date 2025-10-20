@@ -54,18 +54,18 @@ public class UserController {
      * 返回一个包含所有基础字段信息的用户对象
      */
     @PostMapping("/init")
-    public ApiResponse<User> initUser() {
-        logger.info("初始化用户信息");
+    public ApiResponse<User> initUser(@RequestBody InitUserRequest request) {
+        logger.info("初始化用户信息，昵称: {}, 年龄: {}, 性别: {}", 
+                    request.getNickname(), request.getAge(), request.getGender());
         
         // 生成1到1100之间的随机数字
         int randomNumber = (int) (Math.random() * 1100) + 1;
         String avatarUrl = "https://my-avatar-images.oss-cn-hangzhou.aliyuncs.com/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
         
-        // 生成随机昵称：KJ + 12位随机字母数字组合p
-        String randomNickname = generateRandomNickname();
-        
         User user = User.initUser();
-        user.setNickname(randomNickname);
+        user.setNickname(request.getNickname());
+        user.setAge(request.getAge());
+        user.setGender(request.getGender());
         user.setAvatarUrl(avatarUrl);
         User savedUser = userService.save(user);
         
@@ -79,21 +79,6 @@ public class UserController {
         }
         
         return ApiResponse.success("用户初始化并保存成功", savedUser);
-    }
-    
-    /**
-     * 生成随机昵称：KJ + 12位随机字母数字组合
-     */
-    private String generateRandomNickname() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder("KJ");
-        
-        for (int i = 0; i < 12; i++) {
-            int randomIndex = (int) (Math.random() * chars.length());
-            sb.append(chars.charAt(randomIndex));
-        }
-        
-        return sb.toString();
     }
     
     /**
@@ -463,6 +448,40 @@ public class UserController {
             logger.error("手机号绑定失败，用户ID: {}, 手机号: {}, 错误: {}", 
                 request.getUserId(), request.getPhoneNumber(), e.getMessage());
             return ApiResponse.error("绑定失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 初始化用户请求DTO
+     */
+    public static class InitUserRequest {
+        private String nickname;
+        private Integer age;
+        private Short gender;
+        
+        // Getters and Setters
+        public String getNickname() {
+            return nickname;
+        }
+        
+        public void setNickname(String nickname) {
+            this.nickname = nickname;
+        }
+        
+        public Integer getAge() {
+            return age;
+        }
+        
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+        
+        public Short getGender() {
+            return gender;
+        }
+        
+        public void setGender(Short gender) {
+            this.gender = gender;
         }
     }
     
