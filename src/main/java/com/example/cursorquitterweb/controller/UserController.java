@@ -67,6 +67,7 @@ public class UserController {
         user.setAge(request.getAge());
         user.setGender(request.getGender());
         user.setAvatarUrl(avatarUrl);
+        user.setRestartCount(0);
         User savedUser = userService.save(user);
         
         // 用户数据初始化完成后，创建一条康复记录
