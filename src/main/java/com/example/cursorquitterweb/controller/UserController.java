@@ -200,15 +200,21 @@ public class UserController {
      * 重置用户挑战时间
      */
     @PostMapping("/{id}/reset-challenge")
-    public ApiResponse<Void> resetUserChallengeTime(@PathVariable UUID id) {
+    public ApiResponse<Void> resetUserChallengeTime(@PathVariable String id) {
         logger.info("重置用户挑战时间，ID: {}", id);
         
-        if (!userService.findById(id).isPresent()) {
-            return ApiResponse.error("用户不存在");
+        try {
+            UUID userId = UUID.fromString(id);
+            if (!userService.findById(userId).isPresent()) {
+                return ApiResponse.error("用户不存在");
+            }
+            
+            userService.resetUserChallengeTime(userId);
+            return ApiResponse.success("挑战时间重置成功", null);
+        } catch (IllegalArgumentException e) {
+            logger.error("用户ID格式无效: {}", id);
+            return ApiResponse.error("用户ID格式无效");
         }
-        
-        userService.resetUserChallengeTime(id);
-        return ApiResponse.success("挑战时间重置成功", null);
     }
     
     /**

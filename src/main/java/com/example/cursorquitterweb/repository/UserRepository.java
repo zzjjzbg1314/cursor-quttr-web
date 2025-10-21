@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.repository;
 
 import com.example.cursorquitterweb.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -88,4 +89,19 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @Query("SELECT COUNT(u) + 1 FROM User u WHERE u.bestRecord > (SELECT u2.bestRecord FROM User u2 WHERE u2.id = :userId) AND u.bestRecord IS NOT NULL")
     Long findUserRankInLeaderboard(@Param("userId") UUID userId);
+    
+    /**
+     * 重置用户挑战时间并增加重启次数
+     * 一次性更新challenge_reset_time和restart_count两个字段
+     * @param userId 用户ID
+     * @param resetTime 重置时间
+     * @return 更新的行数
+     */
+    @Modifying
+    @Query("UPDATE User u SET u.challengeResetTime = :resetTime, " +
+           "u.restartCount = COALESCE(u.restartCount, 0) + 1, " +
+           "u.updatedAt = :resetTime " +
+           "WHERE u.id = :userId")
+    int resetChallengeTimeAndIncrementRestartCount(@Param("userId") UUID userId, 
+                                                    @Param("resetTime") OffsetDateTime resetTime);
 }

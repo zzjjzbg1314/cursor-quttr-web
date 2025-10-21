@@ -103,12 +103,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void resetUserChallengeTime(UUID userId) {
         logger.info("重置用户挑战时间，用户ID: {}", userId);
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.setChallengeResetTime(OffsetDateTime.now());
-            userRepository.save(user);
-            logger.info("用户挑战时间重置成功，用户ID: {}", userId);
+        OffsetDateTime now = OffsetDateTime.now();
+        
+        // 一次性更新挑战时间和重启次数
+        int updatedRows = userRepository.resetChallengeTimeAndIncrementRestartCount(userId, now);
+        
+        if (updatedRows > 0) {
+            logger.info("用户挑战时间重置成功，用户ID: {}, 已自动增加重启次数", userId);
         } else {
             logger.warn("用户不存在，无法重置挑战时间，用户ID: {}", userId);
         }
