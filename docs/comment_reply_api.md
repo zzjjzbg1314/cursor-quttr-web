@@ -19,13 +19,11 @@
 
 ## API端点
 
-### 1. 创建评论或回复
+### 1. 创建一级评论（直接评论帖子）
 
 **端点**: `POST /api/comments/create`
 
-**说明**: 统一的创建接口，根据是否包含`parentCommentId`字段自动判断是创建一级评论还是回复评论。
-
-#### 创建一级评论（直接评论帖子）
+**说明**: 创建一级评论，直接评论帖子。
 
 **请求示例**:
 ```json
@@ -65,7 +63,11 @@
 }
 ```
 
-#### 创建回复评论（回复某条评论）
+### 2. 创建回复评论（回复某条评论）
+
+**端点**: `POST /api/comments/reply`
+
+**说明**: 创建回复评论，回复某条已存在的评论。使用专门的`CreateReplyRequest`，必须提供`parentCommentId`和`replyToCommentId`字段。
 
 **请求示例**:
 ```json
@@ -109,7 +111,7 @@
 }
 ```
 
-### 2. 获取帖子的所有一级评论（不包括回复）
+### 3. 获取帖子的所有一级评论（不包括回复）
 
 **端点**: `GET /api/comments/post/{postId}/top-level`
 
@@ -131,7 +133,7 @@
 }
 ```
 
-### 3. 分页获取帖子的一级评论
+### 4. 分页获取帖子的一级评论
 
 **端点**: `GET /api/comments/post/{postId}/top-level/page`
 
@@ -143,7 +145,7 @@
 
 **示例**: `GET /api/comments/post/{postId}/top-level/page?page=0&size=10&sortBy=createdAt&sortDir=asc`
 
-### 4. 获取某个评论的所有回复
+### 5. 获取某个评论的所有回复
 
 **端点**: `GET /api/comments/{rootCommentId}/replies`
 
@@ -167,7 +169,7 @@
 }
 ```
 
-### 5. 获取帖子的所有评论及其回复（小红书风格）★推荐
+### 6. 获取帖子的所有评论及其回复（小红书风格）★推荐
 
 **端点**: `GET /api/comments/post/{postId}/with-replies`
 
@@ -211,7 +213,7 @@
 }
 ```
 
-### 6. 分页获取帖子的评论及其回复
+### 7. 分页获取帖子的评论及其回复
 
 **端点**: `GET /api/comments/post/{postId}/with-replies/page`
 
@@ -223,7 +225,7 @@
 
 **说明**: 对一级评论进行分页，每个一级评论包含其所有回复（回复不分页）。
 
-### 7. 统计某个评论的回复数量
+### 8. 统计某个评论的回复数量
 
 **端点**: `GET /api/comments/{rootCommentId}/replies/count`
 
@@ -236,7 +238,7 @@
 }
 ```
 
-### 8. 删除评论及其所有回复（级联删除）
+### 9. 删除评论及其所有回复（级联删除）
 
 **端点**: `DELETE /api/comments/{commentId}/delete-with-replies`
 
@@ -251,15 +253,15 @@
 }
 ```
 
-### 9. 获取单个评论（原有API）
+### 10. 获取单个评论（原有API）
 
 **端点**: `GET /api/comments/{commentId}`
 
-### 10. 更新评论（原有API）
+### 11. 更新评论（原有API）
 
 **端点**: `PUT /api/comments/{commentId}/update`
 
-### 11. 删除单个评论（原有API，不删除回复）
+### 12. 删除单个评论（原有API，不删除回复）
 
 **端点**: `DELETE /api/comments/{commentId}/delete`
 
@@ -279,7 +281,7 @@
 
 ### 场景3：用户回复评论
 
-用户点击某条评论的"回复"按钮时，前端需要构造以下数据并调用创建API：
+用户点击某条评论的"回复"按钮时，前端需要构造以下数据并调用 `POST /api/comments/reply` 接口：
 
 ```json
 {

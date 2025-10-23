@@ -46,9 +46,18 @@ CREATE INDEX "idx_comments_thread" ON "public"."comments" ("root_comment_id", "c
 **文件**: `src/main/java/com/example/cursorquitterweb/dto/CreateCommentRequest.java`
 
 **主要更改**:
-- ✅ 添加了回复相关的请求字段
-- ✅ 添加了对应的getter/setter方法
+- ✅ 简化为只包含创建一级评论所需的字段
+- ✅ 移除了回复相关的字段（已迁移到CreateReplyRequest）
 - ✅ 更新了`toString()`方法
+
+#### CreateReplyRequest（新建）
+**文件**: `src/main/java/com/example/cursorquitterweb/dto/CreateReplyRequest.java`
+
+**说明**: 新建的DTO类，专门用于创建回复评论。
+
+**包含字段**:
+- 基础字段：`postId`、`userId`、`userNickname`、`userStage`、`avatarUrl`、`content`
+- 回复字段：`parentCommentId`、`replyToUserId`、`replyToUserNickname`、`replyToCommentId`
 
 #### CommentWithRepliesDTO（新建）
 **文件**: `src/main/java/com/example/cursorquitterweb/dto/CommentWithRepliesDTO.java`
@@ -121,8 +130,13 @@ if (parentCommentUuid != null) {
 
 **主要更改**:
 - ✅ 导入了`CommentWithRepliesDTO`
-- ✅ 更新了`createComment()`方法，支持自动判断创建评论还是回复
+- ✅ 拆分了创建接口：`createComment()`用于创建一级评论，`createReply()`用于创建回复
 - ✅ 新增了8个API端点
+
+**更新的API端点**:
+
+1. `POST /api/comments/create` - 创建一级评论（直接评论帖子）
+2. `POST /api/comments/reply` - 创建回复评论（新增）
 
 **新增API端点**:
 
@@ -136,11 +150,12 @@ if (parentCommentUuid != null) {
 
 ## 功能特性
 
-### 1. 智能评论创建
+### 1. 清晰的接口分离
 
-- 统一使用 `POST /api/comments/create` 端点
-- 自动识别是创建一级评论还是回复评论
+- 创建一级评论：使用 `POST /api/comments/create` 端点
+- 创建回复评论：使用 `POST /api/comments/reply` 端点
 - 自动计算`root_comment_id`和`comment_level`
+- 回复接口自动验证必需字段
 
 ### 2. 小红书风格展示
 
@@ -176,7 +191,8 @@ if (parentCommentUuid != null) {
 ### 原有API保持不变
 
 所有原有的API端点继续正常工作：
-- ✅ `POST /api/comments/create` - 不传回复字段时创建一级评论
+- ✅ `POST /api/comments/create` - 创建一级评论（功能不变）
+- ✅ `POST /api/comments/reply` - 新增的创建回复接口
 - ✅ `GET /api/comments/{commentId}` - 获取单个评论
 - ✅ `PUT /api/comments/{commentId}/update` - 更新评论
 - ✅ `DELETE /api/comments/{commentId}/delete` - 删除评论
@@ -212,9 +228,9 @@ WHERE comment_level = 1;
    - 每个一级评论自动包含其所有回复
    - 支持分页
 
-2. **创建评论**：使用 `POST /api/comments/create`
-   - 直接评论帖子：不传`parentCommentId`
-   - 回复评论：传入`parentCommentId`、`replyToUserId`等字段
+2. **创建评论**：
+   - 直接评论帖子：使用 `POST /api/comments/create`
+   - 回复评论：使用 `POST /api/comments/reply`，传入`parentCommentId`、`replyToUserId`、`replyToCommentId`等字段
 
 3. **删除评论**：
    - 只删除单条：`DELETE /api/comments/{commentId}/delete`
@@ -302,14 +318,20 @@ ORDER BY
 
 本次更新完整实现了小红书风格的评论回复功能，所有代码已通过linter检查，无错误。主要改动包括：
 
-- ✅ 1个实体类更新
-- ✅ 1个DTO类更新 + 1个新DTO类
+- ✅ 1个实体类更新（Comment.java）
+- ✅ 1个DTO类更新 + 2个新DTO类（CreateReplyRequest.java、CommentWithRepliesDTO.java）
 - ✅ 1个Repository接口更新（新增10个方法）
 - ✅ 1个Service接口更新（新增8个方法）
 - ✅ 1个ServiceImpl实现（新增8个方法实现）
-- ✅ 1个Controller更新（更新1个方法 + 新增7个API端点）
+- ✅ 1个Controller更新（拆分创建接口为2个，使用独立的DTO + 新增7个查询/删除API端点）
 - ✅ 完整的API文档
 - ✅ 向后兼容所有原有功能
+
+**API端点统计**：
+- 创建：2个（create创建评论 + reply创建回复）
+- 查询：7个（获取一级评论、获取回复、获取评论及回复等）
+- 删除：1个（级联删除）
+- 统计：1个（统计回复数量）
 
 所有代码均已完成，可以直接使用！🎉
 

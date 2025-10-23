@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.dto.CreateCommentRequest;
+import com.example.cursorquitterweb.dto.CreateReplyRequest;
 import com.example.cursorquitterweb.dto.UpdateCommentRequest;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
@@ -29,44 +30,61 @@ public class CommentController {
     private CommentService commentService;
     
     /**
-     * 创建新评论或回复
+     * 创建一级评论（直接评论帖子）
      * 
-     * 如果request中包含parentCommentId等回复相关字段，则创建回复评论
-     * 否则创建一级评论（直接评论帖子）
+     * @param request 包含postId、userId、userNickname、userStage、avatarUrl、content
+     * @return 创建的评论对象
      */
     @PostMapping("/create")
     public ApiResponse<Comment> createComment(@RequestBody CreateCommentRequest request) {
         try {
-            // 判断是创建一级评论还是回复评论
-            if (request.getParentCommentId() != null && !request.getParentCommentId().isEmpty()) {
-                // 创建回复评论
-                Comment comment = commentService.createReplyComment(
-                    request.getPostId(),
-                    request.getUserId(),
-                    request.getUserNickname(),
-                    request.getUserStage(),
-                    request.getAvatarUrl(),
-                    request.getContent(),
-                    request.getParentCommentId(),
-                    request.getReplyToUserId(),
-                    request.getReplyToUserNickname(),
-                    request.getReplyToCommentId()
-                );
-                return ApiResponse.success("回复创建成功", comment);
-            } else {
-                // 创建一级评论（直接评论帖子）
-                Comment comment = commentService.createComment(
-                    request.getPostId(),
-                    request.getUserId(),
-                    request.getUserNickname(),
-                    request.getUserStage(),
-                    request.getAvatarUrl(),
-                    request.getContent()
-                );
-                return ApiResponse.success("评论创建成功", comment);
-            }
+            Comment comment = commentService.createComment(
+                request.getPostId(),
+                request.getUserId(),
+                request.getUserNickname(),
+                request.getUserStage(),
+                request.getAvatarUrl(),
+                request.getContent()
+            );
+            return ApiResponse.success("评论创建成功", comment);
         } catch (Exception e) {
             return ApiResponse.error("创建评论失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建回复评论（回复某条评论）
+     * 
+     * @param request 包含postId、userId、userNickname、userStage、avatarUrl、content
+     *                以及回复相关字段：parentCommentId、replyToUserId、replyToUserNickname、replyToCommentId
+     * @return 创建的回复对象
+     */
+    @PostMapping("/reply")
+    public ApiResponse<Comment> createReply(@RequestBody CreateReplyRequest request) {
+        try {
+            // 验证必需的回复字段
+            if (request.getParentCommentId() == null || request.getParentCommentId().isEmpty()) {
+                return ApiResponse.error("创建回复失败: parentCommentId不能为空");
+            }
+            if (request.getReplyToCommentId() == null || request.getReplyToCommentId().isEmpty()) {
+                return ApiResponse.error("创建回复失败: replyToCommentId不能为空");
+            }
+            
+            Comment comment = commentService.createReplyComment(
+                request.getPostId(),
+                request.getUserId(),
+                request.getUserNickname(),
+                request.getUserStage(),
+                request.getAvatarUrl(),
+                request.getContent(),
+                request.getParentCommentId(),
+                request.getReplyToUserId(),
+                request.getReplyToUserNickname(),
+                request.getReplyToCommentId()
+            );
+            return ApiResponse.success("回复创建成功", comment);
+        } catch (Exception e) {
+            return ApiResponse.error("创建回复失败: " + e.getMessage());
         }
     }
     
