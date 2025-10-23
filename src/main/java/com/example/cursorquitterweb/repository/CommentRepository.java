@@ -103,4 +103,69 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Modifying
     @Query("UPDATE Comment c SET c.isDeleted = true, c.updatedAt = :updatedAt WHERE c.postId = :postId")
     void softDeleteCommentsByPostId(@Param("postId") UUID postId, @Param("updatedAt") OffsetDateTime updatedAt);
+    
+    // ============= 新增：小红书风格的评论回复查询方法 =============
+    
+    /**
+     * 获取帖子的所有一级评论（直接评论帖子的，comment_level=1）
+     * 按创建时间升序排列
+     */
+    List<Comment> findByPostIdAndCommentLevelAndIsDeletedFalseOrderByCreatedAtAsc(UUID postId, Short commentLevel);
+    
+    /**
+     * 分页获取帖子的所有一级评论（直接评论帖子的，comment_level=1）
+     */
+    Page<Comment> findByPostIdAndCommentLevelAndIsDeletedFalse(UUID postId, Short commentLevel, Pageable pageable);
+    
+    /**
+     * 获取某个根评论下的所有回复（comment_level=2）
+     * 按创建时间升序排列
+     * 
+     * root_comment_id: 根评论ID，同一回复链的所有评论指向同一个根评论
+     */
+    List<Comment> findByRootCommentIdAndCommentLevelAndIsDeletedFalseOrderByCreatedAtAsc(UUID rootCommentId, Short commentLevel);
+    
+    /**
+     * 获取某个评论的直接回复（parent_comment_id指向该评论）
+     * 按创建时间升序排列
+     * 
+     * parent_comment_id: 指向父评论，NULL表示直接评论帖子
+     */
+    List<Comment> findByParentCommentIdAndIsDeletedFalseOrderByCreatedAtAsc(UUID parentCommentId);
+    
+    /**
+     * 统计某个根评论下的回复数量
+     */
+    long countByRootCommentIdAndCommentLevelAndIsDeletedFalse(UUID rootCommentId, Short commentLevel);
+    
+    /**
+     * 统计某个评论的直接回复数量
+     */
+    long countByParentCommentIdAndIsDeletedFalse(UUID parentCommentId);
+    
+    /**
+     * 批量查询多个根评论的回复
+     * 用于优化性能，一次性获取多个一级评论的所有回复
+     */
+    @Query("SELECT c FROM Comment c WHERE c.rootCommentId IN :rootCommentIds AND c.commentLevel = 2 AND c.isDeleted = false ORDER BY c.rootCommentId, c.createdAt ASC")
+    List<Comment> findRepliesByRootCommentIds(@Param("rootCommentIds") List<UUID> rootCommentIds);
+    
+    /**
+     * 软删除某个评论及其所有回复（级联删除）
+     * 删除一个根评论时，需要同时删除该评论下的所有回复
+     */
+    @Modifying
+    @Query("UPDATE Comment c SET c.isDeleted = true, c.updatedAt = :updatedAt WHERE c.commentId = :commentId OR c.rootCommentId = :commentId")
+    void softDeleteCommentAndReplies(@Param("commentId") UUID commentId, @Param("updatedAt") OffsetDateTime updatedAt);
+    
+    /**
+     * 查询某个用户在某个帖子下的所有评论和回复
+     */
+    List<Comment> findByPostIdAndUserIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID postId, UUID userId);
+    
+    /**
+     * 获取某条评论被回复的次数（有多少人回复了这条评论）
+     * reply_to_comment_id: 被回复的评论ID（用于定位具体哪条评论）
+     */
+    long countByReplyToCommentIdAndIsDeletedFalse(UUID replyToCommentId);
 }

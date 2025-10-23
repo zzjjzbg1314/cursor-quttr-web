@@ -12,6 +12,13 @@ public class CreateCommentRequest {
     private String avatarUrl;
     private String content;
     
+    // 新增字段支持回复功能
+    private String parentCommentId;  // 父评论ID，为null表示直接评论帖子
+    private String replyToUserId;  // 被回复的用户ID
+    private String replyToUserNickname;  // 被回复的用户昵称
+    private String replyToCommentId;  // 被回复的评论ID
+    private String rootCommentId;  // 根评论ID
+    
     public CreateCommentRequest() {}
     
     public CreateCommentRequest(String postId, String userId, String userNickname, String userStage, String content) {
@@ -80,6 +87,46 @@ public class CreateCommentRequest {
         this.content = content;
     }
     
+    public String getParentCommentId() {
+        return parentCommentId;
+    }
+    
+    public void setParentCommentId(String parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
+    
+    public String getReplyToUserId() {
+        return replyToUserId;
+    }
+    
+    public void setReplyToUserId(String replyToUserId) {
+        this.replyToUserId = replyToUserId;
+    }
+    
+    public String getReplyToUserNickname() {
+        return replyToUserNickname;
+    }
+    
+    public void setReplyToUserNickname(String replyToUserNickname) {
+        this.replyToUserNickname = replyToUserNickname;
+    }
+    
+    public String getReplyToCommentId() {
+        return replyToCommentId;
+    }
+    
+    public void setReplyToCommentId(String replyToCommentId) {
+        this.replyToCommentId = replyToCommentId;
+    }
+    
+    public String getRootCommentId() {
+        return rootCommentId;
+    }
+    
+    public void setRootCommentId(String rootCommentId) {
+        this.rootCommentId = rootCommentId;
+    }
+    
     @Override
     public String toString() {
         return "CreateCommentRequest{" +
@@ -89,6 +136,11 @@ public class CreateCommentRequest {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", parentCommentId='" + parentCommentId + '\'' +
+                ", replyToUserId='" + replyToUserId + '\'' +
+                ", replyToUserNickname='" + replyToUserNickname + '\'' +
+                ", replyToCommentId='" + replyToCommentId + '\'' +
+                ", rootCommentId='" + rootCommentId + '\'' +
                 '}';
     }
 }
