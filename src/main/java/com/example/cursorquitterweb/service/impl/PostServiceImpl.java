@@ -89,6 +89,23 @@ public class PostServiceImpl implements PostService {
     }
     
     @Override
+    public Page<PostWithUpvotesDto> findByUserIdWithUpvotes(UUID userId, Pageable pageable) {
+        Page<Post> postsPage = postRepository.findByUserIdAndIsDeletedFalse(pageable, userId);
+        
+        // 转换为包含点赞数和评论数的DTO
+        List<PostWithUpvotesDto> postsWithUpvotes = postsPage.getContent().stream()
+                .map(this::convertToPostWithUpvotesDto)
+                .collect(Collectors.toList());
+        
+        // 创建新的Page对象
+        return new org.springframework.data.domain.PageImpl<>(
+                postsWithUpvotes, 
+                pageable, 
+                postsPage.getTotalElements()
+        );
+    }
+    
+    @Override
     public List<Post> findByUserNickname(String userNickname) {
         return postRepository.findByUserNicknameAndIsDeletedFalseOrderByCreatedAtDesc(userNickname);
     }

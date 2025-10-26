@@ -137,10 +137,10 @@ public class PostController {
     }
     
     /**
-     * 根据用户ID分页获取帖子
+     * 根据用户ID分页获取帖子（包含点赞数和评论数）
      */
     @GetMapping("/user/{userId}/page")
-    public ApiResponse<Page<Post>> getPostsByUserIdPage(
+    public ApiResponse<Page<PostWithUpvotesDto>> getPostsByUserIdPage(
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -150,7 +150,7 @@ public class PostController {
             Sort sort = sortDir.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Post> posts = postService.findByUserId(userId, pageable);
+            Page<PostWithUpvotesDto> posts = postService.findByUserIdWithUpvotes(userId, pageable);
             return ApiResponse.success("获取用户帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取用户帖子失败: " + e.getMessage());

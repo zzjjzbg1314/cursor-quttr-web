@@ -56,6 +56,11 @@ public interface PostService {
     Page<Post> findByUserId(UUID userId, Pageable pageable);
     
     /**
+     * 根据用户ID分页查找用户的帖子（包含点赞数和评论数）
+     */
+    Page<PostWithUpvotesDto> findByUserIdWithUpvotes(UUID userId, Pageable pageable);
+    
+    /**
      * 根据用户昵称查找帖子
      */
     List<Post> findByUserNickname(String userNickname);
