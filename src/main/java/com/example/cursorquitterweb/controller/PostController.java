@@ -124,12 +124,33 @@ public class PostController {
     }
     
     /**
-     * 根据用户ID获取帖子
+     * 根据用户ID获取帖子（不分页）
      */
     @GetMapping("/user/{userId}")
     public ApiResponse<List<Post>> getPostsByUserId(@PathVariable UUID userId) {
         try {
             List<Post> posts = postService.findByUserId(userId);
+            return ApiResponse.success("获取用户帖子成功", posts);
+        } catch (Exception e) {
+            return ApiResponse.error("获取用户帖子失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据用户ID分页获取帖子
+     */
+    @GetMapping("/user/{userId}/page")
+    public ApiResponse<Page<Post>> getPostsByUserIdPage(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        try {
+            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Post> posts = postService.findByUserId(userId, pageable);
             return ApiResponse.success("获取用户帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取用户帖子失败: " + e.getMessage());
