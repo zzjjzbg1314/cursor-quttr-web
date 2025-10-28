@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.dto.AppleLoginResponse;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.entity.UserIdentity;
 import com.example.cursorquitterweb.service.AppleAuthService;
+import com.example.cursorquitterweb.service.RecoverJourneyService;
 import com.example.cursorquitterweb.service.UserIdentityService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.AppleJwtUtil;
@@ -34,6 +35,9 @@ public class AppleAuthServiceImpl implements AppleAuthService {
     
     @Autowired
     private UserIdentityService userIdentityService;
+    
+    @Autowired
+    private RecoverJourneyService recoverJourneyService;
     
     /**
      * Apple App ID / Client ID（可以从配置文件读取）
@@ -151,6 +155,15 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             } catch (Exception e) {
                 logger.error("创建身份数据失败", e);
                 throw new RuntimeException("创建身份数据失败");
+            }
+            
+            // 创建注册日记
+            try {
+                recoverJourneyService.createRecoverJourney(user.getId(), "今天注册了克己");
+                logger.info("注册日记创建成功，user_id: {}", user.getId());
+            } catch (Exception e) {
+                logger.error("创建注册日记失败，user_id: {}", user.getId(), e);
+                // 不抛出异常，避免影响登录流程
             }
         }
         
