@@ -104,6 +104,42 @@ public class UserController {
     }
     
     /**
+     * 更新用户基本信息（昵称、年龄、性别）
+     * POST /api/users/{id}/basic-info
+     */
+    @PostMapping("/{id}/basic-info")
+    public ApiResponse<User> updateUserBasicInfo(@PathVariable UUID id, @RequestBody UpdateUserBasicInfoRequest request) {
+        logger.info("更新用户基本信息，ID: {}, 昵称: {}, 年龄: {}, 性别: {}", 
+                   id, request.getNickname(), request.getAge(), request.getGender());
+        
+        Optional<User> userOpt = userService.findById(id);
+        if (!userOpt.isPresent()) {
+            return ApiResponse.error("用户不存在");
+        }
+        
+        User user = userOpt.get();
+        
+        // 更新昵称
+        if (request.getNickname() != null && !request.getNickname().isEmpty()) {
+            user.setNickname(request.getNickname());
+        }
+        
+        // 更新年龄
+        if (request.getAge() != null) {
+            user.setAge(request.getAge());
+        }
+        
+        // 更新性别
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        
+        User updatedUser = userService.updateUser(user);
+        logger.info("用户基本信息更新成功，ID: {}", id);
+        return ApiResponse.success("用户基本信息更新成功", updatedUser);
+    }
+    
+    /**
      * 更新用户信息
      */
     @PutMapping("/{id}")
@@ -652,6 +688,40 @@ public class UserController {
 
         public void setQuitReason(String quitReason) {
             this.quitReason = quitReason;
+        }
+    }
+    
+    /**
+     * 更新用户基本信息请求DTO
+     */
+    public static class UpdateUserBasicInfoRequest {
+        private String nickname;
+        private Integer age;
+        private Short gender;
+        
+        // Getters and Setters
+        public String getNickname() {
+            return nickname;
+        }
+        
+        public void setNickname(String nickname) {
+            this.nickname = nickname;
+        }
+        
+        public Integer getAge() {
+            return age;
+        }
+        
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+        
+        public Short getGender() {
+            return gender;
+        }
+        
+        public void setGender(Short gender) {
+            this.gender = gender;
         }
     }
 
