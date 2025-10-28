@@ -35,8 +35,11 @@ public class UserIdentity {
      * JSONB 字段，存储身份相关的额外数据
      * 在 Java 中使用 String 类型存储 JSON 字符串
      * 需要手动进行 JSON 序列化和反序列化
+     * 
+     * 注意：虽然数据库使用 JSONB 类型，但为了兼容性，这里使用 TEXT 类型
+     * PostgreSQL 可以自动处理 TEXT 到 JSONB 的转换
      */
-    @Column(name = "identity_data", columnDefinition = "jsonb")
+    @Column(name = "identity_data", columnDefinition = "text")
     private String identityData;
     
     @Column(name = "created_at", nullable = false)
