@@ -60,7 +60,7 @@ public class UserController {
         
         // 生成1到1100之间的随机数字
         int randomNumber = (int) (Math.random() * 1100) + 1;
-        String avatarUrl = "https://my-avatar-images.oss-cn-hangzhou.aliyuncs.com/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
+        String avatarUrl = "https://image.kejiapi.cn/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
         
         User user = User.initUser();
         user.setNickname(request.getNickname());
