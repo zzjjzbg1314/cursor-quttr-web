@@ -197,13 +197,13 @@ public class AppleAuthServiceImpl implements AppleAuthService {
      */
     private String generateNickname(AppleLoginRequest request) {
         // 优先使用用户提供的名字
-        if (request.getGivenName() != null && !request.getGivenName().isEmpty()) {
-            String nickname = request.getGivenName();
-            if (request.getFamilyName() != null && !request.getFamilyName().isEmpty()) {
-                nickname = request.getFamilyName() + nickname;
-            }
-            return nickname;
-        }
+//        if (request.getGivenName() != null && !request.getGivenName().isEmpty()) {
+//            String nickname = request.getGivenName();
+//            if (request.getFamilyName() != null && !request.getFamilyName().isEmpty()) {
+//                nickname = request.getFamilyName() + nickname;
+//            }
+//            return nickname;
+//        }
         
         // 如果没有提供名字，使用默认昵称
         return "Apple用户" + System.currentTimeMillis() % 10000;
