@@ -100,7 +100,7 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             
             // 生成1到1100之间的随机数字用于头像
             int randomNumber = (int) (Math.random() * 1100) + 1;
-            String avatarUrl = "https://my-avatar-images.oss-cn-hangzhou.aliyuncs.com/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
+            String avatarUrl = "https://image.kejiapi.cn/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
             
             // 使用 User.initUser() 初始化用户
             user = User.initUser();
