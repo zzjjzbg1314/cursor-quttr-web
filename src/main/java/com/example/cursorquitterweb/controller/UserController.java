@@ -58,9 +58,9 @@ public class UserController {
         logger.info("初始化用户信息，昵称: {}, 年龄: {}, 性别: {}", 
                     request.getNickname(), request.getAge(), request.getGender());
         
-        // 生成1到1100之间的随机数字
-        int randomNumber = (int) (Math.random() * 1100) + 1;
-        String avatarUrl = "https://image.kejiapi.cn/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
+        // 生成1到30之间的随机数字
+        int randomNumber = (int) (Math.random() * 30) + 1;
+        String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
         
         User user = User.initUser();
         user.setNickname(request.getNickname());

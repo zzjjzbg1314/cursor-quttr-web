@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.security.SecureRandom;
 
 /**
  * Apple 登录服务实现类
@@ -98,9 +99,9 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             logger.info("新用户注册，创建账号");
             isNewUser = true;
             
-            // 生成1到1100之间的随机数字用于头像
-            int randomNumber = (int) (Math.random() * 1100) + 1;
-            String avatarUrl = "https://image.kejiapi.cn/images/mp1-bos.yinews.cn/" + randomNumber + ".jpg";
+            // 生成1到30之间的随机数字用于头像
+            int randomNumber = (int) (Math.random() * 30) + 1;
+            String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
             
             // 使用 User.initUser() 初始化用户
             user = User.initUser();
@@ -196,17 +197,15 @@ public class AppleAuthServiceImpl implements AppleAuthService {
      * 生成昵称
      */
     private String generateNickname(AppleLoginRequest request) {
-        // 优先使用用户提供的名字
-//        if (request.getGivenName() != null && !request.getGivenName().isEmpty()) {
-//            String nickname = request.getGivenName();
-//            if (request.getFamilyName() != null && !request.getFamilyName().isEmpty()) {
-//                nickname = request.getFamilyName() + nickname;
-//            }
-//            return nickname;
-//        }
-        
-        // 如果没有提供名字，使用默认昵称
-        return "Apple用户" + System.currentTimeMillis() % 10000;
+        final String allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        final int nicknameLength = 10;
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder nicknameBuilder = new StringBuilder(nicknameLength);
+        for (int i = 0; i < nicknameLength; i++) {
+            int randomIndex = secureRandom.nextInt(allowedCharacters.length());
+            nicknameBuilder.append(allowedCharacters.charAt(randomIndex));
+        }
+        return nicknameBuilder.toString();
     }
 }
 
