@@ -99,18 +99,17 @@ apple:
   client-id: ${APPLE_CLIENT_ID:}
 
 # 阿里云OSS配置
-aliyun:
-  oss:
-    endpoint: ${ALIYUN_OSS_ENDPOINT:https://oss-cn-beijing.aliyuncs.com}
-    access-key-id: ${MQTT_ACCESS_KEY:}
-    access-key-secret: ${MQTT_SECRET_KEY:}
-    bucket-name: quittr
-    # 视频文件目录前缀
-    video-prefix: ${ALIYUN_OSS_VIDEO_PREFIX:library/}
-    # 头像文件目录前缀
-    avatar-prefix: ${ALIYUN_OSS_AVATAR_PREFIX:avatars/}
-    # 签名URL过期时间（秒）
-    url-expiration: ${ALIYUN_OSS_URL_EXPIRATION:3600}
+aliyun_oss:
+  endpoint: ${ALIYUN_OSS_ENDPOINT:https://oss-cn-beijing.aliyuncs.com}
+  access_key_id: ${ALIYUN_OSS_ACCESS_KEY:}
+  access_key_secret: ${ALIYUN_OSS_ACCESS_KEY_SECRET:}
+  bucket_name: ${ALIYUN_OSS_BUCKET_NAME:my-avatar-images}
+  # 视频文件目录前缀
+  video_prefix: ${ALIYUN_OSS_VIDEO_PREFIX:library/}
+  # 头像文件目录前缀
+  avatar_prefix: ${ALIYUN_OSS_AVATAR_PREFIX:avatars/}
+  # 签名URL过期时间（秒）
+  url_expiration: ${ALIYUN_OSS_URL_EXPIRATION:3600}
 
 # MQTT配置 - 阿里云MQ4IoT（完全按照官方示例）
 mqtt:

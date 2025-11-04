@@ -26,13 +26,13 @@ public class OssServiceImpl implements OssService {
     @Autowired
     private OSS ossClient;
     
-    @Value("${aliyun.oss.bucket-name}")
+    @Value("${aliyun_oss.bucket_name}")
     private String bucketName;
     
-    @Value("${aliyun.oss.endpoint}")
+    @Value("${aliyun_oss.endpoint}")
     private String endpoint;
     
-    @Value("${aliyun.oss.avatar-prefix:avatars/}")
+    @Value("${aliyun_oss.avatar_prefix:avatars/}")
     private String avatarPrefix;
     
     // 允许的图片类型
