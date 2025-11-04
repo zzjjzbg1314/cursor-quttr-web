@@ -110,13 +110,14 @@ public class UserController {
     }
     
     /**
-     * 更新用户基本信息（昵称、年龄、性别）
+     * 更新用户基本信息（昵称、年龄、性别、头像、戒色原因）
      * POST /api/users/{id}/basic-info
      */
     @PostMapping("/{id}/basic-info")
     public ApiResponse<User> updateUserBasicInfo(@PathVariable UUID id, @RequestBody UpdateUserBasicInfoRequest request) {
-        logger.info("更新用户基本信息，ID: {}, 昵称: {}, 年龄: {}, 性别: {}", 
-                   id, request.getNickname(), request.getAge(), request.getGender());
+        logger.info("更新用户基本信息，ID: {}, 昵称: {}, 年龄: {}, 性别: {}, 头像: {}, 戒色原因: {}", 
+                   id, request.getNickname(), request.getAge(), request.getGender(), 
+                   request.getAvatarUrl(), request.getQuitReason());
         
         Optional<User> userOpt = userService.findById(id);
         if (!userOpt.isPresent()) {
@@ -138,6 +139,16 @@ public class UserController {
         // 更新性别
         if (request.getGender() != null) {
             user.setGender(request.getGender());
+        }
+        
+        // 更新头像
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+        
+        // 更新戒色原因
+        if (request.getQuitReason() != null) {
+            user.setQuitReason(request.getQuitReason());
         }
         
         User updatedUser = userService.updateUser(user);
@@ -730,6 +741,8 @@ public class UserController {
         private String nickname;
         private Integer age;
         private Short gender;
+        private String avatarUrl;
+        private String quitReason;
         
         // Getters and Setters
         public String getNickname() {
@@ -754,6 +767,22 @@ public class UserController {
         
         public void setGender(Short gender) {
             this.gender = gender;
+        }
+        
+        public String getAvatarUrl() {
+            return avatarUrl;
+        }
+        
+        public void setAvatarUrl(String avatarUrl) {
+            this.avatarUrl = avatarUrl;
+        }
+        
+        public String getQuitReason() {
+            return quitReason;
+        }
+        
+        public void setQuitReason(String quitReason) {
+            this.quitReason = quitReason;
         }
     }
 
