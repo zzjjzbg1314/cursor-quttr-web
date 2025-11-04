@@ -35,9 +35,10 @@ public class OssServiceImpl implements OssService {
     @Value("${aliyun_oss.avatar_prefix:avatars/}")
     private String avatarPrefix;
     
-    // 允许的图片类型
+    // 允许的图片类型 - 支持所有image/*类型
     private static final String[] ALLOWED_CONTENT_TYPES = {
-        "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
+        "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp",
+        "image/bmp", "image/svg+xml", "image/x-icon", "image/tiff", "image/heic", "image/heif"
     };
     
     // 最大文件大小 5MB
@@ -88,19 +89,34 @@ public class OssServiceImpl implements OssService {
             throw new IllegalArgumentException("文件大小不能超过5MB");
         }
         
-        // 检查文件类型
+        // 检查文件类型 - 支持所有image/*类型
         String contentType = file.getContentType();
-        boolean isValidType = false;
-        for (String allowedType : ALLOWED_CONTENT_TYPES) {
-            if (allowedType.equalsIgnoreCase(contentType)) {
-                isValidType = true;
-                break;
+        if (contentType == null || contentType.isEmpty()) {
+            throw new IllegalArgumentException("无法识别文件类型，请确保文件格式正确");
+        }
+        
+        // 首先检查是否是image类型
+        boolean isImageType = contentType.toLowerCase().startsWith("image/");
+        
+        // 如果不是image类型，再检查是否在允许列表中（兼容一些特殊情况）
+        boolean isValidType = isImageType;
+        
+        if (!isValidType) {
+            // 检查是否在允许的特定类型列表中
+            for (String allowedType : ALLOWED_CONTENT_TYPES) {
+                if (allowedType.equalsIgnoreCase(contentType)) {
+                    isValidType = true;
+                    break;
+                }
             }
         }
         
         if (!isValidType) {
-            throw new IllegalArgumentException("不支持的文件类型，仅支持: jpeg, jpg, png, gif, webp");
+            logger.warn("不支持的文件类型: {}，文件名: {}", contentType, file.getOriginalFilename());
+            throw new IllegalArgumentException("不支持的文件类型: " + contentType + "，仅支持图片格式（image/*）");
         }
+        
+        logger.debug("文件类型验证通过: {}, 文件名: {}", contentType, file.getOriginalFilename());
     }
     
     /**
@@ -116,6 +132,7 @@ public class OssServiceImpl implements OssService {
             // 根据content-type推断扩展名
             String contentType = file.getContentType();
             if (contentType != null) {
+                contentType = contentType.toLowerCase();
                 if (contentType.contains("jpeg") || contentType.contains("jpg")) {
                     extension = ".jpg";
                 } else if (contentType.contains("png")) {
@@ -124,7 +141,25 @@ public class OssServiceImpl implements OssService {
                     extension = ".gif";
                 } else if (contentType.contains("webp")) {
                     extension = ".webp";
+                } else if (contentType.contains("bmp")) {
+                    extension = ".bmp";
+                } else if (contentType.contains("svg")) {
+                    extension = ".svg";
+                } else if (contentType.contains("icon") || contentType.contains("x-icon")) {
+                    extension = ".ico";
+                } else if (contentType.contains("tiff")) {
+                    extension = ".tiff";
+                } else if (contentType.contains("heic")) {
+                    extension = ".heic";
+                } else if (contentType.contains("heif")) {
+                    extension = ".heif";
+                } else {
+                    // 默认使用.jpg
+                    extension = ".jpg";
                 }
+            } else {
+                // 如果没有content-type，默认使用.jpg
+                extension = ".jpg";
             }
         }
         
