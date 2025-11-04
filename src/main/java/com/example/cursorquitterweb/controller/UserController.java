@@ -1,11 +1,13 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import com.example.cursorquitterweb.dto.AvatarUploadResponse;
 import com.example.cursorquitterweb.dto.BindPhoneRequest;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
+import com.example.cursorquitterweb.service.OssService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -34,6 +37,9 @@ public class UserController {
     
     @Autowired
     private RecoverJourneyService recoverJourneyService;
+    
+    @Autowired
+    private OssService ossService;
     
     /**
      * 根据ID获取用户信息
@@ -491,6 +497,32 @@ public class UserController {
             logger.error("手机号绑定失败，用户ID: {}, 手机号: {}, 错误: {}", 
                 request.getUserId(), request.getPhoneNumber(), e.getMessage());
             return ApiResponse.error("绑定失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 上传用户头像
+     * POST /api/users/avatar
+     * 
+     * @param file 头像文件
+     * @return 上传后的头像URL
+     */
+    @PostMapping("/avatar")
+    public ApiResponse<AvatarUploadResponse> uploadAvatar(
+            @RequestParam("file") MultipartFile file) {
+        logger.info("上传用户头像");
+        
+        try {
+            // 上传头像到OSS
+            String avatarUrl = ossService.uploadAvatar(file);
+            
+            AvatarUploadResponse response = new AvatarUploadResponse(avatarUrl);
+            logger.info("头像上传成功，头像URL: {}", avatarUrl);
+            return ApiResponse.success("头像上传成功", response);
+            
+        } catch (Exception e) {
+            logger.error("头像上传失败，错误: {}", e.getMessage(), e);
+            return ApiResponse.error("头像上传失败: " + e.getMessage());
         }
     }
     

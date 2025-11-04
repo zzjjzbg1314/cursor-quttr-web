@@ -107,6 +107,8 @@ aliyun:
     bucket-name: quittr
     # 视频文件目录前缀
     video-prefix: ${ALIYUN_OSS_VIDEO_PREFIX:library/}
+    # 头像文件目录前缀
+    avatar-prefix: ${ALIYUN_OSS_AVATAR_PREFIX:avatars/}
     # 签名URL过期时间（秒）
     url-expiration: ${ALIYUN_OSS_URL_EXPIRATION:3600}
 
