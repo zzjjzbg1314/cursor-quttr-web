@@ -1,6 +1,6 @@
 package com.example.cursorquitterweb.controller;
 
-import com.example.cursorquitterweb.dto.ApiResponse;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,8 +18,8 @@ public class SupportController {
     /**
      * 获取技术支持页面
      */
-    @GetMapping("/support")
-    public ApiResponse<Map<String, Object>> getSupport() {
+    @GetMapping(value = "/support", produces = MediaType.TEXT_HTML_VALUE)
+    public String getSupport() {
         Map<String, Object> supportData = new HashMap<>();
         
         // 欢迎与承诺
@@ -34,10 +34,177 @@ public class SupportController {
         // 更多资源
         supportData.put("resources", buildResources());
         
-        // 隐私政策链接
-        supportData.put("privacyPolicyUrl", "https://www.kejiapi.cn/privacy");
+        return buildHtmlPage(supportData);
+    }
+    
+    /**
+     * 构建 HTML 页面
+     */
+    private String buildHtmlPage(Map<String, Object> supportData) {
+        @SuppressWarnings("unchecked")
+        Map<String, String> welcome = (Map<String, String>) supportData.get("welcome");
+        @SuppressWarnings("unchecked")
+        Map<String, List<Map<String, String>>> faq = (Map<String, List<Map<String, String>>>) supportData.get("faq");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> contact = (Map<String, Object>) supportData.get("contact");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resources = (Map<String, Object>) supportData.get("resources");
         
-        return ApiResponse.success(supportData);
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>\n");
+        html.append("<html lang=\"zh-CN\">\n");
+        html.append("<head>\n");
+        html.append("    <meta charset=\"UTF-8\">\n");
+        html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+        html.append("    <title>技术支持 - 克己</title>\n");
+        html.append("    <style>\n");
+        html.append("        * { margin: 0; padding: 0; box-sizing: border-box; }\n");
+        html.append("        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }\n");
+        html.append("        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }\n");
+        html.append("        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; }\n");
+        html.append("        .header h1 { font-size: 2.5em; margin-bottom: 10px; }\n");
+        html.append("        .section { background: white; padding: 30px; margin-bottom: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n");
+        html.append("        .section h2 { color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }\n");
+        html.append("        .section h3 { color: #764ba2; margin-top: 25px; margin-bottom: 15px; }\n");
+        html.append("        .faq-item { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 5px; }\n");
+        html.append("        .faq-item strong { color: #667eea; display: block; margin-bottom: 10px; font-size: 1.1em; }\n");
+        html.append("        .faq-item p { color: #666; line-height: 1.8; }\n");
+        html.append("        .contact-info { background: #f0f7ff; padding: 20px; border-radius: 5px; margin-top: 20px; }\n");
+        html.append("        .contact-info a { color: #667eea; text-decoration: none; font-weight: bold; }\n");
+        html.append("        .contact-info a:hover { text-decoration: underline; }\n");
+        html.append("        .email-tips { margin-top: 15px; padding-left: 20px; }\n");
+        html.append("        .email-tips li { margin-bottom: 8px; color: #666; }\n");
+        html.append("        .resources { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }\n");
+        html.append("        .resource-item { padding: 20px; background: #f9f9f9; border-radius: 5px; border: 1px solid #e0e0e0; }\n");
+        html.append("        .resource-item h4 { color: #667eea; margin-bottom: 10px; }\n");
+        html.append("        .resource-item p { color: #666; font-size: 0.9em; margin-bottom: 10px; }\n");
+        html.append("        .resource-item a { color: #764ba2; text-decoration: none; font-weight: bold; }\n");
+        html.append("        .resource-item a:hover { text-decoration: underline; }\n");
+        html.append("        .footer { text-align: center; padding: 20px; color: #999; margin-top: 40px; }\n");
+        html.append("    </style>\n");
+        html.append("</head>\n");
+        html.append("<body>\n");
+        html.append("    <div class=\"container\">\n");
+        html.append("        <div class=\"header\">\n");
+        html.append("            <h1>技术支持</h1>\n");
+        html.append("            <p>我们随时为您提供帮助</p>\n");
+        html.append("        </div>\n");
+        
+        // 欢迎与承诺部分
+        html.append("        <div class=\"section\">\n");
+        html.append("            <h2>").append(escapeHtml(welcome.get("title"))).append("</h2>\n");
+        html.append("            <p style=\"font-size: 1.1em; margin-bottom: 15px;\">").append(escapeHtml(welcome.get("greeting"))).append("</p>\n");
+        html.append("            <p>").append(escapeHtml(welcome.get("mission"))).append("</p>\n");
+        html.append("        </div>\n");
+        
+        // 常见问题解答部分
+        html.append("        <div class=\"section\">\n");
+        html.append("            <h2>常见问题解答</h2>\n");
+        
+        // 关于应用功能
+        List<Map<String, String>> functionFAQ = faq.get("function");
+        if (functionFAQ != null && !functionFAQ.isEmpty()) {
+            html.append("            <h3>关于应用功能</h3>\n");
+            for (Map<String, String> item : functionFAQ) {
+                html.append("            <div class=\"faq-item\">\n");
+                html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
+                html.append("                <p>").append(escapeHtml(item.get("answer"))).append("</p>\n");
+                html.append("            </div>\n");
+            }
+        }
+        
+        // 关于账户与隐私
+        List<Map<String, String>> accountFAQ = faq.get("account");
+        if (accountFAQ != null && !accountFAQ.isEmpty()) {
+            html.append("            <h3>关于账户与隐私</h3>\n");
+            for (Map<String, String> item : accountFAQ) {
+                html.append("            <div class=\"faq-item\">\n");
+                html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
+                html.append("                <p>").append(escapeHtml(item.get("answer"))).append("</p>\n");
+                html.append("            </div>\n");
+            }
+        }
+        
+        // 关于戒色之旅
+        List<Map<String, String>> journeyFAQ = faq.get("journey");
+        if (journeyFAQ != null && !journeyFAQ.isEmpty()) {
+            html.append("            <h3>关于戒色之旅</h3>\n");
+            for (Map<String, String> item : journeyFAQ) {
+                html.append("            <div class=\"faq-item\">\n");
+                html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
+                html.append("                <p>").append(escapeHtml(item.get("answer"))).append("</p>\n");
+                html.append("            </div>\n");
+            }
+        }
+        
+        html.append("        </div>\n");
+        
+        // 联系我们部分
+        html.append("        <div class=\"section\">\n");
+        html.append("            <h2>").append(escapeHtml((String) contact.get("title"))).append("</h2>\n");
+        html.append("            <p>").append(escapeHtml((String) contact.get("description"))).append("</p>\n");
+        html.append("            <div class=\"contact-info\">\n");
+        html.append("                <p><strong>邮箱：</strong><a href=\"mailto:").append(escapeHtml((String) contact.get("email"))).append("\">").append(escapeHtml((String) contact.get("email"))).append("</a></p>\n");
+        html.append("                <p><strong>").append(escapeHtml((String) contact.get("teamName"))).append("</strong></p>\n");
+        html.append("                <p>").append(escapeHtml((String) contact.get("responseTime"))).append("</p>\n");
+        @SuppressWarnings("unchecked")
+        List<String> emailTips = (List<String>) contact.get("emailTips");
+        if (emailTips != null && !emailTips.isEmpty()) {
+            html.append("                <div class=\"email-tips\">\n");
+            html.append("                    <p><strong>发送邮件时，请包含以下信息：</strong></p>\n");
+            html.append("                    <ul>\n");
+            for (String tip : emailTips) {
+                html.append("                        <li>").append(escapeHtml(tip)).append("</li>\n");
+            }
+            html.append("                    </ul>\n");
+            html.append("                </div>\n");
+        }
+        html.append("            </div>\n");
+        html.append("        </div>\n");
+        
+        // 更多资源部分
+        html.append("        <div class=\"section\">\n");
+        html.append("            <h2>").append(escapeHtml((String) resources.get("title"))).append("</h2>\n");
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> resourceList = (List<Map<String, String>>) resources.get("items");
+        if (resourceList != null && !resourceList.isEmpty()) {
+            html.append("            <div class=\"resources\">\n");
+            for (Map<String, String> resource : resourceList) {
+                html.append("                <div class=\"resource-item\">\n");
+                html.append("                    <h4>").append(escapeHtml(resource.get("name"))).append("</h4>\n");
+                html.append("                    <p>").append(escapeHtml(resource.get("description"))).append("</p>\n");
+                String url = resource.get("url");
+                if (url != null && !url.isEmpty()) {
+                    html.append("                    <a href=\"").append(escapeHtml(url)).append("\" target=\"_blank\">了解更多 →</a>\n");
+                }
+                html.append("                </div>\n");
+            }
+            html.append("            </div>\n");
+        }
+        html.append("        </div>\n");
+        
+        html.append("        <div class=\"footer\">\n");
+        html.append("            <p>© 2024 克己. 保留所有权利.</p>\n");
+        html.append("        </div>\n");
+        html.append("    </div>\n");
+        html.append("</body>\n");
+        html.append("</html>\n");
+        
+        return html.toString();
+    }
+    
+    /**
+     * HTML 转义
+     */
+    private String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&#39;");
     }
     
     /**
@@ -186,12 +353,6 @@ public class SupportController {
         resources.put("title", "更多资源");
         
         List<Map<String, String>> resourceList = new ArrayList<>();
-        
-        Map<String, String> resource1 = new HashMap<>();
-        resource1.put("name", "隐私政策");
-        resource1.put("description", "详细了解我们如何保护您的隐私");
-        resource1.put("url", "https://www.kejiapi.cn/privacy");
-        resourceList.add(resource1);
         
         Map<String, String> resource2 = new HashMap<>();
         resource2.put("name", "应用社区");
