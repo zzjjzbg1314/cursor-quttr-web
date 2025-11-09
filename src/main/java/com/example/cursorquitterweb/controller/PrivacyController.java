@@ -76,7 +76,7 @@ public class PrivacyController {
         
         content.append("5. 数据保留\n");
         content.append("只要您的账户存在，我们就会保留您的信息。如果您希望删除账户，您可以在应用内直接操作，");
-        content.append("或通过 415730931@qq.com 联系我们。账户删除后，您的所有个人数据将从我们的服务器中永久清除。\n\n");
+        content.append("或通过 keji_support@163.com 联系我们。账户删除后，您的所有个人数据将从我们的服务器中永久清除。\n\n");
         
         content.append("6. 您的权利\n");
         content.append("您有权：\n");
@@ -96,7 +96,7 @@ public class PrivacyController {
         content.append("9. 联系我们\n");
         content.append("如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式联系我们：\n");
         content.append("克己开发团队\n");
-        content.append("电子邮箱：415730931@qq.com\n");
+        content.append("电子邮箱：keji_support@163.com\n");
         
         return content.toString();
     }

@@ -275,7 +275,7 @@ public class SupportController {
                 "1) 输入您注册时使用的邮箱或手机号；" +
                 "2) 我们会发送验证码到您的邮箱/手机；" +
                 "3) 输入验证码后，您可以设置新密码。" +
-                "如果您无法接收验证码，请通过 415730931@qq.com 联系我们，" +
+                "如果您无法接收验证码，请通过 keji_support@163.com 联系我们，" +
                 "我们的团队会手动协助您找回账号。");
         accountFAQ.add(q5);
         
@@ -286,7 +286,7 @@ public class SupportController {
                 "2) 系统会再次确认您的决定；" +
                 "3) 确认后，您的所有数据将在7天内从我们的服务器永久删除。" +
                 "请注意：此操作不可逆，删除后无法恢复任何数据。" +
-                "如需帮助，也可以发邮件至 415730931@qq.com 申请删除。");
+                "如需帮助，也可以发邮件至 keji_support@163.com 申请删除。");
         accountFAQ.add(q6);
         
         faq.put("account", accountFAQ);
@@ -329,7 +329,7 @@ public class SupportController {
         Map<String, Object> contact = new HashMap<>();
         
         contact.put("title", "联系我们");
-        contact.put("email", "415730931@qq.com");
+        contact.put("email", "keji_support@163.com");
         contact.put("description", "如果您遇到任何技术问题或有任何建议，欢迎随时联系我们。");
         
         List<String> emailTips = new ArrayList<>();
