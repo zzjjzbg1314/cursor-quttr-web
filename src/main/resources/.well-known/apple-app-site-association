@@ -6,8 +6,15 @@
         "appID": "88N296TMTS.com.keji.ko",
         "paths": [
           "*"
+        ],
+        "components": [
+          {
+            "/": "*"
+          }
         ]
       }
     ]
   }
 }
+
+
