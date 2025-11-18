@@ -111,6 +111,13 @@ aliyun_oss:
   # 签名URL过期时间（秒）
   url_expiration: ${ALIYUN_OSS_URL_EXPIRATION:3600}
 
+# 阿里云号码认证服务配置（一键登录）
+aliyun_dypnsapi:
+  access_key_id: ${ALIYUN_DYPNSAPI_ACCESS_KEY_ID:}
+  access_key_secret: ${ALIYUN_DYPNSAPI_ACCESS_KEY_SECRET:}
+  region_id: ${ALIYUN_DYPNSAPI_REGION_ID:cn-hangzhou}
+  endpoint: ${ALIYUN_DYPNSAPI_ENDPOINT:https://dypnsapi.aliyuncs.com}
+
 # MQTT配置 - 阿里云MQ4IoT（完全按照官方示例）
 mqtt:
   # 阿里云MQ4IoT实例信息
