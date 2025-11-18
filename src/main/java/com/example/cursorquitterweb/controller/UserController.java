@@ -3,11 +3,14 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.AvatarUploadResponse;
 import com.example.cursorquitterweb.dto.BindPhoneRequest;
+import com.example.cursorquitterweb.dto.OneClickLoginRequest;
+import com.example.cursorquitterweb.dto.OneClickLoginResponse;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.OssService;
+import com.example.cursorquitterweb.service.PhoneAuthService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -40,6 +43,9 @@ public class UserController {
     
     @Autowired
     private OssService ossService;
+    
+    @Autowired
+    private PhoneAuthService phoneAuthService;
     
     /**
      * 根据ID获取用户信息
@@ -508,6 +514,34 @@ public class UserController {
             logger.error("手机号绑定失败，用户ID: {}, 手机号: {}, 错误: {}", 
                 request.getUserId(), request.getPhoneNumber(), e.getMessage());
             return ApiResponse.error("绑定失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 一键登录（融合认证，通过 verifyToken 换取手机号）
+     * POST /api/users/one-click-login
+     * 
+     * 参考文档：https://help.aliyun.com/zh/pnvs/developer-reference/api-dypnsapi-2017-05-25-verifywithfusionauthtoken
+     * 
+     * @param request 一键登录请求，包含 verifyToken（统一认证Token，由客户端SDK返回）
+     * @return 一键登录响应，包含手机号和用户信息
+     */
+    @PostMapping("/one-click-login")
+    public ApiResponse<OneClickLoginResponse> oneClickLogin(@RequestBody OneClickLoginRequest request) {
+        logger.info("一键登录请求（融合认证），verifyToken: {}", request.getVerifyToken() != null ? 
+                   request.getVerifyToken().substring(0, Math.min(8, request.getVerifyToken().length())) + "..." : "null");
+        
+        try {
+            OneClickLoginResponse response = phoneAuthService.oneClickLogin(request.getVerifyToken());
+            String message = response.getIsNewUser() ? "新用户注册成功" : "登录成功";
+            logger.info("一键登录成功，手机号: {}, 是否新用户: {}", 
+                       response.getPhoneNumber() != null ? 
+                       response.getPhoneNumber().substring(0, 3) + "****" + response.getPhoneNumber().substring(7) : "null",
+                       response.getIsNewUser());
+            return ApiResponse.success(message, response);
+        } catch (Exception e) {
+            logger.error("一键登录失败，错误: {}", e.getMessage(), e);
+            return ApiResponse.error("一键登录失败: " + e.getMessage());
         }
     }
     
