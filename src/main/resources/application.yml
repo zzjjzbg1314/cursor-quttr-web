@@ -116,7 +116,8 @@ aliyun_dypnsapi:
   access_key_id: ${ALIYUN_DYPNSAPI_ACCESS_KEY_ID:}
   access_key_secret: ${ALIYUN_DYPNSAPI_ACCESS_KEY_SECRET:}
   region_id: ${ALIYUN_DYPNSAPI_REGION_ID:cn-hangzhou}
-  endpoint: ${ALIYUN_DYPNSAPI_ENDPOINT:https://dypnsapi.aliyuncs.com}
+  # endpoint 只需要域名，不需要协议前缀（SDK会自动添加https://）
+  endpoint: ${ALIYUN_DYPNSAPI_ENDPOINT:dypnsapi.aliyuncs.com}
 
 # MQTT配置 - 阿里云MQ4IoT（完全按照官方示例）
 mqtt:
