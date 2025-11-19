@@ -26,12 +26,26 @@ public class AliyunDypnsapiConfig {
 
     @Bean
     public Client dypnsapiClient() throws Exception {
-        com.aliyun.credentials.Client credential = new com.aliyun.credentials.Client();
-        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
-                .setCredential(credential);
-        // Endpoint 请参考 https://api.aliyun.com/product/Dypnsapi
-        config.endpoint = "dypnsapi.aliyuncs.com";
-        return new com.aliyun.dypnsapi20170525.Client(config);
+        // 验证配置
+        if (accessKeyId == null || accessKeyId.trim().isEmpty()) {
+            throw new IllegalStateException("阿里云号码认证服务 AccessKeyId 未配置，请设置环境变量 ALIYUN_DYPNSAPI_ACCESS_KEY_ID");
+        }
+        if (accessKeySecret == null || accessKeySecret.trim().isEmpty()) {
+            throw new IllegalStateException("阿里云号码认证服务 AccessKeySecret 未配置，请设置环境变量 ALIYUN_DYPNSAPI_ACCESS_KEY_SECRET");
+        }
+
+        // 确保 endpoint 不包含协议前缀
+        String cleanEndpoint = endpoint.replaceAll("^https?://", "");
+
+        // 使用 AccessKey 方式初始化
+        Config config = new Config()
+                .setAccessKeyId(accessKeyId)
+                .setAccessKeySecret(accessKeySecret);
+
+        // 设置 endpoint
+        config.endpoint = cleanEndpoint;
+
+        return new Client(config);
     }
 
     public String getRegionId() {
