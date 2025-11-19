@@ -1,10 +1,8 @@
 package com.example.cursorquitterweb.service.impl;
 
-import com.aliyuncs.CommonRequest;
-import com.aliyuncs.CommonResponse;
-import com.aliyuncs.IAcsClient;
-import com.aliyuncs.exceptions.ClientException;
-import com.aliyuncs.http.MethodType;
+import com.aliyun.dypnsapi20170525.Client;
+import com.aliyun.teautil.models.RuntimeOptions;
+import com.aliyun.tea.TeaException;
 import com.example.cursorquitterweb.config.AliyunDypnsapiConfig;
 import com.example.cursorquitterweb.dto.OneClickLoginResponse;
 import com.example.cursorquitterweb.entity.User;
@@ -12,8 +10,6 @@ import com.example.cursorquitterweb.service.PhoneAuthService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.LogUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +26,7 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
     private static final Logger logger = LogUtil.getLogger(PhoneAuthServiceImpl.class);
     
     @Autowired
-    private IAcsClient dypnsapiClient;
+    private Client dypnsapiClient;
     
     @Autowired
     private AliyunDypnsapiConfig dypnsapiConfig;
@@ -41,15 +37,13 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
     @Autowired
     private RecoverJourneyService recoverJourneyService;
     
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    
     @Override
     @Transactional
-    public OneClickLoginResponse oneClickLogin(String verifyToken) throws Exception {
-        logger.info("开始一键登录流程（融合认证），verifyToken: {}", maskToken(verifyToken));
+    public OneClickLoginResponse oneClickLogin(String accessToken) throws Exception {
+        logger.info("开始一键登录流程（号码认证），accessToken: {}", maskToken(accessToken));
         
-        // 1. 调用阿里云融合认证 API 换取手机号
-        String phoneNumber = getPhoneNumberFromAliyun(verifyToken);
+        // 1. 调用阿里云号码认证 API 换取手机号
+        String phoneNumber = getPhoneNumberFromAliyun(accessToken);
         logger.info("成功获取手机号: {}", maskPhoneNumber(phoneNumber));
         
         // 2. 根据手机号查询用户
@@ -68,77 +62,62 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
     }
     
     /**
-     * 调用阿里云 VerifyWithFusionAuthToken API 获取手机号（融合认证）
-     * 参考文档：https://help.aliyun.com/zh/pnvs/developer-reference/api-dypnsapi-2017-05-25-verifywithfusionauthtoken
+     * 调用阿里云 GetMobile API 获取手机号（号码认证）
+     * 参考文档：https://next.api.aliyun.com/api/Dypnsapi/2017-05-25/GetMobile
+     * 使用 Tea OpenAPI SDK
      */
-    private String getPhoneNumberFromAliyun(String verifyToken) throws Exception {
-        CommonRequest request = new CommonRequest();
-        request.setSysMethod(MethodType.POST);
-        request.setSysDomain(dypnsapiConfig.getEndpoint());
-        request.setSysVersion("2017-05-25");
-        request.setSysAction("VerifyWithFusionAuthToken");
-        request.putQueryParameter("RegionId", dypnsapiConfig.getRegionId());
-        request.putQueryParameter("VerifyToken", verifyToken);
+    private String getPhoneNumberFromAliyun(String accessToken) throws Exception {
+        com.aliyun.dypnsapi20170525.models.GetMobileRequest request = new com.aliyun.dypnsapi20170525.models.GetMobileRequest();
+        request.setAccessToken(accessToken);
+        
+        RuntimeOptions runtime = new RuntimeOptions();
         
         try {
-            CommonResponse response = dypnsapiClient.getCommonResponse(request);
-            logger.debug("阿里云融合认证 API 响应: {}", response.getData());
+            com.aliyun.dypnsapi20170525.models.GetMobileResponse response = dypnsapiClient.getMobileWithOptions(request, runtime);
             
-            if (!response.getHttpResponse().isSuccess()) {
-                throw new Exception("阿里云 API 调用失败，HTTP状态码: " + response.getHttpResponse().getStatus());
+            // 检查响应
+            if (response == null) {
+                throw new Exception("阿里云 API 返回空响应");
+            }
+
+            com.aliyun.dypnsapi20170525.models.GetMobileResponseBody body = response.getBody();
+            if (body == null) {
+                throw new Exception("阿里云 API 响应体为空");
             }
             
-            // 解析响应 JSON
-            JsonNode jsonNode = objectMapper.readTree(response.getData());
-            
-            // 检查 API 调用是否成功
-            if (!jsonNode.has("Success") || !jsonNode.get("Success").asBoolean()) {
-                String errorCode = jsonNode.has("Code") ? jsonNode.get("Code").asText() : "UNKNOWN";
-                String errorMessage = jsonNode.has("Message") ? jsonNode.get("Message").asText() : "未知错误";
-                throw new Exception("阿里云 API 调用失败，错误码: " + errorCode + ", 错误信息: " + errorMessage);
-            }
-            
+
             // 检查状态码
-            if (!jsonNode.has("Code") || !"OK".equals(jsonNode.get("Code").asText())) {
-                String errorCode = jsonNode.has("Code") ? jsonNode.get("Code").asText() : "UNKNOWN";
-                String errorMessage = jsonNode.has("Message") ? jsonNode.get("Message").asText() : "未知错误";
+            if (body.getCode() == null || !"OK".equals(body.getCode())) {
+                String errorCode = body.getCode() != null ? body.getCode() : "UNKNOWN";
+                String errorMessage = body.getMessage() != null ? body.getMessage() : "未知错误";
                 throw new Exception("阿里云 API 返回错误，错误码: " + errorCode + ", 错误信息: " + errorMessage);
             }
             
-            // 获取 Model 对象
-            if (!jsonNode.has("Model")) {
-                throw new Exception("响应中未找到 Model 数据");
-            }
-            
-            JsonNode modelNode = jsonNode.get("Model");
-            
-            // 检查认证结果
-            if (!modelNode.has("VerifyResult")) {
-                throw new Exception("响应中未找到认证结果");
-            }
-            
-            String verifyResult = modelNode.get("VerifyResult").asText();
-            if (!"PASS".equals(verifyResult)) {
-                throw new Exception("认证失败，认证结果: " + verifyResult);
+            // 获取 GetMobileResultDTO 对象
+            com.aliyun.dypnsapi20170525.models.GetMobileResponseBody.GetMobileResponseBodyGetMobileResultDTO resultDTO = body.getGetMobileResultDTO();
+            if (resultDTO == null) {
+                throw new Exception("响应中未找到 GetMobileResultDTO 数据");
             }
             
             // 获取手机号
-            if (!modelNode.has("PhoneNumber")) {
+            String phoneNumber = resultDTO.getMobile();
+            if (phoneNumber == null || phoneNumber.isEmpty()) {
                 throw new Exception("响应中未找到手机号信息");
             }
             
-            String phoneNumber = modelNode.get("PhoneNumber").asText();
-            
-            // 可选：记录手机号评分（如果存在）
-            if (modelNode.has("PhoneScore")) {
-                long phoneScore = modelNode.get("PhoneScore").asLong();
-                logger.debug("手机号评分: {}", phoneScore);
-            }
+            logger.debug("阿里云号码认证 API 调用成功，手机号: {}", maskPhoneNumber(phoneNumber));
             
             return phoneNumber;
             
-        } catch (ClientException e) {
-            logger.error("调用阿里云融合认证 API 异常: {}", e.getMessage(), e);
+        } catch (TeaException e) {
+            logger.error("调用阿里云号码认证 API 异常: {}", e.getMessage(), e);
+            String errorMsg = e.getMessage();
+            if (e.getData() != null && e.getData().containsKey("Recommend")) {
+                errorMsg += ", 诊断地址: " + e.getData().get("Recommend");
+            }
+            throw new Exception("调用阿里云 API 失败: " + errorMsg, e);
+        } catch (Exception e) {
+            logger.error("调用阿里云号码认证 API 异常: {}", e.getMessage(), e);
             throw new Exception("调用阿里云 API 失败: " + e.getMessage(), e);
         }
     }

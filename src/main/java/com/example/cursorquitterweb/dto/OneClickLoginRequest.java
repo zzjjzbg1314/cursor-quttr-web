@@ -3,32 +3,32 @@ package com.example.cursorquitterweb.dto;
 import javax.validation.constraints.NotBlank;
 
 /**
- * 一键登录请求DTO（融合认证）
+ * 一键登录请求DTO（号码认证）
  */
 public class OneClickLoginRequest {
     
-    @NotBlank(message = "统一认证Token不能为空")
-    private String verifyToken;
+    @NotBlank(message = "访问令牌不能为空")
+    private String accessToken;
 
     public OneClickLoginRequest() {
     }
 
-    public OneClickLoginRequest(String verifyToken) {
-        this.verifyToken = verifyToken;
+    public OneClickLoginRequest(String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public String getVerifyToken() {
-        return verifyToken;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setVerifyToken(String verifyToken) {
-        this.verifyToken = verifyToken;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     @Override
     public String toString() {
         return "OneClickLoginRequest{" +
-                "verifyToken='" + verifyToken + '\'' +
+                "accessToken='" + accessToken + '\'' +
                 '}';
     }
 }

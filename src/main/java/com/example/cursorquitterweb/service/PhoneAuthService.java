@@ -8,11 +8,11 @@ import com.example.cursorquitterweb.dto.OneClickLoginResponse;
 public interface PhoneAuthService {
     
     /**
-     * 通过 verifyToken 换取手机号并处理登录逻辑（融合认证）
-     * @param verifyToken 统一认证Token，由客户端SDK返回
+     * 通过 accessToken 换取手机号并处理登录逻辑（号码认证）
+     * @param accessToken 访问令牌，由客户端SDK返回
      * @return 一键登录响应，包含手机号和用户信息
      * @throws Exception 如果换取手机号失败或处理过程中出现错误
      */
-    OneClickLoginResponse oneClickLogin(String verifyToken) throws Exception;
+    OneClickLoginResponse oneClickLogin(String accessToken) throws Exception;
 }
 

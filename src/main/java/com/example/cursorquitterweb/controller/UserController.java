@@ -518,21 +518,21 @@ public class UserController {
     }
     
     /**
-     * 一键登录（融合认证，通过 verifyToken 换取手机号）
+     * 一键登录（号码认证，通过 accessToken 换取手机号）
      * POST /api/users/one-click-login
      * 
-     * 参考文档：https://help.aliyun.com/zh/pnvs/developer-reference/api-dypnsapi-2017-05-25-verifywithfusionauthtoken
+     * 参考文档：https://next.api.aliyun.com/api/Dypnsapi/2017-05-25/GetMobile
      * 
-     * @param request 一键登录请求，包含 verifyToken（统一认证Token，由客户端SDK返回）
+     * @param request 一键登录请求，包含 accessToken（访问令牌，由客户端SDK返回）
      * @return 一键登录响应，包含手机号和用户信息
      */
     @PostMapping("/one-click-login")
     public ApiResponse<OneClickLoginResponse> oneClickLogin(@RequestBody OneClickLoginRequest request) {
-        logger.info("一键登录请求（融合认证），verifyToken: {}", request.getVerifyToken() != null ? 
-                   request.getVerifyToken().substring(0, Math.min(8, request.getVerifyToken().length())) + "..." : "null");
+        logger.info("一键登录请求（号码认证），accessToken: {}", request.getAccessToken() != null ? 
+                   request.getAccessToken().substring(0, Math.min(8, request.getAccessToken().length())) + "..." : "null");
         
         try {
-            OneClickLoginResponse response = phoneAuthService.oneClickLogin(request.getVerifyToken());
+            OneClickLoginResponse response = phoneAuthService.oneClickLogin(request.getAccessToken());
             String message = response.getIsNewUser() ? "新用户注册成功" : "登录成功";
             logger.info("一键登录成功，手机号: {}, 是否新用户: {}", 
                        response.getPhoneNumber() != null ? 
