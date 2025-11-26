@@ -6,7 +6,6 @@ import com.example.cursorquitterweb.service.BookService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -200,7 +199,7 @@ public class BookController {
      * 分页查询电子书列表
      */
     @GetMapping("/page")
-    public ApiResponse<Page<Book>> getBooksPage(
+    public ApiResponse<List<Book>> getBooksPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         logger.info("分页查询电子书列表，页码: {}, 每页大小: {}", page, size);
@@ -212,15 +211,15 @@ public class BookController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Book> booksPage = bookService.getBooksPage(page, size);
-        return ApiResponse.success(booksPage);
+        List<Book> booksList = bookService.getBooksPage(page, size);
+        return ApiResponse.success(booksList);
     }
     
     /**
      * 根据书名模糊查询并分页
      */
     @GetMapping("/search/page")
-    public ApiResponse<Page<Book>> searchBooksPage(
+    public ApiResponse<List<Book>> searchBooksPage(
             @RequestParam String title,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -233,8 +232,8 @@ public class BookController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Book> booksPage = bookService.searchBooksByTitlePage(title, page, size);
-        return ApiResponse.success(booksPage);
+        List<Book> booksList = bookService.searchBooksByTitlePage(title, page, size);
+        return ApiResponse.success(booksList);
     }
     
     /**

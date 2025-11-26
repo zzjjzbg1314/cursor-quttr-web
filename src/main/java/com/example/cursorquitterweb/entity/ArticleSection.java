@@ -1,43 +1,30 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 文章章节实体类
- * 对应数据库表: public.article_section
+ * 对应数据库表: article_section
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "article_section", schema = "public")
 public class ArticleSection {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "article_id", nullable = false)
     private UUID articleId;
     
-    @Column(name = "title")
     private String title;
     
-    @Column(name = "section_content", columnDefinition = "TEXT")
     private String sectionContent;
     
-    @Column(name = "section_index")
     private Integer sectionIndex = 0;
     
-    @Column(name = "createAt")
     private OffsetDateTime createAt;
     
-    @Column(name = "updateAt")
     private OffsetDateTime updateAt;
     
-    // 关联关系
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "article_id", insertable = false, updatable = false)
+    // 关联关系（不再使用 JPA 关联，需要手动查询）
     private Article article;
     
     public ArticleSection() {
@@ -119,7 +106,9 @@ public class ArticleSection {
         this.article = article;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

@@ -118,13 +118,6 @@
         <appender-ref ref="ERROR_FILE"/>
     </logger>
     
-    <!-- Druid连接池日志 -->
-    <logger name="com.alibaba.druid" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="SYSTEM_FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-    </logger>
-    
     <!-- 根日志级别 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>

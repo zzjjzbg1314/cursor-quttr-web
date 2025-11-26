@@ -1,35 +1,25 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 帖子举报实体类
- * 对应数据库表: public.post_reports
+ * 对应数据库表: post_reports
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "post_reports", schema = "public")
 public class PostReport {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "reported_post_id", nullable = false)
     private UUID reportedPostId;
     
-    @Column(name = "report_reason", nullable = false, length = 255)
     private String reportReason;
     
-    @Column(name = "report_notes", columnDefinition = "TEXT")
     private String reportNotes;
     
-    @Column(name = "reporter_user_id", nullable = false)
     private UUID reporterUserId;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
     public PostReport() {

@@ -1,53 +1,37 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 音乐实体类
- * 对应数据库表: public.music
+ * 对应数据库表: music
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "music", schema = "public")
 public class Music {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "title")
     private String title;
     
-    @Column(name = "subtitle")
     private String subtitle;
     
-    @Column(name = "time")
     private String time;
     
-    @Column(name = "image")
     private String image;
     
-    @Column(name = "videourl")
     private String videourl;
     
-    @Column(name = "audiourl")
     private String audiourl;
     
-    @Column(name = "createAt", nullable = false)
     private OffsetDateTime createAt;
     
-    @Column(name = "updateAt", nullable = false)
     private OffsetDateTime updateAt;
     
-    @Column(name = "quotes")
     private String quotes;
     
-    @Column(name = "author")
     private String author;
     
-    @Column(name = "color")
     private String color;
     
     public Music() {
@@ -166,7 +150,9 @@ public class Music {
         this.color = color;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

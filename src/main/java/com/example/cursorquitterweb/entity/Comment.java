@@ -1,66 +1,46 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 评论实体类
- * 对应数据库表: public.comments
+ * 对应数据库表: comments
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "comments", schema = "public")
 public class Comment {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "comment_id", columnDefinition = "UUID")
     private UUID commentId;
     
-    @Column(name = "post_id", nullable = false, columnDefinition = "UUID")
     private UUID postId;
     
-    @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
     private UUID userId;
     
-    @Column(name = "user_nickname", nullable = false, length = 100)
     private String userNickname;
     
-    @Column(name = "user_stage", nullable = false, length = 50)
     private String userStage;
     
-    @Column(name = "avatar_url", columnDefinition = "TEXT")
     private String avatarUrl;
     
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
-    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     // 新增字段支持回复功能
-    @Column(name = "parent_comment_id", columnDefinition = "UUID")
     private UUID parentCommentId;  // 父评论ID，NULL表示直接评论帖子
     
-    @Column(name = "reply_to_user_id", columnDefinition = "UUID")
     private UUID replyToUserId;  // 被回复的用户ID
     
-    @Column(name = "reply_to_user_nickname", length = 100)
     private String replyToUserNickname;  // 被回复的用户昵称
     
-    @Column(name = "reply_to_comment_id", columnDefinition = "UUID")
     private UUID replyToCommentId;  // 被回复的评论ID
     
-    @Column(name = "comment_level", nullable = false)
     private Short commentLevel = 1;  // 评论层级：1=直接评论，2=回复评论
     
-    @Column(name = "root_comment_id", columnDefinition = "UUID")
     private UUID rootCommentId;  // 根评论ID（该回复链最顶层的评论）
     
     public Comment() {
@@ -237,7 +217,9 @@ public class Comment {
         this.rootCommentId = rootCommentId;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }

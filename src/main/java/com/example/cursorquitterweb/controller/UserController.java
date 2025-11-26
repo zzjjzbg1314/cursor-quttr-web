@@ -371,7 +371,7 @@ public class UserController {
      * 分页查询挑战记录排行榜
      */
     @GetMapping("/leaderboard/page")
-    public ApiResponse<org.springframework.data.domain.Page<UserLeaderboardDto>> getChallengeLeaderboardPage(
+    public ApiResponse<List<UserLeaderboardDto>> getChallengeLeaderboardPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         logger.info("分页查询挑战记录排行榜，页码: {}, 每页大小: {}", page, size);
@@ -383,9 +383,8 @@ public class UserController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        org.springframework.data.domain.Page<UserLeaderboardDto> leaderboardPage = 
-            userService.getChallengeLeaderboardPage(page, size);
-        return ApiResponse.success(leaderboardPage);
+        List<UserLeaderboardDto> leaderboard = userService.getChallengeLeaderboardPage(page, size);
+        return ApiResponse.success(leaderboard);
     }
     
     /**

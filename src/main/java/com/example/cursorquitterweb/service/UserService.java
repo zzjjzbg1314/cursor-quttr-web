@@ -107,9 +107,9 @@ public interface UserService {
      * 分页查询挑战记录排行榜（简化版，只包含必要字段）
      * @param page 页码（从0开始）
      * @param size 每页大小
-     * @return 分页的用户排行榜数据
+     * @return 分页的用户排行榜数据（已移除 Spring Data Page，返回 List）
      */
-    org.springframework.data.domain.Page<UserLeaderboardDto> getChallengeLeaderboardPage(int page, int size);
+    List<UserLeaderboardDto> getChallengeLeaderboardPage(int page, int size);
     
     /**
      * 检查并更新最佳记录（如果新记录更好）

@@ -9,10 +9,6 @@ import com.example.cursorquitterweb.dto.UpdateArticleRequest;
 import com.example.cursorquitterweb.entity.Article;
 import com.example.cursorquitterweb.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -167,13 +163,12 @@ public class ArticleController {
      * 根据类型分页获取文章
      */
     @GetMapping("/type/{type}/page")
-    public ApiResponse<Page<Article>> getArticlesByTypePage(
+    public ApiResponse<List<Article>> getArticlesByTypePage(
             @PathVariable String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createAt"));
-            Page<Article> articles = articleService.findByType(type, pageable);
+            List<Article> articles = articleService.findByType(type, page, size);
             return ApiResponse.success("获取文章成功", articles);
         } catch (Exception e) {
             return ApiResponse.error("获取文章失败: " + e.getMessage());
@@ -210,12 +205,11 @@ public class ArticleController {
      * 获取所有活跃文章（分页）
      */
     @GetMapping("/active")
-    public ApiResponse<Page<Article>> getActiveArticles(
+    public ApiResponse<List<Article>> getActiveArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createAt"));
-            Page<Article> articles = articleService.getAllActiveArticles(pageable);
+            List<Article> articles = articleService.getAllActiveArticles(page, size);
             return ApiResponse.success("获取活跃文章成功", articles);
         } catch (Exception e) {
             return ApiResponse.error("获取活跃文章失败: " + e.getMessage());
@@ -239,12 +233,11 @@ public class ArticleController {
      * 获取所有文章（分页）
      */
     @GetMapping("/all")
-    public ApiResponse<Page<Article>> getAllArticles(
+    public ApiResponse<List<Article>> getAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createAt"));
-            Page<Article> articles = articleService.getAllArticles(pageable);
+            List<Article> articles = articleService.getAllArticles(page, size);
             return ApiResponse.success("获取所有文章成功", articles);
         } catch (Exception e) {
             return ApiResponse.error("获取所有文章失败: " + e.getMessage());

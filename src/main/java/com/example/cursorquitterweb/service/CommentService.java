@@ -1,8 +1,6 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.Comment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -45,9 +43,9 @@ public interface CommentService {
     List<Comment> findByPostId(UUID postId);
     
     /**
-     * 根据帖子ID分页查找评论
+     * 根据帖子ID分页查找评论（已移除 Spring Data Page，返回 List）
      */
-    Page<Comment> findByPostId(UUID postId, Pageable pageable);
+    List<Comment> findByPostId(UUID postId, int page, int size);
     
     /**
      * 根据用户ID查找用户的所有评论
@@ -55,9 +53,9 @@ public interface CommentService {
     List<Comment> findByUserId(UUID userId);
     
     /**
-     * 根据用户ID分页查找用户的评论
+     * 根据用户ID分页查找用户的评论（已移除 Spring Data Page，返回 List）
      */
-    Page<Comment> findByUserId(UUID userId, Pageable pageable);
+    List<Comment> findByUserId(UUID userId, int page, int size);
     
     /**
      * 根据用户昵称查找评论
@@ -75,9 +73,9 @@ public interface CommentService {
     List<Comment> searchByContent(String content);
     
     /**
-     * 获取所有评论（分页）
+     * 获取所有评论（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<Comment> getAllComments(Pageable pageable);
+    List<Comment> getAllComments(int page, int size);
     
     /**
      * 获取所有评论
@@ -137,9 +135,9 @@ public interface CommentService {
     List<Comment> findTopLevelCommentsByPostId(UUID postId);
     
     /**
-     * 分页获取帖子的所有一级评论
+     * 分页获取帖子的所有一级评论（已移除 Spring Data Page，返回 List）
      */
-    Page<Comment> findTopLevelCommentsByPostId(UUID postId, Pageable pageable);
+    List<Comment> findTopLevelCommentsByPostId(UUID postId, int page, int size);
     
     /**
      * 获取某个评论下的所有回复
@@ -154,9 +152,9 @@ public interface CommentService {
     List<com.example.cursorquitterweb.dto.CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId);
     
     /**
-     * 分页获取帖子的所有评论及其回复
+     * 分页获取帖子的所有评论及其回复（已移除 Spring Data Page，返回 List）
      */
-    Page<com.example.cursorquitterweb.dto.CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId, Pageable pageable);
+    List<com.example.cursorquitterweb.dto.CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId, int page, int size);
     
     /**
      * 统计某个评论下的回复数量

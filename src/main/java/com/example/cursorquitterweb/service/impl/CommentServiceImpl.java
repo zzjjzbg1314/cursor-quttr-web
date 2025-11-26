@@ -2,14 +2,11 @@ package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.entity.Comment;
-import com.example.cursorquitterweb.repository.CommentRepository;
 import com.example.cursorquitterweb.service.CommentService;
+import com.example.cursorquitterweb.util.CloudflareD1Util;
+import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -17,17 +14,19 @@ import java.util.stream.Collectors;
 
 /**
  * 评论服务实现类
+ * 使用 CloudflareD1Util 进行数据库操作
  */
 @Service
-@Transactional
 public class CommentServiceImpl implements CommentService {
     
     @Autowired
-    private CommentRepository commentRepository;
+    private CloudflareD1Util d1Util;
     
     @Override
     public Optional<Comment> findById(UUID commentId) {
-        return commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
+        String sql = "SELECT * FROM comments WHERE comment_id = ? AND is_deleted = ? LIMIT 1";
+        Map<String, Object> row = d1Util.queryOne(sql, EntityMapper.uuidToString(commentId), false);
+        return row != null ? Optional.of(mapToComment(row)) : Optional.empty();
     }
     
     @Override
@@ -41,7 +40,7 @@ public class CommentServiceImpl implements CommentService {
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content);
             // 确保comment_level为1（一级评论）
             comment.setCommentLevel((short) 1);
-            return commentRepository.save(comment);
+            return saveComment(comment);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("无效的UUID格式: " + e.getMessage());
         }
@@ -49,104 +48,138 @@ public class CommentServiceImpl implements CommentService {
     
     @Override
     public Comment updateComment(UUID commentId, String content) {
-        Optional<Comment> optionalComment = commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
+        Optional<Comment> optionalComment = findById(commentId);
         if (optionalComment.isPresent()) {
             Comment comment = optionalComment.get();
             comment.setContent(content);
-            comment.setUpdatedAt(OffsetDateTime.now());
-            return commentRepository.save(comment);
+            comment.preUpdate();
+            return saveComment(comment);
         }
         throw new RuntimeException("评论不存在或已被删除");
     }
     
     @Override
     public Comment updateComment(UUID commentId, String content, String avatarUrl) {
-        Optional<Comment> optionalComment = commentRepository.findByCommentIdAndIsDeletedFalse(commentId);
+        Optional<Comment> optionalComment = findById(commentId);
         if (optionalComment.isPresent()) {
             Comment comment = optionalComment.get();
             comment.setContent(content);
             if (avatarUrl != null) {
                 comment.setAvatarUrl(avatarUrl);
             }
-            comment.setUpdatedAt(OffsetDateTime.now());
-            return commentRepository.save(comment);
+            comment.preUpdate();
+            return saveComment(comment);
         }
         throw new RuntimeException("评论不存在或已被删除");
     }
     
     @Override
     public void deleteComment(UUID commentId) {
-        commentRepository.softDeleteComment(commentId, OffsetDateTime.now());
+        String sql = "UPDATE comments SET is_deleted = ?, updated_at = ? WHERE comment_id = ?";
+        d1Util.execute(sql, true, EntityMapper.offsetDateTimeToString(OffsetDateTime.now()), EntityMapper.uuidToString(commentId));
     }
     
     @Override
     public List<Comment> findByPostId(UUID postId) {
-        return commentRepository.findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(postId);
+        String sql = "SELECT * FROM comments WHERE post_id = ? AND is_deleted = ? ORDER BY created_at ASC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(postId), false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
-    public Page<Comment> findByPostId(UUID postId, Pageable pageable) {
-        return commentRepository.findByPostIdAndIsDeletedFalse(pageable, postId);
+    public List<Comment> findByPostId(UUID postId, int page, int size) {
+        String sql = "SELECT * FROM comments WHERE post_id = ? AND is_deleted = ? ORDER BY created_at ASC";
+        return d1Util.queryPage(sql, page + 1, size, EntityMapper.uuidToString(postId), false).stream()
+            .map(this::mapToComment)
+            .collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> findByUserId(UUID userId) {
-        return commentRepository.findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId);
+        String sql = "SELECT * FROM comments WHERE user_id = ? AND is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(userId), false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
-    public Page<Comment> findByUserId(UUID userId, Pageable pageable) {
-        return commentRepository.findByUserIdAndIsDeletedFalse(pageable, userId);
+    public List<Comment> findByUserId(UUID userId, int page, int size) {
+        String sql = "SELECT * FROM comments WHERE user_id = ? AND is_deleted = ? ORDER BY created_at DESC";
+        return d1Util.queryPage(sql, page + 1, size, EntityMapper.uuidToString(userId), false).stream()
+            .map(this::mapToComment)
+            .collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> findByUserNickname(String userNickname) {
-        return commentRepository.findByUserNicknameAndIsDeletedFalseOrderByCreatedAtDesc(userNickname);
+        String sql = "SELECT * FROM comments WHERE user_nickname = ? AND is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, userNickname, false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> findByUserStage(String userStage) {
-        return commentRepository.findByUserStageAndIsDeletedFalseOrderByCreatedAtDesc(userStage);
+        String sql = "SELECT * FROM comments WHERE user_stage = ? AND is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, userStage, false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> searchByContent(String content) {
-        return commentRepository.findByContentContainingIgnoreCaseAndIsDeletedFalseOrderByCreatedAtDesc(content);
+        String sql = "SELECT * FROM comments WHERE LOWER(content) LIKE LOWER(?) AND is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + content + "%", false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
-    public Page<Comment> getAllComments(Pageable pageable) {
-        return commentRepository.findByIsDeletedFalseOrderByCreatedAtDesc(pageable);
+    public List<Comment> getAllComments(int page, int size) {
+        String sql = "SELECT * FROM comments WHERE is_deleted = ? ORDER BY created_at DESC";
+        return d1Util.queryPage(sql, page + 1, size, false).stream()
+            .map(this::mapToComment)
+            .collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> getAllComments() {
-        return commentRepository.findByIsDeletedFalseOrderByCreatedAtDesc();
+        String sql = "SELECT * FROM comments WHERE is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        return commentRepository.findByCreatedAtBetweenAndIsDeletedFalseOrderByCreatedAtDesc(startTime, endTime);
+        String sql = "SELECT * FROM comments WHERE created_at >= ? AND created_at <= ? AND is_deleted = ? ORDER BY created_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, 
+            EntityMapper.offsetDateTimeToString(startTime), 
+            EntityMapper.offsetDateTimeToString(endTime), 
+            false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
     public long countByPostId(UUID postId) {
-        return commentRepository.countByPostIdAndIsDeletedFalse(postId);
+        String sql = "SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND is_deleted = ?";
+        return d1Util.queryLong(sql, EntityMapper.uuidToString(postId), false);
     }
     
     @Override
     public long countByUserId(UUID userId) {
-        return commentRepository.countByUserIdAndIsDeletedFalse(userId);
+        String sql = "SELECT COUNT(*) as count FROM comments WHERE user_id = ? AND is_deleted = ?";
+        return d1Util.queryLong(sql, EntityMapper.uuidToString(userId), false);
     }
     
     @Override
     public long countByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        return commentRepository.countByCreatedAtBetweenAndIsDeletedFalse(startTime, endTime);
+        String sql = "SELECT COUNT(*) as count FROM comments WHERE created_at >= ? AND created_at <= ? AND is_deleted = ?";
+        return d1Util.queryLong(sql, 
+            EntityMapper.offsetDateTimeToString(startTime), 
+            EntityMapper.offsetDateTimeToString(endTime), 
+            false);
     }
     
     @Override
     public void deleteCommentsByPostId(UUID postId) {
-        commentRepository.softDeleteCommentsByPostId(postId, OffsetDateTime.now());
+        String sql = "UPDATE comments SET is_deleted = ?, updated_at = ? WHERE post_id = ?";
+        d1Util.execute(sql, true, EntityMapper.offsetDateTimeToString(OffsetDateTime.now()), EntityMapper.uuidToString(postId));
     }
     
     // ============= 新增：小红书风格的评论回复功能实现 =============
@@ -166,7 +199,7 @@ public class CommentServiceImpl implements CommentService {
             // 查找父评论以确定root_comment_id
             UUID rootCommentUuid = null;
             if (parentCommentUuid != null) {
-                Optional<Comment> parentComment = commentRepository.findByCommentIdAndIsDeletedFalse(parentCommentUuid);
+                Optional<Comment> parentComment = findById(parentCommentUuid);
                 if (parentComment.isPresent()) {
                     Comment parent = parentComment.get();
                     // 如果父评论是一级评论，则它就是根评论；否则使用父评论的根评论ID
@@ -180,7 +213,7 @@ public class CommentServiceImpl implements CommentService {
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content,
                     parentCommentUuid, replyToUserUuid, replyToUserNickname, replyToCommentUuid, rootCommentUuid);
             
-            return commentRepository.save(comment);
+            return saveComment(comment);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("无效的UUID格式: " + e.getMessage());
         }
@@ -188,17 +221,24 @@ public class CommentServiceImpl implements CommentService {
     
     @Override
     public List<Comment> findTopLevelCommentsByPostId(UUID postId) {
-        return commentRepository.findByPostIdAndCommentLevelAndIsDeletedFalseOrderByCreatedAtAsc(postId, (short) 1);
+        String sql = "SELECT * FROM comments WHERE post_id = ? AND comment_level = ? AND is_deleted = ? ORDER BY created_at ASC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(postId), 1, false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
-    public Page<Comment> findTopLevelCommentsByPostId(UUID postId, Pageable pageable) {
-        return commentRepository.findByPostIdAndCommentLevelAndIsDeletedFalse(postId, (short) 1, pageable);
+    public List<Comment> findTopLevelCommentsByPostId(UUID postId, int page, int size) {
+        String sql = "SELECT * FROM comments WHERE post_id = ? AND comment_level = ? AND is_deleted = ? ORDER BY created_at ASC";
+        return d1Util.queryPage(sql, page + 1, size, EntityMapper.uuidToString(postId), 1, false).stream()
+            .map(this::mapToComment)
+            .collect(Collectors.toList());
     }
     
     @Override
     public List<Comment> findRepliesByRootCommentId(UUID rootCommentId) {
-        return commentRepository.findByRootCommentIdAndCommentLevelAndIsDeletedFalseOrderByCreatedAtAsc(rootCommentId, (short) 2);
+        String sql = "SELECT * FROM comments WHERE root_comment_id = ? AND comment_level = ? AND is_deleted = ? ORDER BY created_at ASC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(rootCommentId), 2, false);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
     }
     
     @Override
@@ -216,7 +256,7 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
         
         // 3. 批量查询所有回复
-        List<Comment> allReplies = commentRepository.findRepliesByRootCommentIds(rootCommentIds);
+        List<Comment> allReplies = findRepliesByRootCommentIds(rootCommentIds);
         
         // 4. 将回复按根评论ID分组
         Map<UUID, List<Comment>> repliesMap = allReplies.stream()
@@ -232,44 +272,168 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
-    public Page<CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId, Pageable pageable) {
+    public List<CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId, int page, int size) {
         // 1. 分页获取一级评论
-        Page<Comment> topLevelCommentsPage = findTopLevelCommentsByPostId(postId, pageable);
+        List<Comment> topLevelComments = findTopLevelCommentsByPostId(postId, page, size);
         
-        if (topLevelCommentsPage.isEmpty()) {
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        if (topLevelComments.isEmpty()) {
+            return new ArrayList<>();
         }
         
         // 2. 获取当前页的一级评论ID列表
-        List<UUID> rootCommentIds = topLevelCommentsPage.getContent().stream()
+        List<UUID> rootCommentIds = topLevelComments.stream()
                 .map(Comment::getCommentId)
                 .collect(Collectors.toList());
         
         // 3. 批量查询这些评论的回复
-        List<Comment> allReplies = commentRepository.findRepliesByRootCommentIds(rootCommentIds);
+        List<Comment> allReplies = findRepliesByRootCommentIds(rootCommentIds);
         
         // 4. 将回复按根评论ID分组
         Map<UUID, List<Comment>> repliesMap = allReplies.stream()
                 .collect(Collectors.groupingBy(Comment::getRootCommentId));
         
         // 5. 组装结果
-        List<CommentWithRepliesDTO> content = topLevelCommentsPage.getContent().stream()
+        return topLevelComments.stream()
                 .map(comment -> {
                     List<Comment> replies = repliesMap.getOrDefault(comment.getCommentId(), new ArrayList<>());
                     return new CommentWithRepliesDTO(comment, replies);
                 })
                 .collect(Collectors.toList());
-        
-        return new PageImpl<>(content, pageable, topLevelCommentsPage.getTotalElements());
     }
     
     @Override
     public long countRepliesByRootCommentId(UUID rootCommentId) {
-        return commentRepository.countByRootCommentIdAndCommentLevelAndIsDeletedFalse(rootCommentId, (short) 2);
+        String sql = "SELECT COUNT(*) as count FROM comments WHERE root_comment_id = ? AND comment_level = ? AND is_deleted = ?";
+        return d1Util.queryLong(sql, EntityMapper.uuidToString(rootCommentId), 2, false);
     }
     
     @Override
     public void deleteCommentAndReplies(UUID commentId) {
-        commentRepository.softDeleteCommentAndReplies(commentId, OffsetDateTime.now());
+        // 先查找评论，确定是根评论还是回复
+        Optional<Comment> commentOpt = findById(commentId);
+        if (!commentOpt.isPresent()) {
+            return;
+        }
+        
+        Comment comment = commentOpt.get();
+        if (comment.getCommentLevel() == 1) {
+            // 如果是根评论，删除它及其所有回复
+            String sql = "UPDATE comments SET is_deleted = ?, updated_at = ? WHERE (comment_id = ? OR root_comment_id = ?)";
+            d1Util.execute(sql, true, EntityMapper.offsetDateTimeToString(OffsetDateTime.now()), 
+                EntityMapper.uuidToString(commentId), EntityMapper.uuidToString(commentId));
+        } else {
+            // 如果是回复，只删除该回复
+            deleteComment(commentId);
+        }
+    }
+    
+    /**
+     * 批量查询回复（根据多个根评论ID）
+     */
+    private List<Comment> findRepliesByRootCommentIds(List<UUID> rootCommentIds) {
+        if (rootCommentIds == null || rootCommentIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 构建 IN 查询
+        StringBuilder sql = new StringBuilder("SELECT * FROM comments WHERE root_comment_id IN (");
+        Object[] params = new Object[rootCommentIds.size() + 2];
+        for (int i = 0; i < rootCommentIds.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append("?");
+            params[i] = EntityMapper.uuidToString(rootCommentIds.get(i));
+        }
+        sql.append(") AND comment_level = ? AND is_deleted = ? ORDER BY created_at ASC");
+        params[rootCommentIds.size()] = 2;
+        params[rootCommentIds.size() + 1] = false;
+        
+        List<Map<String, Object>> rows = d1Util.queryList(sql.toString(), params);
+        return rows.stream().map(this::mapToComment).collect(Collectors.toList());
+    }
+    
+    /**
+     * 保存评论
+     */
+    private Comment saveComment(Comment comment) {
+        if (comment.getCommentId() == null) {
+            // 插入新记录
+            comment.setCommentId(UUID.randomUUID());
+            comment.setCreatedAt(OffsetDateTime.now());
+            comment.setUpdatedAt(OffsetDateTime.now());
+            comment.setIsDeleted(false);
+            if (comment.getCommentLevel() == null) {
+                comment.setCommentLevel((short) 1);
+            }
+            Map<String, Object> data = commentToMap(comment);
+            d1Util.insert("comments", data);
+            return comment;
+        } else {
+            // 更新记录
+            Map<String, Object> data = commentToMap(comment);
+            d1Util.updateById("comments", data, "comment_id", EntityMapper.uuidToString(comment.getCommentId()));
+            return comment;
+        }
+    }
+    
+    /**
+     * 将 Map 转换为 Comment 实体
+     */
+    private Comment mapToComment(Map<String, Object> row) {
+        Comment comment = new Comment();
+        comment.setCommentId(EntityMapper.getUUID(row, "comment_id"));
+        comment.setPostId(EntityMapper.getUUID(row, "post_id"));
+        comment.setUserId(EntityMapper.getUUID(row, "user_id"));
+        comment.setUserNickname(EntityMapper.getString(row, "user_nickname"));
+        comment.setUserStage(EntityMapper.getString(row, "user_stage"));
+        comment.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
+        comment.setContent(EntityMapper.getString(row, "content"));
+        Object isDeletedObj = row.get("is_deleted");
+        if (isDeletedObj instanceof Boolean) {
+            comment.setIsDeleted((Boolean) isDeletedObj);
+        } else if (isDeletedObj instanceof Number) {
+            comment.setIsDeleted(((Number) isDeletedObj).intValue() != 0);
+        } else {
+            comment.setIsDeleted(false);
+        }
+        comment.setCreatedAt(EntityMapper.getOffsetDateTime(row, "created_at"));
+        comment.setUpdatedAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
+        comment.setParentCommentId(EntityMapper.getUUID(row, "parent_comment_id"));
+        comment.setReplyToUserId(EntityMapper.getUUID(row, "reply_to_user_id"));
+        comment.setReplyToUserNickname(EntityMapper.getString(row, "reply_to_user_nickname"));
+        comment.setReplyToCommentId(EntityMapper.getUUID(row, "reply_to_comment_id"));
+        Object commentLevelObj = row.get("comment_level");
+        if (commentLevelObj instanceof Number) {
+            comment.setCommentLevel(((Number) commentLevelObj).shortValue());
+        } else {
+            comment.setCommentLevel((short) 1);
+        }
+        comment.setRootCommentId(EntityMapper.getUUID(row, "root_comment_id"));
+        return comment;
+    }
+    
+    /**
+     * 将 Comment 实体转换为 Map（用于数据库操作）
+     */
+    private Map<String, Object> commentToMap(Comment comment) {
+        Map<String, Object> data = new HashMap<>();
+        EntityMapper.putIfNotNull(data, "comment_id", comment.getCommentId());
+        EntityMapper.putIfNotNull(data, "post_id", comment.getPostId());
+        EntityMapper.putIfNotNull(data, "user_id", comment.getUserId());
+        EntityMapper.putIfNotNull(data, "user_nickname", comment.getUserNickname());
+        EntityMapper.putIfNotNull(data, "user_stage", comment.getUserStage());
+        EntityMapper.putIfNotNull(data, "avatar_url", comment.getAvatarUrl());
+        EntityMapper.putIfNotNull(data, "content", comment.getContent());
+        EntityMapper.putIfNotNull(data, "is_deleted", comment.getIsDeleted());
+        EntityMapper.putIfNotNull(data, "created_at", comment.getCreatedAt());
+        EntityMapper.putIfNotNull(data, "updated_at", comment.getUpdatedAt());
+        EntityMapper.putIfNotNull(data, "parent_comment_id", comment.getParentCommentId());
+        EntityMapper.putIfNotNull(data, "reply_to_user_id", comment.getReplyToUserId());
+        EntityMapper.putIfNotNull(data, "reply_to_user_nickname", comment.getReplyToUserNickname());
+        EntityMapper.putIfNotNull(data, "reply_to_comment_id", comment.getReplyToCommentId());
+        EntityMapper.putIfNotNull(data, "comment_level", comment.getCommentLevel());
+        EntityMapper.putIfNotNull(data, "root_comment_id", comment.getRootCommentId());
+        return data;
     }
 }

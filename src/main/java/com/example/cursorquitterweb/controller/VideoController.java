@@ -9,10 +9,6 @@ import com.example.cursorquitterweb.service.VideoService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -149,42 +145,16 @@ public class VideoController {
      * 获取所有视频（分页）
      */
     @GetMapping("/getAllVideos")
-    public ResponseEntity<ApiResponse<Page<VideoDto>>> getAllVideos(
+    public ResponseEntity<ApiResponse<List<VideoDto>>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size,
-            @RequestParam(defaultValue = "createAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "100") int size) {
         try {
-            logger.info("获取所有视频，页码: {}, 大小: {}, 排序: {} {}", page, size, sortBy, sortDir);
+            logger.info("获取所有视频，页码: {}, 大小: {}", page, size);
             
-            // 验证排序字段名
-            String[] validSortFields = {"id", "title", "playurl", "posturl", "createAt", "updateAt"};
-            boolean isValidSortField = false;
-            for (String field : validSortFields) {
-                if (field.equals(sortBy)) {
-                    isValidSortField = true;
-                    break;
-                }
-            }
+            List<Video> videos = videoService.getAllVideos(page, size);
+            List<VideoDto> dtoList = videoService.convertToDtoList(videos);
             
-            if (!isValidSortField) {
-                logger.warn("无效的排序字段: {}, 使用默认字段: createAt", sortBy);
-                sortBy = "createAt";
-            }
-            
-            // 验证排序方向
-            if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
-                logger.warn("无效的排序方向: {}, 使用默认方向: desc", sortDir);
-                sortDir = "desc";
-            }
-            
-            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-            Pageable pageable = PageRequest.of(page, size, sort);
-            
-            Page<Video> videos = videoService.getAllVideos(pageable);
-            Page<VideoDto> dtoPage = videos.map(videoService::convertToDto);
-            
-            return ResponseEntity.ok(ApiResponse.success("获取视频列表成功", dtoPage));
+            return ResponseEntity.ok(ApiResponse.success("获取视频列表成功", dtoList));
             
         } catch (Exception e) {
             logger.error("获取视频列表失败，错误: {}", e.getMessage(), e);

@@ -13,8 +13,6 @@ import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
 /**
@@ -38,7 +36,6 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
     private RecoverJourneyService recoverJourneyService;
     
     @Override
-    @Transactional
     public OneClickLoginResponse oneClickLogin(String accessToken) throws Exception {
         logger.info("开始一键登录流程（号码认证），accessToken: {}", maskToken(accessToken));
         

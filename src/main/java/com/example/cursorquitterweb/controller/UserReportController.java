@@ -8,10 +8,6 @@ import com.example.cursorquitterweb.service.UserReportService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -89,20 +85,16 @@ public class UserReportController {
      * GET /api/user-reports
      */
     @GetMapping
-    public ApiResponse<Page<UserReportDto>> getAllReports(
+    public ApiResponse<List<UserReportDto>> getAllReports(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
+            List<UserReport> reports = userReportService.getAllReports(page, size);
+            List<UserReportDto> dtoList = reports.stream()
+                .map(UserReportDto::new)
+                .collect(Collectors.toList());
             
-            Page<UserReport> reports = userReportService.getAllReports(pageable);
-            Page<UserReportDto> dtoPage = reports.map(UserReportDto::new);
-            
-            return ApiResponse.success("获取举报记录成功", dtoPage);
+            return ApiResponse.success("获取举报记录成功", dtoList);
             
         } catch (Exception e) {
             logger.error("获取举报记录列表异常", e);
@@ -135,16 +127,17 @@ public class UserReportController {
      * GET /api/user-reports/reported/{userId}/page
      */
     @GetMapping("/reported/{userId}/page")
-    public ApiResponse<Page<UserReportDto>> getReportsByReportedUserIdPage(
+    public ApiResponse<List<UserReportDto>> getReportsByReportedUserIdPage(
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<UserReport> reports = userReportService.findByReportedUserId(userId, pageable);
-            Page<UserReportDto> dtoPage = reports.map(UserReportDto::new);
+            List<UserReport> reports = userReportService.findByReportedUserId(userId, page, size);
+            List<UserReportDto> dtoList = reports.stream()
+                .map(UserReportDto::new)
+                .collect(Collectors.toList());
             
-            return ApiResponse.success("获取用户被举报记录成功", dtoPage);
+            return ApiResponse.success("获取用户被举报记录成功", dtoList);
             
         } catch (Exception e) {
             logger.error("获取用户被举报记录异常", e);
@@ -177,16 +170,17 @@ public class UserReportController {
      * GET /api/user-reports/reporter/{userId}/page
      */
     @GetMapping("/reporter/{userId}/page")
-    public ApiResponse<Page<UserReportDto>> getReportsByReporterUserIdPage(
+    public ApiResponse<List<UserReportDto>> getReportsByReporterUserIdPage(
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<UserReport> reports = userReportService.findByReporterUserId(userId, pageable);
-            Page<UserReportDto> dtoPage = reports.map(UserReportDto::new);
+            List<UserReport> reports = userReportService.findByReporterUserId(userId, page, size);
+            List<UserReportDto> dtoList = reports.stream()
+                .map(UserReportDto::new)
+                .collect(Collectors.toList());
             
-            return ApiResponse.success("获取用户举报记录成功", dtoPage);
+            return ApiResponse.success("获取用户举报记录成功", dtoList);
             
         } catch (Exception e) {
             logger.error("获取用户举报记录异常", e);
@@ -331,19 +325,18 @@ public class UserReportController {
      * GET /api/user-reports/most-reported/page
      */
     @GetMapping("/most-reported/page")
-    public ApiResponse<Page<Map<String, Object>>> getMostReportedUsersPage(
+    public ApiResponse<List<Map<String, Object>>> getMostReportedUsersPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Object[]> results = userReportService.findMostReportedUsers(pageable);
+            List<Object[]> results = userReportService.findMostReportedUsers(page, size);
             
-            Page<Map<String, Object>> data = results.map(result -> {
+            List<Map<String, Object>> data = results.stream().map(result -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("user_id", result[0]);
                 map.put("report_count", result[1]);
                 return map;
-            });
+            }).collect(Collectors.toList());
             
             return ApiResponse.success("获取被举报最多的用户列表成功", data);
             

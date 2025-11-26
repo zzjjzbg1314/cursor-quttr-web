@@ -6,7 +6,6 @@ import com.example.cursorquitterweb.service.MusicService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -266,7 +265,7 @@ public class MusicController {
      * 分页查询音乐列表
      */
     @GetMapping("/page")
-    public ApiResponse<Page<Music>> getMusicPage(
+    public ApiResponse<List<Music>> getMusicPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         logger.info("分页查询音乐列表，页码: {}, 每页大小: {}", page, size);
@@ -278,15 +277,15 @@ public class MusicController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Music> musicPage = musicService.getMusicPage(page, size);
-        return ApiResponse.success(musicPage);
+        List<Music> musicList = musicService.getMusicPage(page, size);
+        return ApiResponse.success(musicList);
     }
     
     /**
      * 根据标题模糊查询并分页
      */
     @GetMapping("/search/title/page")
-    public ApiResponse<Page<Music>> searchMusicByTitlePage(
+    public ApiResponse<List<Music>> searchMusicByTitlePage(
             @RequestParam String title,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -299,15 +298,15 @@ public class MusicController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Music> musicPage = musicService.searchMusicByTitlePage(title, page, size);
-        return ApiResponse.success(musicPage);
+        List<Music> musicList = musicService.searchMusicByTitlePage(title, page, size);
+        return ApiResponse.success(musicList);
     }
     
     /**
      * 根据作者模糊查询并分页
      */
     @GetMapping("/search/author/page")
-    public ApiResponse<Page<Music>> searchMusicByAuthorPage(
+    public ApiResponse<List<Music>> searchMusicByAuthorPage(
             @RequestParam String author,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -320,8 +319,8 @@ public class MusicController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Music> musicPage = musicService.searchMusicByAuthorPage(author, page, size);
-        return ApiResponse.success(musicPage);
+        List<Music> musicList = musicService.searchMusicByAuthorPage(author, page, size);
+        return ApiResponse.success(musicList);
     }
     
     /**

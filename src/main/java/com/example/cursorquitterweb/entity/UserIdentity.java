@@ -1,48 +1,31 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 用户身份实体类
- * 对应数据库表: public.user_identities
+ * 对应数据库表: user_identities
  * 用于存储用户的多种身份认证信息（微信、手机号、邮箱等）
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "user_identities", schema = "public",
-       uniqueConstraints = @UniqueConstraint(
-           name = "uk_user_identity", 
-           columnNames = {"identity_type", "identity_id"}
-       ))
 public class UserIdentity {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
     
-    @Column(name = "user_id", nullable = false)
     private UUID userId;
     
-    @Column(name = "identity_type", nullable = false, length = 20)
     private String identityType;
     
-    @Column(name = "identity_id", nullable = false, length = 128)
     private String identityId;
     
     /**
      * JSONB 字段，存储身份相关的额外数据
      * 在 Java 中使用 String 类型存储 JSON 字符串
      * 需要手动进行 JSON 序列化和反序列化
-     * 
-     * 注意：虽然数据库使用 JSONB 类型，但为了兼容性，这里使用 TEXT 类型
-     * PostgreSQL 可以自动处理 TEXT 到 JSONB 的转换
      */
-    @Column(name = "identity_data", columnDefinition = "text")
     private String identityData;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
     public UserIdentity() {

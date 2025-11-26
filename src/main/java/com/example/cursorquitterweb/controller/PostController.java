@@ -7,10 +7,6 @@ import com.example.cursorquitterweb.dto.UpdatePostRequest;
 import com.example.cursorquitterweb.entity.Post;
 import com.example.cursorquitterweb.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -94,16 +90,11 @@ public class PostController {
      * 获取所有帖子（分页，包含点赞数）
      */
     @GetMapping("/getAllPosts")
-    public ApiResponse<Page<PostWithUpvotesDto>> getAllPosts(
+    public ApiResponse<List<PostWithUpvotesDto>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes(pageable);
+            List<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes(page, size);
             return ApiResponse.success("获取帖子列表成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
@@ -140,17 +131,12 @@ public class PostController {
      * 根据用户ID分页获取帖子（包含点赞数和评论数）
      */
     @GetMapping("/user/{userId}/page")
-    public ApiResponse<Page<PostWithUpvotesDto>> getPostsByUserIdPage(
+    public ApiResponse<List<PostWithUpvotesDto>> getPostsByUserIdPage(
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<PostWithUpvotesDto> posts = postService.findByUserIdWithUpvotes(userId, pageable);
+            List<PostWithUpvotesDto> posts = postService.findByUserIdWithUpvotes(userId, page, size);
             return ApiResponse.success("获取用户帖子成功", posts);
         } catch (Exception e) {
             return ApiResponse.error("获取用户帖子失败: " + e.getMessage());

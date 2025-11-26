@@ -3,52 +3,57 @@ package com.example.cursorquitterweb.service;
 import com.example.cursorquitterweb.dto.CreateArticleSectionRequest;
 import com.example.cursorquitterweb.dto.UpdateArticleSectionRequest;
 import com.example.cursorquitterweb.entity.ArticleSection;
-import com.example.cursorquitterweb.repository.ArticleSectionRepository;
+import com.example.cursorquitterweb.util.CloudflareD1Util;
+import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 文章章节服务层
+ * 使用 CloudflareD1Util 进行数据库操作
  */
 @Service
-@Transactional
 public class ArticleSectionService {
     
     @Autowired
-    private ArticleSectionRepository articleSectionRepository;
+    private CloudflareD1Util d1Util;
     
     /**
      * 创建文章章节
      */
     public ArticleSection createSection(CreateArticleSectionRequest request, String articleId) {
+        UUID articleUuid = UUID.fromString(articleId);
+        
         // 如果没有指定章节索引，自动设置为下一个索引
         if (request.getSectionIndex() == null) {
-            Integer maxIndex = articleSectionRepository.findMaxSectionIndexByArticleId(UUID.fromString(articleId));
+            String sql = "SELECT MAX(section_index) as max_index FROM article_sections WHERE article_id = ?";
+            Integer maxIndex = d1Util.queryInt(sql, EntityMapper.uuidToString(articleUuid));
             request.setSectionIndex(maxIndex != null ? maxIndex + 1 : 0);
         }
         
         ArticleSection section = new ArticleSection(
-            UUID.fromString(articleId),
+            articleUuid,
             request.getTitle(),
             request.getSectionContent(),
             request.getSectionIndex()
         );
         
-        return articleSectionRepository.save(section);
+        return saveSection(section);
     }
     
     /**
      * 批量创建文章章节
      */
-    @Transactional
     public List<ArticleSection> createMultipleSections(List<CreateArticleSectionRequest> requests, String articleId) {
         List<ArticleSection> createdSections = new ArrayList<>();
         UUID articleUuid = UUID.fromString(articleId);
@@ -58,9 +63,8 @@ public class ArticleSectionService {
             throw new RuntimeException("章节列表不能为空");
         }
         
-        // 使用数据库锁来防止并发问题
-        // 先锁定该文章的所有章节记录
-        List<ArticleSection> existingSections = articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleUuid);
+        // 先获取该文章的所有章节记录
+        List<ArticleSection> existingSections = getSectionsByArticleId(articleUuid);
         
         // 获取当前最大索引
         Integer maxIndex = existingSections.isEmpty() ? -1 : 
@@ -100,10 +104,10 @@ public class ArticleSectionService {
             );
             
             try {
-                createdSections.add(articleSectionRepository.save(section));
+                createdSections.add(saveSection(section));
             } catch (Exception e) {
                 // 如果出现唯一约束冲突，抛出更友好的错误信息
-                if (e.getMessage().contains("uk_article_section_article_id_index")) {
+                if (e.getMessage() != null && e.getMessage().contains("uk_article_section_article_id_index")) {
                     throw new RuntimeException("章节索引 " + request.getSectionIndex() + " 已存在，可能是并发操作导致的冲突");
                 }
                 throw e;
@@ -117,7 +121,7 @@ public class ArticleSectionService {
      * 更新文章章节
      */
     public ArticleSection updateSection(UpdateArticleSectionRequest request) {
-        Optional<ArticleSection> optionalSection = articleSectionRepository.findById(request.getId());
+        Optional<ArticleSection> optionalSection = getSectionById(request.getId());
         if (!optionalSection.isPresent()) {
             throw new RuntimeException("章节不存在");
         }
@@ -134,47 +138,53 @@ public class ArticleSectionService {
             section.setSectionIndex(request.getSectionIndex());
         }
         
-        return articleSectionRepository.save(section);
+        return saveSection(section);
     }
     
     /**
      * 根据ID获取章节
      */
     public Optional<ArticleSection> getSectionById(UUID id) {
-        return articleSectionRepository.findById(id);
+        String sql = "SELECT * FROM article_sections WHERE id = ? LIMIT 1";
+        Map<String, Object> row = d1Util.queryOne(sql, EntityMapper.uuidToString(id));
+        return row != null ? Optional.of(mapToArticleSection(row)) : Optional.empty();
     }
     
     /**
      * 根据文章ID获取所有章节（按索引排序）
      */
     public List<ArticleSection> getSectionsByArticleId(UUID articleId) {
-        return articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleId);
+        String sql = "SELECT * FROM article_sections WHERE article_id = ? ORDER BY section_index ASC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(articleId));
+        return rows.stream().map(this::mapToArticleSection).collect(Collectors.toList());
     }
     
     /**
      * 删除章节
      */
     public void deleteSection(UUID id) {
-        articleSectionRepository.deleteById(id);
+        String sql = "DELETE FROM article_sections WHERE id = ?";
+        d1Util.execute(sql, EntityMapper.uuidToString(id));
     }
     
     /**
      * 根据文章ID删除所有章节
      */
     public void deleteSectionsByArticleId(UUID articleId) {
-        articleSectionRepository.deleteByArticleId(articleId);
+        String sql = "DELETE FROM article_sections WHERE article_id = ?";
+        d1Util.execute(sql, EntityMapper.uuidToString(articleId));
     }
     
     /**
      * 重新排序章节索引
      */
     public void reorderSections(UUID articleId) {
-        List<ArticleSection> sections = articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleId);
+        List<ArticleSection> sections = getSectionsByArticleId(articleId);
         
         for (int i = 0; i < sections.size(); i++) {
             ArticleSection section = sections.get(i);
             section.setSectionIndex(i);
-            articleSectionRepository.save(section);
+            saveSection(section);
         }
     }
     
@@ -182,7 +192,7 @@ public class ArticleSectionService {
      * 移动章节到指定位置
      */
     public void moveSection(UUID sectionId, Integer newIndex) {
-        Optional<ArticleSection> optionalSection = articleSectionRepository.findById(sectionId);
+        Optional<ArticleSection> optionalSection = getSectionById(sectionId);
         if (!optionalSection.isPresent()) {
             throw new RuntimeException("章节不存在");
         }
@@ -191,7 +201,7 @@ public class ArticleSectionService {
         UUID articleId = section.getArticleId();
         
         // 获取当前章节列表
-        List<ArticleSection> sections = articleSectionRepository.findByArticleIdOrderBySectionIndexAsc(articleId);
+        List<ArticleSection> sections = getSectionsByArticleId(articleId);
         
         // 移除当前章节
         sections.removeIf(s -> s.getId().equals(sectionId));
@@ -207,7 +217,51 @@ public class ArticleSectionService {
         for (int i = 0; i < sections.size(); i++) {
             ArticleSection s = sections.get(i);
             s.setSectionIndex(i);
-            articleSectionRepository.save(s);
+            saveSection(s);
         }
+    }
+    
+    /**
+     * 保存章节
+     */
+    private ArticleSection saveSection(ArticleSection section) {
+        if (section.getId() == null) {
+            // 插入新记录
+            section.setId(UUID.randomUUID());
+            Map<String, Object> data = articleSectionToMap(section);
+            d1Util.insert("article_sections", data);
+            return section;
+        } else {
+            // 更新记录
+            Map<String, Object> data = articleSectionToMap(section);
+            d1Util.updateById("article_sections", data, "id", EntityMapper.uuidToString(section.getId()));
+            return section;
+        }
+    }
+    
+    /**
+     * 将 Map 转换为 ArticleSection 实体
+     */
+    private ArticleSection mapToArticleSection(Map<String, Object> row) {
+        ArticleSection section = new ArticleSection();
+        section.setId(EntityMapper.getUUID(row, "id"));
+        section.setArticleId(EntityMapper.getUUID(row, "article_id"));
+        section.setTitle(EntityMapper.getString(row, "title"));
+        section.setSectionContent(EntityMapper.getString(row, "section_content"));
+        section.setSectionIndex(EntityMapper.getInteger(row, "section_index"));
+        return section;
+    }
+    
+    /**
+     * 将 ArticleSection 实体转换为 Map（用于数据库操作）
+     */
+    private Map<String, Object> articleSectionToMap(ArticleSection section) {
+        Map<String, Object> data = new HashMap<>();
+        EntityMapper.putIfNotNull(data, "id", section.getId());
+        EntityMapper.putIfNotNull(data, "article_id", section.getArticleId());
+        EntityMapper.putIfNotNull(data, "title", section.getTitle());
+        EntityMapper.putIfNotNull(data, "section_content", section.getSectionContent());
+        EntityMapper.putIfNotNull(data, "section_index", section.getSectionIndex());
+        return data;
     }
 }

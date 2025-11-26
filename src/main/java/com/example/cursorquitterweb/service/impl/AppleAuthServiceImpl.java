@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +46,6 @@ public class AppleAuthServiceImpl implements AppleAuthService {
     private String appleClientId;
     
     @Override
-    @Transactional
     public AppleLoginResponse login(AppleLoginRequest request) {
         logger.info("处理 Apple 登录请求，apple_user_id: {}", request.getAppleUserId());
         

@@ -1,35 +1,25 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 电子书实体类
- * 对应数据库表: public.books
+ * 对应数据库表: books
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "books", schema = "public")
 public class Book {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "title", nullable = false)
     private String title;
     
-    @Column(name = "posturl")
     private String postUrl;
     
-    @Column(name = "pdfurl")
     private String pdfUrl;
     
-    @Column(name = "createAt", nullable = false)
     private OffsetDateTime createAt;
     
-    @Column(name = "updateAt", nullable = false)
     private OffsetDateTime updateAt;
     
     public Book() {
@@ -98,7 +88,9 @@ public class Book {
         this.updateAt = updateAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

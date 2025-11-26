@@ -1,6 +1,5 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,41 +7,28 @@ import java.util.UUID;
 
 /**
  * 文章实体类
- * 对应数据库表: public.article
+ * 对应数据库表: article
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "article", schema = "public")
 public class Article {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "article_id")
     private UUID articleId;
     
-    @Column(name = "type")
     private String type;
     
-    @Column(name = "post_img")
     private String postImg;
     
-    @Column(name = "color")
     private String color;
     
-    @Column(name = "title", columnDefinition = "TEXT")
     private String title;
     
-    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
     
-    @Column(name = "createAt")
     private OffsetDateTime createAt;
     
-    @Column(name = "status")
     private String status = "active";
     
-    // 关联关系
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @OrderBy("sectionIndex ASC")
+    // 关联关系（不再使用 JPA 关联，需要手动查询）
     private List<ArticleSection> sections = new ArrayList<>();
     
     public Article() {

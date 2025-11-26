@@ -1,38 +1,27 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 用户举报实体类
- * 对应数据库表: public.user_reports
+ * 对应数据库表: user_reports
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "user_reports", schema = "public")
 public class UserReport {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "reported_user_id", nullable = false)
     private UUID reportedUserId;
     
-    @Column(name = "reporter_user_id", nullable = false)
     private UUID reporterUserId;
     
-    @Column(name = "reason", nullable = false, length = 255)
     private String reason;
     
-    @Column(name = "remark", columnDefinition = "TEXT")
     private String remark;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     public UserReport() {
@@ -105,7 +94,9 @@ public class UserReport {
         this.updatedAt = updatedAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }

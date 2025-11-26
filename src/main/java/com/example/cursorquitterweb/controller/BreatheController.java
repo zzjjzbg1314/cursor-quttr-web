@@ -6,7 +6,6 @@ import com.example.cursorquitterweb.service.BreatheService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -192,7 +191,7 @@ public class BreatheController {
      * 分页查询呼吸练习列表
      */
     @GetMapping("/page")
-    public ApiResponse<Page<Breathe>> getBreathePage(
+    public ApiResponse<List<Breathe>> getBreathePage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         logger.info("分页查询呼吸练习列表，页码: {}, 每页大小: {}", page, size);
@@ -204,15 +203,15 @@ public class BreatheController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Breathe> breathePage = breatheService.getBreathePage(page, size);
-        return ApiResponse.success(breathePage);
+        List<Breathe> breatheList = breatheService.getBreathePage(page, size);
+        return ApiResponse.success(breatheList);
     }
     
     /**
      * 根据标题模糊查询并分页
      */
     @GetMapping("/search/title/page")
-    public ApiResponse<Page<Breathe>> searchBreatheByTitlePage(
+    public ApiResponse<List<Breathe>> searchBreatheByTitlePage(
             @RequestParam String title,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -225,8 +224,8 @@ public class BreatheController {
             return ApiResponse.error("每页大小必须在1-100之间");
         }
         
-        Page<Breathe> breathePage = breatheService.searchBreatheByTitlePage(title, page, size);
-        return ApiResponse.success(breathePage);
+        List<Breathe> breatheList = breatheService.searchBreatheByTitlePage(title, page, size);
+        return ApiResponse.success(breatheList);
     }
     
     /**

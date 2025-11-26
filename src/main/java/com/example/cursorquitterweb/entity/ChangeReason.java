@@ -1,36 +1,22 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 用户戒色改变理由实体类
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "change_reason")
 public class ChangeReason {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
     private UUID id;
     
-    @Column(name = "user_id", nullable = false)
     private UUID userId;
     
-    @Column(name = "content", columnDefinition = "text")
     private String content;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     // 构造函数
@@ -39,6 +25,13 @@ public class ChangeReason {
     public ChangeReason(UUID userId, String content) {
         this.userId = userId;
         this.content = content;
+    }
+    
+    /**
+     * 更新前调用，设置更新时间
+     */
+    public void preUpdate() {
+        this.updatedAt = OffsetDateTime.now();
     }
     
     // Getter和Setter方法

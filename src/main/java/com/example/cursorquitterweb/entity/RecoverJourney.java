@@ -1,32 +1,23 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 康复记录实体类
- * 对应数据库表: public.recover_journey
+ * 对应数据库表: recover_journey
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "recover_journey", schema = "public")
 public class RecoverJourney {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "user_id")
     private UUID userId;
     
-    @Column(name = "fell_content", columnDefinition = "TEXT")
     private String fellContent;
     
-    @Column(name = "create_at", nullable = false)
     private OffsetDateTime createAt;
     
-    @Column(name = "update_at", nullable = false)
     private OffsetDateTime updateAt;
     
     public RecoverJourney() {
@@ -86,7 +77,9 @@ public class RecoverJourney {
         this.updateAt = updateAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

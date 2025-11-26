@@ -1,25 +1,19 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 帖子点赞实体类
- * 对应数据库表: public.post_likes
+ * 对应数据库表: post_likes
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "post_likes", schema = "public")
 public class PostLike {
     
-    @Id
-    @Column(name = "post_id")
     private UUID postId;
     
-    @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
     
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     public PostLike() {
@@ -62,7 +56,9 @@ public class PostLike {
         this.updatedAt = updatedAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }

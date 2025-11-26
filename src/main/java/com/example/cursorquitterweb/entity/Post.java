@@ -1,45 +1,31 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 帖子实体类
- * 对应数据库表: public.posts
+ * 对应数据库表: posts
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "posts", schema = "public")
 public class Post {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "post_id")
     private UUID postId;
     
-    @Column(name = "user_id", nullable = false)
     private UUID userId;
     
-    @Column(name = "user_nickname", nullable = false, length = 100)
     private String userNickname;
     
-    @Column(name = "user_stage", nullable = false, length = 50)
     private String userStage;
     
-    @Column(name = "avatar_url")
     private String avatarUrl;
     
-    
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
-    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     public Post() {
@@ -139,7 +125,9 @@ public class Post {
         this.updatedAt = updatedAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }

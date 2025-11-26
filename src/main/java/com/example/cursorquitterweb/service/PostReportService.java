@@ -1,8 +1,6 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.PostReport;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -25,9 +23,9 @@ public interface PostReportService {
     Optional<PostReport> findById(UUID id);
     
     /**
-     * 获取所有举报记录（分页）
+     * 获取所有举报记录（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<PostReport> getAllReports(Pageable pageable);
+    List<PostReport> getAllReports(int page, int size);
     
     /**
      * 根据被举报的帖子ID查找举报记录
@@ -35,9 +33,9 @@ public interface PostReportService {
     List<PostReport> findByReportedPostId(UUID reportedPostId);
     
     /**
-     * 根据被举报的帖子ID分页查找举报记录
+     * 根据被举报的帖子ID分页查找举报记录（已移除 Spring Data Page，返回 List）
      */
-    Page<PostReport> findByReportedPostId(UUID reportedPostId, Pageable pageable);
+    List<PostReport> findByReportedPostId(UUID reportedPostId, int page, int size);
     
     /**
      * 根据举报人ID查找举报记录
@@ -45,9 +43,9 @@ public interface PostReportService {
     List<PostReport> findByReporterUserId(UUID reporterUserId);
     
     /**
-     * 根据举报人ID分页查找举报记录
+     * 根据举报人ID分页查找举报记录（已移除 Spring Data Page，返回 List）
      */
-    Page<PostReport> findByReporterUserId(UUID reporterUserId, Pageable pageable);
+    List<PostReport> findByReporterUserId(UUID reporterUserId, int page, int size);
     
     /**
      * 根据举报原因查找举报记录
@@ -85,8 +83,8 @@ public interface PostReportService {
     List<Object[]> findMostReportedPosts();
     
     /**
-     * 查询被举报次数最多的帖子（分页）
+     * 查询被举报次数最多的帖子（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<Object[]> findMostReportedPosts(Pageable pageable);
+    List<Object[]> findMostReportedPosts(int page, int size);
 }
 

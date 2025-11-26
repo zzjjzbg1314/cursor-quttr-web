@@ -1,17 +1,22 @@
 package com.example.cursorquitterweb.task;
 
 import com.example.cursorquitterweb.entity.User;
-import com.example.cursorquitterweb.repository.UserRepository;
+import com.example.cursorquitterweb.service.UserService;
+import com.example.cursorquitterweb.util.CloudflareD1Util;
+import com.example.cursorquitterweb.util.EntityMapper;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 用户最佳记录更新定时任务
@@ -23,7 +28,10 @@ public class BestRecordUpdateTask {
     private static final Logger logger = LogUtil.getLogger(BestRecordUpdateTask.class);
     
     @Autowired
-    private UserRepository userRepository;
+    private CloudflareD1Util d1Util;
+    
+    @Autowired
+    private UserService userService;
     
     /**
      * 每天凌晨1点执行用户最佳记录更新任务
@@ -31,31 +39,36 @@ public class BestRecordUpdateTask {
      * "0 0 1 * * ?" 表示每天凌晨1点0分0秒执行
      */
     @Scheduled(cron = "0 0 1 * * ?")
-    @Transactional
     public void updateBestRecords() {
         LogUtil.logInfo(logger, "开始执行用户最佳记录更新任务");
         
         try {
             // 获取所有用户
-            List<User> users = userRepository.findAll();
+            String sql = "SELECT * FROM users";
+            List<Map<String, Object>> userRows = d1Util.queryList(sql);
             
-            if (users.isEmpty()) {
+            if (userRows.isEmpty()) {
                 LogUtil.logInfo(logger, "没有需要更新的用户");
                 return;
             }
             
             int updatedCount = 0;
-            int totalUsers = users.size();
+            int totalUsers = userRows.size();
             OffsetDateTime now = OffsetDateTime.now();
             
             // 遍历所有用户，计算并更新best_record
-            for (User user : users) {
+            for (Map<String, Object> userRow : userRows) {
                 try {
+                    UUID userId = EntityMapper.getUUID(userRow, "id");
+                    if (userId == null) {
+                        continue;
+                    }
+                    
                     // 获取挑战重置时间
-                    OffsetDateTime challengeResetTime = user.getChallengeResetTime();
+                    OffsetDateTime challengeResetTime = EntityMapper.getOffsetDateTime(userRow, "challenge_reset_time");
                     
                     if (challengeResetTime == null) {
-                        LogUtil.logWarn(logger, "用户 {} 的challengeResetTime为null，跳过", user.getId());
+                        LogUtil.logWarn(logger, "用户 {} 的challengeResetTime为null，跳过", userId);
                         continue;
                     }
                     
@@ -67,7 +80,7 @@ public class BestRecordUpdateTask {
                     int currentDays = (int) daysBetween + 1;
                     
                     // 获取当前的best_record
-                    Integer currentBestRecord = user.getBestRecord();
+                    Integer currentBestRecord = EntityMapper.getInteger(userRow, "best_record");
                     if (currentBestRecord == null) {
                         currentBestRecord = 1;
                     }
@@ -77,17 +90,20 @@ public class BestRecordUpdateTask {
                     
                     // 只有当值发生变化时才更新
                     if (newBestRecord != currentBestRecord) {
-                        user.setBestRecord(newBestRecord);
-                        userRepository.save(user);
+                        Map<String, Object> updateData = new HashMap<>();
+                        updateData.put("best_record", newBestRecord);
+                        updateData.put("updated_at", EntityMapper.offsetDateTimeToString(now));
+                        
+                        d1Util.updateById("users", updateData, "id", EntityMapper.uuidToString(userId));
                         updatedCount++;
                         
                         LogUtil.logInfo(logger, 
                             "用户 {} 的best_record已更新: {} -> {} (当前天数: {})", 
-                            user.getId(), currentBestRecord, newBestRecord, currentDays);
+                            userId, currentBestRecord, newBestRecord, currentDays);
                     }
                     
                 } catch (Exception e) {
-                    LogUtil.logError(logger, "更新用户 {} 的best_record失败", user.getId(), e);
+                    LogUtil.logError(logger, "更新用户 best_record失败", e);
                 }
             }
             

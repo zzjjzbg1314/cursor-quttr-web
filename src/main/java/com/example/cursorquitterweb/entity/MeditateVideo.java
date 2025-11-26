@@ -1,50 +1,39 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * 冥想视频实体类
- * 对应数据库表: public.meditate_video
+ * 对应数据库表: meditate_video
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
+ * 注意：meditateQuotes 字段需要手动处理关联表 meditate_video_quotes
  */
-@Entity
-@Table(name = "meditate_video", schema = "public")
 public class MeditateVideo {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "title", nullable = false)
     private String title;
     
-    @Column(name = "subtitle")
     private String subtitle;
     
-    @Column(name = "image")
     private String image;
     
-    @Column(name = "videoUrl")
     private String videoUrl;
     
-    @Column(name = "audioUrl")
     private String audioUrl;
     
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "meditate_video_quotes", joinColumns = @JoinColumn(name = "meditate_video_id"))
-    @Column(name = "quote")
+    /**
+     * 冥想语录列表
+     * 注意：需要手动处理关联表 meditate_video_quotes
+     */
     private List<String> meditateQuotes;
     
-    @Column(name = "color")
     private String color;
     
-    @Column(name = "createAt", nullable = false)
     private OffsetDateTime createAt;
     
-    @Column(name = "updateAt", nullable = false)
     private OffsetDateTime updateAt;
     
     public MeditateVideo() {
@@ -145,7 +134,9 @@ public class MeditateVideo {
         this.updateAt = updateAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

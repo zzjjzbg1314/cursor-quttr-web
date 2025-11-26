@@ -8,10 +8,6 @@ import com.example.cursorquitterweb.dto.UpdateCommentRequest;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -148,17 +144,12 @@ public class CommentController {
      * 根据帖子ID分页获取评论
      */
     @GetMapping("/post/{postId}/page")
-    public ApiResponse<Page<Comment>> getCommentsByPostIdPage(
+    public ApiResponse<List<Comment>> getCommentsByPostIdPage(
             @PathVariable UUID postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Comment> comments = commentService.findByPostId(postId, pageable);
+            List<Comment> comments = commentService.findByPostId(postId, page, size);
             return ApiResponse.success("获取帖子评论成功", comments);
         } catch (Exception e) {
             return ApiResponse.error("获取帖子评论失败: " + e.getMessage());
@@ -221,16 +212,11 @@ public class CommentController {
      * 获取所有评论（分页）
      */
     @GetMapping("/getAllComments")
-    public ApiResponse<Page<Comment>> getAllComments(
+    public ApiResponse<List<Comment>> getAllComments(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Comment> comments = commentService.getAllComments(pageable);
+            List<Comment> comments = commentService.getAllComments(page, size);
             return ApiResponse.success("获取评论列表成功", comments);
         } catch (Exception e) {
             return ApiResponse.error("获取评论列表失败: " + e.getMessage());
@@ -317,17 +303,12 @@ public class CommentController {
      * 分页获取帖子的所有一级评论
      */
     @GetMapping("/post/{postId}/top-level/page")
-    public ApiResponse<Page<Comment>> getTopLevelCommentsPage(
+    public ApiResponse<List<Comment>> getTopLevelCommentsPage(
             @PathVariable UUID postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Comment> comments = commentService.findTopLevelCommentsByPostId(postId, pageable);
+            List<Comment> comments = commentService.findTopLevelCommentsByPostId(postId, page, size);
             return ApiResponse.success("获取一级评论成功", comments);
         } catch (Exception e) {
             return ApiResponse.error("获取一级评论失败: " + e.getMessage());
@@ -373,17 +354,12 @@ public class CommentController {
      * 分页获取帖子的所有评论及其回复（小红书风格）
      */
     @GetMapping("/post/{postId}/with-replies/page")
-    public ApiResponse<Page<CommentWithRepliesDTO>> getCommentsWithRepliesPage(
+    public ApiResponse<List<CommentWithRepliesDTO>> getCommentsWithRepliesPage(
             @PathVariable UUID postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<CommentWithRepliesDTO> commentsWithReplies = commentService.findCommentsWithRepliesByPostId(postId, pageable);
+            List<CommentWithRepliesDTO> commentsWithReplies = commentService.findCommentsWithRepliesByPostId(postId, page, size);
             return ApiResponse.success("获取评论及回复成功", commentsWithReplies);
         } catch (Exception e) {
             return ApiResponse.error("获取评论及回复失败: " + e.getMessage());

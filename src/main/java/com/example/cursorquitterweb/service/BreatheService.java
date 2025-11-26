@@ -2,43 +2,56 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.BreatheDto;
 import com.example.cursorquitterweb.entity.Breathe;
-import com.example.cursorquitterweb.repository.BreatheRepository;
+import com.example.cursorquitterweb.util.CloudflareD1Util;
+import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * 呼吸练习服务实现类
+ * 使用 CloudflareD1Util 进行数据库操作
  */
 @Service
-@Transactional
 public class BreatheService {
     
     @Autowired
-    private BreatheRepository breatheRepository;
+    private CloudflareD1Util d1Util;
     
     /**
      * 根据ID查找呼吸练习
      */
-    @Transactional(readOnly = true)
     public Optional<Breathe> findById(UUID id) {
-        return breatheRepository.findById(id);
+        Map<String, Object> row = d1Util.findById("breathe", "id", EntityMapper.uuidToString(id));
+        return row != null ? Optional.of(mapToBreathe(row)) : Optional.empty();
     }
     
     /**
      * 保存呼吸练习
      */
     public Breathe save(Breathe breathe) {
-        return breatheRepository.save(breathe);
+        if (breathe.getId() == null) {
+            // 插入新记录
+            breathe.setId(UUID.randomUUID());
+            breathe.setCreateAt(OffsetDateTime.now());
+            breathe.setUpdateAt(OffsetDateTime.now());
+            Map<String, Object> data = breatheToMap(breathe);
+            d1Util.insert("breathe", data);
+            return breathe;
+        } else {
+            // 更新记录
+            breathe.preUpdate();
+            Map<String, Object> data = breatheToMap(breathe);
+            d1Util.updateById("breathe", data, "id", EntityMapper.uuidToString(breathe.getId()));
+            return breathe;
+        }
     }
     
     /**
@@ -46,7 +59,7 @@ public class BreatheService {
      */
     public Breathe createBreathe(String title, String time, String audiourl) {
         Breathe breathe = new Breathe(title, time, audiourl);
-        return breatheRepository.save(breathe);
+        return save(breathe);
     }
     
     /**
@@ -54,165 +67,186 @@ public class BreatheService {
      */
     public Breathe updateBreathe(Breathe breathe) {
         breathe.preUpdate(); // 更新修改时间
-        return breatheRepository.save(breathe);
+        return save(breathe);
     }
     
     /**
      * 更新呼吸练习信息（通过ID）
      */
     public Breathe updateBreathe(UUID id, String title, String time, String audiourl) {
-        Breathe breathe = breatheRepository.findById(id)
+        Breathe breathe = findById(id)
                 .orElseThrow(() -> new RuntimeException("呼吸练习不存在，ID: " + id));
         
         breathe.setTitle(title);
         breathe.setTime(time);
         breathe.setAudiourl(audiourl);
         
-        return breatheRepository.save(breathe);
+        return save(breathe);
     }
     
     /**
      * 删除呼吸练习
      */
     public void deleteBreathe(UUID id) {
-        if (!breatheRepository.existsById(id)) {
+        if (!d1Util.exists("breathe", "id = ?", EntityMapper.uuidToString(id))) {
             throw new RuntimeException("呼吸练习不存在，ID: " + id);
         }
-        breatheRepository.deleteById(id);
+        d1Util.deleteById("breathe", "id", EntityMapper.uuidToString(id));
     }
     
     /**
      * 根据标题搜索呼吸练习
      */
-    @Transactional(readOnly = true)
     public List<Breathe> searchByTitle(String title) {
-        return breatheRepository.findByTitleContainingIgnoreCaseOrderByCreateAtDesc(title);
+        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 根据标题精确查询呼吸练习
      */
-    @Transactional(readOnly = true)
     public Optional<Breathe> findByTitle(String title) {
-        return breatheRepository.findByTitle(title);
+        String sql = "SELECT * FROM breathe WHERE title = ? LIMIT 1";
+        Map<String, Object> row = d1Util.queryOne(sql, title);
+        return row != null ? Optional.of(mapToBreathe(row)) : Optional.empty();
     }
     
     /**
      * 根据创建时间范围查询呼吸练习
      */
-    @Transactional(readOnly = true)
     public List<Breathe> findByCreateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        return breatheRepository.findByCreateAtBetweenOrderByCreateAtDesc(startTime, endTime);
+        String sql = "SELECT * FROM breathe WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, 
+            EntityMapper.offsetDateTimeToString(startTime), 
+            EntityMapper.offsetDateTimeToString(endTime));
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 根据更新时间范围查询呼吸练习
      */
-    @Transactional(readOnly = true)
     public List<Breathe> findByUpdateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        return breatheRepository.findByUpdateAtBetweenOrderByUpdateAtDesc(startTime, endTime);
+        String sql = "SELECT * FROM breathe WHERE update_at >= ? AND update_at <= ? ORDER BY update_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, 
+            EntityMapper.offsetDateTimeToString(startTime), 
+            EntityMapper.offsetDateTimeToString(endTime));
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 查询有音频链接的呼吸练习
      */
-    @Transactional(readOnly = true)
     public List<Breathe> findBreatheWithAudiourl() {
-        return breatheRepository.findByAudiourlIsNotNullOrderByCreateAtDesc();
+        String sql = "SELECT * FROM breathe WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY create_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql);
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 统计指定时间范围内创建的呼吸练习数量
      */
-    @Transactional(readOnly = true)
     public long countBreatheByCreateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        return breatheRepository.countByCreateAtBetween(startTime, endTime);
+        String sql = "SELECT COUNT(*) as count FROM breathe WHERE create_at >= ? AND create_at <= ?";
+        return d1Util.queryLong(sql, 
+            EntityMapper.offsetDateTimeToString(startTime), 
+            EntityMapper.offsetDateTimeToString(endTime));
     }
     
     /**
      * 根据标题关键词搜索呼吸练习（支持中文全文搜索）
      */
-    @Transactional(readOnly = true)
     public List<Breathe> searchBreatheByTitleKeyword(String keyword) {
-        return breatheRepository.searchBreatheByTitleKeyword(keyword);
+        String sql = "SELECT * FROM breathe WHERE title LIKE ? ORDER BY create_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + keyword + "%");
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 获取最新的呼吸练习列表（按创建时间降序）
      */
-    @Transactional(readOnly = true)
     public List<Breathe> getLatestBreathe() {
-        return breatheRepository.findLatestBreathe();
+        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql);
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 获取最新的呼吸练习列表（按创建时间降序，限制数量）
      */
-    @Transactional(readOnly = true)
     public List<Breathe> getLatestBreathe(int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return breatheRepository.findLatestBreathe(pageable);
+        String sql = "SELECT * FROM breathe ORDER BY create_at DESC LIMIT ?";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, limit);
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 分页查询呼吸练习列表（按创建时间降序）
+     * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
-    @Transactional(readOnly = true)
-    public Page<Breathe> getBreathePage(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return breatheRepository.findBreathePage(pageable);
+    public List<Breathe> getBreathePage(int page, int size) {
+        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        return d1Util.queryPage(sql, page + 1, size).stream()
+            .map(this::mapToBreathe)
+            .collect(Collectors.toList());
     }
     
     /**
      * 根据标题模糊查询并分页
+     * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
-    @Transactional(readOnly = true)
-    public Page<Breathe> searchBreatheByTitlePage(String title, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return breatheRepository.findByTitleContainingIgnoreCasePage(title, pageable);
+    public List<Breathe> searchBreatheByTitlePage(String title, int page, int size) {
+        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
+        return d1Util.queryPage(sql, page + 1, size, "%" + title + "%").stream()
+            .map(this::mapToBreathe)
+            .collect(Collectors.toList());
     }
     
     /**
      * 获取所有呼吸练习（按创建时间升序排列）
      */
-    @Transactional(readOnly = true)
     public List<Breathe> getAllBreathe() {
-        return breatheRepository.findAllByOrderByCreateAtAsc();
+        String sql = "SELECT * FROM breathe ORDER BY create_at ASC";
+        List<Map<String, Object>> rows = d1Util.queryList(sql);
+        return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
     
     /**
      * 获取所有呼吸练习（分页）
+     * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
-    @Transactional(readOnly = true)
-    public Page<Breathe> getAllBreathe(Pageable pageable) {
-        return breatheRepository.findAll(pageable);
+    public List<Breathe> getAllBreathe(int page, int size) {
+        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        return d1Util.queryPage(sql, page + 1, size).stream()
+            .map(this::mapToBreathe)
+            .collect(Collectors.toList());
     }
     
     /**
      * 检查呼吸练习标题是否已存在
      */
-    @Transactional(readOnly = true)
     public boolean existsByTitle(String title) {
-        return breatheRepository.findByTitle(title).isPresent();
+        return findByTitle(title).isPresent();
     }
     
     /**
      * 根据音频链接查找呼吸练习
      */
-    @Transactional(readOnly = true)
     public Optional<Breathe> findByAudiourl(String audiourl) {
-        return breatheRepository.findByAudiourl(audiourl);
+        String sql = "SELECT * FROM breathe WHERE audiourl = ? LIMIT 1";
+        Map<String, Object> row = d1Util.queryOne(sql, audiourl);
+        return row != null ? Optional.of(mapToBreathe(row)) : Optional.empty();
     }
     
     /**
      * 更新呼吸练习音频链接
      */
     public Breathe updateAudiourl(UUID id, String audiourl) {
-        Optional<Breathe> breatheOpt = breatheRepository.findById(id);
+        Optional<Breathe> breatheOpt = findById(id);
         if (breatheOpt.isPresent()) {
             Breathe breathe = breatheOpt.get();
             breathe.setAudiourl(audiourl);
-            return breatheRepository.save(breathe);
+            return save(breathe);
         }
         throw new RuntimeException("呼吸练习不存在");
     }
@@ -220,9 +254,36 @@ public class BreatheService {
     /**
      * 统计呼吸练习总数
      */
-    @Transactional(readOnly = true)
     public long count() {
-        return breatheRepository.count();
+        return d1Util.countTable("breathe");
+    }
+    
+    /**
+     * 将 Map 转换为 Breathe 实体
+     */
+    private Breathe mapToBreathe(Map<String, Object> row) {
+        Breathe breathe = new Breathe();
+        breathe.setId(EntityMapper.getUUID(row, "id"));
+        breathe.setTitle(EntityMapper.getString(row, "title"));
+        breathe.setTime(EntityMapper.getString(row, "time"));
+        breathe.setAudiourl(EntityMapper.getString(row, "audiourl"));
+        breathe.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
+        breathe.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
+        return breathe;
+    }
+    
+    /**
+     * 将 Breathe 实体转换为 Map（用于数据库操作）
+     */
+    private Map<String, Object> breatheToMap(Breathe breathe) {
+        Map<String, Object> data = new HashMap<>();
+        EntityMapper.putIfNotNull(data, "id", breathe.getId());
+        EntityMapper.putIfNotNull(data, "title", breathe.getTitle());
+        EntityMapper.putIfNotNull(data, "time", breathe.getTime());
+        EntityMapper.putIfNotNull(data, "audiourl", breathe.getAudiourl());
+        EntityMapper.putIfNotNull(data, "create_at", breathe.getCreateAt());
+        EntityMapper.putIfNotNull(data, "update_at", breathe.getUpdateAt());
+        return data;
     }
     
     /**

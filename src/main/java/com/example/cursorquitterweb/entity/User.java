@@ -1,59 +1,41 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 用户实体类
- * 对应数据库表: public.users
+ * 对应数据库表: users
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "users", schema = "public")
 public class User {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "nickname")
     private String nickname;
     
-    @Column(name = "avatar_url")
     private String avatarUrl;
     
-    @Column(name = "gender")
     private Short gender;
     
-    @Column(name = "language")
     private String language = "zh_CN";
     
-    @Column(name = "phone_number")
     private String phoneNumber;
     
-    @Column(name = "registration_time", nullable = false)
     private OffsetDateTime registrationTime;
     
-    @Column(name = "challenge_reset_time", nullable = false)
     private OffsetDateTime challengeResetTime;
     
-    @Column(name = "best_record", nullable = false)
     private Integer bestRecord = 1;
     
-    @Column(name = "quit_reason")
     private String quitReason;
     
-    @Column(name = "age")
     private Integer age;
     
-    @Column(name = "restart_count")
     private Integer restartCount;
     
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
     public User() {
@@ -181,7 +163,9 @@ public class User {
         this.updatedAt = updatedAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }

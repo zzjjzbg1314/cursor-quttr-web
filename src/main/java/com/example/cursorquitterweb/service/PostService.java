@@ -2,8 +2,6 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.Post;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -51,14 +49,14 @@ public interface PostService {
     List<Post> findByUserId(UUID userId);
     
     /**
-     * 根据用户ID分页查找用户的帖子
+     * 根据用户ID分页查找用户的帖子（已移除 Spring Data Page，返回 List）
      */
-    Page<Post> findByUserId(UUID userId, Pageable pageable);
+    List<Post> findByUserId(UUID userId, int page, int size);
     
     /**
-     * 根据用户ID分页查找用户的帖子（包含点赞数和评论数）
+     * 根据用户ID分页查找用户的帖子（包含点赞数和评论数，已移除 Spring Data Page，返回 List）
      */
-    Page<PostWithUpvotesDto> findByUserIdWithUpvotes(UUID userId, Pageable pageable);
+    List<PostWithUpvotesDto> findByUserIdWithUpvotes(UUID userId, int page, int size);
     
     /**
      * 根据用户昵称查找帖子
@@ -70,16 +68,15 @@ public interface PostService {
      */
     List<Post> findByUserStage(String userStage);
     
-    
     /**
      * 根据内容搜索帖子
      */
     List<Post> searchByContent(String content);
     
     /**
-     * 获取所有帖子（分页）
+     * 获取所有帖子（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<Post> getAllPosts(Pageable pageable);
+    List<Post> getAllPosts(int page, int size);
     
     /**
      * 获取所有帖子
@@ -87,9 +84,9 @@ public interface PostService {
     List<Post> getAllPosts();
     
     /**
-     * 获取所有帖子（分页，包含点赞数）
+     * 获取所有帖子（分页，包含点赞数，已移除 Spring Data Page，返回 List）
      */
-    Page<PostWithUpvotesDto> getAllPostsWithUpvotes(Pageable pageable);
+    List<PostWithUpvotesDto> getAllPostsWithUpvotes(int page, int size);
     
     /**
      * 获取所有帖子（包含点赞数）

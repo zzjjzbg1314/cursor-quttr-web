@@ -4,8 +4,6 @@ import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
 import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
 import com.example.cursorquitterweb.entity.Article;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -63,9 +61,9 @@ public interface ArticleService {
     List<Article> findByType(String type);
     
     /**
-     * 根据类型分页查找文章
+     * 根据类型分页查找文章（已移除 Spring Data Page，返回 List）
      */
-    Page<Article> findByType(String type, Pageable pageable);
+    List<Article> findByType(String type, int page, int size);
     
     /**
      * 根据标题搜索文章
@@ -78,9 +76,9 @@ public interface ArticleService {
     List<Article> findByColor(String color);
     
     /**
-     * 获取所有活跃文章（分页）
+     * 获取所有活跃文章（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<Article> getAllActiveArticles(Pageable pageable);
+    List<Article> getAllActiveArticles(int page, int size);
     
     /**
      * 获取所有活跃文章
@@ -88,9 +86,9 @@ public interface ArticleService {
     List<Article> getAllActiveArticles();
     
     /**
-     * 获取所有文章（分页）
+     * 获取所有文章（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<Article> getAllArticles(Pageable pageable);
+    List<Article> getAllArticles(int page, int size);
     
     /**
      * 获取所有文章

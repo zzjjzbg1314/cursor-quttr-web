@@ -1,35 +1,25 @@
 package com.example.cursorquitterweb.entity;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
  * 视频实体类
- * 对应数据库表: public.video
+ * 对应数据库表: video
+ * 已移除 JPA 注解，现在作为普通 POJO 使用
  */
-@Entity
-@Table(name = "video", schema = "public")
 public class Video {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private UUID id;
     
-    @Column(name = "title", nullable = false)
     private String title;
     
-    @Column(name = "playurl", nullable = false)
     private String playurl;
     
-    @Column(name = "posturl", nullable = false)
     private String posturl;
     
-    @Column(name = "create_at", nullable = false)
     private OffsetDateTime createAt;
     
-    @Column(name = "update_at", nullable = false)
     private OffsetDateTime updateAt;
     
     public Video() {
@@ -93,7 +83,9 @@ public class Video {
         this.updateAt = updateAt;
     }
     
-    @PreUpdate
+    /**
+     * 更新前调用，设置更新时间
+     */
     public void preUpdate() {
         this.updateAt = OffsetDateTime.now();
     }

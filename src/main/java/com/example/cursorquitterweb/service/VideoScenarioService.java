@@ -2,8 +2,6 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.VideoScenarioDto;
 import com.example.cursorquitterweb.entity.VideoScenario;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -44,9 +42,9 @@ public interface VideoScenarioService {
     List<VideoScenario> findByType(String type);
     
     /**
-     * 根据类型分页查找视频场景
+     * 根据类型分页查找视频场景（已移除 Spring Data Page，返回 List）
      */
-    Page<VideoScenario> findByType(String type, Pageable pageable);
+    List<VideoScenario> findByType(String type, int page, int size);
     
     /**
      * 根据标题搜索视频场景
@@ -69,9 +67,9 @@ public interface VideoScenarioService {
     List<VideoScenario> findByAuthor(String author);
     
     /**
-     * 获取所有视频场景（分页）
+     * 获取所有视频场景（分页，已移除 Spring Data Page，返回 List）
      */
-    Page<VideoScenario> getAllVideoScenarios(Pageable pageable);
+    List<VideoScenario> getAllVideoScenarios(int page, int size);
     
     /**
      * 获取所有视频场景
