@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreateVideoRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UpdateVideoRequest;
 import com.example.cursorquitterweb.dto.VideoDto;
 import com.example.cursorquitterweb.entity.Video;
@@ -143,22 +144,31 @@ public class VideoController {
     
     /**
      * 获取所有视频（分页）
+     * 返回格式: { "data": { "content": [...], ... } }
      */
     @GetMapping("/getAllVideos")
-    public ApiResponse<List<VideoDto>> getAllVideos(
+    public ResponseEntity<ApiResponse<PageResponse<VideoDto>>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
         try {
             logger.info("获取所有视频，页码: {}, 大小: {}", page, size);
             
+            // 获取总数
+            long totalElements = videoService.count();
+            
+            // 获取分页数据
             List<Video> videos = videoService.getAllVideos(page, size);
             List<VideoDto> dtoList = videoService.convertToDtoList(videos);
             
-            return ApiResponse.success("获取视频列表成功", dtoList);
+            // 创建分页响应对象
+            PageResponse<VideoDto> pageResponse = new PageResponse<>(dtoList, totalElements, page, size);
+            
+            return ResponseEntity.ok(ApiResponse.success("获取视频列表成功", pageResponse));
             
         } catch (Exception e) {
             logger.error("获取视频列表失败，错误: {}", e.getMessage(), e);
-            return ApiResponse.error("获取视频列表失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("获取视频列表失败: " + e.getMessage()));
         }
     }
     
