@@ -71,14 +71,14 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public List<VideoScenario> findByType(String type) {
-        String sql = "SELECT * FROM video_scenario WHERE type = ? ORDER BY created_at ASC";
+        String sql = "SELECT * FROM video_scenario WHERE type = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, type);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> findByType(String type, int page, int size) {
-        String sql = "SELECT * FROM video_scenario WHERE type = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE type = ? ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size, type).stream()
             .map(this::mapToVideoScenario)
             .collect(Collectors.toList());
@@ -86,35 +86,35 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public List<VideoScenario> searchByTitle(String title) {
-        String sql = "SELECT * FROM video_scenario WHERE LOWER(title) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> searchBySubtitle(String subtitle) {
-        String sql = "SELECT * FROM video_scenario WHERE LOWER(subtitle) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE LOWER(subtitle) LIKE LOWER(?) ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + subtitle + "%");
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> findByColor(String color) {
-        String sql = "SELECT * FROM video_scenario WHERE color = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE color = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, color);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> findByAuthor(String author) {
-        String sql = "SELECT * FROM video_scenario WHERE author = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE author = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, author);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> getAllVideoScenarios(int page, int size) {
-        String sql = "SELECT * FROM video_scenario ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToVideoScenario)
             .collect(Collectors.toList());
@@ -122,14 +122,14 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public List<VideoScenario> getAllVideoScenarios() {
-        String sql = "SELECT * FROM video_scenario ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM video_scenario WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -144,7 +144,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public long countByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT COUNT(*) as count FROM video_scenario WHERE created_at >= ? AND created_at <= ?";
+        String sql = "SELECT COUNT(*) as count FROM video_scenario WHERE create_at >= ? AND create_at <= ?";
         return d1Util.queryLong(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -152,28 +152,28 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     
     @Override
     public List<VideoScenario> findByTypeAndTitle(String type, String title) {
-        String sql = "SELECT * FROM video_scenario WHERE type = ? AND LOWER(title) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE type = ? AND LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, type, "%" + title + "%");
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> getVideoScenariosWithAudio() {
-        String sql = "SELECT * FROM video_scenario WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> getVideoScenariosWithVideo() {
-        String sql = "SELECT * FROM video_scenario WHERE videourl IS NOT NULL AND videourl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE videourl IS NOT NULL AND videourl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
     
     @Override
     public List<VideoScenario> getVideoScenariosWithImage() {
-        String sql = "SELECT * FROM video_scenario WHERE image IS NOT NULL AND image != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM video_scenario WHERE image IS NOT NULL AND image != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideoScenario).collect(Collectors.toList());
     }
@@ -214,8 +214,8 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
         videoScenario.setColor(EntityMapper.getString(row, "color"));
         videoScenario.setQuotes(EntityMapper.getString(row, "quotes"));
         videoScenario.setAuthor(EntityMapper.getString(row, "author"));
-        videoScenario.setCreateAt(EntityMapper.getOffsetDateTime(row, "created_at"));
-        videoScenario.setUpdateAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
+        videoScenario.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
+        videoScenario.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
         return videoScenario;
     }
     
@@ -234,8 +234,8 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
         EntityMapper.putIfNotNull(data, "color", videoScenario.getColor());
         EntityMapper.putIfNotNull(data, "quotes", videoScenario.getQuotes());
         EntityMapper.putIfNotNull(data, "author", videoScenario.getAuthor());
-        EntityMapper.putIfNotNull(data, "created_at", videoScenario.getCreateAt());
-        EntityMapper.putIfNotNull(data, "updated_at", videoScenario.getUpdateAt());
+        EntityMapper.putIfNotNull(data, "create_at", videoScenario.getCreateAt());
+        EntityMapper.putIfNotNull(data, "update_at", videoScenario.getUpdateAt());
         return data;
     }
     

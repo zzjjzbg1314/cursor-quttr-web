@@ -99,14 +99,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> findByType(String type) {
-        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, type, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByType(String type, int page, int size) {
-        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size, type, "active").stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -114,21 +114,21 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> searchByTitle(String title) {
-        String sql = "SELECT * FROM article WHERE LOWER(title) LIKE LOWER(?) AND status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE LOWER(title) LIKE LOWER(?) AND status = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%", "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByColor(String color) {
-        String sql = "SELECT * FROM article WHERE color = ? AND status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE color = ? AND status = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, color, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> getAllActiveArticles(int page, int size) {
-        String sql = "SELECT * FROM article WHERE status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size, "active").stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -136,14 +136,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> getAllActiveArticles() {
-        String sql = "SELECT * FROM article WHERE status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> getAllArticles(int page, int size) {
-        String sql = "SELECT * FROM article ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -151,14 +151,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> getAllArticles() {
-        String sql = "SELECT * FROM article ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM article WHERE created_at >= ? AND created_at <= ? AND status = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM article WHERE create_at >= ? AND create_at <= ? AND status = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime), 
@@ -174,7 +174,7 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public long countByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT COUNT(*) as count FROM article WHERE created_at >= ? AND created_at <= ? AND status = ?";
+        String sql = "SELECT COUNT(*) as count FROM article WHERE create_at >= ? AND create_at <= ? AND status = ?";
         return d1Util.queryLong(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime), 
@@ -279,7 +279,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setColor(EntityMapper.getString(row, "color"));
         article.setTitle(EntityMapper.getString(row, "title"));
         article.setContent(EntityMapper.getString(row, "content"));
-        article.setCreateAt(EntityMapper.getOffsetDateTime(row, "created_at"));
+        article.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
         article.setStatus(EntityMapper.getString(row, "status"));
         return article;
     }
@@ -295,7 +295,7 @@ public class ArticleServiceImpl implements ArticleService {
         EntityMapper.putIfNotNull(data, "color", article.getColor());
         EntityMapper.putIfNotNull(data, "title", article.getTitle());
         EntityMapper.putIfNotNull(data, "content", article.getContent());
-        EntityMapper.putIfNotNull(data, "created_at", article.getCreateAt());
+        EntityMapper.putIfNotNull(data, "create_at", article.getCreateAt());
         EntityMapper.putIfNotNull(data, "status", article.getStatus());
         return data;
     }
@@ -310,7 +310,7 @@ public class ArticleServiceImpl implements ArticleService {
         section.setTitle(EntityMapper.getString(row, "title"));
         section.setSectionContent(EntityMapper.getString(row, "section_content"));
         section.setSectionIndex(EntityMapper.getInteger(row, "section_index"));
-        section.setCreateAt(EntityMapper.getOffsetDateTime(row, "created_at"));
+        section.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
         section.setUpdateAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
         return section;
     }

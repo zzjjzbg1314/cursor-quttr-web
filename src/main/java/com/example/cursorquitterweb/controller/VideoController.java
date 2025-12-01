@@ -145,7 +145,7 @@ public class VideoController {
      * 获取所有视频（分页）
      */
     @GetMapping("/getAllVideos")
-    public ResponseEntity<ApiResponse<List<VideoDto>>> getAllVideos(
+    public ApiResponse<List<VideoDto>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
         try {
@@ -154,12 +154,11 @@ public class VideoController {
             List<Video> videos = videoService.getAllVideos(page, size);
             List<VideoDto> dtoList = videoService.convertToDtoList(videos);
             
-            return ResponseEntity.ok(ApiResponse.success("获取视频列表成功", dtoList));
+            return ApiResponse.success("获取视频列表成功", dtoList);
             
         } catch (Exception e) {
             logger.error("获取视频列表失败，错误: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("获取视频列表失败: " + e.getMessage()));
+            return ApiResponse.error("获取视频列表失败: " + e.getMessage());
         }
     }
     

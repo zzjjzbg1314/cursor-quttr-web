@@ -106,7 +106,7 @@ public class MusicService {
      * 根据标题搜索音乐
      */
     public List<Music> searchByTitle(String title) {
-        String sql = "SELECT * FROM music WHERE LOWER(title) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -115,7 +115,7 @@ public class MusicService {
      * 根据作者搜索音乐
      */
     public List<Music> searchByAuthor(String author) {
-        String sql = "SELECT * FROM music WHERE LOWER(author) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE LOWER(author) LIKE LOWER(?) ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + author + "%");
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -133,7 +133,7 @@ public class MusicService {
      * 根据作者精确查询音乐
      */
     public List<Music> findByAuthor(String author) {
-        String sql = "SELECT * FROM music WHERE author = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE author = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, author);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -151,7 +151,7 @@ public class MusicService {
      * 根据创建时间范围查询音乐
      */
     public List<Music> findByCreateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM music WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -162,7 +162,7 @@ public class MusicService {
      * 根据更新时间范围查询音乐
      */
     public List<Music> findByUpdateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM music WHERE updated_at >= ? AND updated_at <= ? ORDER BY updated_at DESC";
+        String sql = "SELECT * FROM music WHERE update_at >= ? AND update_at <= ? ORDER BY update_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -173,7 +173,7 @@ public class MusicService {
      * 查询有视频链接的音乐
      */
     public List<Music> findMusicWithVideourl() {
-        String sql = "SELECT * FROM music WHERE videourl IS NOT NULL AND videourl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE videourl IS NOT NULL AND videourl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -182,7 +182,7 @@ public class MusicService {
      * 查询有音频链接的音乐
      */
     public List<Music> findMusicWithAudiourl() {
-        String sql = "SELECT * FROM music WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -191,7 +191,7 @@ public class MusicService {
      * 查询有封面图片的音乐
      */
     public List<Music> findMusicWithImage() {
-        String sql = "SELECT * FROM music WHERE image IS NOT NULL AND image != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE image IS NOT NULL AND image != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -200,7 +200,7 @@ public class MusicService {
      * 统计指定时间范围内创建的音乐数量
      */
     public long countMusicByCreateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT COUNT(*) as count FROM music WHERE created_at >= ? AND created_at <= ?";
+        String sql = "SELECT COUNT(*) as count FROM music WHERE create_at >= ? AND create_at <= ?";
         return d1Util.queryLong(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -210,7 +210,7 @@ public class MusicService {
      * 根据标题关键词搜索音乐（支持中文全文搜索）
      */
     public List<Music> searchMusicByTitleKeyword(String keyword) {
-        String sql = "SELECT * FROM music WHERE title LIKE ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE title LIKE ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + keyword + "%");
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -219,7 +219,7 @@ public class MusicService {
      * 根据作者关键词搜索音乐（支持中文全文搜索）
      */
     public List<Music> searchMusicByAuthorKeyword(String keyword) {
-        String sql = "SELECT * FROM music WHERE author LIKE ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE author LIKE ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + keyword + "%");
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -228,7 +228,7 @@ public class MusicService {
      * 获取最新的音乐列表（按创建时间降序）
      */
     public List<Music> getLatestMusic() {
-        String sql = "SELECT * FROM music ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -237,7 +237,7 @@ public class MusicService {
      * 获取最新的音乐列表（按创建时间降序，限制数量）
      */
     public List<Music> getLatestMusic(int limit) {
-        String sql = "SELECT * FROM music ORDER BY created_at DESC LIMIT ?";
+        String sql = "SELECT * FROM music ORDER BY create_at DESC LIMIT ?";
         List<Map<String, Object>> rows = d1Util.queryList(sql, limit);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -247,7 +247,7 @@ public class MusicService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Music> getMusicPage(int page, int size) {
-        String sql = "SELECT * FROM music ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToMusic)
             .collect(Collectors.toList());
@@ -258,7 +258,7 @@ public class MusicService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Music> searchMusicByTitlePage(String title, int page, int size) {
-        String sql = "SELECT * FROM music WHERE LOWER(title) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size, "%" + title + "%").stream()
             .map(this::mapToMusic)
             .collect(Collectors.toList());
@@ -269,7 +269,7 @@ public class MusicService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Music> searchMusicByAuthorPage(String author, int page, int size) {
-        String sql = "SELECT * FROM music WHERE LOWER(author) LIKE LOWER(?) ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music WHERE LOWER(author) LIKE LOWER(?) ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size, "%" + author + "%").stream()
             .map(this::mapToMusic)
             .collect(Collectors.toList());
@@ -279,7 +279,7 @@ public class MusicService {
      * 获取所有音乐（按创建时间升序排列）
      */
     public List<Music> getAllMusic() {
-        String sql = "SELECT * FROM music ORDER BY created_at ASC";
+        String sql = "SELECT * FROM music ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToMusic).collect(Collectors.toList());
     }
@@ -289,7 +289,7 @@ public class MusicService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Music> getAllMusic(int page, int size) {
-        String sql = "SELECT * FROM music ORDER BY created_at DESC";
+        String sql = "SELECT * FROM music ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToMusic)
             .collect(Collectors.toList());
@@ -391,8 +391,8 @@ public class MusicService {
         music.setImage(EntityMapper.getString(row, "image"));
         music.setVideourl(EntityMapper.getString(row, "videourl"));
         music.setAudiourl(EntityMapper.getString(row, "audiourl"));
-        music.setCreateAt(EntityMapper.getOffsetDateTime(row, "created_at"));
-        music.setUpdateAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
+        music.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
+        music.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
         music.setQuotes(EntityMapper.getString(row, "quotes"));
         music.setAuthor(EntityMapper.getString(row, "author"));
         music.setColor(EntityMapper.getString(row, "color"));
@@ -411,8 +411,8 @@ public class MusicService {
         EntityMapper.putIfNotNull(data, "image", music.getImage());
         EntityMapper.putIfNotNull(data, "videourl", music.getVideourl());
         EntityMapper.putIfNotNull(data, "audiourl", music.getAudiourl());
-        EntityMapper.putIfNotNull(data, "created_at", music.getCreateAt());
-        EntityMapper.putIfNotNull(data, "updated_at", music.getUpdateAt());
+        EntityMapper.putIfNotNull(data, "create_at", music.getCreateAt());
+        EntityMapper.putIfNotNull(data, "update_at", music.getUpdateAt());
         EntityMapper.putIfNotNull(data, "quotes", music.getQuotes());
         EntityMapper.putIfNotNull(data, "author", music.getAuthor());
         EntityMapper.putIfNotNull(data, "color", music.getColor());

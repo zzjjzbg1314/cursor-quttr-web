@@ -86,7 +86,7 @@ public class MeditateVideoService {
      * 根据标题搜索冥想视频
      */
     public List<MeditateVideo> searchByTitle(String title) {
-        String sql = "SELECT * FROM meditate_video WHERE title LIKE ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE title LIKE ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -99,7 +99,7 @@ public class MeditateVideoService {
      * 获取所有冥想视频（分页）
      */
     public List<MeditateVideo> getAllMeditateVideos(int page, int size) {
-        String sql = "SELECT * FROM meditate_video ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video ORDER BY create_at DESC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(row -> {
                 MeditateVideo video = mapToMeditateVideo(row);
@@ -113,7 +113,7 @@ public class MeditateVideoService {
      * 获取所有冥想视频
      */
     public List<MeditateVideo> getAllMeditateVideos() {
-        String sql = "SELECT * FROM meditate_video ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -126,7 +126,7 @@ public class MeditateVideoService {
      * 根据时间范围查找冥想视频
      */
     public List<MeditateVideo> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM meditate_video WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -141,7 +141,7 @@ public class MeditateVideoService {
      * 统计指定时间范围内的冥想视频数量
      */
     public long countByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT COUNT(*) as count FROM meditate_video WHERE created_at >= ? AND created_at <= ?";
+        String sql = "SELECT COUNT(*) as count FROM meditate_video WHERE create_at >= ? AND create_at <= ?";
         return d1Util.queryLong(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -193,7 +193,7 @@ public class MeditateVideoService {
      * 获取有视频链接的冥想视频
      */
     public List<MeditateVideo> getMeditateVideosWithVideoUrl() {
-        String sql = "SELECT * FROM meditate_video WHERE videoUrl IS NOT NULL AND videoUrl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE videoUrl IS NOT NULL AND videoUrl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -206,7 +206,7 @@ public class MeditateVideoService {
      * 获取有音频链接的冥想视频
      */
     public List<MeditateVideo> getMeditateVideosWithAudioUrl() {
-        String sql = "SELECT * FROM meditate_video WHERE audioUrl IS NOT NULL AND audioUrl != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE audioUrl IS NOT NULL AND audioUrl != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -219,7 +219,7 @@ public class MeditateVideoService {
      * 获取有图片的冥想视频
      */
     public List<MeditateVideo> getMeditateVideosWithImage() {
-        String sql = "SELECT * FROM meditate_video WHERE image IS NOT NULL AND image != '' ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE image IS NOT NULL AND image != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -232,7 +232,7 @@ public class MeditateVideoService {
      * 根据颜色查找冥想视频
      */
     public List<MeditateVideo> findByColor(String color) {
-        String sql = "SELECT * FROM meditate_video WHERE color = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE color = ? ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, color);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -325,8 +325,8 @@ public class MeditateVideoService {
         meditateVideo.setVideoUrl(EntityMapper.getString(row, "videoUrl"));
         meditateVideo.setAudioUrl(EntityMapper.getString(row, "audioUrl"));
         meditateVideo.setColor(EntityMapper.getString(row, "color"));
-        meditateVideo.setCreateAt(EntityMapper.getOffsetDateTime(row, "created_at"));
-        meditateVideo.setUpdateAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
+        meditateVideo.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
+        meditateVideo.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
         return meditateVideo;
     }
     
@@ -342,8 +342,8 @@ public class MeditateVideoService {
         EntityMapper.putIfNotNull(data, "videoUrl", meditateVideo.getVideoUrl());
         EntityMapper.putIfNotNull(data, "audioUrl", meditateVideo.getAudioUrl());
         EntityMapper.putIfNotNull(data, "color", meditateVideo.getColor());
-        EntityMapper.putIfNotNull(data, "created_at", meditateVideo.getCreateAt());
-        EntityMapper.putIfNotNull(data, "updated_at", meditateVideo.getUpdateAt());
+        EntityMapper.putIfNotNull(data, "create_at", meditateVideo.getCreateAt());
+        EntityMapper.putIfNotNull(data, "update_at", meditateVideo.getUpdateAt());
         return data;
     }
     
