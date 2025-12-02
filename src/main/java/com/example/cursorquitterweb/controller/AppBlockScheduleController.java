@@ -33,6 +33,27 @@ public class AppBlockScheduleController {
     private AppBlockScheduleService appBlockScheduleService;
     
     /**
+     * 获取所有应用屏蔽计划
+     * 直接通过根路径 /api/app-block-schedules 访问
+     * 使用缓存（在 Service 层实现）
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AppBlockSchedule>>> getAllAppBlockSchedules() {
+        try {
+            logger.info("获取所有应用屏蔽计划");
+            
+            List<AppBlockSchedule> schedules = appBlockScheduleService.getAllAppBlockSchedules();
+            
+            return ResponseEntity.ok(ApiResponse.success("获取应用屏蔽计划列表成功", schedules));
+            
+        } catch (Exception e) {
+            logger.error("获取应用屏蔽计划列表失败，错误: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("获取应用屏蔽计划列表失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
      * 创建新的应用屏蔽计划
      */
     @PostMapping("/create")
@@ -142,26 +163,6 @@ public class AppBlockScheduleController {
             logger.error("删除应用屏蔽计划失败，ID: {}, 错误: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("删除应用屏蔽计划失败: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * 获取所有应用屏蔽计划
-     * 使用缓存（在 Service 层实现）
-     */
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<AppBlockSchedule>>> getAllAppBlockSchedules() {
-        try {
-            logger.info("获取所有应用屏蔽计划");
-            
-            List<AppBlockSchedule> schedules = appBlockScheduleService.getAllAppBlockSchedules();
-            
-            return ResponseEntity.ok(ApiResponse.success("获取应用屏蔽计划列表成功", schedules));
-            
-        } catch (Exception e) {
-            logger.error("获取应用屏蔽计划列表失败，错误: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("获取应用屏蔽计划列表失败: " + e.getMessage()));
         }
     }
     

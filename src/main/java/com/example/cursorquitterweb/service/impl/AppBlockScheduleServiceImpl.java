@@ -89,7 +89,7 @@ public class AppBlockScheduleServiceImpl implements AppBlockScheduleService {
     @Override
     @Cacheable(value = "appBlockSchedules", key = "'all'")
     public List<AppBlockSchedule> getAllAppBlockSchedules() {
-        String sql = "SELECT * FROM app_block_schedule ORDER BY created_at DESC";
+        String sql = "SELECT * FROM app_block_schedule ORDER BY created_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToAppBlockSchedule).collect(Collectors.toList());
     }
@@ -97,7 +97,7 @@ public class AppBlockScheduleServiceImpl implements AppBlockScheduleService {
     @Override
     @Cacheable(value = "appBlockSchedules", key = "#page + '_' + #size")
     public List<AppBlockSchedule> getAppBlockSchedulesPage(int page, int size) {
-        String sql = "SELECT * FROM app_block_schedule ORDER BY created_at DESC";
+        String sql = "SELECT * FROM app_block_schedule ORDER BY created_at ASC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToAppBlockSchedule)
             .collect(Collectors.toList());
