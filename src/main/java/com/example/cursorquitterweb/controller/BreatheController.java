@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.service.BreatheService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -258,8 +259,10 @@ public class BreatheController {
     
     /**
      * 获取所有呼吸练习
+     * 使用缓存
      */
     @GetMapping("/getAllBreathe")
+    @Cacheable(value = "breathe", key = "'all'")
     public ApiResponse<List<Breathe>> getAllBreathe() {
         logger.info("获取所有呼吸练习");
         List<Breathe> breathe = breatheService.getAllBreathe();

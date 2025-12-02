@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.entity.Breathe;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -56,7 +57,9 @@ public class BreatheService {
     
     /**
      * 创建新呼吸练习
+     * 清除缓存
      */
+    @CacheEvict(value = "breathe", allEntries = true)
     public Breathe createBreathe(String title, String time, String audiourl) {
         Breathe breathe = new Breathe(title, time, audiourl);
         return save(breathe);
@@ -64,7 +67,9 @@ public class BreatheService {
     
     /**
      * 更新呼吸练习信息
+     * 清除缓存
      */
+    @CacheEvict(value = "breathe", allEntries = true)
     public Breathe updateBreathe(Breathe breathe) {
         breathe.preUpdate(); // 更新修改时间
         return save(breathe);
@@ -72,7 +77,9 @@ public class BreatheService {
     
     /**
      * 更新呼吸练习信息（通过ID）
+     * 清除缓存
      */
+    @CacheEvict(value = "breathe", allEntries = true)
     public Breathe updateBreathe(UUID id, String title, String time, String audiourl) {
         Breathe breathe = findById(id)
                 .orElseThrow(() -> new RuntimeException("呼吸练习不存在，ID: " + id));
@@ -86,7 +93,9 @@ public class BreatheService {
     
     /**
      * 删除呼吸练习
+     * 清除缓存
      */
+    @CacheEvict(value = "breathe", allEntries = true)
     public void deleteBreathe(UUID id) {
         if (!d1Util.exists("breathe", "id = ?", EntityMapper.uuidToString(id))) {
             throw new RuntimeException("呼吸练习不存在，ID: " + id);
@@ -98,7 +107,7 @@ public class BreatheService {
      * 根据标题搜索呼吸练习
      */
     public List<Breathe> searchByTitle(String title) {
-        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
         return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
@@ -116,7 +125,7 @@ public class BreatheService {
      * 根据创建时间范围查询呼吸练习
      */
     public List<Breathe> findByCreateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM breathe WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe WHERE create_at >= ? AND create_at <= ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -127,7 +136,7 @@ public class BreatheService {
      * 根据更新时间范围查询呼吸练习
      */
     public List<Breathe> findByUpdateAtBetween(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM breathe WHERE update_at >= ? AND update_at <= ? ORDER BY update_at DESC";
+        String sql = "SELECT * FROM breathe WHERE update_at >= ? AND update_at <= ? ORDER BY update_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -138,7 +147,7 @@ public class BreatheService {
      * 查询有音频链接的呼吸练习
      */
     public List<Breathe> findBreatheWithAudiourl() {
-        String sql = "SELECT * FROM breathe WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe WHERE audiourl IS NOT NULL AND audiourl != '' ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
@@ -157,7 +166,7 @@ public class BreatheService {
      * 根据标题关键词搜索呼吸练习（支持中文全文搜索）
      */
     public List<Breathe> searchBreatheByTitleKeyword(String keyword) {
-        String sql = "SELECT * FROM breathe WHERE title LIKE ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe WHERE title LIKE ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + keyword + "%");
         return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
@@ -166,7 +175,7 @@ public class BreatheService {
      * 获取最新的呼吸练习列表（按创建时间降序）
      */
     public List<Breathe> getLatestBreathe() {
-        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
@@ -175,7 +184,7 @@ public class BreatheService {
      * 获取最新的呼吸练习列表（按创建时间降序，限制数量）
      */
     public List<Breathe> getLatestBreathe(int limit) {
-        String sql = "SELECT * FROM breathe ORDER BY create_at DESC LIMIT ?";
+        String sql = "SELECT * FROM breathe ORDER BY create_at ASC LIMIT ?";
         List<Map<String, Object>> rows = d1Util.queryList(sql, limit);
         return rows.stream().map(this::mapToBreathe).collect(Collectors.toList());
     }
@@ -185,7 +194,7 @@ public class BreatheService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Breathe> getBreathePage(int page, int size) {
-        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToBreathe)
             .collect(Collectors.toList());
@@ -196,7 +205,7 @@ public class BreatheService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Breathe> searchBreatheByTitlePage(String title, int page, int size) {
-        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size, "%" + title + "%").stream()
             .map(this::mapToBreathe)
             .collect(Collectors.toList());
@@ -216,7 +225,7 @@ public class BreatheService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Breathe> getAllBreathe(int page, int size) {
-        String sql = "SELECT * FROM breathe ORDER BY create_at DESC";
+        String sql = "SELECT * FROM breathe ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToBreathe)
             .collect(Collectors.toList());

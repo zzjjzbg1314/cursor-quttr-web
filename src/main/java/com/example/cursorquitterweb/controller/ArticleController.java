@@ -9,6 +9,7 @@ import com.example.cursorquitterweb.dto.UpdateArticleRequest;
 import com.example.cursorquitterweb.entity.Article;
 import com.example.cursorquitterweb.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -231,8 +232,10 @@ public class ArticleController {
     
     /**
      * 获取所有文章（分页）
+     * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/all")
+    @Cacheable(value = "articles", key = "#page + '_' + #size")
     public ApiResponse<List<Article>> getAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

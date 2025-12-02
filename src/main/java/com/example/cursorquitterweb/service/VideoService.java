@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.entity.Video;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -35,7 +36,9 @@ public class VideoService {
     
     /**
      * 创建新视频
+     * 清除缓存
      */
+    @CacheEvict(value = "videos", allEntries = true)
     public Video createVideo(String title, String playurl, String posturl) {
         Video video = new Video(title, playurl, posturl);
         return saveVideo(video);
@@ -43,7 +46,9 @@ public class VideoService {
     
     /**
      * 更新视频信息
+     * 清除缓存
      */
+    @CacheEvict(value = "videos", allEntries = true)
     public Video updateVideo(UUID id, String title, String playurl, String posturl) {
         Video video = findById(id)
                 .orElseThrow(() -> new RuntimeException("视频不存在，ID: " + id));
@@ -57,7 +62,9 @@ public class VideoService {
     
     /**
      * 删除视频
+     * 清除缓存
      */
+    @CacheEvict(value = "videos", allEntries = true)
     public void deleteVideo(UUID id) {
         if (!d1Util.exists("video", "id = ?", EntityMapper.uuidToString(id))) {
             throw new RuntimeException("视频不存在，ID: " + id);
@@ -69,7 +76,7 @@ public class VideoService {
      * 根据标题搜索视频
      */
     public List<Video> searchByTitle(String title) {
-        String sql = "SELECT * FROM video WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video WHERE LOWER(title) LIKE LOWER(?) ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%");
         return rows.stream().map(this::mapToVideo).collect(Collectors.toList());
     }
@@ -79,7 +86,7 @@ public class VideoService {
      * 注意：返回的是 List，不再使用 Spring Data 的 Page 对象
      */
     public List<Video> getAllVideos(int page, int size) {
-        String sql = "SELECT * FROM video ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToVideo)
             .collect(Collectors.toList());
@@ -89,7 +96,7 @@ public class VideoService {
      * 获取所有视频
      */
     public List<Video> getAllVideos() {
-        String sql = "SELECT * FROM video ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideo).collect(Collectors.toList());
     }
@@ -98,7 +105,7 @@ public class VideoService {
      * 根据时间范围查找视频
      */
     public List<Video> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM video WHERE create_at >= ? AND create_at <= ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video WHERE create_at >= ? AND create_at <= ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime));
@@ -137,7 +144,7 @@ public class VideoService {
      * 获取有播放链接的视频
      */
     public List<Video> getVideosWithPlayurl() {
-        String sql = "SELECT * FROM video WHERE playurl IS NOT NULL AND playurl != '' ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video WHERE playurl IS NOT NULL AND playurl != '' ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideo).collect(Collectors.toList());
     }
@@ -146,7 +153,7 @@ public class VideoService {
      * 获取有海报链接的视频
      */
     public List<Video> getVideosWithPosturl() {
-        String sql = "SELECT * FROM video WHERE posturl IS NOT NULL AND posturl != '' ORDER BY create_at DESC";
+        String sql = "SELECT * FROM video WHERE posturl IS NOT NULL AND posturl != '' ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToVideo).collect(Collectors.toList());
     }

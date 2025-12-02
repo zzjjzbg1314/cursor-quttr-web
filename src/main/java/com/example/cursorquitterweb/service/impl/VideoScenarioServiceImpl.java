@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.service.VideoScenarioService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -34,6 +35,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     }
     
     @Override
+    @CacheEvict(value = "videoScenarios", allEntries = true)
     public VideoScenario createVideoScenario(String type, String title, String subtitle, String image, 
                                            String audiourl, String videourl, String color, String quotes, String author) {
         VideoScenario videoScenario = new VideoScenario(type, title, subtitle, image, audiourl, videourl, color, quotes, author);
@@ -41,6 +43,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     }
     
     @Override
+    @CacheEvict(value = "videoScenarios", allEntries = true)
     public VideoScenario updateVideoScenario(UUID videoId, String type, String title, String subtitle, 
                                             String image, String audiourl, String videourl, String color, 
                                             String quotes, String author) {
@@ -62,6 +65,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     }
     
     @Override
+    @CacheEvict(value = "videoScenarios", allEntries = true)
     public void deleteVideoScenario(UUID videoId) {
         if (!d1Util.exists("video_scenario", "videoId = ?", EntityMapper.uuidToString(videoId))) {
             throw new RuntimeException("视频场景不存在");

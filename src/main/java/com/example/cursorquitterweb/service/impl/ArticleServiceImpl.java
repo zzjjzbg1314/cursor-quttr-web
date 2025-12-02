@@ -9,6 +9,7 @@ import com.example.cursorquitterweb.service.ArticleService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -37,24 +38,28 @@ public class ArticleServiceImpl implements ArticleService {
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public Article createArticle(String type, String postImg, String color, String title) {
         Article article = new Article(type, postImg, color, title);
         return saveArticle(article);
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public Article createArticle(String type, String postImg, String color, String title, String content) {
         Article article = new Article(type, postImg, color, title, content);
         return saveArticle(article);
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public Article createArticle(String type, String postImg, String color, String title, String content, String status) {
         Article article = new Article(type, postImg, color, title, content, status);
         return saveArticle(article);
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public Article updateArticle(UUID articleId, String type, String postImg, String color, String title) {
         Optional<Article> optionalArticle = findById(articleId);
         if (optionalArticle.isPresent()) {
@@ -69,6 +74,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public Article updateArticle(UUID articleId, String type, String postImg, String color, String title, String content) {
         Optional<Article> optionalArticle = findById(articleId);
         if (optionalArticle.isPresent()) {
@@ -84,6 +90,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public void updateArticleStatus(UUID articleId, String status) {
         if (!status.equals("active") && !status.equals("inactive")) {
             throw new IllegalArgumentException("状态只能是 'active' 或 'inactive'");
@@ -93,6 +100,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
     
     @Override
+    @CacheEvict(value = "articles", allEntries = true)
     public void deleteArticle(UUID articleId) {
         updateArticleStatus(articleId, "inactive");
     }

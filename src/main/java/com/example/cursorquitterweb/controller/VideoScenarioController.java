@@ -9,6 +9,7 @@ import com.example.cursorquitterweb.service.VideoScenarioService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -155,8 +156,10 @@ public class VideoScenarioController {
     
     /**
      * 获取所有视频场景（分页）
+     * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/getAllVideoScenarios")
+    @Cacheable(value = "videoScenarios", key = "#page + '_' + #size")
     public ResponseEntity<ApiResponse<List<VideoScenarioDto>>> getAllVideoScenarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
