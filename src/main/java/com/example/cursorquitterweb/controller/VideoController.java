@@ -10,6 +10,7 @@ import com.example.cursorquitterweb.service.VideoService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -145,8 +146,10 @@ public class VideoController {
     /**
      * 获取所有视频（分页）
      * 返回格式: { "data": { "content": [...], ... } }
+     * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/getAllVideos")
+    @Cacheable(value = "videos", key = "#page + '_' + #size")
     public ResponseEntity<ApiResponse<PageResponse<VideoDto>>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {

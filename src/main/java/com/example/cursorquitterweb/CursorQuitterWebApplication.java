@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     JpaRepositoriesAutoConfiguration.class
 })
 @EnableScheduling
+@EnableCaching
 public class CursorQuitterWebApplication {
 
     public static void main(String[] args) {

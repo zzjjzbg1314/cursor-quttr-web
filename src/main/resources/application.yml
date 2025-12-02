@@ -28,6 +28,12 @@ spring:
     sql-migration-separator: __
     sql-migration-suffixes: .sql
 
+  # 缓存配置
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+
 # 微信配置
 wechat:
   app-id: ${WECHAT_APP_ID:your_wechat_app_id_here}
