@@ -98,7 +98,7 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             
             // 生成1到30之间的随机数字用于头像
             int randomNumber = (int) (Math.random() * 30) + 1;
-            String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
+            String avatarUrl = "https://nofaponline.us/images/xiaohongshu/" + randomNumber + ".jpg";
             
             // 使用 User.initUser() 初始化用户
             user = User.initUser();
