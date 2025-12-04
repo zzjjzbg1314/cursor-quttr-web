@@ -2,6 +2,8 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreatePostRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
+import com.example.cursorquitterweb.dto.PostPageResult;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.dto.UpdatePostRequest;
 import com.example.cursorquitterweb.entity.Post;
@@ -87,20 +89,35 @@ public class PostController {
     }
     
     /**
-     * 获取所有帖子（分页，包含点赞数）
+     * 获取所有帖子（分页，包含点赞数，支持排序）
+     * 返回格式: { "data": { "content": [...], "totalElements": ..., ... } }
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      */
     @GetMapping("/getAllPosts")
-    public ApiResponse<List<PostWithUpvotesDto>> getAllPosts(
+    public ApiResponse<PageResponse<PostWithUpvotesDto>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "created_at") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         try {
-            List<PostWithUpvotesDto> posts = postService.getAllPostsWithUpvotes(page, size);
-            return ApiResponse.success("获取帖子列表成功", posts);
+            // 使用单次查询获取数据和总数
+            PostPageResult result = postService.getAllPostsWithUpvotesAndCount(page, size, sortBy, sortDir);
+            
+            // 创建分页响应对象
+            PageResponse<PostWithUpvotesDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取帖子列表成功", pageResponse);
         } catch (Exception e) {
             return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
         }
     }
-    
+
+
     /**
      * 获取所有帖子（包含点赞数，不分页）
      */

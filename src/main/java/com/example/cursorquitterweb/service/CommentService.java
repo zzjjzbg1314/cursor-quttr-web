@@ -1,5 +1,6 @@
 package com.example.cursorquitterweb.service;
 
+import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.entity.Comment;
 
 import java.time.OffsetDateTime;
@@ -81,6 +82,12 @@ public interface CommentService {
      * 获取所有评论
      */
     List<Comment> getAllComments();
+    
+    /**
+     * 获取所有评论（分页，支持排序，返回总数）
+     * 使用窗口函数在单次查询中同时获取数据和总数
+     */
+    CommentPageResult getAllCommentsWithCount(int page, int size, String sortBy, String sortDir);
     
     /**
      * 根据时间范围查找评论

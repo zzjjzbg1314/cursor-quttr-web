@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.entity.Post;
+import com.example.cursorquitterweb.dto.PostPageResult;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.service.PostService;
 import com.example.cursorquitterweb.service.PostLikeService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +135,35 @@ public class PostServiceImpl implements PostService {
             .collect(Collectors.toList());
     }
     
+    /**
+     * 获取所有帖子（分页，支持排序）
+     */
+    private List<Post> getAllPosts(int page, int size, String sortBy, String sortDir) {
+        // 验证排序字段，防止SQL注入
+        String validSortBy = validateSortField(sortBy);
+        String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        
+        String sql = String.format("SELECT * FROM posts WHERE is_deleted = ? ORDER BY %s %s", validSortBy, validSortDir);
+        return d1Util.queryPage(sql, page + 1, size, false).stream()
+            .map(this::mapToPost)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 验证排序字段，防止SQL注入
+     */
+    private String validateSortField(String sortBy) {
+        // 允许的排序字段列表
+        String[] allowedFields = {"created_at", "updated_at", "user_nickname", "user_stage"};
+        for (String field : allowedFields) {
+            if (field.equalsIgnoreCase(sortBy)) {
+                return field;
+            }
+        }
+        // 默认返回 created_at
+        return "created_at";
+    }
+    
     @Override
     public List<Post> getAllPosts() {
         String sql = "SELECT * FROM posts WHERE is_deleted = ? ORDER BY created_at DESC";
@@ -146,6 +177,50 @@ public class PostServiceImpl implements PostService {
         return posts.stream()
                 .map(this::convertToPostWithUpvotesDto)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<PostWithUpvotesDto> getAllPostsWithUpvotes(int page, int size, String sortBy, String sortDir) {
+        List<Post> posts = getAllPosts(page, size, sortBy, sortDir);
+        return posts.stream()
+                .map(this::convertToPostWithUpvotesDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public PostPageResult getAllPostsWithUpvotesAndCount(int page, int size, String sortBy, String sortDir) {
+        // 使用窗口函数在单次查询中同时获取数据和总数
+        String validSortBy = validateSortField(sortBy);
+        String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        
+        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        String sql = String.format(
+            "SELECT *, COUNT(*) OVER() as total_count FROM posts WHERE is_deleted = ? ORDER BY %s %s LIMIT ? OFFSET ?",
+            validSortBy, validSortDir
+        );
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, false, size, offset);
+        
+        long totalElements = 0;
+        List<Post> posts = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            // 从第一行获取总数（所有行的 total_count 都相同）
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            // 移除 total_count 字段，避免影响 Post 映射
+            Map<String, Object> postRow = new HashMap<>(row);
+            postRow.remove("total_count");
+            posts.add(mapToPost(postRow));
+        }
+        
+        List<PostWithUpvotesDto> content = posts.stream()
+                .map(this::convertToPostWithUpvotesDto)
+                .collect(Collectors.toList());
+        
+        return new PostPageResult(content, totalElements);
     }
     
     @Override
@@ -179,6 +254,12 @@ public class PostServiceImpl implements PostService {
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime), 
             false);
+    }
+    
+    @Override
+    public long count() {
+        String sql = "SELECT COUNT(*) as count FROM posts WHERE is_deleted = ?";
+        return d1Util.queryLong(sql, false);
     }
     
     /**

@@ -1,5 +1,6 @@
 package com.example.cursorquitterweb.service.impl;
 
+import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
@@ -143,6 +144,53 @@ public class CommentServiceImpl implements CommentService {
         String sql = "SELECT * FROM comments WHERE is_deleted = ? ORDER BY created_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, false);
         return rows.stream().map(this::mapToComment).collect(Collectors.toList());
+    }
+    
+    @Override
+    public CommentPageResult getAllCommentsWithCount(int page, int size, String sortBy, String sortDir) {
+        // 使用窗口函数在单次查询中同时获取数据和总数
+        String validSortBy = validateSortField(sortBy);
+        String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        
+        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        String sql = String.format(
+            "SELECT *, COUNT(*) OVER() as total_count FROM comments WHERE is_deleted = ? ORDER BY %s %s LIMIT ? OFFSET ?",
+            validSortBy, validSortDir
+        );
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, false, size, offset);
+        
+        long totalElements = 0;
+        List<Comment> comments = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            // 从第一行获取总数（所有行的 total_count 都相同）
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            // 移除 total_count 字段，避免影响 Comment 映射
+            Map<String, Object> commentRow = new HashMap<>(row);
+            commentRow.remove("total_count");
+            comments.add(mapToComment(commentRow));
+        }
+        
+        return new CommentPageResult(comments, totalElements);
+    }
+    
+    /**
+     * 验证排序字段，防止SQL注入
+     */
+    private String validateSortField(String sortBy) {
+        // 允许的排序字段列表
+        String[] allowedFields = {"created_at", "updated_at", "user_nickname", "user_stage", "comment_level"};
+        for (String field : allowedFields) {
+            if (field.equalsIgnoreCase(sortBy)) {
+                return field;
+            }
+        }
+        // 默认返回 created_at
+        return "created_at";
     }
     
     @Override

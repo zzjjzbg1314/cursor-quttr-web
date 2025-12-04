@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.entity.Post;
+import com.example.cursorquitterweb.dto.PostPageResult;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 
 import java.time.OffsetDateTime;
@@ -89,6 +90,17 @@ public interface PostService {
     List<PostWithUpvotesDto> getAllPostsWithUpvotes(int page, int size);
     
     /**
+     * 获取所有帖子（分页，包含点赞数，支持排序）
+     */
+    List<PostWithUpvotesDto> getAllPostsWithUpvotes(int page, int size, String sortBy, String sortDir);
+    
+    /**
+     * 获取所有帖子（分页，包含点赞数，支持排序，返回总数）
+     * 使用窗口函数在单次查询中同时获取数据和总数
+     */
+    PostPageResult getAllPostsWithUpvotesAndCount(int page, int size, String sortBy, String sortDir);
+    
+    /**
      * 获取所有帖子（包含点赞数）
      */
     List<PostWithUpvotesDto> getAllPostsWithUpvotes();
@@ -107,4 +119,9 @@ public interface PostService {
      * 统计指定时间范围内的帖子数量
      */
     long countByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime);
+    
+    /**
+     * 统计所有未删除的帖子数量
+     */
+    long count();
 }

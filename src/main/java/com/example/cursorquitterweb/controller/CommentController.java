@@ -1,9 +1,11 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.dto.CreateCommentRequest;
 import com.example.cursorquitterweb.dto.CreateReplyRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UpdateCommentRequest;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
@@ -209,15 +211,29 @@ public class CommentController {
     }
     
     /**
-     * 获取所有评论（分页）
+     * 获取所有评论（分页，支持排序）
+     * 返回格式: { "data": { "content": [...], "totalElements": ..., ... } }
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      */
     @GetMapping("/getAllComments")
-    public ApiResponse<List<Comment>> getAllComments(
+    public ApiResponse<PageResponse<Comment>> getAllComments(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "created_at") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         try {
-            List<Comment> comments = commentService.getAllComments(page, size);
-            return ApiResponse.success("获取评论列表成功", comments);
+            // 使用单次查询获取数据和总数
+            CommentPageResult result = commentService.getAllCommentsWithCount(page, size, sortBy, sortDir);
+            
+            // 创建分页响应对象
+            PageResponse<Comment> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取评论列表成功", pageResponse);
         } catch (Exception e) {
             return ApiResponse.error("获取评论列表失败: " + e.getMessage());
         }

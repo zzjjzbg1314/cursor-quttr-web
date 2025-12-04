@@ -140,3 +140,13 @@ cloudflare:
     base-url: https://api.cloudflare.com/client/v4
     connection-timeout: 10000
     read-timeout: 30000
+
+# DeepSeek API配置
+deepseek:
+  api:
+    # DeepSeek API密钥（通过环境变量设置）
+    key: ${DEEPSEEK_API_KEY:}
+    # DeepSeek API地址（使用OpenAI兼容格式）
+    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/v1/chat/completions}
+    # 模型名称（默认使用deepseek-chat）
+    model: ${DEEPSEEK_API_MODEL:deepseek-chat}
