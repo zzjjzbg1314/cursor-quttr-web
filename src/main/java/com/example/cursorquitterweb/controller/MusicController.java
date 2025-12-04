@@ -401,8 +401,10 @@ public class MusicController {
     
     /**
      * 获取所有音乐
+     * 使用缓存，缓存键固定为'all'
      */
     @GetMapping("/getAllMusic")
+    @org.springframework.cache.annotation.Cacheable(value = "music", key = "'all'")
     public ApiResponse<List<Music>> getAllMusic() {
         logger.info("获取所有音乐");
         List<Music> music = musicService.getAllMusic();

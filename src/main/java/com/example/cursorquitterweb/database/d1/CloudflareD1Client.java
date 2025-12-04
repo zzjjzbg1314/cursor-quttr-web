@@ -27,11 +27,12 @@ public class CloudflareD1Client {
     @Autowired
     private CloudflareD1Config d1Config;
     
-    private final RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
+    
     private final ObjectMapper objectMapper;
     
     public CloudflareD1Client() {
-        this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
     
@@ -55,9 +56,17 @@ public class CloudflareD1Client {
             HttpHeaders headers = createHeaders();
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             
+            long queryStartTime = System.currentTimeMillis();
             logger.debug("Executing D1 query: {}", sql);
             ResponseEntity<String> response = restTemplate.exchange(
                 url, HttpMethod.POST, entity, String.class);
+            long queryDuration = System.currentTimeMillis() - queryStartTime;
+            
+            if (queryDuration > 1000) {
+                logger.warn("⚠️ D1查询耗时较长: {}ms | SQL: {}", queryDuration, sql.length() > 100 ? sql.substring(0, 100) + "..." : sql);
+            } else {
+                logger.debug("D1查询耗时: {}ms", queryDuration);
+            }
             
             if (response.getStatusCode() == HttpStatus.OK) {
                 return parseQueryResult(response.getBody());
@@ -105,9 +114,17 @@ public class CloudflareD1Client {
             HttpHeaders headers = createHeaders();
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             
+            long executeStartTime = System.currentTimeMillis();
             logger.debug("Executing D1 statement: {}", sql);
             ResponseEntity<String> response = restTemplate.exchange(
                 url, HttpMethod.POST, entity, String.class);
+            long executeDuration = System.currentTimeMillis() - executeStartTime;
+            
+            if (executeDuration > 1000) {
+                logger.warn("⚠️ D1执行耗时较长: {}ms | SQL: {}", executeDuration, sql.length() > 100 ? sql.substring(0, 100) + "..." : sql);
+            } else {
+                logger.debug("D1执行耗时: {}ms", executeDuration);
+            }
             
             if (response.getStatusCode() == HttpStatus.OK) {
                 return parseExecuteResultFromQuery(response.getBody());

@@ -357,8 +357,10 @@ public class ArticleController {
     
     /**
      * 获取所有文章数据，按type分组，分组后每个type内的文章按创建时间排序
+     * 使用缓存，缓存键固定为'grouped-by-type'
      */
     @GetMapping("/grouped-by-type")
+    @Cacheable(value = "articles", key = "'grouped-by-type'")
     public ApiResponse<ArticlesGroupedByTypeDto> getAllArticlesGroupedByType() {
         try {
             ArticlesGroupedByTypeDto articlesGroupedByType = articleService.getAllArticlesGroupedByType();
