@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Cloudflare D1数据库工具类
@@ -36,6 +39,16 @@ public class CloudflareD1Util {
     
     // 缓存查询URL，避免重复构建
     private String queryUrl;
+    
+    // 异步查询线程池（用于并行查询）
+    private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors() * 2,
+        r -> {
+            Thread t = new Thread(r, "d1-async-query");
+            t.setDaemon(true);
+            return t;
+        }
+    );
 
     /**
      * 执行查询操作
@@ -639,13 +652,85 @@ public class CloudflareD1Util {
     }
 
     /**
+     * 异步执行查询并返回单行结果
+     * 优化：使用异步方式执行查询，适用于可以并行执行的场景
+     * 
+     * @param sql SQL 查询语句
+     * @param params 查询参数
+     * @return CompletableFuture 包装的查询结果
+     */
+    public CompletableFuture<Map<String, Object>> queryOneAsync(String sql, Object... params) {
+        return CompletableFuture.supplyAsync(() -> queryOne(sql, params), asyncExecutor);
+    }
+    
+    /**
+     * 异步执行查询并返回所有结果
+     * 优化：使用异步方式执行查询，适用于可以并行执行的场景
+     * 
+     * @param sql SQL 查询语句
+     * @param params 查询参数
+     * @return CompletableFuture 包装的查询结果列表
+     */
+    public CompletableFuture<List<Map<String, Object>>> queryListAsync(String sql, Object... params) {
+        return CompletableFuture.supplyAsync(() -> queryList(sql, params), asyncExecutor);
+    }
+    
+    /**
+     * 批量并行查询
+     * 优化：并行执行多个查询，显著提升性能
+     * 
+     * @param queries 查询列表，每个元素包含 SQL 和参数
+     * @return 查询结果列表，顺序与输入一致
+     */
+    public List<Map<String, Object>> queryBatchParallel(List<QueryRequest> queries) {
+        List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
+        for (QueryRequest query : queries) {
+            futures.add(queryOneAsync(query.getSql(), query.getParams()));
+        }
+        
+        List<Map<String, Object>> results = new ArrayList<>(queries.size());
+        for (CompletableFuture<Map<String, Object>> future : futures) {
+            try {
+                results.add(future.get());
+            } catch (Exception e) {
+                log.error("批量并行查询失败", e);
+                results.add(null);
+            }
+        }
+        return results;
+    }
+    
+    /**
+     * 查询请求封装类
+     */
+    public static class QueryRequest {
+        private final String sql;
+        private final Object[] params;
+        
+        public QueryRequest(String sql, Object... params) {
+            this.sql = sql;
+            this.params = params;
+        }
+        
+        public String getSql() {
+            return sql;
+        }
+        
+        public Object[] getParams() {
+            return params;
+        }
+    }
+    
+    /**
      * 构建请求头
-     * 优化：使用 setBearerAuth 方法，更符合Spring规范
+     * 优化：使用 setBearerAuth 方法，更符合Spring规范，添加压缩支持
      */
     private HttpHeaders buildHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(d1Config.getApiToken());
+        // 优化：添加压缩支持（已在 RestTemplate 拦截器中添加，这里作为备用）
+        headers.add("Accept-Encoding", "gzip, deflate, br");
         return headers;
     }
 }
