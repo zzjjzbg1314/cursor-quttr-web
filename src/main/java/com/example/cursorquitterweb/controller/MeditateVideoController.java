@@ -4,6 +4,8 @@ import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreateMeditateVideoRequest;
 import com.example.cursorquitterweb.dto.UpdateMeditateVideoRequest;
 import com.example.cursorquitterweb.dto.MeditateVideoDto;
+import com.example.cursorquitterweb.dto.MeditateVideoPageResult;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.entity.MeditateVideo;
 import com.example.cursorquitterweb.service.MeditateVideoService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -151,23 +153,33 @@ public class MeditateVideoController {
     }
     
     /**
-     * 获取所有冥想视频（分页）
-     * 使用缓存，缓存键包含 page 和 size 参数
+     * 获取所有冥想视频（分页，支持排序）
+     * 返回格式: { "data": { "content": [...], "totalElements": ..., ... } }
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
+     * 使用缓存，缓存键包含 page、size、sortBy 和 sortDir 参数
      */
     @GetMapping("/getAllMeditateVideos")
-    @Cacheable(value = "meditateVideos", key = "#page + '_' + #size")
-    public ResponseEntity<ApiResponse<List<MeditateVideoDto>>> getAllMeditateVideos(
+    @Cacheable(value = "meditateVideos", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDir")
+    public ResponseEntity<ApiResponse<PageResponse<MeditateVideoDto>>> getAllMeditateVideos(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size) {
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(defaultValue = "createAt") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
         try {
-            logger.info("获取所有冥想视频，页码: {}, 大小: {}", page, size);
+            logger.info("获取所有冥想视频，页码: {}, 大小: {}, 排序字段: {}, 排序方向: {}", page, size, sortBy, sortDir);
             
-            List<MeditateVideo> meditateVideos = meditateVideoService.getAllMeditateVideos(page, size);
-            List<MeditateVideoDto> dtoList = meditateVideos.stream()
-                .map(meditateVideoService::convertToDto)
-                .collect(java.util.stream.Collectors.toList());
+            // 使用单次查询获取数据和总数
+            MeditateVideoPageResult result = meditateVideoService.getAllMeditateVideosWithCount(page, size, sortBy, sortDir);
             
-            return ResponseEntity.ok(ApiResponse.success("获取冥想视频列表成功", dtoList));
+            // 创建分页响应对象
+            PageResponse<MeditateVideoDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success("获取冥想视频列表成功", pageResponse));
             
         } catch (Exception e) {
             logger.error("获取冥想视频列表失败，错误: {}", e.getMessage(), e);

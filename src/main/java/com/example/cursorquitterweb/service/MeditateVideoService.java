@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.MeditateVideoDto;
+import com.example.cursorquitterweb.dto.MeditateVideoPageResult;
 import com.example.cursorquitterweb.entity.MeditateVideo;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
@@ -9,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +116,90 @@ public class MeditateVideoService {
                 return video;
             })
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取所有冥想视频（分页，支持排序，一次性返回数据和总数）
+     * 使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    public MeditateVideoPageResult getAllMeditateVideosWithCount(int page, int size, String sortBy, String sortDir) {
+        // 验证排序字段，防止SQL注入
+        String validSortBy = validateSortField(sortBy);
+        String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        
+        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        String sql = String.format(
+            "SELECT *, COUNT(*) OVER() as total_count FROM meditate_video ORDER BY %s %s LIMIT ? OFFSET ?",
+            validSortBy, validSortDir
+        );
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, size, offset);
+        
+        long totalElements = 0;
+        List<MeditateVideo> meditateVideos = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            // 从第一行获取总数（所有行的 total_count 都相同）
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            // 移除 total_count 字段，避免影响 MeditateVideo 映射
+            Map<String, Object> videoRow = new HashMap<>(row);
+            videoRow.remove("total_count");
+            MeditateVideo video = mapToMeditateVideo(videoRow);
+            loadMeditateQuotes(video);
+            meditateVideos.add(video);
+        }
+        
+        List<MeditateVideoDto> content = meditateVideos.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new MeditateVideoPageResult(content, totalElements);
+    }
+    
+    /**
+     * 验证排序字段，防止SQL注入
+     */
+    private String validateSortField(String sortBy) {
+        // 允许的排序字段列表（数据库字段名）
+        String[] allowedFields = {"create_at", "update_at", "title", "subtitle"};
+        
+        // 处理前端传入的驼峰命名转换为数据库下划线命名
+        String dbFieldName = convertToDbFieldName(sortBy);
+        
+        for (String field : allowedFields) {
+            if (field.equalsIgnoreCase(dbFieldName)) {
+                return field;
+            }
+        }
+        // 默认返回 create_at
+        return "create_at";
+    }
+    
+    /**
+     * 将前端驼峰命名转换为数据库下划线命名
+     */
+    private String convertToDbFieldName(String fieldName) {
+        if (fieldName == null) {
+            return "create_at";
+        }
+        // 处理常见的字段名转换
+        switch (fieldName.toLowerCase()) {
+            case "createat":
+            case "create_at":
+                return "create_at";
+            case "updateat":
+            case "update_at":
+                return "update_at";
+            case "title":
+                return "title";
+            case "subtitle":
+                return "subtitle";
+            default:
+                return fieldName;
+        }
     }
     
     /**
