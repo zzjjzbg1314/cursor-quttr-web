@@ -87,6 +87,23 @@
         </encoder>
     </appender>
     
+    <!-- 性能耗时日志文件 - 每天清除，只保留最新 -->
+    <appender name="PERFORMANCE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/performance.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志文件按天滚动 -->
+            <FileNamePattern>${LOG_HOME}/performance.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!-- 不保留历史日志，只保留当前日志文件 -->
+            <MaxHistory>0</MaxHistory>
+            <!-- 启动时清理旧日志 -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
     <!-- 微信相关日志 -->
     <logger name="com.example.cursorquitterweb.service.impl.WechatServiceImpl" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
@@ -109,6 +126,11 @@
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="SQL_FILE"/>
+    </logger>
+    
+    <!-- 性能耗时日志 -->
+    <logger name="com.example.cursorquitterweb.aspect.ControllerPerformanceAspect" level="INFO" additivity="false">
+        <appender-ref ref="PERFORMANCE_FILE"/>
     </logger>
     
     <!-- Spring框架日志 -->
