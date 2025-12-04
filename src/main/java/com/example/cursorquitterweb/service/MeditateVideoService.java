@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.entity.MeditateVideo;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -42,7 +43,9 @@ public class MeditateVideoService {
     
     /**
      * 创建新冥想视频
+     * 清除缓存
      */
+    @CacheEvict(value = "meditateVideos", allEntries = true)
     public MeditateVideo createMeditateVideo(String title, String subtitle, String image, String videoUrl, 
                                             String audioUrl, List<String> meditateQuotes, String color) {
         MeditateVideo meditateVideo = new MeditateVideo(title, subtitle, image, videoUrl, audioUrl, meditateQuotes, color);
@@ -51,7 +54,9 @@ public class MeditateVideoService {
     
     /**
      * 更新冥想视频信息
+     * 清除缓存
      */
+    @CacheEvict(value = "meditateVideos", allEntries = true)
     public MeditateVideo updateMeditateVideo(UUID id, String title, String subtitle, String image, String videoUrl, 
                                            String audioUrl, List<String> meditateQuotes, String color) {
         MeditateVideo meditateVideo = findById(id)
@@ -70,7 +75,9 @@ public class MeditateVideoService {
     
     /**
      * 删除冥想视频
+     * 清除缓存
      */
+    @CacheEvict(value = "meditateVideos", allEntries = true)
     public void deleteMeditateVideo(UUID id) {
         if (!d1Util.exists("meditate_video", "id = ?", EntityMapper.uuidToString(id))) {
             throw new RuntimeException("冥想视频不存在，ID: " + id);
@@ -151,7 +158,7 @@ public class MeditateVideoService {
      * 根据视频链接查找冥想视频
      */
     public Optional<MeditateVideo> findByVideoUrl(String videoUrl) {
-        String sql = "SELECT * FROM meditate_video WHERE videoUrl = ? LIMIT 1";
+        String sql = "SELECT * FROM meditate_video WHERE video_url = ? LIMIT 1";
         Map<String, Object> row = d1Util.queryOne(sql, videoUrl);
         if (row == null) {
             return Optional.empty();
@@ -165,7 +172,7 @@ public class MeditateVideoService {
      * 根据音频链接查找冥想视频
      */
     public Optional<MeditateVideo> findByAudioUrl(String audioUrl) {
-        String sql = "SELECT * FROM meditate_video WHERE audioUrl = ? LIMIT 1";
+        String sql = "SELECT * FROM meditate_video WHERE audio_url = ? LIMIT 1";
         Map<String, Object> row = d1Util.queryOne(sql, audioUrl);
         if (row == null) {
             return Optional.empty();
@@ -193,7 +200,7 @@ public class MeditateVideoService {
      * 获取有视频链接的冥想视频
      */
     public List<MeditateVideo> getMeditateVideosWithVideoUrl() {
-        String sql = "SELECT * FROM meditate_video WHERE videoUrl IS NOT NULL AND videoUrl != '' ORDER BY create_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE video_url IS NOT NULL AND video_url != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -206,7 +213,7 @@ public class MeditateVideoService {
      * 获取有音频链接的冥想视频
      */
     public List<MeditateVideo> getMeditateVideosWithAudioUrl() {
-        String sql = "SELECT * FROM meditate_video WHERE audioUrl IS NOT NULL AND audioUrl != '' ORDER BY create_at DESC";
+        String sql = "SELECT * FROM meditate_video WHERE audio_url IS NOT NULL AND audio_url != '' ORDER BY create_at DESC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(row -> {
             MeditateVideo video = mapToMeditateVideo(row);
@@ -322,8 +329,9 @@ public class MeditateVideoService {
         meditateVideo.setTitle(EntityMapper.getString(row, "title"));
         meditateVideo.setSubtitle(EntityMapper.getString(row, "subtitle"));
         meditateVideo.setImage(EntityMapper.getString(row, "image"));
-        meditateVideo.setVideoUrl(EntityMapper.getString(row, "videoUrl"));
-        meditateVideo.setAudioUrl(EntityMapper.getString(row, "audioUrl"));
+        // 数据库字段名是 video_url 和 audio_url（下划线命名）
+        meditateVideo.setVideoUrl(EntityMapper.getString(row, "video_url"));
+        meditateVideo.setAudioUrl(EntityMapper.getString(row, "audio_url"));
         meditateVideo.setColor(EntityMapper.getString(row, "color"));
         meditateVideo.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
         meditateVideo.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
@@ -339,8 +347,9 @@ public class MeditateVideoService {
         EntityMapper.putIfNotNull(data, "title", meditateVideo.getTitle());
         EntityMapper.putIfNotNull(data, "subtitle", meditateVideo.getSubtitle());
         EntityMapper.putIfNotNull(data, "image", meditateVideo.getImage());
-        EntityMapper.putIfNotNull(data, "videoUrl", meditateVideo.getVideoUrl());
-        EntityMapper.putIfNotNull(data, "audioUrl", meditateVideo.getAudioUrl());
+        // 数据库字段名是 video_url 和 audio_url（下划线命名）
+        EntityMapper.putIfNotNull(data, "video_url", meditateVideo.getVideoUrl());
+        EntityMapper.putIfNotNull(data, "audio_url", meditateVideo.getAudioUrl());
         EntityMapper.putIfNotNull(data, "color", meditateVideo.getColor());
         EntityMapper.putIfNotNull(data, "create_at", meditateVideo.getCreateAt());
         EntityMapper.putIfNotNull(data, "update_at", meditateVideo.getUpdateAt());
