@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.controller;
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
+import com.example.cursorquitterweb.dto.CommentWithRepliesPageResult;
 import com.example.cursorquitterweb.dto.CreateCommentRequest;
 import com.example.cursorquitterweb.dto.CreateReplyRequest;
 import com.example.cursorquitterweb.dto.PageResponse;
@@ -367,16 +368,30 @@ public class CommentController {
     }
     
     /**
-     * 分页获取帖子的所有评论及其回复（小红书风格）
+     * 分页获取帖子的所有评论及其回复（小红书风格，支持排序）
+     * 返回格式: { "data": { "content": [...], "totalElements": ..., ... } }
+     * 优化：使用窗口函数在单次查询中同时获取一级评论和总数，然后批量查询回复
      */
     @GetMapping("/post/{postId}/with-replies/page")
-    public ApiResponse<List<CommentWithRepliesDTO>> getCommentsWithRepliesPage(
+    public ApiResponse<PageResponse<CommentWithRepliesDTO>> getCommentsWithRepliesPage(
             @PathVariable UUID postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "created_at") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         try {
-            List<CommentWithRepliesDTO> commentsWithReplies = commentService.findCommentsWithRepliesByPostId(postId, page, size);
-            return ApiResponse.success("获取评论及回复成功", commentsWithReplies);
+            // 使用单次查询获取一级评论和总数，然后批量查询回复
+            CommentWithRepliesPageResult result = commentService.findCommentsWithRepliesByPostIdWithCount(postId, page, size, sortBy, sortDir);
+            
+            // 创建分页响应对象
+            PageResponse<CommentWithRepliesDTO> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取评论及回复成功", pageResponse);
         } catch (Exception e) {
             return ApiResponse.error("获取评论及回复失败: " + e.getMessage());
         }

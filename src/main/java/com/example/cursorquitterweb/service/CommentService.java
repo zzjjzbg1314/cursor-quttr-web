@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.CommentPageResult;
+import com.example.cursorquitterweb.dto.CommentWithRepliesPageResult;
 import com.example.cursorquitterweb.entity.Comment;
 
 import java.time.OffsetDateTime;
@@ -162,6 +163,12 @@ public interface CommentService {
      * 分页获取帖子的所有评论及其回复（已移除 Spring Data Page，返回 List）
      */
     List<com.example.cursorquitterweb.dto.CommentWithRepliesDTO> findCommentsWithRepliesByPostId(UUID postId, int page, int size);
+    
+    /**
+     * 分页获取帖子的所有评论及其回复（支持排序，返回总数）
+     * 使用窗口函数在单次查询中同时获取一级评论和总数，然后批量查询回复
+     */
+    CommentWithRepliesPageResult findCommentsWithRepliesByPostIdWithCount(UUID postId, int page, int size, String sortBy, String sortDir);
     
     /**
      * 统计某个评论下的回复数量

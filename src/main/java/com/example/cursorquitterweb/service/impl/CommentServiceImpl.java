@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
+import com.example.cursorquitterweb.dto.CommentWithRepliesPageResult;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
@@ -347,6 +348,104 @@ public class CommentServiceImpl implements CommentService {
                     return new CommentWithRepliesDTO(comment, replies);
                 })
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public CommentWithRepliesPageResult findCommentsWithRepliesByPostIdWithCount(UUID postId, int page, int size, String sortBy, String sortDir) {
+        // 使用窗口函数和子查询在单次查询中同时获取一级评论、回复和总数
+        String validSortBy = validateCommentSortField(sortBy);
+        String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        int offset = page * size;
+        String postIdStr = EntityMapper.uuidToString(postId);
+        
+        // 构建单次查询：使用子查询获取当前页的一级评论ID，然后使用 UNION ALL 一次性获取一级评论和回复
+        // 使用窗口函数获取总数，使用 UNION ALL 合并一级评论和回复
+        String sql = String.format(
+            "SELECT c.*, " +
+            "       CASE WHEN c.comment_level = 1 THEN COUNT(*) OVER(PARTITION BY c.comment_level) ELSE NULL END as total_count, " +
+            "       CASE WHEN c.comment_level = 1 THEN 1 ELSE 0 END as is_top_level " +
+            "FROM comments c " +
+            "WHERE c.post_id = ? AND c.is_deleted = ? " +
+            "  AND (" +
+            "    (c.comment_level = 1 AND c.comment_id IN (" +
+            "      SELECT comment_id FROM comments " +
+            "      WHERE post_id = ? AND comment_level = ? AND is_deleted = ? " +
+            "      ORDER BY %s %s LIMIT ? OFFSET ?" +
+            "    )) OR " +
+            "    (c.comment_level = 2 AND c.root_comment_id IN (" +
+            "      SELECT comment_id FROM comments " +
+            "      WHERE post_id = ? AND comment_level = ? AND is_deleted = ? " +
+            "      ORDER BY %s %s LIMIT ? OFFSET ?" +
+            "    ))" +
+            "  ) " +
+            "ORDER BY is_top_level DESC, c.created_at ASC",
+            validSortBy, validSortDir, validSortBy, validSortDir
+        );
+        
+        List<Map<String, Object>> allRows = d1Util.queryList(sql, 
+            postIdStr, false,  // WHERE c.post_id = ? AND c.is_deleted = ?
+            postIdStr, 1, false, size, offset,  // 子查询1：一级评论
+            postIdStr, 1, false, size, offset   // 子查询2：回复的根评论
+        );
+        
+        long totalElements = 0;
+        List<Comment> topLevelComments = new ArrayList<>();
+        List<Comment> allReplies = new ArrayList<>();
+        
+        for (Map<String, Object> row : allRows) {
+            Object isTopLevel = row.get("is_top_level");
+            boolean isTop = isTopLevel != null && ((Number) isTopLevel).intValue() == 1;
+            
+            if (isTop) {
+                // 这是一级评论
+                if (totalElements == 0 && row.get("total_count") != null) {
+                    totalElements = ((Number) row.get("total_count")).longValue();
+                }
+                Map<String, Object> commentRow = new HashMap<>(row);
+                commentRow.remove("total_count");
+                commentRow.remove("is_top_level");
+                topLevelComments.add(mapToComment(commentRow));
+            } else {
+                // 这是回复
+                Map<String, Object> replyRow = new HashMap<>(row);
+                replyRow.remove("total_count");
+                replyRow.remove("is_top_level");
+                allReplies.add(mapToComment(replyRow));
+            }
+        }
+        
+        if (topLevelComments.isEmpty()) {
+            return new CommentWithRepliesPageResult(new ArrayList<>(), totalElements);
+        }
+        
+        // 将回复按根评论ID分组
+        Map<UUID, List<Comment>> repliesMap = allReplies.stream()
+                .collect(Collectors.groupingBy(Comment::getRootCommentId));
+        
+        // 组装结果
+        List<CommentWithRepliesDTO> content = topLevelComments.stream()
+                .map(comment -> {
+                    List<Comment> replies = repliesMap.getOrDefault(comment.getCommentId(), new ArrayList<>());
+                    return new CommentWithRepliesDTO(comment, replies);
+                })
+                .collect(Collectors.toList());
+        
+        return new CommentWithRepliesPageResult(content, totalElements);
+    }
+    
+    /**
+     * 验证评论排序字段，防止SQL注入
+     */
+    private String validateCommentSortField(String sortBy) {
+        // 允许的排序字段列表
+        String[] allowedFields = {"created_at", "updated_at", "user_nickname", "user_stage"};
+        for (String field : allowedFields) {
+            if (field.equalsIgnoreCase(sortBy)) {
+                return field;
+            }
+        }
+        // 默认返回 created_at
+        return "created_at";
     }
     
     @Override
