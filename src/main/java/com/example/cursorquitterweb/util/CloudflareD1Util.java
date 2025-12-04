@@ -1,27 +1,87 @@
 package com.example.cursorquitterweb.util;
 
-import com.example.cursorquitterweb.database.d1.CloudflareD1Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.cursorquitterweb.config.CloudflareD1Config;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Cloudflare D1 数据库工具类
- * 封装常用的 D1 数据库操作
+ * Cloudflare D1数据库工具类
+ * 优化版本：减少对象创建，提升HTTP查询性能
+ *
+ * @author davinci
  */
+@Slf4j
 @Component
 public class CloudflareD1Util {
-    
-    private static final Logger logger = LoggerFactory.getLogger(CloudflareD1Util.class);
-    
+
     @Autowired
-    private CloudflareD1Client d1Client;
+    private CloudflareD1Config d1Config;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
+    // 缓存查询URL，避免重复构建
+    private String queryUrl;
+
+    /**
+     * 执行查询操作
+     * 优化：减少对象创建，缓存URL，优化JSON解析
+     *
+     * @param sql    SQL查询语句
+     * @param params 查询参数
+     * @return 查询结果
+     */
+    public JsonNode query(String sql, List<Object> params) {
+        try {
+            String url = getQueryUrl();
+            
+            // 优化：使用更高效的方式构建请求体，预分配容量
+            Map<String, Object> requestBody = new HashMap<>(2);
+            requestBody.put("sql", sql);
+            requestBody.put("params", params != null ? params : Arrays.asList());
+
+            HttpHeaders headers = buildHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                if (responseNode.has("success") && responseNode.get("success").asBoolean()) {
+                    JsonNode resultArray = responseNode.get("result");
+                    if (resultArray != null && resultArray.isArray() && resultArray.size() > 0) {
+                        return resultArray.get(0).get("results");
+                    }
+                    return null;
+                } else {
+                    JsonNode errors = responseNode.get("errors");
+                    log.error("D1查询失败: {}", errors != null ? errors : "未知错误");
+                    throw new RuntimeException("D1查询失败");
+                }
+            } else {
+                log.error("D1查询HTTP错误: {}", response.getStatusCode());
+                throw new RuntimeException("D1查询HTTP错误");
+            }
+        } catch (Exception e) {
+            log.error("D1查询异常", e);
+            throw new RuntimeException("D1查询异常", e);
+        }
+    }
+
     /**
      * 执行查询并返回单行结果
      * 
@@ -30,10 +90,9 @@ public class CloudflareD1Util {
      * @return 单行结果，如果没有结果返回 null
      */
     public Map<String, Object> queryOne(String sql, Object... params) {
-        CloudflareD1Client.D1QueryResult result = d1Client.query(sql, params);
-        List<Map<String, Object>> rows = result.getRows();
-        if (rows != null && !rows.isEmpty()) {
-            return rows.get(0);
+        JsonNode results = query(sql, params != null && params.length > 0 ? Arrays.asList(params) : Arrays.asList());
+        if (results != null && results.isArray() && results.size() > 0) {
+            return jsonNodeToMap(results.get(0));
         }
         return null;
     }
@@ -46,8 +105,15 @@ public class CloudflareD1Util {
      * @return 查询结果列表
      */
     public List<Map<String, Object>> queryList(String sql, Object... params) {
-        CloudflareD1Client.D1QueryResult result = d1Client.query(sql, params);
-        return result.getRows();
+        JsonNode results = query(sql, params != null && params.length > 0 ? Arrays.asList(params) : Arrays.asList());
+        if (results != null && results.isArray()) {
+            List<Map<String, Object>> rows = new ArrayList<>(results.size());
+            for (JsonNode row : results) {
+                rows.add(jsonNodeToMap(row));
+            }
+            return rows;
+        }
+        return new ArrayList<>();
     }
     
     /**
@@ -83,7 +149,7 @@ public class CloudflareD1Util {
         try {
             return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
-            logger.warn("Failed to parse int value: {}", value);
+            log.warn("Failed to parse int value: {}", value);
             return 0;
         }
     }
@@ -106,7 +172,7 @@ public class CloudflareD1Util {
         try {
             return Long.parseLong(value.toString());
         } catch (NumberFormatException e) {
-            logger.warn("Failed to parse long value: {}", value);
+            log.warn("Failed to parse long value: {}", value);
             return 0;
         }
     }
@@ -138,7 +204,7 @@ public class CloudflareD1Util {
         try {
             return UUID.fromString(value);
         } catch (IllegalArgumentException e) {
-            logger.warn("Failed to parse UUID value: {}", value);
+            log.warn("Failed to parse UUID value: {}", value);
             return null;
         }
     }
@@ -151,8 +217,7 @@ public class CloudflareD1Util {
      * @return 受影响的行数
      */
     public int execute(String sql, Object... params) {
-        CloudflareD1Client.D1ExecuteResult result = d1Client.execute(sql, params);
-        return result.getChanges();
+        return executeMutationWithResult(sql, params != null && params.length > 0 ? Arrays.asList(params) : Arrays.asList());
     }
     
     /**
@@ -163,41 +228,172 @@ public class CloudflareD1Util {
      * @return 最后插入的行 ID
      */
     public long executeInsert(String sql, Object... params) {
-        CloudflareD1Client.D1ExecuteResult result = d1Client.execute(sql, params);
-        return result.getLastRowId();
+        return executeMutationWithLastRowId(sql, params != null && params.length > 0 ? Arrays.asList(params) : Arrays.asList());
+    }
+
+    /**
+     * 执行插入操作
+     *
+     * @param sql    SQL插入语句
+     * @param params 插入参数
+     * @return 是否成功
+     */
+    public boolean insert(String sql, List<Object> params) {
+        return executeMutation(sql, params);
+    }
+
+    /**
+     * 执行更新操作
+     *
+     * @param sql    SQL更新语句
+     * @param params 更新参数
+     * @return 是否成功
+     */
+    public boolean update(String sql, List<Object> params) {
+        return executeMutation(sql, params);
+    }
+
+    /**
+     * 执行删除操作
+     *
+     * @param sql    SQL删除语句
+     * @param params 删除参数
+     * @return 是否成功
+     */
+    public boolean delete(String sql, List<Object> params) {
+        return executeMutation(sql, params);
+    }
+
+    /**
+     * 执行变更操作（插入、更新、删除）
+     * 优化：减少对象创建，缓存URL，优化JSON解析
+     *
+     * @param sql    SQL语句
+     * @param params 参数
+     * @return 是否成功
+     */
+    private boolean executeMutation(String sql, List<Object> params) {
+        try {
+            String url = getQueryUrl();
+            
+            // 优化：使用更高效的方式构建请求体，预分配容量
+            Map<String, Object> requestBody = new HashMap<>(2);
+            requestBody.put("sql", sql);
+            requestBody.put("params", params != null ? params : Arrays.asList());
+
+            HttpHeaders headers = buildHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                if (responseNode.has("success") && responseNode.get("success").asBoolean()) {
+                    return true;
+                } else {
+                    JsonNode errors = responseNode.get("errors");
+                    log.error("D1变更操作失败: {}", errors != null ? errors : "未知错误");
+                    return false;
+                }
+            } else {
+                log.error("D1变更操作HTTP错误: {}", response.getStatusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("D1变更操作异常", e);
+            return false;
+        }
+    }
+
+    /**
+     * 获取查询URL（延迟初始化并缓存）
+     * 优化：使用 getApiEndpoint() 方法，避免重复构建URL
+     */
+    private String getQueryUrl() {
+        if (queryUrl == null) {
+            queryUrl = d1Config.getApiEndpoint() + "/query";
+        }
+        return queryUrl;
+    }
+
+    /**
+     * 执行变更操作并返回受影响行数
+     */
+    private int executeMutationWithResult(String sql, List<Object> params) {
+        try {
+            String url = getQueryUrl();
+            Map<String, Object> requestBody = new HashMap<>(2);
+            requestBody.put("sql", sql);
+            requestBody.put("params", params != null ? params : Arrays.asList());
+
+            HttpHeaders headers = buildHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                if (responseNode.has("success") && responseNode.get("success").asBoolean()) {
+                    JsonNode resultArray = responseNode.get("result");
+                    if (resultArray != null && resultArray.isArray() && resultArray.size() > 0) {
+                        JsonNode meta = resultArray.get(0).get("meta");
+                        if (meta != null && meta.has("changes")) {
+                            return meta.get("changes").asInt();
+                        }
+                    }
+                    return 0;
+                } else {
+                    JsonNode errors = responseNode.get("errors");
+                    log.error("D1变更操作失败: {}", errors != null ? errors : "未知错误");
+                    return 0;
+                }
+            } else {
+                log.error("D1变更操作HTTP错误: {}", response.getStatusCode());
+                return 0;
+            }
+        } catch (Exception e) {
+            log.error("D1变更操作异常", e);
+            return 0;
+        }
     }
     
     /**
-     * 批量执行 SQL 语句
-     * 
-     * @param sqls SQL 语句列表
-     * @return 批量执行结果
+     * 执行变更操作并返回最后插入的行ID
      */
-    public CloudflareD1Client.D1BatchResult batchExecute(List<String> sqls) {
-        return d1Client.batch(sqls);
-    }
-    
-    /**
-     * 检查表是否存在
-     * 
-     * @param tableName 表名
-     * @return 如果表存在返回 true，否则返回 false
-     */
-    public boolean tableExists(String tableName) {
-        String sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
-        Map<String, Object> result = queryOne(sql, tableName);
-        return result != null;
-    }
-    
-    /**
-     * 获取表的行数
-     * 
-     * @param tableName 表名
-     * @return 表的行数
-     */
-    public long countTable(String tableName) {
-        String sql = "SELECT COUNT(*) as count FROM " + tableName;
-        return queryLong(sql);
+    private long executeMutationWithLastRowId(String sql, List<Object> params) {
+        try {
+            String url = getQueryUrl();
+            Map<String, Object> requestBody = new HashMap<>(2);
+            requestBody.put("sql", sql);
+            requestBody.put("params", params != null ? params : Arrays.asList());
+
+            HttpHeaders headers = buildHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                if (responseNode.has("success") && responseNode.get("success").asBoolean()) {
+                    JsonNode resultArray = responseNode.get("result");
+                    if (resultArray != null && resultArray.isArray() && resultArray.size() > 0) {
+                        JsonNode meta = resultArray.get(0).get("meta");
+                        if (meta != null && meta.has("last_row_id")) {
+                            return meta.get("last_row_id").asLong();
+                        }
+                    }
+                    return 0;
+                } else {
+                    JsonNode errors = responseNode.get("errors");
+                    log.error("D1变更操作失败: {}", errors != null ? errors : "未知错误");
+                    return 0;
+                }
+            } else {
+                log.error("D1变更操作HTTP错误: {}", response.getStatusCode());
+                return 0;
+            }
+        } catch (Exception e) {
+            log.error("D1变更操作异常", e);
+            return 0;
+        }
     }
     
     /**
@@ -349,18 +545,107 @@ public class CloudflareD1Util {
     }
     
     /**
+     * 检查表是否存在
+     * 
+     * @param tableName 表名
+     * @return 如果表存在返回 true，否则返回 false
+     */
+    public boolean tableExists(String tableName) {
+        String sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
+        Map<String, Object> result = queryOne(sql, tableName);
+        return result != null;
+    }
+    
+    /**
+     * 获取表的行数
+     * 
+     * @param tableName 表名
+     * @return 表的行数
+     */
+    public long countTable(String tableName) {
+        String sql = "SELECT COUNT(*) as count FROM " + tableName;
+        return queryLong(sql);
+    }
+    
+    /**
+     * 批量执行 SQL 语句
+     * 
+     * @param sqls SQL 语句列表
+     * @return 批量执行结果（简化版本，返回是否成功）
+     */
+    public boolean batchExecute(List<String> sqls) {
+        try {
+            String url = getQueryUrl();
+            Map<String, Object> requestBody = new HashMap<>(1);
+            requestBody.put("sql", String.join("; ", sqls));
+
+            HttpHeaders headers = buildHeaders();
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode responseNode = objectMapper.readTree(response.getBody());
+                return responseNode.has("success") && responseNode.get("success").asBoolean();
+            } else {
+                log.error("D1批量操作HTTP错误: {}", response.getStatusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("D1批量操作异常", e);
+            return false;
+        }
+    }
+    
+    /**
      * 执行事务（批量操作）
      * 
      * @param sqls SQL 语句列表
      * @return 是否全部成功
      */
     public boolean executeTransaction(List<String> sqls) {
-        try {
-            CloudflareD1Client.D1BatchResult result = batchExecute(sqls);
-            return result != null && result.getResults() != null;
-        } catch (Exception e) {
-            logger.error("Transaction failed", e);
-            return false;
+        return batchExecute(sqls);
+    }
+    
+    /**
+     * 将 JsonNode 转换为 Map
+     */
+    private Map<String, Object> jsonNodeToMap(JsonNode node) {
+        Map<String, Object> map = new HashMap<>();
+        if (node != null && node.isObject()) {
+            node.fields().forEachRemaining(entry -> {
+                map.put(entry.getKey(), parseJsonValue(entry.getValue()));
+            });
         }
+        return map;
+    }
+    
+    /**
+     * 解析 JSON 值为 Java 对象
+     */
+    private Object parseJsonValue(JsonNode node) {
+        if (node.isNull()) {
+            return null;
+        } else if (node.isBoolean()) {
+            return node.asBoolean();
+        } else if (node.isInt()) {
+            return node.asInt();
+        } else if (node.isLong()) {
+            return node.asLong();
+        } else if (node.isDouble()) {
+            return node.asDouble();
+        } else {
+            return node.asText();
+        }
+    }
+
+    /**
+     * 构建请求头
+     * 优化：使用 setBearerAuth 方法，更符合Spring规范
+     */
+    private HttpHeaders buildHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(d1Config.getApiToken());
+        return headers;
     }
 }
