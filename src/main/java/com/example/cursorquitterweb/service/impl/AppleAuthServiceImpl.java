@@ -157,7 +157,7 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             
             // 创建注册日记
             try {
-                recoverJourneyService.createRecoverJourney(user.getId(), "今天注册了克己");
+                recoverJourneyService.createRecoverJourney(user.getId(), "Registered Nofapr today");
                 logger.info("注册日记创建成功，user_id: {}", user.getId());
             } catch (Exception e) {
                 logger.error("创建注册日记失败，user_id: {}", user.getId(), e);

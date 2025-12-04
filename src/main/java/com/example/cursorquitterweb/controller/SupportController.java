@@ -52,11 +52,11 @@ public class SupportController {
         
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html>\n");
-        html.append("<html lang=\"zh-CN\">\n");
+        html.append("<html lang=\"en\">\n");
         html.append("<head>\n");
         html.append("    <meta charset=\"UTF-8\">\n");
         html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        html.append("    <title>技术支持 - 克己</title>\n");
+        html.append("    <title>Support - Nofapr</title>\n");
         html.append("    <style>\n");
         html.append("        * { margin: 0; padding: 0; box-sizing: border-box; }\n");
         html.append("        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }\n");
@@ -86,8 +86,8 @@ public class SupportController {
         html.append("<body>\n");
         html.append("    <div class=\"container\">\n");
         html.append("        <div class=\"header\">\n");
-        html.append("            <h1>技术支持</h1>\n");
-        html.append("            <p>我们随时为您提供帮助</p>\n");
+        html.append("            <h1>Support</h1>\n");
+        html.append("            <p>We're here to help you anytime</p>\n");
         html.append("        </div>\n");
         
         // 欢迎与承诺部分
@@ -97,14 +97,14 @@ public class SupportController {
         html.append("            <p>").append(escapeHtml(welcome.get("mission"))).append("</p>\n");
         html.append("        </div>\n");
         
-        // 常见问题解答部分
+        // FAQ section
         html.append("        <div class=\"section\">\n");
-        html.append("            <h2>常见问题解答</h2>\n");
+        html.append("            <h2>Frequently Asked Questions</h2>\n");
         
-        // 关于应用功能
+        // About app features
         List<Map<String, String>> functionFAQ = faq.get("function");
         if (functionFAQ != null && !functionFAQ.isEmpty()) {
-            html.append("            <h3>关于应用功能</h3>\n");
+            html.append("            <h3>About App Features</h3>\n");
             for (Map<String, String> item : functionFAQ) {
                 html.append("            <div class=\"faq-item\">\n");
                 html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
@@ -113,10 +113,10 @@ public class SupportController {
             }
         }
         
-        // 关于账户与隐私
+        // About account and privacy
         List<Map<String, String>> accountFAQ = faq.get("account");
         if (accountFAQ != null && !accountFAQ.isEmpty()) {
-            html.append("            <h3>关于账户与隐私</h3>\n");
+            html.append("            <h3>About Account & Privacy</h3>\n");
             for (Map<String, String> item : accountFAQ) {
                 html.append("            <div class=\"faq-item\">\n");
                 html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
@@ -125,10 +125,10 @@ public class SupportController {
             }
         }
         
-        // 关于戒色之旅
+        // About recovery journey
         List<Map<String, String>> journeyFAQ = faq.get("journey");
         if (journeyFAQ != null && !journeyFAQ.isEmpty()) {
-            html.append("            <h3>关于戒色之旅</h3>\n");
+            html.append("            <h3>About Recovery Journey</h3>\n");
             for (Map<String, String> item : journeyFAQ) {
                 html.append("            <div class=\"faq-item\">\n");
                 html.append("                <strong>").append(escapeHtml(item.get("question"))).append("</strong>\n");
@@ -139,19 +139,19 @@ public class SupportController {
         
         html.append("        </div>\n");
         
-        // 联系我们部分
+        // Contact us section
         html.append("        <div class=\"section\">\n");
         html.append("            <h2>").append(escapeHtml((String) contact.get("title"))).append("</h2>\n");
         html.append("            <p>").append(escapeHtml((String) contact.get("description"))).append("</p>\n");
         html.append("            <div class=\"contact-info\">\n");
-        html.append("                <p><strong>邮箱：</strong><a href=\"mailto:").append(escapeHtml((String) contact.get("email"))).append("\">").append(escapeHtml((String) contact.get("email"))).append("</a></p>\n");
+        html.append("                <p><strong>Email:</strong> <a href=\"mailto:").append(escapeHtml((String) contact.get("email"))).append("\">").append(escapeHtml((String) contact.get("email"))).append("</a></p>\n");
         html.append("                <p><strong>").append(escapeHtml((String) contact.get("teamName"))).append("</strong></p>\n");
         html.append("                <p>").append(escapeHtml((String) contact.get("responseTime"))).append("</p>\n");
         @SuppressWarnings("unchecked")
         List<String> emailTips = (List<String>) contact.get("emailTips");
         if (emailTips != null && !emailTips.isEmpty()) {
             html.append("                <div class=\"email-tips\">\n");
-            html.append("                    <p><strong>发送邮件时，请包含以下信息：</strong></p>\n");
+            html.append("                    <p><strong>When sending an email, please include the following information:</strong></p>\n");
             html.append("                    <ul>\n");
             for (String tip : emailTips) {
                 html.append("                        <li>").append(escapeHtml(tip)).append("</li>\n");
@@ -162,7 +162,7 @@ public class SupportController {
         html.append("            </div>\n");
         html.append("        </div>\n");
         
-        // 更多资源部分
+        // More resources section
         html.append("        <div class=\"section\">\n");
         html.append("            <h2>").append(escapeHtml((String) resources.get("title"))).append("</h2>\n");
         @SuppressWarnings("unchecked")
@@ -175,7 +175,7 @@ public class SupportController {
                 html.append("                    <p>").append(escapeHtml(resource.get("description"))).append("</p>\n");
                 String url = resource.get("url");
                 if (url != null && !url.isEmpty()) {
-                    html.append("                    <a href=\"").append(escapeHtml(url)).append("\" target=\"_blank\">了解更多 →</a>\n");
+                    html.append("                    <a href=\"").append(escapeHtml(url)).append("\" target=\"_blank\">Learn more →</a>\n");
                 }
                 html.append("                </div>\n");
             }
@@ -184,7 +184,7 @@ public class SupportController {
         html.append("        </div>\n");
         
         html.append("        <div class=\"footer\">\n");
-        html.append("            <p>© 2024 克己. 保留所有权利.</p>\n");
+        html.append("            <p>© 2024 Nofapr. All rights reserved.</p>\n");
         html.append("        </div>\n");
         html.append("    </div>\n");
         html.append("</body>\n");
@@ -213,11 +213,11 @@ public class SupportController {
     private Map<String, String> buildWelcome() {
         Map<String, String> welcome = new HashMap<>();
         
-        welcome.put("title", "欢迎与承诺");
-        welcome.put("greeting", "感谢您选择克己，踏上这段重塑自我的旅程。我们在此承诺，为您提供全程的支持与陪伴。");
-        welcome.put("mission", "克己致力于帮助每一位用户建立健康的生活习惯，重获内心的平静与自由。" +
-                "我们相信，每个人都有改变的力量，而我们会在这条路上始终陪伴您，提供科学的方法和温暖的支持。" +
-                "您不是一个人在战斗，我们与千万用户一起，共同成长。");
+        welcome.put("title", "Welcome & Commitment");
+        welcome.put("greeting", "Thank you for choosing Nofapr and embarking on this journey of self-transformation. We commit to providing you with full support and companionship throughout this process.");
+        welcome.put("mission", "Nofapr is dedicated to helping every user build healthy lifestyle habits and regain inner peace and freedom. " +
+                "We believe that everyone has the power to change, and we will always be with you on this path, providing scientific methods and warm support. " +
+                "You are not alone in this fight. Together with millions of users, we grow together.");
         
         return welcome;
     }
@@ -228,93 +228,93 @@ public class SupportController {
     private Map<String, List<Map<String, String>>> buildFAQ() {
         Map<String, List<Map<String, String>>> faq = new HashMap<>();
         
-        // 关于应用功能
+        // About app features
         List<Map<String, String>> functionFAQ = new ArrayList<>();
         
         Map<String, String> q1 = new HashMap<>();
-        q1.put("question", "如何备份我的数据？换手机后数据会丢失吗？");
-        q1.put("answer", "您的所有数据都会自动同步到云端服务器。只要您使用相同的账号登录，" +
-                "无论在哪台设备上，都能看到您的完整戒断历程和所有记录。我们建议您定期检查账号登录状态，" +
-                "确保数据正常同步。换手机后，只需重新下载应用并登录您的账号即可。");
+        q1.put("question", "How do I backup my data? Will I lose data after changing phones?");
+        q1.put("answer", "All your data is automatically synced to cloud servers. As long as you log in with the same account, " +
+                "you can see your complete recovery journey and all records on any device. We recommend regularly checking your account login status " +
+                "to ensure data is syncing properly. After changing phones, simply re-download the app and log in with your account.");
         functionFAQ.add(q1);
         
         Map<String, String> q2 = new HashMap<>();
-        q2.put("question", "\"紧急援助\"功能是如何工作的？");
-        q2.put("answer", "当您感到难以抵抗诱惑时，可以点击\"紧急援助\"按钮。应用会立即为您提供：" +
-                "1) 紧急冥想引导，帮助您平复心情；2) 激励语录和成功案例，重燃您的决心；" +
-                "3) 快速转移注意力的建议活动；4) 社区支持，您可以查看其他伙伴的鼓励。" +
-                "这个功能随时可用，是您最坚实的后盾。");
+        q2.put("question", "How does the \"Emergency Support\" feature work?");
+        q2.put("answer", "When you feel unable to resist temptation, you can tap the \"Emergency Support\" button. The app will immediately provide you with: " +
+                "1) Emergency meditation guidance to help calm your mind; 2) Motivational quotes and success stories to rekindle your determination; " +
+                "3) Quick distraction activity suggestions; 4) Community support where you can view encouragement from other members. " +
+                "This feature is available anytime and is your strongest support.");
         functionFAQ.add(q2);
         
         Map<String, String> q3 = new HashMap<>();
-        q3.put("question", "如何设置每日提醒？");
-        q3.put("answer", "进入\"设置\"页面，选择\"提醒与通知\"，您可以自定义：" +
-                "1) 每日打卡提醒时间；2) 激励语录推送频率；3) 戒断里程碑庆祝通知。" +
-                "我们建议在您通常最需要支持的时刻设置提醒，比如晚间独处时段。" +
-                "您也可以随时关闭或调整这些提醒。");
+        q3.put("question", "How do I set daily reminders?");
+        q3.put("answer", "Go to the \"Settings\" page, select \"Reminders & Notifications\", and you can customize: " +
+                "1) Daily check-in reminder time; 2) Motivational quote push frequency; 3) Recovery milestone celebration notifications. " +
+                "We recommend setting reminders for times when you typically need the most support, such as evening alone time. " +
+                "You can also turn off or adjust these reminders at any time.");
         functionFAQ.add(q3);
         
         faq.put("function", functionFAQ);
         
-        // 关于账户与隐私
+        // About account and privacy
         List<Map<String, String>> accountFAQ = new ArrayList<>();
         
         Map<String, String> q4 = new HashMap<>();
-        q4.put("question", "我的数据安全吗？你们如何保护我的隐私？");
-        q4.put("answer", "我们深知您记录的内容极其私密和敏感。我们承诺：" +
-                "1) 所有数据在传输和存储时都经过加密；" +
-                "2) 我们不会与任何第三方分享您的个人数据；" +
-                "3) 您可以选择使用匿名模式参与社区互动；" +
-                "4) 我们遵循最严格的数据保护法规。" +
-                "详细信息请查看我们的隐私政策。您的信任是我们最珍视的。");
+        q4.put("question", "Is my data safe? How do you protect my privacy?");
+        q4.put("answer", "We understand that the content you record is extremely private and sensitive. We promise: " +
+                "1) All data is encrypted during transmission and storage; " +
+                "2) We will not share your personal data with any third parties; " +
+                "3) You can choose to participate in community interactions using anonymous mode; " +
+                "4) We follow the strictest data protection regulations. " +
+                "For more details, please see our Privacy Policy. Your trust is what we value most.");
         accountFAQ.add(q4);
         
         Map<String, String> q5 = new HashMap<>();
-        q5.put("question", "我忘记了密码，该如何找回？");
-        q5.put("answer", "在登录页面点击\"忘记密码\"，按照以下步骤操作：" +
-                "1) 输入您注册时使用的邮箱或手机号；" +
-                "2) 我们会发送验证码到您的邮箱/手机；" +
-                "3) 输入验证码后，您可以设置新密码。" +
-                "如果您无法接收验证码，请通过 keji_support@163.com 联系我们，" +
-                "我们的团队会手动协助您找回账号。");
+        q5.put("question", "I forgot my password. How do I recover it?");
+        q5.put("answer", "Click \"Forgot Password\" on the login page and follow these steps: " +
+                "1) Enter the email or phone number you used to register; " +
+                "2) We will send a verification code to your email/phone; " +
+                "3) After entering the verification code, you can set a new password. " +
+                "If you cannot receive the verification code, please contact us at keji_support@163.com, " +
+                "and our team will manually assist you in recovering your account.");
         accountFAQ.add(q5);
         
         Map<String, String> q6 = new HashMap<>();
-        q6.put("question", "我想删除我的账户，该如何操作？");
-        q6.put("answer", "我们理解每个人的情况不同。如果您决定删除账户：" +
-                "1) 进入\"设置\" -> \"账户管理\" -> \"删除账户\"；" +
-                "2) 系统会再次确认您的决定；" +
-                "3) 确认后，您的所有数据将在7天内从我们的服务器永久删除。" +
-                "请注意：此操作不可逆，删除后无法恢复任何数据。" +
-                "如需帮助，也可以发邮件至 keji_support@163.com 申请删除。");
+        q6.put("question", "I want to delete my account. How do I do that?");
+        q6.put("answer", "We understand that everyone's situation is different. If you decide to delete your account: " +
+                "1) Go to \"Settings\" -> \"Account Management\" -> \"Delete Account\"; " +
+                "2) The system will confirm your decision again; " +
+                "3) After confirmation, all your data will be permanently deleted from our servers within 7 days. " +
+                "Please note: This operation is irreversible, and no data can be recovered after deletion. " +
+                "If you need help, you can also email keji_support@163.com to request deletion.");
         accountFAQ.add(q6);
         
         faq.put("account", accountFAQ);
         
-        // 关于戒色之旅
+        // About recovery journey
         List<Map<String, String>> journeyFAQ = new ArrayList<>();
         
         Map<String, String> q7 = new HashMap<>();
-        q7.put("question", "我感觉坚持不下去了，该怎么办？");
-        q7.put("answer", "首先，请不要责备自己。改变是一个过程，挫折是成长的一部分。我们建议：" +
-                "1) 使用\"紧急援助\"功能，立即获取支持；" +
-                "2) 回顾您的初心，重温您当初为什么开始这段旅程；" +
-                "3) 降低期望，从小目标开始，比如先坚持一天；" +
-                "4) 在社区寻找同伴，分享您的感受，您会发现很多人有相似的经历；" +
-                "5) 如果多次尝试仍感困难，建议寻求专业心理咨询师的帮助。" +
-                "记住：寻求帮助是勇敢的表现，不是软弱。");
+        q7.put("question", "I feel like I can't keep going. What should I do?");
+        q7.put("answer", "First, please don't blame yourself. Change is a process, and setbacks are part of growth. We recommend: " +
+                "1) Use the \"Emergency Support\" feature to get immediate support; " +
+                "2) Review your original intention and remember why you started this journey; " +
+                "3) Lower expectations and start with small goals, like committing to one day; " +
+                "4) Find companions in the community, share your feelings, and you'll discover many people have similar experiences; " +
+                "5) If you still find it difficult after multiple attempts, consider seeking help from a professional counselor. " +
+                "Remember: Seeking help is a sign of courage, not weakness.");
         journeyFAQ.add(q7);
         
         Map<String, String> q8 = new HashMap<>();
-        q8.put("question", "应用内的方法科学吗？是基于什么原理？");
-        q8.put("answer", "我们的方法建立在扎实的科学基础之上：" +
-                "1) 神经可塑性原理：大脑可以通过持续的新习惯重新建立神经通路；" +
-                "2) 认知行为疗法(CBT)：帮助识别和改变不良思维模式；" +
-                "3) 正念冥想：增强自我觉察和情绪调节能力；" +
-                "4) 习惯形成理论：通过触发-行动-奖励循环建立正向习惯；" +
-                "5) 社会支持理论：社群的力量能显著提高成功率。" +
-                "我们的内容由心理学和行为科学领域的专业人士参与设计，" +
-                "并持续根据用户反馈和最新研究进行优化。");
+        q8.put("question", "Are the methods in the app scientific? What principles are they based on?");
+        q8.put("answer", "Our methods are built on solid scientific foundations: " +
+                "1) Neuroplasticity principle: The brain can rebuild neural pathways through consistent new habits; " +
+                "2) Cognitive Behavioral Therapy (CBT): Helps identify and change negative thought patterns; " +
+                "3) Mindfulness meditation: Enhances self-awareness and emotional regulation; " +
+                "4) Habit formation theory: Builds positive habits through trigger-action-reward cycles; " +
+                "5) Social support theory: The power of community significantly increases success rates. " +
+                "Our content is designed with input from professionals in psychology and behavioral science, " +
+                "and is continuously optimized based on user feedback and the latest research.");
         journeyFAQ.add(q8);
         
         faq.put("journey", journeyFAQ);
@@ -328,18 +328,18 @@ public class SupportController {
     private Map<String, Object> buildContact() {
         Map<String, Object> contact = new HashMap<>();
         
-        contact.put("title", "联系我们");
+        contact.put("title", "Contact Us");
         contact.put("email", "keji_support@163.com");
-        contact.put("description", "如果您遇到任何技术问题或有任何建议，欢迎随时联系我们。");
+        contact.put("description", "If you encounter any technical issues or have any suggestions, please feel free to contact us anytime.");
         
         List<String> emailTips = new ArrayList<>();
-        emailTips.add("您使用的设备型号和操作系统版本");
-        emailTips.add("问题的详细描述，如果可以，请附上截图");
-        emailTips.add("您的账号信息（不包括密码）以便我们快速定位问题");
+        emailTips.add("Your device model and operating system version");
+        emailTips.add("A detailed description of the issue, and screenshots if possible");
+        emailTips.add("Your account information (excluding password) to help us quickly identify the issue");
         contact.put("emailTips", emailTips);
         
-        contact.put("responseTime", "我们会在24小时内回复您的邮件");
-        contact.put("teamName", "克己开发团队");
+        contact.put("responseTime", "We will reply to your email within 24 hours");
+        contact.put("teamName", "Nofapr Development Team");
         
         return contact;
     }
@@ -350,25 +350,25 @@ public class SupportController {
     private Map<String, Object> buildResources() {
         Map<String, Object> resources = new HashMap<>();
         
-        resources.put("title", "更多资源");
+        resources.put("title", "More Resources");
         
         List<Map<String, String>> resourceList = new ArrayList<>();
         
         Map<String, String> resource2 = new HashMap<>();
-        resource2.put("name", "应用社区");
-        resource2.put("description", "加入我们的社区，与志同道合的伙伴交流经验、互相支持");
-        resource2.put("url", "");  // 如果有社区链接可以填入
+        resource2.put("name", "App Community");
+        resource2.put("description", "Join our community to exchange experiences and support each other with like-minded members");
+        resource2.put("url", "");  // Can be filled in if there's a community link
         resourceList.add(resource2);
         
         Map<String, String> resource3 = new HashMap<>();
-        resource3.put("name", "科学与方法");
-        resource3.put("description", "深入了解戒断背后的神经科学原理和有效的自律方法");
-        resource3.put("url", "");  // 如果有博客或文章链接可以填入
+        resource3.put("name", "Science & Methods");
+        resource3.put("description", "Learn more about the neuroscience principles behind recovery and effective self-discipline methods");
+        resource3.put("url", "");  // Can be filled in if there's a blog or article link
         resourceList.add(resource3);
         
         Map<String, String> resource4 = new HashMap<>();
-        resource4.put("name", "专业帮助");
-        resource4.put("description", "如果您需要更深度的心理支持，我们建议寻求专业心理咨询师的帮助");
+        resource4.put("name", "Professional Help");
+        resource4.put("description", "If you need deeper psychological support, we recommend seeking help from a professional counselor");
         resource4.put("url", "");
         resourceList.add(resource4);
         

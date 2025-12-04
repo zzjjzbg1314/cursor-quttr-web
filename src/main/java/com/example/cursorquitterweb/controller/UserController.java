@@ -84,7 +84,7 @@ public class UserController {
         
         // 用户数据初始化完成后，创建一条康复记录
         try {
-            recoverJourneyService.createRecoverJourney(savedUser.getId(), "今天注册了克己。");
+            recoverJourneyService.createRecoverJourney(savedUser.getId(), "Registered Nofapr today.");
             logger.info("为用户 {} 创建初始康复记录成功", savedUser.getId());
         } catch (Exception e) {
             logger.error("为用户 {} 创建初始康复记录失败: {}", savedUser.getId(), e.getMessage());
