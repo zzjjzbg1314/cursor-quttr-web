@@ -312,12 +312,36 @@ public class MeditateVideoService {
      * 加载关联的 quotes
      */
     private void loadMeditateQuotes(MeditateVideo meditateVideo) {
-        String sql = "SELECT quote FROM meditate_video_quotes WHERE meditate_video_id = ? ORDER BY quote";
-        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.uuidToString(meditateVideo.getId()));
-        List<String> quotes = rows.stream()
-            .map(row -> EntityMapper.getString(row, "quote"))
-            .collect(Collectors.toList());
-        meditateVideo.setMeditateQuotes(quotes);
+        if (meditateVideo == null) {
+            return;
+        }
+        
+        if (meditateVideo.getId() == null) {
+            meditateVideo.setMeditateQuotes(java.util.Collections.emptyList());
+            return;
+        }
+        
+        try {
+            // 使用 UUID 字符串格式查询关联表
+            String videoId = EntityMapper.uuidToString(meditateVideo.getId());
+            String sql = "SELECT quote FROM meditate_video_quotes WHERE meditate_video_id = ? ORDER BY quote";
+            List<Map<String, Object>> rows = d1Util.queryList(sql, videoId);
+            
+            if (rows == null || rows.isEmpty()) {
+                meditateVideo.setMeditateQuotes(java.util.Collections.emptyList());
+                return;
+            }
+            
+            List<String> quotes = rows.stream()
+                .map(row -> EntityMapper.getString(row, "quote"))
+                .filter(quote -> quote != null && !quote.trim().isEmpty())
+                .collect(Collectors.toList());
+            
+            meditateVideo.setMeditateQuotes(quotes != null ? quotes : java.util.Collections.emptyList());
+        } catch (Exception e) {
+            // 如果查询失败，设置为空列表
+            meditateVideo.setMeditateQuotes(java.util.Collections.emptyList());
+        }
     }
     
     /**
