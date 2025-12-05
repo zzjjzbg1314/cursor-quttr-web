@@ -124,4 +124,11 @@ public interface PostService {
      * 统计所有未删除的帖子数量
      */
     long count();
+    
+    /**
+     * 检查是否存在相同内容的帖子（用于防止重复生成）
+     * @param content 帖子内容
+     * @return 如果存在相同内容的帖子返回true，否则返回false
+     */
+    boolean existsByContent(String content);
 }

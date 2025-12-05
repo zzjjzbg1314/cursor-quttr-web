@@ -96,8 +96,43 @@ public class AutoPostGenerationTask {
         // 随机选择一个用户作为帖子作者
         User postAuthor = getRandomUser(users);
         
-        // 生成帖子内容
+        // 生成帖子内容，检查是否重复，如果重复则重新生成（最多重试5次）
         String postContent = deepSeekApiUtil.generatePostContent();
+        int maxRetries = 5;
+        int retryCount = 0;
+        
+        while (retryCount < maxRetries) {
+            // 检查内容是否重复
+            if (postContent != null && !postService.existsByContent(postContent)) {
+                LogUtil.logInfo(logger, "生成唯一帖子内容，用户: {}, 内容长度: {}, 重试次数: {}", 
+                    postAuthor.getNickname(), postContent.length(), retryCount);
+                break;
+            } else {
+                retryCount++;
+                LogUtil.logWarn(logger, "检测到重复内容或内容为空，重新生成中... (重试 {}/{})", retryCount, maxRetries);
+                
+                // 添加短暂延迟，避免API调用过快
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                
+                // 重新生成内容
+                postContent = deepSeekApiUtil.generatePostContent();
+            }
+        }
+        
+        // 如果重试5次后仍然重复，记录警告但继续使用该内容
+        if (retryCount >= maxRetries && postContent != null && postService.existsByContent(postContent)) {
+            LogUtil.logWarn(logger, "警告：重试 {} 次后仍检测到重复内容，但将继续创建帖子", maxRetries);
+        }
+        
+        // 如果内容仍然为空，记录错误并返回
+        if (postContent == null || postContent.isEmpty()) {
+            LogUtil.logError(logger, "✗ 无法生成有效的帖子内容，跳过本次生成");
+            return;
+        }
         
         LogUtil.logInfo(logger, "开始创建帖子，用户: {}, 内容长度: {}", postAuthor.getNickname(), postContent.length());
         

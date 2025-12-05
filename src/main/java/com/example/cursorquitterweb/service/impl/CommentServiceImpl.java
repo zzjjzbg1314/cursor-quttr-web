@@ -211,6 +211,45 @@ public class CommentServiceImpl implements CommentService {
     }
     
     @Override
+    public Map<UUID, Long> countByPostIdsBatch(List<UUID> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        // 构建 IN 子句的占位符
+        String placeholders = postIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+        
+        // 构建参数列表
+        List<Object> params = new ArrayList<>();
+        for (UUID postId : postIds) {
+            params.add(EntityMapper.uuidToString(postId));
+        }
+        params.add(false); // is_deleted = false
+        
+        String sql = "SELECT post_id, COUNT(*) as count FROM comments WHERE post_id IN (" + placeholders + ") AND is_deleted = ? GROUP BY post_id";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, params.toArray());
+        
+        // 构建结果 Map
+        Map<UUID, Long> result = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            UUID postId = EntityMapper.getUUID(row, "post_id");
+            Long count = EntityMapper.getLong(row, "count");
+            if (postId != null) {
+                result.put(postId, count != null ? count : 0L);
+            }
+        }
+        
+        // 对于没有评论的帖子，默认返回 0
+        for (UUID postId : postIds) {
+            result.putIfAbsent(postId, 0L);
+        }
+        
+        return result;
+    }
+    
+    @Override
     public long countByUserId(UUID userId) {
         String sql = "SELECT COUNT(*) as count FROM comments WHERE user_id = ? AND is_deleted = ?";
         return d1Util.queryLong(sql, EntityMapper.uuidToString(userId), false);

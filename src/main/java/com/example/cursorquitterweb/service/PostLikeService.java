@@ -4,6 +4,7 @@ import com.example.cursorquitterweb.entity.PostLike;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +47,13 @@ public interface PostLikeService {
      * 获取帖子点赞数
      */
     Integer getLikeCount(UUID postId);
+    
+    /**
+     * 批量获取帖子点赞数
+     * @param postIds 帖子ID列表
+     * @return Map，key为postId，value为点赞数
+     */
+    Map<UUID, Integer> getLikeCountsBatch(List<UUID> postIds);
     
     /**
      * 根据点赞数范围查找帖子

@@ -216,9 +216,25 @@ public class PostServiceImpl implements PostService {
             posts.add(mapToPost(postRow));
         }
         
-        List<PostWithUpvotesDto> content = posts.stream()
-                .map(this::convertToPostWithUpvotesDto)
-                .collect(Collectors.toList());
+        // 优化：使用批量查询获取所有帖子的点赞数和评论数，避免 N+1 查询问题
+        List<PostWithUpvotesDto> content;
+        if (posts.isEmpty()) {
+            content = new ArrayList<>();
+        } else {
+            // 收集所有帖子ID
+            List<UUID> postIds = posts.stream()
+                    .map(Post::getPostId)
+                    .collect(Collectors.toList());
+            
+            // 批量查询点赞数和评论数
+            Map<UUID, Integer> likeCountsMap = postLikeService.getLikeCountsBatch(postIds);
+            Map<UUID, Long> commentCountsMap = commentService.countByPostIdsBatch(postIds);
+            
+            // 批量转换为 DTO
+            content = posts.stream()
+                    .map(post -> convertToPostWithUpvotesDto(post, likeCountsMap, commentCountsMap))
+                    .collect(Collectors.toList());
+        }
         
         return new PostPageResult(content, totalElements);
     }
@@ -260,6 +276,13 @@ public class PostServiceImpl implements PostService {
     public long count() {
         String sql = "SELECT COUNT(*) as count FROM posts WHERE is_deleted = ?";
         return d1Util.queryLong(sql, false);
+    }
+    
+    @Override
+    public boolean existsByContent(String content) {
+        String sql = "SELECT COUNT(*) as count FROM posts WHERE content = ? AND is_deleted = ?";
+        long count = d1Util.queryLong(sql, content, false);
+        return count > 0;
     }
     
     /**
@@ -325,7 +348,7 @@ public class PostServiceImpl implements PostService {
     }
     
     /**
-     * 将Post实体转换为PostWithUpvotesDto
+     * 将Post实体转换为PostWithUpvotesDto（使用单个查询，性能较低）
      */
     private PostWithUpvotesDto convertToPostWithUpvotesDto(Post post) {
         // 获取点赞数，如果查不到默认为0
@@ -334,6 +357,35 @@ public class PostServiceImpl implements PostService {
         // 获取评论数，如果查不到默认为0
         long commentCountLong = commentService.countByPostId(post.getPostId());
         Integer commentCount = (int) commentCountLong;
+        
+        return new PostWithUpvotesDto(
+                post.getPostId(),
+                post.getUserId(),
+                post.getUserNickname(),
+                post.getUserStage(),
+                post.getAvatarUrl(),
+                post.getContent(),
+                post.getIsDeleted(),
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                upvotes,
+                commentCount
+        );
+    }
+    
+    /**
+     * 将Post实体转换为PostWithUpvotesDto（使用批量查询结果，性能优化）
+     * @param post 帖子实体
+     * @param likeCountsMap 点赞数Map（key为postId，value为点赞数）
+     * @param commentCountsMap 评论数Map（key为postId，value为评论数）
+     */
+    private PostWithUpvotesDto convertToPostWithUpvotesDto(Post post, Map<UUID, Integer> likeCountsMap, Map<UUID, Long> commentCountsMap) {
+        // 从Map中获取点赞数，如果查不到默认为0
+        Integer upvotes = likeCountsMap.getOrDefault(post.getPostId(), 0);
+        
+        // 从Map中获取评论数，如果查不到默认为0
+        Long commentCountLong = commentCountsMap.getOrDefault(post.getPostId(), 0L);
+        Integer commentCount = commentCountLong.intValue();
         
         return new PostWithUpvotesDto(
                 post.getPostId(),

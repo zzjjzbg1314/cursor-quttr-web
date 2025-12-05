@@ -95,6 +95,43 @@ public class PostLikeServiceImpl implements PostLikeService {
     }
     
     @Override
+    public Map<UUID, Integer> getLikeCountsBatch(List<UUID> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        // 构建 IN 子句的占位符
+        String placeholders = postIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+        
+        // 构建参数列表
+        List<Object> params = postIds.stream()
+                .map(EntityMapper::uuidToString)
+                .collect(Collectors.toList());
+        
+        String sql = "SELECT post_id, like_count FROM post_likes WHERE post_id IN (" + placeholders + ")";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, params.toArray());
+        
+        // 构建结果 Map
+        Map<UUID, Integer> result = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            UUID postId = EntityMapper.getUUID(row, "post_id");
+            Integer likeCount = EntityMapper.getInteger(row, "like_count");
+            if (postId != null) {
+                result.put(postId, likeCount != null ? likeCount : 0);
+            }
+        }
+        
+        // 对于没有点赞记录的帖子，默认返回 0
+        for (UUID postId : postIds) {
+            result.putIfAbsent(postId, 0);
+        }
+        
+        return result;
+    }
+    
+    @Override
     public List<PostLike> findByLikeCountRange(Integer minCount, Integer maxCount) {
         if (minCount == null) minCount = 0;
         if (maxCount == null) maxCount = Integer.MAX_VALUE;

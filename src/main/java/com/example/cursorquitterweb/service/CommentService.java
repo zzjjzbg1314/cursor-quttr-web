@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.entity.Comment;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -99,6 +100,13 @@ public interface CommentService {
      * 统计帖子的评论数量
      */
     long countByPostId(UUID postId);
+    
+    /**
+     * 批量统计帖子的评论数量
+     * @param postIds 帖子ID列表
+     * @return Map，key为postId，value为评论数
+     */
+    Map<UUID, Long> countByPostIdsBatch(List<UUID> postIds);
     
     /**
      * 统计用户的评论数量
