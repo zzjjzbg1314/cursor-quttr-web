@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * 自动帖子生成定时任务
- * 每天中午12点执行一次，每次生成2条戒色主题的英文帖子，每个帖子包含3-5条评论，每条评论包含1-3条回复
+ * 每3分钟执行一次（测试模式），每次生成1条戒色主题的英文帖子，每个帖子包含3-5条评论，每条评论包含1-3条回复
  */
 @Component
 public class AutoPostGenerationTask {
@@ -39,11 +39,11 @@ public class AutoPostGenerationTask {
     private CloudflareD1Util d1Util;
     
     /**
-     * 每天中午12点执行一次自动帖子生成任务
+     * 每天中午12点30分执行一次自动帖子生成任务
      * cron表达式: 秒 分 时 日 月 周
-     * "0 0 12 * * ?" 表示每天12点0分0秒执行
+     * "0 30 12 * * ?" 表示每天12点30分0秒执行
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    @Scheduled(cron = "0 30 12 * * ?")
     public void generateDailyPosts() {
         LogUtil.logInfo(logger, "开始执行自动帖子生成任务");
         
@@ -60,8 +60,8 @@ public class AutoPostGenerationTask {
             
             int successCount = 0;
             
-            // 生成2条帖子
-            for (int i = 0; i < 2; i++) {
+            // 生成1条帖子（测试模式：每3分钟执行一次）
+            for (int i = 0; i < 1; i++) {
                 try {
                     LogUtil.logInfo(logger, "========== 开始生成第 {} 条帖子 ==========", i + 1);
                     generatePostWithComments(earliestUsers);
