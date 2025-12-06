@@ -164,8 +164,42 @@ public class AutoPostGenerationTask {
                 // 随机选择一个用户作为评论者（不能是帖子作者）
                 User commentAuthor = getRandomUserExcept(users, postAuthor.getId());
                 
-                // 生成评论内容
+                // 生成评论内容，检查是否重复，如果重复则重新生成（最多重试3次）
                 String commentContent = deepSeekApiUtil.generateCommentContent(postContent);
+                int commentRetryCount = 0;
+                int maxCommentRetries = 3;
+                
+                while (commentRetryCount < maxCommentRetries) {
+                    // 检查内容是否重复
+                    if (commentContent != null && !commentService.existsByContent(post.getPostId(), commentContent)) {
+                        break;
+                    } else {
+                        commentRetryCount++;
+                        LogUtil.logWarn(logger, "检测到重复评论内容，重新生成中... (重试 {}/{})", commentRetryCount, maxCommentRetries);
+                        
+                        // 添加短暂延迟，避免API调用过快
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                        
+                        // 重新生成内容
+                        commentContent = deepSeekApiUtil.generateCommentContent(postContent);
+                    }
+                }
+                
+                // 如果重试后仍然重复，跳过此评论
+                if (commentRetryCount >= maxCommentRetries && commentContent != null && commentService.existsByContent(post.getPostId(), commentContent)) {
+                    LogUtil.logWarn(logger, "警告：重试 {} 次后仍检测到重复评论内容，跳过此评论", maxCommentRetries);
+                    continue;
+                }
+                
+                // 如果内容为空，跳过此评论
+                if (commentContent == null || commentContent.isEmpty()) {
+                    LogUtil.logWarn(logger, "无法生成有效的评论内容，跳过此评论");
+                    continue;
+                }
                 
                 // 创建一级评论（通过Service层保存到数据库）
                 Comment comment = commentService.createComment(
@@ -195,8 +229,42 @@ public class AutoPostGenerationTask {
                         // 随机选择一个用户作为回复者（不能是评论作者）
                         User replyAuthor = getRandomUserExcept(users, commentAuthor.getId());
                         
-                        // 生成回复内容
+                        // 生成回复内容，检查是否重复，如果重复则重新生成（最多重试3次）
                         String replyContent = deepSeekApiUtil.generateReplyContent(commentContent);
+                        int replyRetryCount = 0;
+                        int maxReplyRetries = 3;
+                        
+                        while (replyRetryCount < maxReplyRetries) {
+                            // 检查内容是否重复
+                            if (replyContent != null && !commentService.existsByContent(post.getPostId(), replyContent)) {
+                                break;
+                            } else {
+                                replyRetryCount++;
+                                LogUtil.logWarn(logger, "检测到重复回复内容，重新生成中... (重试 {}/{})", replyRetryCount, maxReplyRetries);
+                                
+                                // 添加短暂延迟，避免API调用过快
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                }
+                                
+                                // 重新生成内容
+                                replyContent = deepSeekApiUtil.generateReplyContent(commentContent);
+                            }
+                        }
+                        
+                        // 如果重试后仍然重复，跳过此回复
+                        if (replyRetryCount >= maxReplyRetries && replyContent != null && commentService.existsByContent(post.getPostId(), replyContent)) {
+                            LogUtil.logWarn(logger, "警告：重试 {} 次后仍检测到重复回复内容，跳过此回复", maxReplyRetries);
+                            continue;
+                        }
+                        
+                        // 如果内容为空，跳过此回复
+                        if (replyContent == null || replyContent.isEmpty()) {
+                            LogUtil.logWarn(logger, "无法生成有效的回复内容，跳过此回复");
+                            continue;
+                        }
                         
                         // 创建回复评论（通过Service层保存到数据库）
                         Comment reply = commentService.createReplyComment(

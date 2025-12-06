@@ -38,6 +38,11 @@ public class CommentServiceImpl implements CommentService {
             UUID postUuid = UUID.fromString(postId);
             UUID userUuid = UUID.fromString(userId);
             
+            // 检查是否已存在相同内容的评论（防止重复插入）
+            if (existsByContent(postUuid, content)) {
+                throw new RuntimeException("评论内容已存在，无法重复创建");
+            }
+            
             // 创建一级评论（直接评论帖子）
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content);
             // 确保comment_level为1（一级评论）
@@ -284,6 +289,11 @@ public class CommentServiceImpl implements CommentService {
             UUID replyToUserUuid = replyToUserId != null ? UUID.fromString(replyToUserId) : null;
             UUID replyToCommentUuid = replyToCommentId != null ? UUID.fromString(replyToCommentId) : null;
             
+            // 检查是否已存在相同内容的回复（防止重复插入）
+            if (existsByContent(postUuid, content)) {
+                throw new RuntimeException("回复内容已存在，无法重复创建");
+            }
+            
             // 查找父评论以确定root_comment_id
             UUID rootCommentUuid = null;
             if (parentCommentUuid != null) {
@@ -511,6 +521,13 @@ public class CommentServiceImpl implements CommentService {
             // 如果是回复，只删除该回复
             deleteComment(commentId);
         }
+    }
+    
+    @Override
+    public boolean existsByContent(UUID postId, String content) {
+        String sql = "SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND content = ? AND is_deleted = ?";
+        long count = d1Util.queryLong(sql, EntityMapper.uuidToString(postId), content, false);
+        return count > 0;
     }
     
     /**

@@ -188,4 +188,12 @@ public interface CommentService {
      * 删除一个根评论时，同时删除该评论下的所有回复
      */
     void deleteCommentAndReplies(UUID commentId);
+    
+    /**
+     * 检查评论内容是否已存在（用于防止重复插入）
+     * @param postId 帖子ID
+     * @param content 评论内容
+     * @return 如果存在返回 true，否则返回 false
+     */
+    boolean existsByContent(UUID postId, String content);
 }

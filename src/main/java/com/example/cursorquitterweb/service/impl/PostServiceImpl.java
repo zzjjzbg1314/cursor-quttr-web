@@ -290,6 +290,11 @@ public class PostServiceImpl implements PostService {
      */
     private Post savePost(Post post) {
         if (post.getPostId() == null) {
+            // 插入新记录前，再次检查内容是否重复（避免竞态条件）
+            if (post.getContent() != null && existsByContent(post.getContent())) {
+                throw new RuntimeException("帖子内容已存在，无法重复创建");
+            }
+            
             // 插入新记录
             post.setPostId(UUID.randomUUID());
             post.setCreatedAt(OffsetDateTime.now());
