@@ -9,7 +9,7 @@ import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
-import com.example.cursorquitterweb.service.OssService;
+import com.example.cursorquitterweb.service.R2Service;
 import com.example.cursorquitterweb.service.PhoneAuthService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
@@ -42,7 +42,7 @@ public class UserController {
     private RecoverJourneyService recoverJourneyService;
     
     @Autowired
-    private OssService ossService;
+    private R2Service r2Service;
     
     @Autowired
     private PhoneAuthService phoneAuthService;
@@ -557,8 +557,8 @@ public class UserController {
         logger.info("上传用户头像");
         
         try {
-            // 上传头像到OSS
-            String avatarUrl = ossService.uploadAvatar(file);
+            // 上传头像到 Cloudflare R2
+            String avatarUrl = r2Service.uploadAvatar(file);
             
             AvatarUploadResponse response = new AvatarUploadResponse(avatarUrl);
             logger.info("头像上传成功，头像URL: {}", avatarUrl);

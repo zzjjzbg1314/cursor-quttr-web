@@ -140,6 +140,15 @@ cloudflare:
     base-url: https://api.cloudflare.com/client/v4
     connection-timeout: 10000
     read-timeout: 30000
+  # Cloudflare R2 存储配置
+  r2:
+    endpoint: ${CLOUDFLARE_R2_ENDPOINT:https://9f909e5543b3a5c0db91a36cf6fc940b.r2.cloudflarestorage.com}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY:7e867fb7b9feb500b73d95a376770a10}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY:fafb93b49dffd1dbecd4d8aa58e9aa591c32f63d3cb65810bbb31fdf2c87181d}
+    bucket: ${CLOUDFLARE_R2_BUCKET:nofap}
+    avatar-prefix: ${CLOUDFLARE_R2_AVATAR_PREFIX:user/}
+    # 公共访问域名（可选，如果配置了自定义域名）
+    public-domain: ${CLOUDFLARE_R2_PUBLIC_DOMAIN:nofaponline.us}
 
 # DeepSeek API配置
 deepseek:
