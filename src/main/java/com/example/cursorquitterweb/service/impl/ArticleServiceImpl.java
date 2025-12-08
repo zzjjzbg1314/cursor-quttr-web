@@ -107,14 +107,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> findByType(String type) {
-        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, type, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByType(String type, int page, int size) {
-        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE type = ? AND status = ? ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size, type, "active").stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -122,21 +122,21 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> searchByTitle(String title) {
-        String sql = "SELECT * FROM article WHERE LOWER(title) LIKE LOWER(?) AND status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE LOWER(title) LIKE LOWER(?) AND status = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "%" + title + "%", "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByColor(String color) {
-        String sql = "SELECT * FROM article WHERE color = ? AND status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE color = ? AND status = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, color, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> getAllActiveArticles(int page, int size) {
-        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size, "active").stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -144,14 +144,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> getAllActiveArticles() {
-        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, "active");
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> getAllArticles(int page, int size) {
-        String sql = "SELECT * FROM article ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article ORDER BY create_at ASC";
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
@@ -159,14 +159,14 @@ public class ArticleServiceImpl implements ArticleService {
     
     @Override
     public List<Article> getAllArticles() {
-        String sql = "SELECT * FROM article ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql);
         return rows.stream().map(this::mapToArticle).collect(Collectors.toList());
     }
     
     @Override
     public List<Article> findByTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {
-        String sql = "SELECT * FROM article WHERE create_at >= ? AND create_at <= ? AND status = ? ORDER BY create_at DESC";
+        String sql = "SELECT * FROM article WHERE create_at >= ? AND create_at <= ? AND status = ? ORDER BY create_at ASC";
         List<Map<String, Object>> rows = d1Util.queryList(sql, 
             EntityMapper.offsetDateTimeToString(startTime), 
             EntityMapper.offsetDateTimeToString(endTime), 
