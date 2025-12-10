@@ -46,6 +46,11 @@ apple:
   # Apple App ID / Client ID（例如：com.yourcompany.yourapp）
   client-id: ${APPLE_CLIENT_ID:}
 
+# Google 登录配置
+google:
+  # Google Client ID（OAuth 2.0 客户端ID）
+  client-id: ${GOOGLE_CLIENT_ID:553159841542-ias7p4c8ki8bppej616g3tuof42nc6nn.apps.googleusercontent.com}
+
 # 阿里云OSS配置
 aliyun_oss:
   endpoint: ${ALIYUN_OSS_ENDPOINT:https://oss-cn-beijing.aliyuncs.com}

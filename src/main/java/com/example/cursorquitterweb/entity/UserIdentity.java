@@ -109,6 +109,7 @@ public class UserIdentity {
         public static final String EMAIL = "email";
         public static final String APPLE = "apple";
         public static final String QQ = "qq";
+        public static final String GOOGLE = "google";
     }
 }
 
