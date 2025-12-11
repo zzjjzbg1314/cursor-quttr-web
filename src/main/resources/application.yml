@@ -32,7 +32,7 @@ spring:
   cache:
     type: caffeine
     caffeine:
-      spec: maximumSize=1000,expireAfterWrite=10m
+      spec: maximumSize=1000,expireAfterWrite=12h
 
 # 微信配置
 wechat:
