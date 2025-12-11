@@ -176,6 +176,12 @@ public class R2ServiceImpl implements R2Service {
             String domain = r2Config.getPublicDomain().endsWith("/") 
                     ? r2Config.getPublicDomain().substring(0, r2Config.getPublicDomain().length() - 1)
                     : r2Config.getPublicDomain();
+            
+            // 检查是否包含协议前缀，如果没有则添加 https://
+            if (!domain.startsWith("http://") && !domain.startsWith("https://")) {
+                domain = "https://" + domain;
+            }
+            
             return domain + "/" + objectKey;
         } else {
             // 使用 R2 的公共访问格式: https://<bucket>.<account-id>.r2.cloudflarestorage.com/<object-key>
@@ -193,6 +199,12 @@ public class R2ServiceImpl implements R2Service {
             } else {
                 // 如果无法提取，使用 endpoint + bucket + objectKey
                 String baseUrl = endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length() - 1) : endpoint;
+                
+                // 确保 baseUrl 包含协议前缀
+                if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+                    baseUrl = "https://" + baseUrl;
+                }
+                
                 return baseUrl + "/" + r2Config.getBucket() + "/" + objectKey;
             }
         }
