@@ -189,51 +189,88 @@ public class PostServiceImpl implements PostService {
     
     @Override
     public PostPageResult getAllPostsWithUpvotesAndCount(int page, int size, String sortBy, String sortDir) {
-        // 使用窗口函数在单次查询中同时获取数据和总数
+        // 性能优化：使用单次SQL查询，通过LEFT JOIN一次性获取帖子、点赞数和评论数
+        // 这样可以减少数据库查询次数（从3次减少到1次），大幅提升性能
         String validSortBy = validateSortField(sortBy);
         String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
         
-        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        // 使用窗口函数 COUNT(*) OVER() 获取总数，同时通过LEFT JOIN获取点赞数和评论数
+        // 明确指定字段名，避免字段冲突
         String sql = String.format(
-            "SELECT *, COUNT(*) OVER() as total_count FROM posts WHERE is_deleted = ? ORDER BY %s %s LIMIT ? OFFSET ?",
+            "SELECT " +
+            "p.post_id, p.user_id, p.user_nickname, p.user_stage, p.avatar_url, " +
+            "p.content, p.is_deleted, p.created_at, p.updated_at, " +
+            "COALESCE(pl.like_count, 0) as upvotes, " +
+            "COALESCE(comment_counts.comment_count, 0) as comment_count, " +
+            "COUNT(*) OVER() as total_count " +
+            "FROM posts p " +
+            "LEFT JOIN post_likes pl ON p.post_id = pl.post_id " +
+            "LEFT JOIN ( " +
+            "    SELECT post_id, COUNT(*) as comment_count " +
+            "    FROM comments " +
+            "    WHERE is_deleted = ? " +
+            "    GROUP BY post_id " +
+            ") comment_counts ON p.post_id = comment_counts.post_id " +
+            "WHERE p.is_deleted = ? " +
+            "ORDER BY p.%s %s " +
+            "LIMIT ? OFFSET ?",
             validSortBy, validSortDir
         );
         
         int offset = page * size;
-        List<Map<String, Object>> rows = d1Util.queryList(sql, false, size, offset);
+        List<Map<String, Object>> rows = d1Util.queryList(sql, false, false, size, offset);
         
         long totalElements = 0;
-        List<Post> posts = new ArrayList<>();
+        List<PostWithUpvotesDto> content = new ArrayList<>();
         
         for (Map<String, Object> row : rows) {
             // 从第一行获取总数（所有行的 total_count 都相同）
             if (totalElements == 0 && row.get("total_count") != null) {
                 totalElements = ((Number) row.get("total_count")).longValue();
             }
-            // 移除 total_count 字段，避免影响 Post 映射
-            Map<String, Object> postRow = new HashMap<>(row);
-            postRow.remove("total_count");
-            posts.add(mapToPost(postRow));
-        }
-        
-        // 优化：使用批量查询获取所有帖子的点赞数和评论数，避免 N+1 查询问题
-        List<PostWithUpvotesDto> content;
-        if (posts.isEmpty()) {
-            content = new ArrayList<>();
-        } else {
-            // 收集所有帖子ID
-            List<UUID> postIds = posts.stream()
-                    .map(Post::getPostId)
-                    .collect(Collectors.toList());
             
-            // 批量查询点赞数和评论数
-            Map<UUID, Integer> likeCountsMap = postLikeService.getLikeCountsBatch(postIds);
-            Map<UUID, Long> commentCountsMap = commentService.countByPostIdsBatch(postIds);
+            // 直接使用查询结果构建Post对象，避免额外的Map转换
+            Post post = new Post();
+            post.setPostId(EntityMapper.getUUID(row, "post_id"));
+            post.setUserId(EntityMapper.getUUID(row, "user_id"));
+            post.setUserNickname(EntityMapper.getString(row, "user_nickname"));
+            post.setUserStage(EntityMapper.getString(row, "user_stage"));
+            post.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
+            post.setContent(EntityMapper.getString(row, "content"));
+            Object isDeletedObj = row.get("is_deleted");
+            if (isDeletedObj instanceof Boolean) {
+                post.setIsDeleted((Boolean) isDeletedObj);
+            } else if (isDeletedObj instanceof Number) {
+                post.setIsDeleted(((Number) isDeletedObj).intValue() != 0);
+            } else {
+                post.setIsDeleted(false);
+            }
+            post.setCreatedAt(EntityMapper.getOffsetDateTime(row, "created_at"));
+            post.setUpdatedAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
             
-            // 批量转换为 DTO
-            content = posts.stream()
-                    .map(post -> convertToPostWithUpvotesDto(post, likeCountsMap, commentCountsMap))
-                    .collect(Collectors.toList());
+            // 获取点赞数和评论数
+            Integer upvotes = row.get("upvotes") != null ? 
+                ((Number) row.get("upvotes")).intValue() : 0;
+            Long commentCountLong = row.get("comment_count") != null ? 
+                ((Number) row.get("comment_count")).longValue() : 0L;
+            Integer commentCount = commentCountLong.intValue();
+            
+            // 直接构建DTO，避免额外的转换
+            PostWithUpvotesDto dto = new PostWithUpvotesDto(
+                post.getPostId(),
+                post.getUserId(),
+                post.getUserNickname(),
+                post.getUserStage(),
+                post.getAvatarUrl(),
+                post.getContent(),
+                post.getIsDeleted(),
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                upvotes,
+                commentCount
+            );
+            
+            content.add(dto);
         }
         
         return new PostPageResult(content, totalElements);
