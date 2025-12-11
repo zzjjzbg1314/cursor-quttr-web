@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.dto.CreateVideoRequest;
 import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UpdateVideoRequest;
 import com.example.cursorquitterweb.dto.VideoDto;
+import com.example.cursorquitterweb.dto.VideoPageResult;
 import com.example.cursorquitterweb.entity.Video;
 import com.example.cursorquitterweb.service.VideoService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -146,6 +147,7 @@ public class VideoController {
     /**
      * 获取所有视频（分页）
      * 返回格式: { "data": { "content": [...], ... } }
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/getAllVideos")
@@ -156,15 +158,16 @@ public class VideoController {
         try {
             logger.info("获取所有视频，页码: {}, 大小: {}", page, size);
             
-            // 获取总数
-            long totalElements = videoService.count();
-            
-            // 获取分页数据
-            List<Video> videos = videoService.getAllVideos(page, size);
-            List<VideoDto> dtoList = videoService.convertToDtoList(videos);
+            // 使用单次查询获取数据和总数
+            VideoPageResult result = videoService.getAllVideosWithCount(page, size);
             
             // 创建分页响应对象
-            PageResponse<VideoDto> pageResponse = new PageResponse<>(dtoList, totalElements, page, size);
+            PageResponse<VideoDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
             
             return ResponseEntity.ok(ApiResponse.success("获取视频列表成功", pageResponse));
             

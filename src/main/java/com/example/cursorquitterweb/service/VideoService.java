@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.VideoDto;
+import com.example.cursorquitterweb.dto.VideoPageResult;
 import com.example.cursorquitterweb.entity.Video;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
@@ -9,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,43 @@ public class VideoService {
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToVideo)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取所有视频（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     * 
+     * @param page 页码（从0开始）
+     * @param size 每页大小
+     * @return 包含视频列表和总数的分页结果
+     */
+    public VideoPageResult getAllVideosWithCount(int page, int size) {
+        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        String sql = "SELECT *, COUNT(*) OVER() as total_count FROM video ORDER BY create_at ASC LIMIT ? OFFSET ?";
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, size, offset);
+        
+        long totalElements = 0;
+        List<Video> videos = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            // 从第一行获取总数（所有行的 total_count 都相同）
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            // 移除 total_count 字段，避免影响 Video 映射
+            Map<String, Object> videoRow = new HashMap<>(row);
+            videoRow.remove("total_count");
+            videos.add(mapToVideo(videoRow));
+        }
+        
+        // 转换为DTO
+        List<VideoDto> content = videos.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new VideoPageResult(content, totalElements);
     }
     
     /**
