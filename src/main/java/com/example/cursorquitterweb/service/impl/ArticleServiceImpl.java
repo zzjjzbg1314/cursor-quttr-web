@@ -1,5 +1,6 @@
 package com.example.cursorquitterweb.service.impl;
 
+import com.example.cursorquitterweb.dto.ArticlePageResult;
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
 import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
@@ -13,6 +14,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +144,31 @@ public class ArticleServiceImpl implements ArticleService {
             .collect(Collectors.toList());
     }
     
+    /**
+     * 获取所有活跃文章（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    public ArticlePageResult getAllActiveArticlesWithCount(int page, int size) {
+        String sql = "SELECT *, COUNT(*) OVER() as total_count FROM article WHERE status = ? ORDER BY create_at ASC LIMIT ? OFFSET ?";
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, "active", size, offset);
+        
+        long totalElements = 0;
+        List<Article> articles = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            Map<String, Object> articleRow = new HashMap<>(row);
+            articleRow.remove("total_count");
+            articles.add(mapToArticle(articleRow));
+        }
+        
+        return new ArticlePageResult(articles, totalElements);
+    }
+    
     @Override
     public List<Article> getAllActiveArticles() {
         String sql = "SELECT * FROM article WHERE status = ? ORDER BY create_at ASC";
@@ -155,6 +182,31 @@ public class ArticleServiceImpl implements ArticleService {
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToArticle)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取所有文章（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    public ArticlePageResult getAllArticlesWithCount(int page, int size) {
+        String sql = "SELECT *, COUNT(*) OVER() as total_count FROM article ORDER BY create_at ASC LIMIT ? OFFSET ?";
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, size, offset);
+        
+        long totalElements = 0;
+        List<Article> articles = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            Map<String, Object> articleRow = new HashMap<>(row);
+            articleRow.remove("total_count");
+            articles.add(mapToArticle(articleRow));
+        }
+        
+        return new ArticlePageResult(articles, totalElements);
     }
     
     @Override

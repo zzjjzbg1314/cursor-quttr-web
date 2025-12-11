@@ -72,6 +72,12 @@ public interface VideoScenarioService {
     List<VideoScenario> getAllVideoScenarios(int page, int size);
     
     /**
+     * 获取所有视频场景（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    com.example.cursorquitterweb.dto.VideoScenarioPageResult getAllVideoScenariosWithCount(int page, int size);
+    
+    /**
      * 获取所有视频场景
      */
     List<VideoScenario> getAllVideoScenarios();

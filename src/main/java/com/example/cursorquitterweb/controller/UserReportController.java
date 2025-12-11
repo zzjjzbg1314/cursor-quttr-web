@@ -2,7 +2,9 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreateUserReportRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UserReportDto;
+import com.example.cursorquitterweb.dto.UserReportPageResult;
 import com.example.cursorquitterweb.entity.UserReport;
 import com.example.cursorquitterweb.service.UserReportService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -82,19 +84,26 @@ public class UserReportController {
     
     /**
      * 获取所有举报记录（分页）
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      * GET /api/user-reports
      */
     @GetMapping
-    public ApiResponse<List<UserReportDto>> getAllReports(
+    public ApiResponse<PageResponse<UserReportDto>> getAllReports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            List<UserReport> reports = userReportService.getAllReports(page, size);
-            List<UserReportDto> dtoList = reports.stream()
-                .map(UserReportDto::new)
-                .collect(Collectors.toList());
+            // 使用单次查询获取数据和总数
+            UserReportPageResult result = userReportService.getAllReportsWithCount(page, size);
             
-            return ApiResponse.success("获取举报记录成功", dtoList);
+            // 创建分页响应对象
+            PageResponse<UserReportDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取举报记录成功", pageResponse);
             
         } catch (Exception e) {
             logger.error("获取举报记录列表异常", e);

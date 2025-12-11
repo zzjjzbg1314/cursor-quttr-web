@@ -28,6 +28,12 @@ public interface PostReportService {
     List<PostReport> getAllReports(int page, int size);
     
     /**
+     * 获取所有举报记录（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    com.example.cursorquitterweb.dto.PostReportPageResult getAllReportsWithCount(int page, int size);
+    
+    /**
      * 根据被举报的帖子ID查找举报记录
      */
     List<PostReport> findByReportedPostId(UUID reportedPostId);

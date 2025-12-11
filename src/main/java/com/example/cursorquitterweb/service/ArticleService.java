@@ -81,6 +81,12 @@ public interface ArticleService {
     List<Article> getAllActiveArticles(int page, int size);
     
     /**
+     * 获取所有活跃文章（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    com.example.cursorquitterweb.dto.ArticlePageResult getAllActiveArticlesWithCount(int page, int size);
+    
+    /**
      * 获取所有活跃文章
      */
     List<Article> getAllActiveArticles();
@@ -89,6 +95,12 @@ public interface ArticleService {
      * 获取所有文章（分页，已移除 Spring Data Page，返回 List）
      */
     List<Article> getAllArticles(int page, int size);
+    
+    /**
+     * 获取所有文章（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    com.example.cursorquitterweb.dto.ArticlePageResult getAllArticlesWithCount(int page, int size);
     
     /**
      * 获取所有文章

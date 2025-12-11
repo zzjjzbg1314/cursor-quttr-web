@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.dto.VideoScenarioDto;
+import com.example.cursorquitterweb.dto.VideoScenarioPageResult;
 import com.example.cursorquitterweb.entity.VideoScenario;
 import com.example.cursorquitterweb.service.VideoScenarioService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
@@ -10,6 +11,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +124,43 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToVideoScenario)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取所有视频场景（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     * 
+     * @param page 页码（从0开始）
+     * @param size 每页大小
+     * @return 包含视频场景列表和总数的分页结果
+     */
+    public VideoScenarioPageResult getAllVideoScenariosWithCount(int page, int size) {
+        // 使用窗口函数 COUNT(*) OVER() 在单次查询中获取总数
+        String sql = "SELECT *, COUNT(*) OVER() as total_count FROM video_scenario ORDER BY create_at ASC LIMIT ? OFFSET ?";
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, size, offset);
+        
+        long totalElements = 0;
+        List<VideoScenario> videoScenarios = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            // 从第一行获取总数（所有行的 total_count 都相同）
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            // 移除 total_count 字段，避免影响 VideoScenario 映射
+            Map<String, Object> videoScenarioRow = new HashMap<>(row);
+            videoScenarioRow.remove("total_count");
+            videoScenarios.add(mapToVideoScenario(videoScenarioRow));
+        }
+        
+        // 转换为DTO
+        List<VideoScenarioDto> content = videoScenarios.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        return new VideoScenarioPageResult(content, totalElements);
     }
     
     @Override

@@ -2,8 +2,10 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreateVideoScenarioRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UpdateVideoScenarioRequest;
 import com.example.cursorquitterweb.dto.VideoScenarioDto;
+import com.example.cursorquitterweb.dto.VideoScenarioPageResult;
 import com.example.cursorquitterweb.entity.VideoScenario;
 import com.example.cursorquitterweb.service.VideoScenarioService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -156,22 +158,29 @@ public class VideoScenarioController {
     
     /**
      * 获取所有视频场景（分页）
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/getAllVideoScenarios")
     @Cacheable(value = "videoScenarios", key = "#page + '_' + #size")
-    public ResponseEntity<ApiResponse<List<VideoScenarioDto>>> getAllVideoScenarios(
+    public ResponseEntity<ApiResponse<PageResponse<VideoScenarioDto>>> getAllVideoScenarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
         try {
             logger.info("获取所有视频场景，页码: {}, 大小: {}", page, size);
             
-            List<VideoScenario> videoScenarios = videoScenarioService.getAllVideoScenarios(page, size);
-            List<VideoScenarioDto> dtoList = videoScenarios.stream()
-                .map(videoScenarioService::convertToDto)
-                .collect(java.util.stream.Collectors.toList());
+            // 使用单次查询获取数据和总数
+            VideoScenarioPageResult result = videoScenarioService.getAllVideoScenariosWithCount(page, size);
             
-            return ResponseEntity.ok(ApiResponse.success("获取视频场景列表成功", dtoList));
+            // 创建分页响应对象
+            PageResponse<VideoScenarioDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success("获取视频场景列表成功", pageResponse));
             
         } catch (Exception e) {
             logger.error("获取视频场景列表失败，错误: {}", e.getMessage(), e);

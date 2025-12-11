@@ -1,5 +1,7 @@
 package com.example.cursorquitterweb.service.impl;
 
+import com.example.cursorquitterweb.dto.PostReportDto;
+import com.example.cursorquitterweb.dto.PostReportPageResult;
 import com.example.cursorquitterweb.entity.PostReport;
 import com.example.cursorquitterweb.service.PostReportService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,36 @@ public class PostReportServiceImpl implements PostReportService {
         return d1Util.queryPage(sql, page + 1, size).stream()
             .map(this::mapToPostReport)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取所有举报记录（分页，使用窗口函数一次性获取数据和总数）
+     * 性能优化：使用窗口函数 COUNT(*) OVER() 在单次查询中同时获取数据和总数，避免2次数据库查询
+     */
+    public PostReportPageResult getAllReportsWithCount(int page, int size) {
+        String sql = "SELECT *, COUNT(*) OVER() as total_count FROM post_reports ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        
+        int offset = page * size;
+        List<Map<String, Object>> rows = d1Util.queryList(sql, size, offset);
+        
+        long totalElements = 0;
+        List<PostReport> reports = new ArrayList<>();
+        
+        for (Map<String, Object> row : rows) {
+            if (totalElements == 0 && row.get("total_count") != null) {
+                totalElements = ((Number) row.get("total_count")).longValue();
+            }
+            Map<String, Object> reportRow = new HashMap<>(row);
+            reportRow.remove("total_count");
+            reports.add(mapToPostReport(reportRow));
+        }
+        
+        // 转换为DTO
+        List<PostReportDto> content = reports.stream()
+                .map(PostReportDto::new)
+                .collect(Collectors.toList());
+        
+        return new PostReportPageResult(content, totalElements);
     }
     
     @Override

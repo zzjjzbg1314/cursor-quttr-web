@@ -1,10 +1,12 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import com.example.cursorquitterweb.dto.ArticlePageResult;
 import com.example.cursorquitterweb.dto.ArticleWithSectionsDto;
 import com.example.cursorquitterweb.dto.ArticleWithDetailedSectionsDto;
 import com.example.cursorquitterweb.dto.ArticlesGroupedByTypeDto;
 import com.example.cursorquitterweb.dto.CreateArticleRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.UpdateArticleRequest;
 import com.example.cursorquitterweb.entity.Article;
 import com.example.cursorquitterweb.service.ArticleService;
@@ -204,14 +206,25 @@ public class ArticleController {
     
     /**
      * 获取所有活跃文章（分页）
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      */
     @GetMapping("/active")
-    public ApiResponse<List<Article>> getActiveArticles(
+    public ApiResponse<PageResponse<Article>> getActiveArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Article> articles = articleService.getAllActiveArticles(page, size);
-            return ApiResponse.success("获取活跃文章成功", articles);
+            // 使用单次查询获取数据和总数
+            ArticlePageResult result = articleService.getAllActiveArticlesWithCount(page, size);
+            
+            // 创建分页响应对象
+            PageResponse<Article> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取活跃文章成功", pageResponse);
         } catch (Exception e) {
             return ApiResponse.error("获取活跃文章失败: " + e.getMessage());
         }
@@ -232,16 +245,27 @@ public class ArticleController {
     
     /**
      * 获取所有文章（分页）
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/all")
     @Cacheable(value = "articles", key = "#page + '_' + #size")
-    public ApiResponse<List<Article>> getAllArticles(
+    public ApiResponse<PageResponse<Article>> getAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Article> articles = articleService.getAllArticles(page, size);
-            return ApiResponse.success("获取所有文章成功", articles);
+            // 使用单次查询获取数据和总数
+            ArticlePageResult result = articleService.getAllArticlesWithCount(page, size);
+            
+            // 创建分页响应对象
+            PageResponse<Article> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取所有文章成功", pageResponse);
         } catch (Exception e) {
             return ApiResponse.error("获取所有文章失败: " + e.getMessage());
         }

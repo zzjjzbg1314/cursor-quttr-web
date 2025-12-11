@@ -2,7 +2,9 @@ package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
 import com.example.cursorquitterweb.dto.CreatePostReportRequest;
+import com.example.cursorquitterweb.dto.PageResponse;
 import com.example.cursorquitterweb.dto.PostReportDto;
+import com.example.cursorquitterweb.dto.PostReportPageResult;
 import com.example.cursorquitterweb.entity.PostReport;
 import com.example.cursorquitterweb.service.PostReportService;
 import com.example.cursorquitterweb.util.LogUtil;
@@ -82,19 +84,26 @@ public class PostReportController {
     
     /**
      * 获取所有举报记录（分页）
+     * 优化：使用窗口函数在单次查询中同时获取数据和总数，避免2次数据库查询
      * GET /api/post-reports
      */
     @GetMapping
-    public ApiResponse<List<PostReportDto>> getAllReports(
+    public ApiResponse<PageResponse<PostReportDto>> getAllReports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            List<PostReport> reports = postReportService.getAllReports(page, size);
-            List<PostReportDto> dtoList = reports.stream()
-                .map(PostReportDto::new)
-                .collect(Collectors.toList());
+            // 使用单次查询获取数据和总数
+            PostReportPageResult result = postReportService.getAllReportsWithCount(page, size);
             
-            return ApiResponse.success("获取举报记录成功", dtoList);
+            // 创建分页响应对象
+            PageResponse<PostReportDto> pageResponse = new PageResponse<>(
+                result.getContent(), 
+                result.getTotalElements(), 
+                page, 
+                size
+            );
+            
+            return ApiResponse.success("获取举报记录成功", pageResponse);
             
         } catch (Exception e) {
             logger.error("获取举报记录列表异常", e);
