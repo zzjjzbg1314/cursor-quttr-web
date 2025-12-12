@@ -29,6 +29,9 @@ public class AppleLoginRequest {
     @JsonProperty("family_name")
     private String familyName;
     
+    @JsonProperty("language")
+    private String language;
+    
     public AppleLoginRequest() {
     }
     
@@ -80,6 +83,14 @@ public class AppleLoginRequest {
         this.familyName = familyName;
     }
     
+    public String getLanguage() {
+        return language;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+    
     @Override
     public String toString() {
         return "AppleLoginRequest{" +
@@ -87,6 +98,7 @@ public class AppleLoginRequest {
                 ", email='" + email + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
+                ", language='" + language + '\'' +
                 '}';
     }
 }

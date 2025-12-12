@@ -113,6 +113,11 @@ public class AppleAuthServiceImpl implements AppleAuthService {
             // 设置 restartCount 为 0
             user.setRestartCount(0);
             
+            // 如果传递了 language 参数且不为空，则保存到 user 表
+            if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
+                user.setLanguage(request.getLanguage());
+            }
+            
             // 保存用户
             user = userService.save(user);
             
