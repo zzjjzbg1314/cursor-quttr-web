@@ -128,7 +128,7 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         
         // 生成随机头像
         int randomNumber = (int) (Math.random() * 30) + 1;
-        String avatarUrl = "https://nofaponline.us/images/xiaohongshu/" + randomNumber + ".jpg";
+        String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
         
         // 创建用户
         User user = User.initUser();

@@ -9,7 +9,7 @@ import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.entity.User;
-import com.example.cursorquitterweb.service.R2Service;
+import com.example.cursorquitterweb.service.OssService;
 import com.example.cursorquitterweb.service.PhoneAuthService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
@@ -42,7 +42,7 @@ public class UserController {
     private RecoverJourneyService recoverJourneyService;
     
     @Autowired
-    private R2Service r2Service;
+    private OssService ossService;
     
     @Autowired
     private PhoneAuthService phoneAuthService;
@@ -72,7 +72,7 @@ public class UserController {
         
         // 生成1到30之间的随机数字
         int randomNumber = (int) (Math.random() * 30) + 1;
-        String avatarUrl = "https://nofaponline.us/images/xiaohongshu/" + randomNumber + ".jpg";
+        String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
         
         User user = User.initUser();
         user.setNickname(request.getNickname());
@@ -557,8 +557,8 @@ public class UserController {
         logger.info("上传用户头像");
         
         try {
-            // 上传头像到 Cloudflare R2
-            String avatarUrl = r2Service.uploadAvatar(file);
+            // 上传头像到阿里云OSS
+            String avatarUrl = ossService.uploadAvatar(file);
             
             AvatarUploadResponse response = new AvatarUploadResponse(avatarUrl);
             logger.info("头像上传成功，头像URL: {}", avatarUrl);
