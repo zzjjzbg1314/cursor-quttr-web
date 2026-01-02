@@ -72,7 +72,7 @@ public class UserController {
         
         // 生成1到30之间的随机数字
         int randomNumber = (int) (Math.random() * 30) + 1;
-        String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
+        String avatarUrl = "https://image.kejiapi.cn/image/xiaohongshu/" + randomNumber + ".jpg";
         
         User user = User.initUser();
         user.setNickname(request.getNickname());

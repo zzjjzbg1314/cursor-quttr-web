@@ -97,7 +97,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             
             // 生成1到30之间的随机数字用于头像
             int randomNumber = (int) (Math.random() * 30) + 1;
-            String avatarUrl = "https://image.kejiapi.cn/images/xiaohongshu/" + randomNumber + ".jpg";
+            String avatarUrl = "https://image.kejiapi.cn/image/xiaohongshu/" + randomNumber + ".jpg";
             
             // 如果提供了 Google 头像，优先使用
             if (request.getPicture() != null && !request.getPicture().isEmpty()) {
