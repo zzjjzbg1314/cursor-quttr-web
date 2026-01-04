@@ -1,14 +1,15 @@
 package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.config.AgoraConfig;
-import com.example.cursorquitterweb.util.AgoraRtmTokenBuilder;
 import com.example.cursorquitterweb.util.LogUtil;
+import com.example.cursorquitterweb.util.RtmTokenBuilder2;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * 声网 RTM Token 服务类
+ * 参考官方示例: https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/sample/RtmTokenBuilder2Sample.java
  */
 @Service
 public class AgoraRtmTokenService {
@@ -38,17 +39,13 @@ public class AgoraRtmTokenService {
             throw new IllegalArgumentException("userId 不能为空");
         }
         
-        // 计算过期时间戳
-        int currentTimestamp = (int) (System.currentTimeMillis() / 1000);
-        int privilegeExpiredTs = currentTimestamp + agoraConfig.getTokenExpireTime();
-        
-        // 生成 Token
-        String token = AgoraRtmTokenBuilder.buildToken(
+        // 使用官方 RtmTokenBuilder2 API
+        RtmTokenBuilder2 tokenBuilder = new RtmTokenBuilder2();
+        String token = tokenBuilder.buildToken(
             agoraConfig.getAppId(),
             agoraConfig.getAppCertificate(),
             userId,
-            AgoraRtmTokenBuilder.RtmRole.Rtm_User,
-            privilegeExpiredTs
+            agoraConfig.getTokenExpireTime()
         );
         
         logger.info("RTM Token 生成成功，userId: {}", userId);
