@@ -2,7 +2,7 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.config.AgoraConfig;
 import com.example.cursorquitterweb.util.LogUtil;
-import com.example.cursorquitterweb.util.RtmTokenBuilder2;
+import com.example.cursorquitterweb.rtm.RtmTokenBuilder2;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
