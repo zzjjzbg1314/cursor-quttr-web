@@ -164,3 +164,13 @@ deepseek:
     url: ${DEEPSEEK_API_URL:https://api.deepseek.com/v1/chat/completions}
     # 模型名称（默认使用deepseek-chat）
     model: ${DEEPSEEK_API_MODEL:deepseek-chat}
+
+# 声网（Agora）配置
+agora:
+  rtm:
+    # 声网 App ID（通过环境变量设置）
+    app-id: ${AGORA_RTM_APP_ID:9404f12b93dc4638a350df2af50c5f16}
+    # 声网 App Certificate（通过环境变量设置）
+    app-certificate: ${AGORA_RTM_APP_CERTIFICATE:cbb6d34d963e416bb1a59b4af2485064}
+    # Token 过期时间（秒，默认 24 小时）
+    token-expire-time: ${AGORA_RTM_TOKEN_EXPIRE_TIME:86400}

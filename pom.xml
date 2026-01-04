@@ -162,6 +162,9 @@
             <version>2.20.26</version>
         </dependency>
 
+        <!-- 声网 RTM Token 生成工具 -->
+        <!-- 注意：声网官方不提供 Maven 依赖，需要手动集成工具类代码 -->
+
     </dependencies>
 
     <build>
