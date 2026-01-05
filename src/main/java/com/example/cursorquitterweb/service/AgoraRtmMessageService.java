@@ -116,13 +116,15 @@ public class AgoraRtmMessageService {
         
         String messageJson = objectMapper.writeValueAsString(messageData);
         
+        // 将频道ID转换为字符串
+        String channelName = "channel_" + channelId;  // "channel_1" 而不是 "1"
         // 构建请求URL
         // POST https://api.sd-rtn.com/rtm/v2/publish/{appId}/userId/{userId}/channelType/{channelType}/channel/{channelName}?storeInHistory=true&customType={customType}
         String url = String.format("%s/%s/userId/%s/channelType/message/channel/%s?storeInHistory=true&customType=SystemMessage",
-            RTM_API_BASE_URL,
-            agoraConfig.getAppId(),
-            ROBOT_USER_ID,
-            channelId
+                RTM_API_BASE_URL,
+                agoraConfig.getAppId(),
+                ROBOT_USER_ID,
+                channelName
         );
         
         // 设置请求头
