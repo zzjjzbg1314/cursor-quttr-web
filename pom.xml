@@ -164,6 +164,9 @@
 
         <!-- 声网 RTM Token 生成工具 -->
         <!-- 注意：声网官方不提供 Maven 依赖，需要手动集成工具类代码 -->
+        
+        <!-- 声网 RTM2 消息发送使用 RESTful API，无需SDK依赖 -->
+        <!-- 参考文档: https://doc.shengwang.cn/api-ref/rtm2/restful/toc-message/publish -->
 
     </dependencies>
 
