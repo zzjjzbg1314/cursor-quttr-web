@@ -33,5 +33,6 @@ public class GenerateRtmTokenBuilder2Test {
         // 注意：Base64 编码的 0x0007 (2字节) 应该是 "BwAg" 或类似
         assertTrue("Token 格式应该正确", token.length() > 20);
     }
+
 }
 

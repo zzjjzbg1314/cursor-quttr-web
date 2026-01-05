@@ -105,9 +105,9 @@ public class AgoraRtmMessageService {
         // 获取Token（带缓存，12小时过期）
         String token = getRobotToken();
         
-        // 构建消息内容（JSON格式，包含所有字段）
+        // 后端代码应该改为：
         Map<String, Object> messageData = new HashMap<>();
-        messageData.put("message", message);
+        messageData.put("content", message);  // ← 改为 'content'，不是 'message'
         messageData.put("senderName", senderName);
         messageData.put("senderAvatarUrl", senderAvatarUrl);
         if (senderPlanetName != null) {
