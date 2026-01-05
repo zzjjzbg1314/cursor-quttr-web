@@ -116,16 +116,13 @@ public class AgoraRtmMessageService {
         
         String messageJson = objectMapper.writeValueAsString(messageData);
         
-        // 将频道ID转换为字符串
-        String channelName = String.valueOf(channelId);
-        
         // 构建请求URL
         // POST https://api.sd-rtn.com/rtm/v2/publish/{appId}/userId/{userId}/channelType/{channelType}/channel/{channelName}?storeInHistory=true&customType={customType}
         String url = String.format("%s/%s/userId/%s/channelType/message/channel/%s?storeInHistory=true&customType=SystemMessage",
             RTM_API_BASE_URL,
             agoraConfig.getAppId(),
             ROBOT_USER_ID,
-            channelName
+            channelId
         );
         
         // 设置请求头
@@ -138,6 +135,10 @@ public class AgoraRtmMessageService {
         HttpEntity<String> requestEntity = new HttpEntity<>(messageJson, headers);
         
         try {
+            // 记录请求详情
+            logger.info("发送RTM消息请求 - URL: {}, 频道ID: {}, 消息内容: {}", url, channelId, message);
+            logger.debug("请求体: {}", messageJson);
+            
             // 发送POST请求
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 url,
@@ -146,40 +147,67 @@ public class AgoraRtmMessageService {
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
             );
             
+            // 记录完整响应
+            logger.info("RTM API响应 - HTTP状态码: {}, 响应体: {}", response.getStatusCode(), response.getBody());
+            
             // 检查响应
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> responseBody = response.getBody();
                 if (responseBody == null) {
+                    logger.error("RTM API返回空响应体");
                     throw new RuntimeException("发送RTM消息失败，响应体为空");
                 }
                 
-                // 检查错误码
+                // 记录完整响应体以便调试
+                logger.debug("RTM API完整响应: {}", objectMapper.writeValueAsString(responseBody));
+                
+                // 检查错误码（优先检查errorCode）
                 Object errorCodeObj = responseBody.get("errorCode");
                 if (errorCodeObj != null) {
                     int errorCode = ((Number) errorCodeObj).intValue();
+                    logger.info("RTM API返回错误码: {}", errorCode);
                     if (errorCode == 200) {
                         logger.info("系统消息发送成功，频道ID: {}, 消息: {}", channelId, message);
                         return;
                     } else {
                         String reason = (String) responseBody.get("reason");
+                        logger.error("RTM API返回错误，错误码: {}, 原因: {}", errorCode, reason);
                         throw new RuntimeException(String.format("发送RTM消息失败，错误码: %d, 原因: %s", errorCode, reason));
                     }
                 }
                 
                 // 如果没有errorCode字段，检查error字段
                 Object errorObj = responseBody.get("error");
-                if (errorObj != null && Boolean.TRUE.equals(errorObj)) {
-                    String reason = (String) responseBody.get("reason");
-                    throw new RuntimeException("发送RTM消息失败: " + reason);
+                if (errorObj != null) {
+                    boolean isError = Boolean.TRUE.equals(errorObj);
+                    logger.info("RTM API返回error字段: {}", isError);
+                    if (isError) {
+                        String reason = (String) responseBody.get("reason");
+                        logger.error("RTM API返回错误，原因: {}", reason);
+                        throw new RuntimeException("发送RTM消息失败: " + (reason != null ? reason : "未知错误"));
+                    }
+                }
+                
+                // 如果既没有errorCode也没有error字段，记录警告并抛出异常
+                if (errorCodeObj == null && errorObj == null) {
+                    logger.error("RTM API响应格式异常：既没有errorCode也没有error字段，响应体: {}", 
+                        objectMapper.writeValueAsString(responseBody));
+                    throw new RuntimeException("RTM API响应格式异常，无法判断是否成功。响应体: " + 
+                        objectMapper.writeValueAsString(responseBody));
                 }
                 
                 logger.info("系统消息发送成功，频道ID: {}, 消息: {}", channelId, message);
             } else {
+                logger.error("RTM API返回非2xx状态码: {}", response.getStatusCode());
                 throw new RuntimeException("发送RTM消息失败，HTTP状态码: " + response.getStatusCode());
             }
         } catch (RestClientException e) {
-            logger.error("发送RTM消息时发生网络错误，频道ID: {}, 消息: {}", channelId, message, e);
+            logger.error("发送RTM消息时发生网络错误，频道ID: {}, 消息: {}, 错误详情: {}", 
+                channelId, message, e.getMessage(), e);
             throw new RuntimeException("发送RTM消息失败: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("发送RTM消息时发生未知错误，频道ID: {}, 消息: {}", channelId, message, e);
+            throw e;
         }
     }
 }

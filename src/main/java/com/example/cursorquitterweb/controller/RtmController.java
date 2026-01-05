@@ -69,7 +69,9 @@ public class RtmController {
      */
     @PostMapping("/send-system-message")
     public ApiResponse<Void> sendSystemMessage(@Valid @RequestBody SendSystemMessageRequest request) {
-        logger.info("发送系统消息，channelId: {}, message: {}", request.getChannelId(), request.getMessage());
+        logger.info("收到发送系统消息请求 - channelId: {}, message: {}, senderName: {}, senderAvatarUrl: {}, senderPlanetName: {}", 
+            request.getChannelId(), request.getMessage(), request.getSenderName(), 
+            request.getSenderAvatarUrl(), request.getSenderPlanetName());
         
         try {
             agoraRtmMessageService.sendSystemMessage(
@@ -80,13 +82,14 @@ public class RtmController {
                 request.getSenderPlanetName()
             );
             
+            logger.info("系统消息发送成功 - channelId: {}", request.getChannelId());
             return ApiResponse.success("系统消息发送成功", null);
         } catch (IllegalStateException e) {
-            logger.error("发送系统消息失败，配置错误: {}", e.getMessage());
+            logger.error("发送系统消息失败，配置错误: {}", e.getMessage(), e);
             return ApiResponse.error("RTM服务未正确初始化: " + e.getMessage());
         } catch (Exception e) {
-            logger.error("发送系统消息失败，channelId: {}, message: {}", 
-                request.getChannelId(), request.getMessage(), e);
+            logger.error("发送系统消息失败 - channelId: {}, message: {}, 错误: {}", 
+                request.getChannelId(), request.getMessage(), e.getMessage(), e);
             return ApiResponse.error("发送系统消息失败: " + e.getMessage());
         }
     }
