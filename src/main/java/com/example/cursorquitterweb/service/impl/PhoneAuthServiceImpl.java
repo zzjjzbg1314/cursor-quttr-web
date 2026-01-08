@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import java.security.SecureRandom;
 
 /**
  * 手机号认证服务实现类
@@ -123,8 +124,8 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
      * 创建带手机号的新用户
      */
     private User createUserWithPhoneNumber(String phoneNumber) {
-        // 生成默认昵称
-        String defaultNickname = "用户" + phoneNumber.substring(phoneNumber.length() - 4);
+        // 生成随机昵称（与苹果登录方式一致）
+        String nickname = generateNickname();
         
         // 生成随机头像
         int randomNumber = (int) (Math.random() * 30) + 1;
@@ -132,13 +133,13 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         
         // 创建用户
         User user = User.initUser();
-        user.setNickname(defaultNickname);
+        user.setNickname(nickname);
         user.setPhoneNumber(phoneNumber);
         user.setAvatarUrl(avatarUrl);
         user.setRestartCount(0);
         
         User savedUser = userService.save(user);
-        logger.info("新用户创建成功，用户ID: {}, 手机号: {}", savedUser.getId(), maskPhoneNumber(phoneNumber));
+        logger.info("新用户创建成功，用户ID: {}, 手机号: {}, 昵称: {}", savedUser.getId(), maskPhoneNumber(phoneNumber), nickname);
         
         // 用户数据初始化完成后，创建一条康复记录
         try {
@@ -150,6 +151,21 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         }
         
         return savedUser;
+    }
+    
+    /**
+     * 生成昵称（与苹果登录方式一致）
+     */
+    private String generateNickname() {
+        final String allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        final int nicknameLength = 10;
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder nicknameBuilder = new StringBuilder(nicknameLength);
+        for (int i = 0; i < nicknameLength; i++) {
+            int randomIndex = secureRandom.nextInt(allowedCharacters.length());
+            nicknameBuilder.append(allowedCharacters.charAt(randomIndex));
+        }
+        return nicknameBuilder.toString();
     }
     
     /**
