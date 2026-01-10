@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.service.MusicCnService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,8 +45,10 @@ public class MusicCnController {
     
     /**
      * 创建新音乐
+     * 清除缓存
      */
     @PostMapping("/create")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> createMusic(@Valid @RequestBody CreateMusicRequest request) {
         logger.info("创建新音乐（中文版），标题: {}, 作者: {}", request.getTitle(), request.getAuthor());
         
@@ -70,8 +73,10 @@ public class MusicCnController {
     
     /**
      * 更新音乐信息
+     * 清除缓存
      */
     @PutMapping("/{id}")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> updateMusic(@PathVariable UUID id, @Valid @RequestBody UpdateMusicRequest request) {
         logger.info("更新音乐信息（中文版），ID: {}", id);
         
@@ -115,8 +120,10 @@ public class MusicCnController {
     
     /**
      * 删除音乐
+     * 清除缓存
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<Void> deleteMusic(@PathVariable UUID id) {
         logger.info("删除音乐（中文版），ID: {}", id);
         
@@ -337,8 +344,10 @@ public class MusicCnController {
     
     /**
      * 更新音乐封面链接
+     * 清除缓存
      */
     @PutMapping("/{id}/image")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> updateImage(@PathVariable UUID id, @RequestBody UpdateUrlRequest request) {
         logger.info("更新音乐封面链接（中文版），ID: {}", id);
         
@@ -353,8 +362,10 @@ public class MusicCnController {
     
     /**
      * 更新音乐视频链接
+     * 清除缓存
      */
     @PutMapping("/{id}/video-url")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> updateVideourl(@PathVariable UUID id, @RequestBody UpdateUrlRequest request) {
         logger.info("更新音乐视频链接（中文版），ID: {}", id);
         
@@ -369,8 +380,10 @@ public class MusicCnController {
     
     /**
      * 更新音乐音频链接
+     * 清除缓存
      */
     @PutMapping("/{id}/audio-url")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> updateAudiourl(@PathVariable UUID id, @RequestBody UpdateUrlRequest request) {
         logger.info("更新音乐音频链接（中文版），ID: {}", id);
         
@@ -385,8 +398,10 @@ public class MusicCnController {
     
     /**
      * 更新音乐主题颜色
+     * 清除缓存
      */
     @PutMapping("/{id}/color")
+    @CacheEvict(value = "music", allEntries = true)
     public ApiResponse<MusicCn> updateColor(@PathVariable UUID id, @RequestBody UpdateColorRequest request) {
         logger.info("更新音乐主题颜色（中文版），ID: {}", id);
         
