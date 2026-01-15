@@ -49,7 +49,7 @@ apple:
 # Google 登录配置
 google:
   # Google Client ID（OAuth 2.0 客户端ID）
-  client-id: ${GOOGLE_CLIENT_ID:553159841542-ias7p4c8ki8bppej616g3tuof42nc6nn.apps.googleusercontent.com}
+  client-id: ${GOOGLE_CLIENT_ID:546798539555-3196hp5apvvj1oe73cfqa9raooe9ie18.apps.googleusercontent.com}
 
 # 阿里云OSS配置
 aliyun_oss:
