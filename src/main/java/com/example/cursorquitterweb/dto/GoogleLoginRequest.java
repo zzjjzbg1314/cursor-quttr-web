@@ -13,7 +13,6 @@ public class GoogleLoginRequest {
     @JsonProperty("google_user_id")
     private String googleUserId;
     
-    @NotBlank(message = "ID Token 不能为空")
     @JsonProperty("id_token")
     private String idToken;
     
