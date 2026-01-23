@@ -22,6 +22,8 @@ public class Music {
     
     private String videourl;
     
+    private String videourlLd;
+    
     private String audiourl;
     
     private OffsetDateTime createAt;
@@ -40,13 +42,14 @@ public class Music {
     }
     
     public Music(String title, String subtitle, String time, String image, 
-                 String videourl, String audiourl, String quotes, String author, String color) {
+                 String videourl, String videourlLd, String audiourl, String quotes, String author, String color) {
         this();
         this.title = title;
         this.subtitle = subtitle;
         this.time = time;
         this.image = image;
         this.videourl = videourl;
+        this.videourlLd = videourlLd;
         this.audiourl = audiourl;
         this.quotes = quotes;
         this.author = author;
@@ -100,6 +103,14 @@ public class Music {
     
     public void setVideourl(String videourl) {
         this.videourl = videourl;
+    }
+    
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
     }
     
     public String getAudiourl() {
@@ -166,6 +177,7 @@ public class Music {
                 ", time='" + time + '\'' +
                 ", image='" + image + '\'' +
                 ", videourl='" + videourl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", audiourl='" + audiourl + '\'' +
                 ", createAt=" + createAt +
                 ", updateAt=" + updateAt +

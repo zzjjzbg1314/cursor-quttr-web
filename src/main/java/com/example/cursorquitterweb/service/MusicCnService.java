@@ -58,8 +58,8 @@ public class MusicCnService {
      * 创建新音乐
      */
     public MusicCn createMusic(String title, String subtitle, String time, String image, 
-                            String videourl, String audiourl, String quotes, String author, String color) {
-        MusicCn music = new MusicCn(title, subtitle, time, image, videourl, audiourl, quotes, author, color);
+                            String videourl, String videourlLd, String audiourl, String quotes, String author, String color) {
+        MusicCn music = new MusicCn(title, subtitle, time, image, videourl, videourlLd, audiourl, quotes, author, color);
         return save(music);
     }
     
@@ -75,7 +75,7 @@ public class MusicCnService {
      * 更新音乐信息（通过ID）
      */
     public MusicCn updateMusic(UUID id, String title, String subtitle, String time, String image, 
-                            String videourl, String audiourl, String quotes, String author, String color) {
+                            String videourl, String videourlLd, String audiourl, String quotes, String author, String color) {
         MusicCn music = findById(id)
                 .orElseThrow(() -> new RuntimeException("音乐不存在，ID: " + id));
         
@@ -84,6 +84,7 @@ public class MusicCnService {
         music.setTime(time);
         music.setImage(image);
         music.setVideourl(videourl);
+        music.setVideourlLd(videourlLd);
         music.setAudiourl(audiourl);
         music.setQuotes(quotes);
         music.setAuthor(author);
@@ -390,6 +391,7 @@ public class MusicCnService {
         music.setTime(EntityMapper.getString(row, "time"));
         music.setImage(EntityMapper.getString(row, "image"));
         music.setVideourl(EntityMapper.getString(row, "videourl"));
+        music.setVideourlLd(EntityMapper.getString(row, "videourlLd"));
         music.setAudiourl(EntityMapper.getString(row, "audiourl"));
         music.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
         music.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
@@ -410,6 +412,7 @@ public class MusicCnService {
         EntityMapper.putIfNotNull(data, "time", music.getTime());
         EntityMapper.putIfNotNull(data, "image", music.getImage());
         EntityMapper.putIfNotNull(data, "videourl", music.getVideourl());
+        EntityMapper.putIfNotNull(data, "videourlLd", music.getVideourlLd());
         EntityMapper.putIfNotNull(data, "audiourl", music.getAudiourl());
         EntityMapper.putIfNotNull(data, "create_at", music.getCreateAt());
         EntityMapper.putIfNotNull(data, "update_at", music.getUpdateAt());
@@ -433,6 +436,7 @@ public class MusicCnService {
                 music.getTime(),
                 music.getImage(),
                 music.getVideourl(),
+                music.getVideourlLd(),
                 music.getAudiourl(),
                 music.getCreateAt(),
                 music.getUpdateAt(),

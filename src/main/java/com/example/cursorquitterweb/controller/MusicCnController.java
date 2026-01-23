@@ -63,6 +63,7 @@ public class MusicCnController {
             request.getTime(),
             request.getImage(),
             request.getVideourl(),
+            request.getVideourlLd(),
             request.getAudiourl(),
             request.getQuotes(),
             request.getAuthor(),
@@ -100,6 +101,9 @@ public class MusicCnController {
         }
         if (request.getVideourl() != null) {
             music.setVideourl(request.getVideourl());
+        }
+        if (request.getVideourlLd() != null) {
+            music.setVideourlLd(request.getVideourlLd());
         }
         if (request.getAudiourl() != null) {
             music.setAudiourl(request.getAudiourl());
@@ -445,6 +449,7 @@ public class MusicCnController {
         private String time;
         private String image;
         private String videourl;
+        private String videourlLd;
         private String audiourl;
         private String quotes;
         private String author;
@@ -489,6 +494,14 @@ public class MusicCnController {
         
         public void setVideourl(String videourl) {
             this.videourl = videourl;
+        }
+        
+        public String getVideourlLd() {
+            return videourlLd;
+        }
+        
+        public void setVideourlLd(String videourlLd) {
+            this.videourlLd = videourlLd;
         }
         
         public String getAudiourl() {
@@ -533,6 +546,7 @@ public class MusicCnController {
         private String time;
         private String image;
         private String videourl;
+        private String videourlLd;
         private String audiourl;
         private String quotes;
         private String author;
@@ -577,6 +591,14 @@ public class MusicCnController {
         
         public void setVideourl(String videourl) {
             this.videourl = videourl;
+        }
+        
+        public String getVideourlLd() {
+            return videourlLd;
+        }
+        
+        public void setVideourlLd(String videourlLd) {
+            this.videourlLd = videourlLd;
         }
         
         public String getAudiourl() {

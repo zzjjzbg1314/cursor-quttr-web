@@ -15,6 +15,7 @@ public class MusicDto {
     private String time;
     private String image;
     private String videourl;
+    private String videourlLd;
     private String audiourl;
     private OffsetDateTime createAt;
     private OffsetDateTime updateAt;
@@ -25,7 +26,7 @@ public class MusicDto {
     public MusicDto() {}
     
     public MusicDto(UUID id, String title, String subtitle, String time, String image, 
-                    String videourl, String audiourl, OffsetDateTime createAt, OffsetDateTime updateAt,
+                    String videourl, String videourlLd, String audiourl, OffsetDateTime createAt, OffsetDateTime updateAt,
                     String quotes, String author, String color) {
         this.id = id;
         this.title = title;
@@ -33,6 +34,7 @@ public class MusicDto {
         this.time = time;
         this.image = image;
         this.videourl = videourl;
+        this.videourlLd = videourlLd;
         this.audiourl = audiourl;
         this.createAt = createAt;
         this.updateAt = updateAt;
@@ -88,6 +90,14 @@ public class MusicDto {
     
     public void setVideourl(String videourl) {
         this.videourl = videourl;
+    }
+    
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
     }
     
     public String getAudiourl() {
@@ -147,6 +157,7 @@ public class MusicDto {
                 ", time='" + time + '\'' +
                 ", image='" + image + '\'' +
                 ", videourl='" + videourl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", audiourl='" + audiourl + '\'' +
                 ", createAt=" + createAt +
                 ", updateAt=" + updateAt +
