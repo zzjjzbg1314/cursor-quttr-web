@@ -22,13 +22,13 @@ public interface VideoScenarioService {
      * 创建新视频场景
      */
     VideoScenario createVideoScenario(String type, String title, String subtitle, String image, 
-                                     String audiourl, String videourl, String color, String quotes, String author);
+                                     String audiourl, String videourl, String videourlLd, String color, String quotes, String author);
     
     /**
      * 更新视频场景信息
      */
     VideoScenario updateVideoScenario(UUID videoId, String type, String title, String subtitle, 
-                                     String image, String audiourl, String videourl, String color, 
+                                     String image, String audiourl, String videourl, String videourlLd, String color, 
                                      String quotes, String author);
     
     /**

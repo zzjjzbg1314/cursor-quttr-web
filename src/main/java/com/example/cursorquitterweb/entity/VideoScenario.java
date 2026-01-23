@@ -24,6 +24,8 @@ public class VideoScenario {
     
     private String videourl;
     
+    private String videourlLd;
+    
     private String color;
     
     private String quotes;
@@ -40,7 +42,7 @@ public class VideoScenario {
     }
     
     public VideoScenario(String type, String title, String subtitle, String image, 
-                        String audiourl, String videourl, String color, String quotes, String author) {
+                        String audiourl, String videourl, String videourlLd, String color, String quotes, String author) {
         this();
         this.type = type;
         this.title = title;
@@ -48,6 +50,7 @@ public class VideoScenario {
         this.image = image;
         this.audiourl = audiourl;
         this.videourl = videourl;
+        this.videourlLd = videourlLd;
         this.color = color;
         this.quotes = quotes;
         this.author = author;
@@ -110,6 +113,14 @@ public class VideoScenario {
         this.videourl = videourl;
     }
     
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
+    }
+    
     public String getColor() {
         return color;
     }
@@ -167,6 +178,7 @@ public class VideoScenario {
                 ", image='" + image + '\'' +
                 ", audiourl='" + audiourl + '\'' +
                 ", videourl='" + videourl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", color='" + color + '\'' +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +

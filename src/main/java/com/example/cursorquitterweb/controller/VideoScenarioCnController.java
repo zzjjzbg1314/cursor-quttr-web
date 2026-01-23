@@ -51,6 +51,7 @@ public class VideoScenarioCnController {
                 request.getImage(),
                 request.getAudiourl(),
                 request.getVideourl(),
+                request.getVideourlLd(),
                 request.getColor(),
                 request.getQuotes(),
                 request.getAuthor()
@@ -111,6 +112,7 @@ public class VideoScenarioCnController {
                 request.getImage(),
                 request.getAudiourl(),
                 request.getVideourl(),
+                request.getVideourlLd(),
                 request.getColor(),
                 request.getQuotes(),
                 request.getAuthor()

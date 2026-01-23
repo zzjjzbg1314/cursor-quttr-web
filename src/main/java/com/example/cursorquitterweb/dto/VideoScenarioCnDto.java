@@ -16,6 +16,7 @@ public class VideoScenarioCnDto {
     private String image;
     private String audiourl;
     private String videourl;
+    private String videourlLd;
     private String color;
     private String quotes;
     private String author;
@@ -25,7 +26,7 @@ public class VideoScenarioCnDto {
     public VideoScenarioCnDto() {}
     
     public VideoScenarioCnDto(UUID videoId, String type, String title, String subtitle, 
-                           String image, String audiourl, String videourl, String color, 
+                           String image, String audiourl, String videourl, String videourlLd, String color, 
                            String quotes, String author, OffsetDateTime createAt, OffsetDateTime updateAt) {
         this.videoId = videoId;
         this.type = type;
@@ -34,6 +35,7 @@ public class VideoScenarioCnDto {
         this.image = image;
         this.audiourl = audiourl;
         this.videourl = videourl;
+        this.videourlLd = videourlLd;
         this.color = color;
         this.quotes = quotes;
         this.author = author;
@@ -98,6 +100,14 @@ public class VideoScenarioCnDto {
         this.videourl = videourl;
     }
     
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
+    }
+    
     public String getColor() {
         return color;
     }
@@ -148,6 +158,7 @@ public class VideoScenarioCnDto {
                 ", image='" + image + '\'' +
                 ", audiourl='" + audiourl + '\'' +
                 ", videourl='" + videourl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", color='" + color + '\'' +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +

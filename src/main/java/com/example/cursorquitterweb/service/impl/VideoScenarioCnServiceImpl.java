@@ -39,15 +39,15 @@ public class VideoScenarioCnServiceImpl implements VideoScenarioCnService {
     @Override
     @CacheEvict(value = "videoScenarios", allEntries = true)
     public VideoScenarioCn createVideoScenario(String type, String title, String subtitle, String image, 
-                                           String audiourl, String videourl, String color, String quotes, String author) {
-        VideoScenarioCn videoScenario = new VideoScenarioCn(type, title, subtitle, image, audiourl, videourl, color, quotes, author);
+                                           String audiourl, String videourl, String videourlLd, String color, String quotes, String author) {
+        VideoScenarioCn videoScenario = new VideoScenarioCn(type, title, subtitle, image, audiourl, videourl, videourlLd, color, quotes, author);
         return saveVideoScenario(videoScenario);
     }
     
     @Override
     @CacheEvict(value = "videoScenarios", allEntries = true)
     public VideoScenarioCn updateVideoScenario(UUID videoId, String type, String title, String subtitle, 
-                                            String image, String audiourl, String videourl, String color, 
+                                            String image, String audiourl, String videourl, String videourlLd, String color, 
                                             String quotes, String author) {
         Optional<VideoScenarioCn> optionalVideoScenario = findById(videoId);
         if (optionalVideoScenario.isPresent()) {
@@ -58,6 +58,7 @@ public class VideoScenarioCnServiceImpl implements VideoScenarioCnService {
             if (image != null) videoScenario.setImage(image);
             if (audiourl != null) videoScenario.setAudiourl(audiourl);
             if (videourl != null) videoScenario.setVideourl(videourl);
+            if (videourlLd != null) videoScenario.setVideourlLd(videourlLd);
             if (color != null) videoScenario.setColor(color);
             if (quotes != null) videoScenario.setQuotes(quotes);
             if (author != null) videoScenario.setAuthor(author);
@@ -254,6 +255,7 @@ public class VideoScenarioCnServiceImpl implements VideoScenarioCnService {
         videoScenario.setImage(EntityMapper.getString(row, "image"));
         videoScenario.setAudiourl(EntityMapper.getString(row, "audiourl"));
         videoScenario.setVideourl(EntityMapper.getString(row, "videourl"));
+        videoScenario.setVideourlLd(EntityMapper.getString(row, "videourlLd"));
         videoScenario.setColor(EntityMapper.getString(row, "color"));
         videoScenario.setQuotes(EntityMapper.getString(row, "quotes"));
         videoScenario.setAuthor(EntityMapper.getString(row, "author"));
@@ -274,6 +276,7 @@ public class VideoScenarioCnServiceImpl implements VideoScenarioCnService {
         EntityMapper.putIfNotNull(data, "image", videoScenario.getImage());
         EntityMapper.putIfNotNull(data, "audiourl", videoScenario.getAudiourl());
         EntityMapper.putIfNotNull(data, "videourl", videoScenario.getVideourl());
+        EntityMapper.putIfNotNull(data, "videourlLd", videoScenario.getVideourlLd());
         EntityMapper.putIfNotNull(data, "color", videoScenario.getColor());
         EntityMapper.putIfNotNull(data, "quotes", videoScenario.getQuotes());
         EntityMapper.putIfNotNull(data, "author", videoScenario.getAuthor());
@@ -295,6 +298,7 @@ public class VideoScenarioCnServiceImpl implements VideoScenarioCnService {
             videoScenario.getImage(),
             videoScenario.getAudiourl(),
             videoScenario.getVideourl(),
+            videoScenario.getVideourlLd(),
             videoScenario.getColor(),
             videoScenario.getQuotes(),
             videoScenario.getAuthor(),

@@ -28,6 +28,9 @@ public class CreateVideoScenarioRequest {
     @Size(max = 500, message = "视频URL长度不能超过500个字符")
     private String videourl;
     
+    @Size(max = 500, message = "视频URL LD长度不能超过500个字符")
+    private String videourlLd;
+    
     @Size(max = 20, message = "颜色长度不能超过20个字符")
     private String color;
     
@@ -40,13 +43,14 @@ public class CreateVideoScenarioRequest {
     public CreateVideoScenarioRequest() {}
     
     public CreateVideoScenarioRequest(String type, String title, String subtitle, String image, 
-                                    String audiourl, String videourl, String color, String quotes, String author) {
+                                    String audiourl, String videourl, String videourlLd, String color, String quotes, String author) {
         this.type = type;
         this.title = title;
         this.subtitle = subtitle;
         this.image = image;
         this.audiourl = audiourl;
         this.videourl = videourl;
+        this.videourlLd = videourlLd;
         this.color = color;
         this.quotes = quotes;
         this.author = author;
@@ -101,6 +105,14 @@ public class CreateVideoScenarioRequest {
         this.videourl = videourl;
     }
     
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
+    }
+    
     public String getColor() {
         return color;
     }
@@ -134,6 +146,7 @@ public class CreateVideoScenarioRequest {
                 ", image='" + image + '\'' +
                 ", audiourl='" + audiourl + '\'' +
                 ", videourl='" + videourl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", color='" + color + '\'' +
                 ", quotes='" + quotes + '\'' +
                 ", author='" + author + '\'' +
