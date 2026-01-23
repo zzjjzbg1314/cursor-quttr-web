@@ -22,6 +22,11 @@ public class MeditateVideoCn {
     
     private String videoUrl;
     
+    /**
+     * 高清或备用视频链接（videourlLd）
+     */
+    private String videourlLd;
+    
     private String audioUrl;
     
     /**
@@ -41,13 +46,14 @@ public class MeditateVideoCn {
         this.updateAt = OffsetDateTime.now();
     }
     
-    public MeditateVideoCn(String title, String subtitle, String image, String videoUrl, String audioUrl, 
+    public MeditateVideoCn(String title, String subtitle, String image, String videoUrl, String videourlLd, String audioUrl, 
                         List<String> meditateQuotes, String color) {
         this();
         this.title = title;
         this.subtitle = subtitle;
         this.image = image;
         this.videoUrl = videoUrl;
+        this.videourlLd = videourlLd;
         this.audioUrl = audioUrl;
         this.meditateQuotes = meditateQuotes;
         this.color = color;
@@ -92,6 +98,14 @@ public class MeditateVideoCn {
     
     public void setVideoUrl(String videoUrl) {
         this.videoUrl = videoUrl;
+    }
+    
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
     }
     
     public String getAudioUrl() {
@@ -149,6 +163,7 @@ public class MeditateVideoCn {
                 ", subtitle='" + subtitle + '\'' +
                 ", image='" + image + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", audioUrl='" + audioUrl + '\'' +
                 ", meditateQuotes=" + meditateQuotes +
                 ", color='" + color + '\'' +

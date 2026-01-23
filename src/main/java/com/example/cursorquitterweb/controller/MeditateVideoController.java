@@ -49,6 +49,7 @@ public class MeditateVideoController {
                 request.getSubtitle(),
                 request.getImage(),
                 request.getVideoUrl(),
+                request.getVideourlLd(),
                 request.getAudioUrl(),
                 request.getMeditateQuotes(),
                 request.getColor()
@@ -107,6 +108,7 @@ public class MeditateVideoController {
                 request.getSubtitle(),
                 request.getImage(),
                 request.getVideoUrl(),
+                request.getVideourlLd(),
                 request.getAudioUrl(),
                 request.getMeditateQuotes(),
                 request.getColor()

@@ -48,9 +48,9 @@ public class MeditateVideoService {
      * 清除缓存
      */
     @CacheEvict(value = "meditateVideos", allEntries = true)
-    public MeditateVideo createMeditateVideo(String title, String subtitle, String image, String videoUrl, 
-                                            String audioUrl, List<String> meditateQuotes, String color) {
-        MeditateVideo meditateVideo = new MeditateVideo(title, subtitle, image, videoUrl, audioUrl, meditateQuotes, color);
+    public MeditateVideo createMeditateVideo(String title, String subtitle, String image, String videoUrl,
+                                            String videourlLd, String audioUrl, List<String> meditateQuotes, String color) {
+        MeditateVideo meditateVideo = new MeditateVideo(title, subtitle, image, videoUrl, videourlLd, audioUrl, meditateQuotes, color);
         return saveMeditateVideo(meditateVideo);
     }
     
@@ -59,8 +59,8 @@ public class MeditateVideoService {
      * 清除缓存
      */
     @CacheEvict(value = "meditateVideos", allEntries = true)
-    public MeditateVideo updateMeditateVideo(UUID id, String title, String subtitle, String image, String videoUrl, 
-                                           String audioUrl, List<String> meditateQuotes, String color) {
+    public MeditateVideo updateMeditateVideo(UUID id, String title, String subtitle, String image, String videoUrl,
+                                           String videourlLd, String audioUrl, List<String> meditateQuotes, String color) {
         MeditateVideo meditateVideo = findById(id)
                 .orElseThrow(() -> new RuntimeException("冥想视频不存在，ID: " + id));
         
@@ -68,6 +68,7 @@ public class MeditateVideoService {
         if (subtitle != null) meditateVideo.setSubtitle(subtitle);
         if (image != null) meditateVideo.setImage(image);
         if (videoUrl != null) meditateVideo.setVideoUrl(videoUrl);
+        if (videourlLd != null) meditateVideo.setVideourlLd(videourlLd);
         if (audioUrl != null) meditateVideo.setAudioUrl(audioUrl);
         if (meditateQuotes != null) meditateVideo.setMeditateQuotes(meditateQuotes);
         if (color != null) meditateVideo.setColor(color);
@@ -441,6 +442,8 @@ public class MeditateVideoService {
         meditateVideo.setImage(EntityMapper.getString(row, "image"));
         // 数据库字段名是 video_url 和 audio_url（下划线命名）
         meditateVideo.setVideoUrl(EntityMapper.getString(row, "video_url"));
+        // 新增 videourlLd 字段，数据库列名为 videourlLd
+        meditateVideo.setVideourlLd(EntityMapper.getString(row, "videourlLd"));
         meditateVideo.setAudioUrl(EntityMapper.getString(row, "audio_url"));
         meditateVideo.setColor(EntityMapper.getString(row, "color"));
         meditateVideo.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
@@ -459,6 +462,8 @@ public class MeditateVideoService {
         EntityMapper.putIfNotNull(data, "image", meditateVideo.getImage());
         // 数据库字段名是 video_url 和 audio_url（下划线命名）
         EntityMapper.putIfNotNull(data, "video_url", meditateVideo.getVideoUrl());
+        // 新增 videourlLd 字段，数据库列名为 videourlLd
+        EntityMapper.putIfNotNull(data, "videourlLd", meditateVideo.getVideourlLd());
         EntityMapper.putIfNotNull(data, "audio_url", meditateVideo.getAudioUrl());
         EntityMapper.putIfNotNull(data, "color", meditateVideo.getColor());
         EntityMapper.putIfNotNull(data, "create_at", meditateVideo.getCreateAt());
@@ -479,6 +484,7 @@ public class MeditateVideoService {
                 meditateVideo.getSubtitle(),
                 meditateVideo.getImage(),
                 meditateVideo.getVideoUrl(),
+                meditateVideo.getVideourlLd(),
                 meditateVideo.getAudioUrl(),
                 meditateVideo.getMeditateQuotes(),
                 meditateVideo.getColor(),

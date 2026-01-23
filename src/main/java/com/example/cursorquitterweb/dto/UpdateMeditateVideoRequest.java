@@ -20,6 +20,9 @@ public class UpdateMeditateVideoRequest {
     @Size(max = 1000, message = "视频链接长度不能超过1000个字符")
     private String videoUrl;
     
+    @Size(max = 1000, message = "高清视频链接长度不能超过1000个字符")
+    private String videourlLd;
+    
     @Size(max = 1000, message = "音频链接长度不能超过1000个字符")
     private String audioUrl;
     
@@ -30,12 +33,13 @@ public class UpdateMeditateVideoRequest {
     
     public UpdateMeditateVideoRequest() {}
     
-    public UpdateMeditateVideoRequest(String title, String subtitle, String image, String videoUrl, 
-                                    String audioUrl, List<String> meditateQuotes, String color) {
+    public UpdateMeditateVideoRequest(String title, String subtitle, String image, String videoUrl,
+                                    String videourlLd, String audioUrl, List<String> meditateQuotes, String color) {
         this.title = title;
         this.subtitle = subtitle;
         this.image = image;
         this.videoUrl = videoUrl;
+        this.videourlLd = videourlLd;
         this.audioUrl = audioUrl;
         this.meditateQuotes = meditateQuotes;
         this.color = color;
@@ -74,6 +78,14 @@ public class UpdateMeditateVideoRequest {
         this.videoUrl = videoUrl;
     }
     
+    public String getVideourlLd() {
+        return videourlLd;
+    }
+    
+    public void setVideourlLd(String videourlLd) {
+        this.videourlLd = videourlLd;
+    }
+    
     public String getAudioUrl() {
         return audioUrl;
     }
@@ -105,6 +117,7 @@ public class UpdateMeditateVideoRequest {
                 ", subtitle='" + subtitle + '\'' +
                 ", image='" + image + '\'' +
                 ", videoUrl='" + videoUrl + '\'' +
+                ", videourlLd='" + videourlLd + '\'' +
                 ", audioUrl='" + audioUrl + '\'' +
                 ", meditateQuotes=" + meditateQuotes +
                 ", color='" + color + '\'' +
