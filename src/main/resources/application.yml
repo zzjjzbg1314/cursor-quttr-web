@@ -174,3 +174,16 @@ agora:
     app-certificate: ${AGORA_RTM_APP_CERTIFICATE:cbb6d34d963e416bb1a59b4af2485064}
     # Token 过期时间（秒，默认 24 小时）
     token-expire-time: ${AGORA_RTM_TOKEN_EXPIRE_TIME:86400}
+
+# U-Push（友盟推送）配置
+upush:
+  # U-Push API 基础 URL
+  base-url: ${UPUSH_BASE_URL:https://msgapi.umeng.com}
+  # iOS App Key（需要从友盟控制台获取，通过环境变量设置）
+  ios-app-key: ${UPUSH_IOS_APP_KEY:691f511f9a7f376488e0bd5e}
+  # iOS App Master Secret
+  ios-master-secret: ${UPUSH_IOS_MASTER_SECRET:vvkynsxnwyszyseh8isgimvbs8upi5ep}
+  # Android App Key（需要从友盟控制台获取，通过环境变量设置）
+  android-app-key: ${UPUSH_ANDROID_APP_KEY:691f51568560e34872ef335e}
+  # Android App Master Secret
+  android-master-secret: ${UPUSH_ANDROID_MASTER_SECRET:s6uz1fhnt7qbp6qwguu7rjwhbkwlk8tt}
