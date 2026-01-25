@@ -34,17 +34,61 @@ public class PushServiceImpl implements PushService {
     @Autowired
     private RestTemplate restTemplate;
     
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+    
+    public PushServiceImpl() {
+        // 配置 ObjectMapper，确保 JSON 输出紧凑且字段顺序一致
+        this.objectMapper = new ObjectMapper();
+        // 不包含空值字段
+        // objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        // 不格式化输出（紧凑格式）
+        // objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+    }
     
     /**
      * 生成友盟推送 API 签名
+     * 签名算法（基于友盟推送官方文档）：
+     * 1. 将 POST body 的 JSON 字符串（不包含 sign 字段）与 masterSecret 拼接
+     * 2. 对整个字符串进行 MD5 加密，得到 32 位小写的签名值
+     * 
+     * 或者使用参数签名方式：
+     * 1. 将所有请求参数（除了 sign 本身）按照 key 的字典序排序
+     * 2. 拼接成 key1=value1key2=value2key3=value3 的格式（直接拼接，不用 & 分隔）
+     * 3. 在末尾追加 masterSecret
+     * 4. 对整个字符串进行 MD5 加密
+     */
+    private String generateSign(String jsonBody, String masterSecret) {
+        try {
+            // 方法1：基于 JSON body 字符串签名
+            String signString = jsonBody + masterSecret;
+            
+            logger.debug("签名原始字符串（JSON方式）: {}", signString);
+            
+            // MD5 加密
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(signString.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            String sign = sb.toString();
+            logger.debug("生成的签名: {}", sign);
+            return sign;
+        } catch (Exception e) {
+            logger.error("生成签名失败", e);
+            throw new RuntimeException("生成签名失败", e);
+        }
+    }
+    
+    /**
+     * 生成友盟推送 API 签名（基于参数 Map）
      * 签名算法：
      * 1. 将所有请求参数（除了 sign 本身）按照 key 的字典序排序
      * 2. 拼接成 key1=value1key2=value2key3=value3 的格式（直接拼接，不用 & 分隔）
      * 3. 在末尾追加 masterSecret
      * 4. 对整个字符串进行 MD5 加密，得到 32 位小写的签名值
      */
-    private String generateSign(Map<String, Object> params, String masterSecret) {
+    private String generateSignFromMap(Map<String, Object> params, String masterSecret) {
         try {
             // 使用 TreeMap 自动按 key 排序
             TreeMap<String, Object> sortedParams = new TreeMap<>(params);
@@ -78,7 +122,7 @@ public class PushServiceImpl implements PushService {
             // 在末尾追加 masterSecret
             signString.append(masterSecret);
             
-            logger.debug("签名原始字符串: {}", signString.toString());
+            logger.info("签名原始字符串（Map方式）: {}", signString.toString());
             
             // MD5 加密
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
@@ -88,7 +132,7 @@ public class PushServiceImpl implements PushService {
                 sb.append(String.format("%02x", b));
             }
             String sign = sb.toString();
-            logger.debug("生成的签名: {}", sign);
+            logger.info("生成的签名: {}", sign);
             return sign;
         } catch (Exception e) {
             logger.error("生成签名失败", e);
@@ -194,8 +238,10 @@ public class PushServiceImpl implements PushService {
         // 设置推送类型为单播（unicast）
         payload.put("type", "unicast");
         
-        // 生成签名（在转换为 JSON 之前，因为签名需要基于参数 Map）
-        String sign = generateSign(payload, masterSecret);
+        // 使用参数签名方式生成签名（友盟推送推荐方式）
+        String sign = generateSignFromMap(payload, masterSecret);
+        
+        // 将 sign 添加到 Map 中
         payload.put("sign", sign);
         
         // 转换为 JSON（包含签名）
@@ -282,8 +328,10 @@ public class PushServiceImpl implements PushService {
         payload.put("timestamp", getTimestamp());
         payload.put("task_id", notificationId.toString()); // 假设 notificationId 是任务ID
         
-        // 生成签名（在转换为 JSON 之前，因为签名需要基于参数 Map）
-        String sign = generateSign(payload, masterSecret);
+        // 使用参数签名方式生成签名
+        String sign = generateSignFromMap(payload, masterSecret);
+        
+        // 将 sign 添加到 Map 中
         payload.put("sign", sign);
         
         // 转换为 JSON（包含签名）
