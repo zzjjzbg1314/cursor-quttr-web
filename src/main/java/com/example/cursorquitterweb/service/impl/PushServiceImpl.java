@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 推送服务实现类
@@ -37,18 +38,58 @@ public class PushServiceImpl implements PushService {
     
     /**
      * 生成友盟推送 API 签名
-     * 签名算法：MD5(http_method + url + post_body + master_secret)
+     * 签名算法：
+     * 1. 将所有请求参数（除了 sign 本身）按照 key 的字典序排序
+     * 2. 拼接成 key1=value1key2=value2key3=value3 的格式（直接拼接，不用 & 分隔）
+     * 3. 在末尾追加 masterSecret
+     * 4. 对整个字符串进行 MD5 加密，得到 32 位小写的签名值
      */
-    private String generateSign(String httpMethod, String url, String postBody, String masterSecret) {
+    private String generateSign(Map<String, Object> params, String masterSecret) {
         try {
-            String signString = httpMethod + url + postBody + masterSecret;
+            // 使用 TreeMap 自动按 key 排序
+            TreeMap<String, Object> sortedParams = new TreeMap<>(params);
+            
+            // 拼接参数字符串
+            StringBuilder signString = new StringBuilder();
+            for (Map.Entry<String, Object> entry : sortedParams.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                
+                // 跳过 sign 参数本身
+                if ("sign".equals(key)) {
+                    continue;
+                }
+                
+                // 处理嵌套对象（如 payload, policy 等）
+                if (value instanceof Map) {
+                    // 对于嵌套的 Map，需要递归处理或转换为 JSON 字符串
+                    String jsonValue = objectMapper.writeValueAsString(value);
+                    signString.append(key).append("=").append(jsonValue);
+                } else if (value instanceof List) {
+                    // 对于 List，转换为 JSON 字符串
+                    String jsonValue = objectMapper.writeValueAsString(value);
+                    signString.append(key).append("=").append(jsonValue);
+                } else {
+                    // 对于基本类型，直接转换为字符串
+                    signString.append(key).append("=").append(value != null ? value.toString() : "");
+                }
+            }
+            
+            // 在末尾追加 masterSecret
+            signString.append(masterSecret);
+            
+            logger.debug("签名原始字符串: {}", signString.toString());
+            
+            // MD5 加密
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(signString.getBytes(StandardCharsets.UTF_8));
+            byte[] digest = md.digest(signString.toString().getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             for (byte b : digest) {
                 sb.append(String.format("%02x", b));
             }
-            return sb.toString();
+            String sign = sb.toString();
+            logger.debug("生成的签名: {}", sign);
+            return sign;
         } catch (Exception e) {
             logger.error("生成签名失败", e);
             throw new RuntimeException("生成签名失败", e);
@@ -153,16 +194,14 @@ public class PushServiceImpl implements PushService {
         // 设置推送类型为单播（unicast）
         payload.put("type", "unicast");
         
-        // 转换为 JSON
-        String postBody = objectMapper.writeValueAsString(payload);
-        
-        // 生成签名
-        String url = "/api/send";
-        String sign = generateSign("POST", url, postBody, masterSecret);
+        // 生成签名（在转换为 JSON 之前，因为签名需要基于参数 Map）
+        String sign = generateSign(payload, masterSecret);
         payload.put("sign", sign);
         
-        // 重新转换为 JSON（包含签名）
-        postBody = objectMapper.writeValueAsString(payload);
+        // 转换为 JSON（包含签名）
+        String postBody = objectMapper.writeValueAsString(payload);
+        
+        String url = "/api/send";
         
         // 构建请求头
         HttpHeaders headers = new HttpHeaders();
@@ -243,16 +282,14 @@ public class PushServiceImpl implements PushService {
         payload.put("timestamp", getTimestamp());
         payload.put("task_id", notificationId.toString()); // 假设 notificationId 是任务ID
         
-        // 转换为 JSON
-        String postBody = objectMapper.writeValueAsString(payload);
-        
-        // 生成签名
-        String url = "/api/cancel";
-        String sign = generateSign("POST", url, postBody, masterSecret);
+        // 生成签名（在转换为 JSON 之前，因为签名需要基于参数 Map）
+        String sign = generateSign(payload, masterSecret);
         payload.put("sign", sign);
         
-        // 重新转换为 JSON（包含签名）
-        postBody = objectMapper.writeValueAsString(payload);
+        // 转换为 JSON（包含签名）
+        String postBody = objectMapper.writeValueAsString(payload);
+        
+        String url = "/api/cancel";
         
         // 构建请求头
         HttpHeaders headers = new HttpHeaders();
