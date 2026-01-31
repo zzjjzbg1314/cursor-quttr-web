@@ -147,6 +147,13 @@ public interface UserService {
      * @return 用户排名和最佳成绩信息
      */
     UserRankDto getUserRankAndBestRecord(UUID userId);
+
+    /**
+     * 查询用户当前戒色排名（基于 challenge_reset_time）
+     * @param userId 用户ID
+     * @return 用户排名（从1开始，如果用户不存在或没有挑战开始时间则返回null）
+     */
+    Long getUserRankByChallengeResetTime(UUID userId);
     
     /**
      * 绑定手机号码

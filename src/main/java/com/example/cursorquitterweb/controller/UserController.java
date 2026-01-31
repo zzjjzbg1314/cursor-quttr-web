@@ -490,6 +490,21 @@ public class UserController {
             return ApiResponse.error("用户不存在或没有最佳记录");
         }
     }
+
+    /**
+     * 查询用户戒色排名（基于挑战开始时间）
+     */
+    @GetMapping("/{id}/challenge-rank")
+    public ApiResponse<Long> getUserChallengeRank(@PathVariable UUID id) {
+        logger.info("查询用户戒色排名，ID: {}", id);
+
+        Long rank = userService.getUserRankByChallengeResetTime(id);
+        if (rank != null && rank > 0) {
+            return ApiResponse.success("戒色排名查询成功", rank);
+        } else {
+            return ApiResponse.error("用户不存在或没有挑战开始时间");
+        }
+    }
     
     /**
      * 绑定手机号码

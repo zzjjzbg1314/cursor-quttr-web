@@ -320,6 +320,42 @@ public class UserServiceImpl implements UserService {
                    userId, rank, user.getBestRecord());
         return result;
     }
+
+    @Override
+    public Long getUserRankByChallengeResetTime(UUID userId) {
+        logger.debug("查询用户戒色排名（challenge_reset_time），用户ID: {}", userId);
+
+        String sql =
+            "SELECT " +
+            "  (SELECT COUNT(*) + 1 FROM users u2 " +
+            "   WHERE u2.challenge_reset_time IS NOT NULL AND ( " +
+            "     u2.challenge_reset_time < u1.challenge_reset_time OR " +
+            "     (u2.challenge_reset_time = u1.challenge_reset_time AND ( " +
+            "        COALESCE(u2.created_at, u2.challenge_reset_time) < COALESCE(u1.created_at, u1.challenge_reset_time) OR " +
+            "        (COALESCE(u2.created_at, u2.challenge_reset_time) = COALESCE(u1.created_at, u1.challenge_reset_time) AND u2.id < u1.id) " +
+            "     )) " +
+            "   ) " +
+            "  ) AS rank " +
+            "FROM users u1 " +
+            "WHERE u1.id = ? AND u1.challenge_reset_time IS NOT NULL";
+
+        Map<String, Object> row = d1Util.queryOne(sql, EntityMapper.uuidToString(userId));
+        if (row == null || row.isEmpty()) {
+            logger.warn("用户不存在或没有挑战开始时间，无法查询戒色排名，用户ID: {}", userId);
+            return null;
+        }
+
+        Object value = row.values().iterator().next();
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+            logger.warn("戒色排名解析失败，用户ID: {}, 原始值: {}", userId, value);
+            return null;
+        }
+    }
     
     @Override
     public User bindPhoneNumber(UUID userId, String phoneNumber) {
