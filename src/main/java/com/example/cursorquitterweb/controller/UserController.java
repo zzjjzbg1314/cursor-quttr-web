@@ -472,7 +472,7 @@ public class UserController {
     /**
      * 更新用户最后登录时间（客户端上报）
      */
-    @PutMapping("/{id}/last-login-time")
+    @RequestMapping(value = "/{id}/last-login-time", method = {RequestMethod.PUT, RequestMethod.POST})
     public ApiResponse<OffsetDateTime> updateLastLoginTime(@PathVariable UUID id) {
         logger.info("更新用户最后登录时间，用户ID: {}", id);
 
