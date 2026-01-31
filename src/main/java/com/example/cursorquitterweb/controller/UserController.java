@@ -8,6 +8,8 @@ import com.example.cursorquitterweb.dto.OneClickLoginResponse;
 import com.example.cursorquitterweb.dto.UpdateBestRecordRequest;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
+import com.example.cursorquitterweb.dto.UserChallengeRankDto;
+import com.example.cursorquitterweb.dto.ChallengeLeaderboardResponse;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.OssService;
 import com.example.cursorquitterweb.service.PhoneAuthService;
@@ -365,6 +367,18 @@ public class UserController {
         
         List<UserLeaderboardDto> leaderboard = userService.getChallengeLeaderboardSimple(limit);
         return ApiResponse.success(leaderboard);
+    }
+
+    /**
+     * 获取戒色天数排行榜（Top 200）
+     */
+    @GetMapping("/challenge-days/leaderboard")
+    public ApiResponse<ChallengeLeaderboardResponse> getChallengeDaysLeaderboardTop200() {
+        logger.info("获取戒色天数排行榜（Top 200）");
+
+        List<UserChallengeRankDto> list = userService.getChallengeDaysLeaderboardTop200();
+        ChallengeLeaderboardResponse data = new ChallengeLeaderboardResponse(list);
+        return ApiResponse.success("ok", data);
     }
     
     /**

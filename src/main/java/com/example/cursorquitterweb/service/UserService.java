@@ -181,4 +181,10 @@ public interface UserService {
      * @return 更新后的用户对象
      */
     User updateQuitReason(UUID userId, String quitReason);
+
+    /**
+     * 获取戒色天数排行榜（Top 200，基于 challenge_reset_time）
+     * @return 排行榜列表
+     */
+    List<com.example.cursorquitterweb.dto.UserChallengeRankDto> getChallengeDaysLeaderboardTop200();
 }

@@ -7,11 +7,16 @@ import com.example.cursorquitterweb.util.EntityMapper;
 import com.example.cursorquitterweb.util.LogUtil;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
+import com.example.cursorquitterweb.dto.UserChallengeRankDto;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.time.OffsetDateTime;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +35,13 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private CloudflareD1Util d1Util;
+
+    private static final String CHALLENGE_DAYS_LEADERBOARD_CACHE_KEY = "top200";
+    private final Cache<String, List<UserChallengeRankDto>> challengeDaysLeaderboardCache =
+        Caffeine.newBuilder()
+            .maximumSize(2)
+            .expireAfterWrite(Duration.ofDays(1))
+            .build();
     
     @Override
     public Optional<User> findById(UUID id) {
@@ -427,6 +439,46 @@ public class UserServiceImpl implements UserService {
         User savedUser = save(user);
         logger.info("戒色原因更新成功，用户ID: {}, 戒色原因: {}", userId, quitReason);
         return savedUser;
+    }
+
+    @Override
+    public List<UserChallengeRankDto> getChallengeDaysLeaderboardTop200() {
+        List<UserChallengeRankDto> cached = challengeDaysLeaderboardCache.getIfPresent(CHALLENGE_DAYS_LEADERBOARD_CACHE_KEY);
+        if (cached != null && !cached.isEmpty()) {
+            return cached;
+        }
+
+        String sql = "SELECT id, nickname, avatar_url, challenge_reset_time, created_at " +
+                     "FROM users " +
+                     "WHERE challenge_reset_time IS NOT NULL " +
+                     "ORDER BY challenge_reset_time ASC, created_at ASC, id ASC " +
+                     "LIMIT 200";
+        List<Map<String, Object>> rows = d1Util.queryList(sql);
+
+        OffsetDateTime now = OffsetDateTime.now();
+        List<UserChallengeRankDto> result = rows.stream()
+            .map(row -> {
+                OffsetDateTime resetTime = EntityMapper.getOffsetDateTime(row, "challenge_reset_time");
+                long days = resetTime != null ? ChronoUnit.DAYS.between(resetTime, now) : 0;
+                if (days < 0) {
+                    days = 0;
+                }
+                return new UserChallengeRankDto(
+                    EntityMapper.getString(row, "nickname"),
+                    EntityMapper.getString(row, "avatar_url"),
+                    days
+                );
+            })
+            .collect(Collectors.toList());
+
+        for (int i = 0; i < result.size(); i++) {
+            result.get(i).setRank(i + 1);
+        }
+
+        if (!result.isEmpty()) {
+            challengeDaysLeaderboardCache.put(CHALLENGE_DAYS_LEADERBOARD_CACHE_KEY, result);
+        }
+        return result;
     }
     
     /**
