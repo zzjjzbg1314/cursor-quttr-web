@@ -211,8 +211,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getChallengeLeaderboard(int limit) {
         logger.debug("获取挑战记录排行榜，限制数量: {}", limit);
-        String sql = "SELECT * FROM users WHERE best_record IS NOT NULL ORDER BY best_record DESC LIMIT ?";
-        List<Map<String, Object>> rows = d1Util.queryList(sql, limit);
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
+        String sql = "SELECT * FROM users " +
+                     "WHERE best_record IS NOT NULL " +
+                     "AND lastlogin_time IS NOT NULL " +
+                     "AND lastlogin_time >= ? " +
+                     "ORDER BY best_record DESC LIMIT ?";
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.offsetDateTimeToString(cutoff), limit);
         return rows.stream().map(this::mapToUser).collect(Collectors.toList());
     }
     
@@ -229,9 +234,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserLeaderboardDto> getChallengeLeaderboardPage(int page, int size) {
         logger.debug("分页查询挑战记录排行榜，页码: {}, 每页大小: {}", page, size);
-        
-        String sql = "SELECT * FROM users WHERE best_record IS NOT NULL ORDER BY best_record DESC";
-        List<Map<String, Object>> rows = d1Util.queryPage(sql, page + 1, size);
+
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
+        String sql = "SELECT * FROM users " +
+                     "WHERE best_record IS NOT NULL " +
+                     "AND lastlogin_time IS NOT NULL " +
+                     "AND lastlogin_time >= ? " +
+                     "ORDER BY best_record DESC";
+        List<Map<String, Object>> rows = d1Util.queryPage(sql, page + 1, size, EntityMapper.offsetDateTimeToString(cutoff));
         List<User> users = rows.stream().map(this::mapToUser).collect(Collectors.toList());
         
         List<UserLeaderboardDto> result = users.stream()
@@ -299,11 +309,20 @@ public class UserServiceImpl implements UserService {
             logger.warn("用户没有最佳记录，无法查询排名，用户ID: {}", userId);
             return null;
         }
+
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
+        if (user.getLastLoginTime() == null || user.getLastLoginTime().isBefore(cutoff)) {
+            logger.warn("用户最近30天未登录，无法参与排名，用户ID: {}", userId);
+            return null;
+        }
         
         // 查询排名：统计最佳记录大于当前用户的用户数量 + 1
-        String sql = "SELECT COUNT(*) + 1 as rank FROM users WHERE best_record > " +
-                    "(SELECT best_record FROM users WHERE id = ?) AND best_record IS NOT NULL";
-        Long rank = d1Util.queryLong(sql, EntityMapper.uuidToString(userId));
+        String sql = "SELECT COUNT(*) + 1 as rank FROM users " +
+                    "WHERE best_record > (SELECT best_record FROM users WHERE id = ?) " +
+                    "AND best_record IS NOT NULL " +
+                    "AND lastlogin_time IS NOT NULL " +
+                    "AND lastlogin_time >= ?";
+        Long rank = d1Util.queryLong(sql, EntityMapper.uuidToString(userId), EntityMapper.offsetDateTimeToString(cutoff));
         logger.debug("用户排名查询完成，用户ID: {}, 排名: {}", userId, rank);
         return rank;
     }
@@ -337,10 +356,13 @@ public class UserServiceImpl implements UserService {
     public Long getUserRankByChallengeResetTime(UUID userId) {
         logger.debug("查询用户戒色排名（challenge_reset_time），用户ID: {}", userId);
 
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
         String sql =
             "SELECT " +
             "  (SELECT COUNT(*) + 1 FROM users u2 " +
-            "   WHERE u2.challenge_reset_time IS NOT NULL AND ( " +
+            "   WHERE u2.challenge_reset_time IS NOT NULL " +
+            "     AND u2.lastlogin_time IS NOT NULL " +
+            "     AND u2.lastlogin_time >= ? AND ( " +
             "     u2.challenge_reset_time < u1.challenge_reset_time OR " +
             "     (u2.challenge_reset_time = u1.challenge_reset_time AND ( " +
             "        COALESCE(u2.created_at, u2.challenge_reset_time) < COALESCE(u1.created_at, u1.challenge_reset_time) OR " +
@@ -349,9 +371,13 @@ public class UserServiceImpl implements UserService {
             "   ) " +
             "  ) AS rank " +
             "FROM users u1 " +
-            "WHERE u1.id = ? AND u1.challenge_reset_time IS NOT NULL";
+            "WHERE u1.id = ? AND u1.challenge_reset_time IS NOT NULL " +
+            "AND u1.lastlogin_time IS NOT NULL AND u1.lastlogin_time >= ?";
 
-        Map<String, Object> row = d1Util.queryOne(sql, EntityMapper.uuidToString(userId));
+        Map<String, Object> row = d1Util.queryOne(sql,
+            EntityMapper.offsetDateTimeToString(cutoff),
+            EntityMapper.uuidToString(userId),
+            EntityMapper.offsetDateTimeToString(cutoff));
         if (row == null || row.isEmpty()) {
             logger.warn("用户不存在或没有挑战开始时间，无法查询戒色排名，用户ID: {}", userId);
             return null;
@@ -448,12 +474,15 @@ public class UserServiceImpl implements UserService {
             return cached;
         }
 
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
         String sql = "SELECT id, nickname, avatar_url, challenge_reset_time, created_at " +
                      "FROM users " +
                      "WHERE challenge_reset_time IS NOT NULL " +
+                     "AND lastlogin_time IS NOT NULL " +
+                     "AND lastlogin_time >= ? " +
                      "ORDER BY challenge_reset_time ASC, created_at ASC, id ASC " +
                      "LIMIT 200";
-        List<Map<String, Object>> rows = d1Util.queryList(sql);
+        List<Map<String, Object>> rows = d1Util.queryList(sql, EntityMapper.offsetDateTimeToString(cutoff));
 
         OffsetDateTime now = OffsetDateTime.now();
         List<UserChallengeRankDto> result = rows.stream()
