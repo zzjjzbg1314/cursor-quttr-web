@@ -13,6 +13,7 @@ import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.security.SecureRandom;
 
@@ -50,7 +51,11 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         if (existingUser.isPresent()) {
             // 用户已存在，直接返回
             logger.info("用户已存在，手机号: {}, 用户ID: {}", maskPhoneNumber(phoneNumber), existingUser.get().getId());
-            return new OneClickLoginResponse(phoneNumber, existingUser.get(), false);
+            User user = existingUser.get();
+            user.setLastLoginTime(OffsetDateTime.now());
+            user.preUpdate();
+            user = userService.save(user);
+            return new OneClickLoginResponse(phoneNumber, user, false);
         } else {
             // 用户不存在，创建新用户
             logger.info("用户不存在，创建新用户，手机号: {}", maskPhoneNumber(phoneNumber));
@@ -137,6 +142,7 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         user.setPhoneNumber(phoneNumber);
         user.setAvatarUrl(avatarUrl);
         user.setRestartCount(0);
+        user.setLastLoginTime(OffsetDateTime.now());
         
         User savedUser = userService.save(user);
         logger.info("新用户创建成功，用户ID: {}, 手机号: {}, 昵称: {}", savedUser.getId(), maskPhoneNumber(phoneNumber), nickname);
@@ -188,4 +194,3 @@ public class PhoneAuthServiceImpl implements PhoneAuthService {
         return phoneNumber.substring(0, 3) + "****" + phoneNumber.substring(7);
     }
 }
-

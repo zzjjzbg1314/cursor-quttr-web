@@ -468,6 +468,23 @@ public class UserController {
             return ApiResponse.error("更新失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 更新用户最后登录时间（客户端上报）
+     */
+    @PutMapping("/{id}/last-login-time")
+    public ApiResponse<OffsetDateTime> updateLastLoginTime(@PathVariable UUID id) {
+        logger.info("更新用户最后登录时间，用户ID: {}", id);
+
+        try {
+            OffsetDateTime lastLoginTime = OffsetDateTime.now();
+            userService.updateLastLoginTime(id, lastLoginTime);
+            return ApiResponse.success("最后登录时间更新成功", lastLoginTime);
+        } catch (Exception e) {
+            logger.error("更新最后登录时间失败: {}", e.getMessage());
+            return ApiResponse.error("更新失败: " + e.getMessage());
+        }
+    }
     
 
 

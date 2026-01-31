@@ -26,6 +26,7 @@ public class AppleLoginResponse {
     private Integer restartCount;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private OffsetDateTime lastLoginTime;
     
     // 额外的登录信息
     private Boolean isNewUser;
@@ -51,6 +52,7 @@ public class AppleLoginResponse {
         this.restartCount = user.getRestartCount();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
+        this.lastLoginTime = user.getLastLoginTime();
         this.isNewUser = isNewUser;
     }
     
@@ -167,6 +169,14 @@ public class AppleLoginResponse {
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public OffsetDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
+    public void setLastLoginTime(OffsetDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
     
     public Boolean getIsNewUser() {
         return isNewUser;
@@ -197,4 +207,3 @@ public class AppleLoginResponse {
                 '}';
     }
 }
-

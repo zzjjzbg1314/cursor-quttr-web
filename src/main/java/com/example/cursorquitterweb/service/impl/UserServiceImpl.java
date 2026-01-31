@@ -480,6 +480,35 @@ public class UserServiceImpl implements UserService {
         }
         return result;
     }
+
+    @Override
+    public User updateLastLoginTime(UUID userId, OffsetDateTime lastLoginTime) {
+        logger.info("更新用户最后登录时间，用户ID: {}, 时间: {}", userId, lastLoginTime);
+        Optional<User> userOpt = findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.warn("用户不存在，无法更新最后登录时间，用户ID: {}", userId);
+            throw new RuntimeException("用户不存在");
+        }
+
+        OffsetDateTime time = lastLoginTime != null ? lastLoginTime : OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now();
+
+        String sql = "UPDATE users SET lastlogin_time = ?, updated_at = ? WHERE id = ?";
+        int updatedRows = d1Util.execute(sql,
+            EntityMapper.offsetDateTimeToString(time),
+            EntityMapper.offsetDateTimeToString(now),
+            EntityMapper.uuidToString(userId));
+
+        if (updatedRows <= 0) {
+            logger.warn("更新最后登录时间失败，用户ID: {}", userId);
+            throw new RuntimeException("更新失败");
+        }
+
+        User user = userOpt.get();
+        user.setLastLoginTime(time);
+        user.setUpdatedAt(now);
+        return user;
+    }
     
     /**
      * 将 Map 转换为 User 实体
@@ -501,6 +530,7 @@ public class UserServiceImpl implements UserService {
         user.setRestartCount(EntityMapper.getInteger(row, "restart_count"));
         user.setCreatedAt(EntityMapper.getOffsetDateTime(row, "created_at"));
         user.setUpdatedAt(EntityMapper.getOffsetDateTime(row, "updated_at"));
+        user.setLastLoginTime(EntityMapper.getOffsetDateTime(row, "lastlogin_time"));
         return user;
     }
     
@@ -525,6 +555,7 @@ public class UserServiceImpl implements UserService {
         EntityMapper.putIfNotNull(data, "restart_count", user.getRestartCount());
         EntityMapper.putIfNotNull(data, "created_at", user.getCreatedAt());
         EntityMapper.putIfNotNull(data, "updated_at", user.getUpdatedAt());
+        EntityMapper.putIfNotNull(data, "lastlogin_time", user.getLastLoginTime());
         return data;
     }
 }

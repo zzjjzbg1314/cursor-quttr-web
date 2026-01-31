@@ -187,4 +187,12 @@ public interface UserService {
      * @return 排行榜列表
      */
     List<com.example.cursorquitterweb.dto.UserChallengeRankDto> getChallengeDaysLeaderboardTop200();
+
+    /**
+     * 更新用户最后登录时间
+     * @param userId 用户ID
+     * @param lastLoginTime 最后登录时间
+     * @return 更新后的用户对象
+     */
+    User updateLastLoginTime(UUID userId, OffsetDateTime lastLoginTime);
 }

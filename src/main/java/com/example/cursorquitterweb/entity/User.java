@@ -37,6 +37,8 @@ public class User {
     private OffsetDateTime createdAt;
     
     private OffsetDateTime updatedAt;
+
+    private OffsetDateTime lastLoginTime;
     
     public User() {
         this.registrationTime = OffsetDateTime.now();
@@ -162,6 +164,14 @@ public class User {
     public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public OffsetDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
+    public void setLastLoginTime(OffsetDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
     
     /**
      * 更新前调用，设置更新时间
@@ -206,6 +216,7 @@ public class User {
                 ", restartCount=" + restartCount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", lastLoginTime=" + lastLoginTime +
                 '}';
     }
 }

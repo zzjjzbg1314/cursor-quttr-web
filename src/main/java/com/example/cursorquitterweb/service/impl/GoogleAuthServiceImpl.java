@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -74,6 +75,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             user = userOpt.get();
             
             // 更新登录时间（通过 preUpdate 自动更新 updated_at）
+            user.setLastLoginTime(OffsetDateTime.now());
             user.preUpdate();
             user = userService.save(user);
             
@@ -103,6 +105,9 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             
             // 设置 restartCount 为 0
             user.setRestartCount(0);
+
+            // 设置最后登录时间
+            user.setLastLoginTime(OffsetDateTime.now());
             
             // 保存用户
             user = userService.save(user);
@@ -216,4 +221,3 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         return nicknameBuilder.toString();
     }
 }
-
