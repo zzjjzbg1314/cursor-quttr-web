@@ -2,12 +2,18 @@ server:
   port: 443
   http:
     port: 8080
+#  ssl:
+#    enabled: true
+#    key-store: classpath:kejiapi.cn.jks
+#    key-store-password: ${SSL_KEY_STORE_PASSWORD:ussis711}
+#    key-store-type: JKS
+#    key-alias: ${SSL_KEY_ALIAS:kejiapi.cn}
   ssl:
     enabled: true
-    key-store: classpath:kejiapi.cn.jks
-    key-store-password: ${SSL_KEY_STORE_PASSWORD:ussis711}
+    key-store: classpath:kejiapi.com.jks
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:16cwsyd2}
     key-store-type: JKS
-    key-alias: ${SSL_KEY_ALIAS:kejiapi.cn}
+    key-alias: ${SSL_KEY_ALIAS:kejiapi.com}
 
 spring:
   application:
