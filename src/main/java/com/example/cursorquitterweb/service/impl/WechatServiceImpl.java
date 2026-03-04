@@ -47,26 +47,14 @@ public class WechatServiceImpl implements WechatService {
             
             String openId = oauthInfo.get("openid");
             String unionid = oauthInfo.get("unionid");
-            String accessToken = oauthInfo.get("access_token");
-            
             LogUtil.logInfo(logger, "获取到openid: {}, unionid: {}", openId, unionid);
             
-            // 2. 尝试获取微信用户资料；若 scope 不足或接口失败，回退到系统默认值
+            // 2. 不使用微信返回的昵称和头像，统一使用系统默认生成值
             WechatUserInfo userInfo = new WechatUserInfo();
             userInfo.setOpenId(openId);
             userInfo.setUnionid(unionid);
-
-            WechatUserInfo fetchedUserInfo = getWechatUserInfo(accessToken, openId);
-            if (fetchedUserInfo != null) {
-                userInfo.setNickname(fetchedUserInfo.getNickname());
-                userInfo.setHeadimgurl(fetchedUserInfo.getHeadimgurl());
-                if (fetchedUserInfo.getUnionid() != null && !fetchedUserInfo.getUnionid().trim().isEmpty()) {
-                    userInfo.setUnionid(fetchedUserInfo.getUnionid());
-                }
-            } else {
-                userInfo.setNickname(generateNickname());
-                userInfo.setHeadimgurl(generateDefaultAvatarUrl());
-            }
+            userInfo.setNickname(generateNickname());
+            userInfo.setHeadimgurl(generateDefaultAvatarUrl());
             
             LogUtil.logInfo(logger, "微信登录成功，用户信息: {}", userInfo);
             return userInfo;
@@ -90,11 +78,16 @@ public class WechatServiceImpl implements WechatService {
             
             LogUtil.logDebug(logger, "请求微信 OAuth URL: {}", url);
             
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            String responseBody = response.getBody();
-            
-            LogUtil.logDebug(logger, "微信 OAuth 响应: {}", responseBody);
-            
+            ResponseEntity<byte[]> response = restTemplate.getForEntity(url, byte[].class);
+            byte[] responseBody = response.getBody();
+
+            LogUtil.logDebug(logger, "微信 OAuth 响应字节长度: {}", responseBody != null ? responseBody.length : 0);
+
+            if (responseBody == null || responseBody.length == 0) {
+                LogUtil.logError(logger, "微信 OAuth 响应为空");
+                return null;
+            }
+
             JsonNode jsonNode = objectMapper.readTree(responseBody);
             
             if (jsonNode.has("errcode") && jsonNode.get("errcode").asInt() != 0) {
@@ -121,48 +114,6 @@ public class WechatServiceImpl implements WechatService {
             
         } catch (Exception e) {
             LogUtil.logError(logger, "获取微信 OAuth 信息失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 使用 access_token + openid 拉取微信用户资料
-     */
-    private WechatUserInfo getWechatUserInfo(String accessToken, String openId) {
-        try {
-            if (accessToken == null || accessToken.trim().isEmpty() || openId == null || openId.trim().isEmpty()) {
-                return null;
-            }
-
-            String url = String.format("%s?access_token=%s&openid=%s",
-                    wechatConfig.getUserInfoUrl(),
-                    accessToken,
-                    openId);
-
-            LogUtil.logDebug(logger, "请求微信用户信息 URL: {}", url);
-
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            String responseBody = response.getBody();
-
-            LogUtil.logDebug(logger, "微信用户信息响应: {}", responseBody);
-
-            JsonNode jsonNode = objectMapper.readTree(responseBody);
-            if (jsonNode.has("errcode") && jsonNode.get("errcode").asInt() != 0) {
-                String errorMsg = jsonNode.has("errmsg") ? jsonNode.get("errmsg").asText() : "未知错误";
-                LogUtil.logWarn(logger, "获取微信用户信息失败，将回退默认资料: {}", errorMsg);
-                return null;
-            }
-
-            WechatUserInfo userInfo = new WechatUserInfo();
-            userInfo.setOpenId(jsonNode.has("openid") ? jsonNode.get("openid").asText() : openId);
-            userInfo.setNickname(jsonNode.has("nickname") ? jsonNode.get("nickname").asText() : generateNickname());
-            userInfo.setHeadimgurl(jsonNode.has("headimgurl") ? jsonNode.get("headimgurl").asText() : generateDefaultAvatarUrl());
-            if (jsonNode.has("unionid")) {
-                userInfo.setUnionid(jsonNode.get("unionid").asText());
-            }
-            return userInfo;
-        } catch (Exception e) {
-            LogUtil.logWarn(logger, "获取微信用户信息异常，将回退默认资料", e);
             return null;
         }
     }
