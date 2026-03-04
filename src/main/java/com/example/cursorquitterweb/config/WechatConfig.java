@@ -21,7 +21,12 @@ public class WechatConfig {
     private String appSecret;
     
     /**
-     * 微信授权码换取access_token的URL
+     * 微信开放平台 OAuth code 换取 access_token 的 URL
+     */
+    private String oauthAccessTokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token";
+
+    /**
+     * 微信小程序 code2Session 的 URL（如需兼容小程序可继续使用）
      */
     private String code2SessionUrl = "https://api.weixin.qq.com/sns/jscode2session";
     
@@ -52,6 +57,14 @@ public class WechatConfig {
     
     public void setCode2SessionUrl(String code2SessionUrl) {
         this.code2SessionUrl = code2SessionUrl;
+    }
+
+    public String getOauthAccessTokenUrl() {
+        return oauthAccessTokenUrl;
+    }
+
+    public void setOauthAccessTokenUrl(String oauthAccessTokenUrl) {
+        this.oauthAccessTokenUrl = oauthAccessTokenUrl;
     }
     
     public String getUserInfoUrl() {
