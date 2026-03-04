@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,12 +50,12 @@ public class WechatServiceImpl implements WechatService {
             
             LogUtil.logInfo(logger, "获取到openid: {}, unionid: {}", openId, unionid);
             
-            // 2. 创建用户信息（微信小程序中，用户信息需要前端传递）
+            // 2. 创建用户信息（未传真实昵称/头像时，使用系统默认规则）
             WechatUserInfo userInfo = new WechatUserInfo();
             userInfo.setOpenId(openId);
             userInfo.setUnionid(unionid);
-            userInfo.setNickname("微信用户");
-            userInfo.setHeadimgurl("");
+            userInfo.setNickname(generateNickname());
+            userInfo.setHeadimgurl(generateDefaultAvatarUrl());
             
             LogUtil.logInfo(logger, "微信登录成功，用户信息: {}", userInfo);
             return userInfo;
@@ -107,4 +108,27 @@ public class WechatServiceImpl implements WechatService {
             return null;
         }
     }
-} 
+
+    /**
+     * 生成默认昵称（与其他登录方式保持一致）
+     */
+    private String generateNickname() {
+        final String allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        final int nicknameLength = 10;
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder nicknameBuilder = new StringBuilder(nicknameLength);
+        for (int i = 0; i < nicknameLength; i++) {
+            int randomIndex = secureRandom.nextInt(allowedCharacters.length());
+            nicknameBuilder.append(allowedCharacters.charAt(randomIndex));
+        }
+        return nicknameBuilder.toString();
+    }
+
+    /**
+     * 生成默认头像（与其他登录方式保持一致）
+     */
+    private String generateDefaultAvatarUrl() {
+        int randomNumber = (int) (Math.random() * 30) + 1;
+        return "https://image.kejiapi.cn/image/xiaohongshu/" + randomNumber + ".jpg";
+    }
+}
