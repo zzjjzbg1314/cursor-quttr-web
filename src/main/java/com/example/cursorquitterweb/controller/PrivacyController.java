@@ -1,9 +1,14 @@
 package com.example.cursorquitterweb.controller;
 
 import com.example.cursorquitterweb.dto.ApiResponse;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,28 +18,88 @@ import java.util.Map;
 @RestController
 public class PrivacyController {
 
+    private static final String PRIVACY_TITLE = "克己隐私政策";
+    private static final String PRIVACY_LAST_UPDATED_DOT = "2026.03.05";
+    private static final String PRIVACY_LAST_UPDATED_CN = "2026年03月05日";
+    private static final int PRIVACY_FONT_SIZE = 16;
+    private static final double PRIVACY_LINE_HEIGHT = 1.8;
+
     /**
-     * 获取隐私政策
+     * 获取隐私政策（JSON，供 App 弹窗/应用内独立隐私页统一使用）
      */
-    @GetMapping("/privacy")
+    @GetMapping(value = "/privacy", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<Map<String, Object>> getPrivacyPolicy() {
         Map<String, Object> privacyData = new HashMap<>();
-        
-        privacyData.put("title", "克己隐私政策");
-        privacyData.put("lastUpdated", "2026.03.05");
-        privacyData.put("content", buildPrivacyContent());
-        
+
+        String content = buildPrivacyContent();
+        String contentHash = sha256Hex(content);
+
+        privacyData.put("title", PRIVACY_TITLE);
+        privacyData.put("lastUpdated", PRIVACY_LAST_UPDATED_DOT);
+        privacyData.put("content", content);
+
+        // 为客户端提供统一渲染信息，确保隐私弹窗 / 独立隐私页 / Web 页面三者一致
+        privacyData.put("popupContent", content);
+        privacyData.put("inAppContent", content);
+        privacyData.put("fontSize", PRIVACY_FONT_SIZE);
+        privacyData.put("lineHeight", PRIVACY_LINE_HEIGHT);
+        privacyData.put("contentHash", contentHash);
+
         return ApiResponse.success(privacyData);
     }
-    
+
+    /**
+     * 获取隐私政策（HTML，供审核点击后直接阅读）
+     */
+    @GetMapping(value = "/privacy", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> getPrivacyPolicyHtml() {
+        String content = buildPrivacyContent();
+        String html = "<!DOCTYPE html>\n"
+                + "<html lang=\"zh-CN\">\n"
+                + "<head>\n"
+                + "  <meta charset=\"UTF-8\" />\n"
+                + "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+                + "  <title>" + escapeHtml(PRIVACY_TITLE) + "</title>\n"
+                + "  <style>\n"
+                + "    body {\n"
+                + "      margin: 0;\n"
+                + "      background: #ffffff;\n"
+                + "      color: #222222;\n"
+                + "      font-family: -apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;\n"
+                + "    }\n"
+                + "    .container {\n"
+                + "      max-width: 860px;\n"
+                + "      margin: 0 auto;\n"
+                + "      padding: 24px 16px 40px;\n"
+                + "    }\n"
+                + "    .content {\n"
+                + "      white-space: pre-wrap;\n"
+                + "      font-size: " + PRIVACY_FONT_SIZE + "px;\n"
+                + "      line-height: " + PRIVACY_LINE_HEIGHT + ";\n"
+                + "      margin: 0;\n"
+                + "    }\n"
+                + "  </style>\n"
+                + "</head>\n"
+                + "<body>\n"
+                + "  <main class=\"container\">\n"
+                + "    <pre class=\"content\">" + escapeHtml(content) + "</pre>\n"
+                + "  </main>\n"
+                + "</body>\n"
+                + "</html>";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+                .body(html);
+    }
+
     /**
      * 构建隐私政策内容
      */
     private String buildPrivacyContent() {
         StringBuilder content = new StringBuilder();
-        
-        content.append("克己隐私政策\n");
-        content.append("更新日期：2026年03月05日\n\n");
+
+        content.append(PRIVACY_TITLE).append("\n");
+        content.append("更新日期：").append(PRIVACY_LAST_UPDATED_CN).append("\n\n");
         
         content.append("克己（以下称“我们”或“本应用”）理解隐私信息对你的重要性，并承诺保护你的隐私。");
         content.append("本政策旨在说明我们如何收集、使用、存储和共享你的个人信息，以及你如何行使隐私权利。");
@@ -105,7 +170,34 @@ public class PrivacyController {
         content.append("如对本政策有疑问、评论或建议，请联系：\n");
         content.append("上海比特星瀚科技有限公司\n");
         content.append("邮箱：415730931@qq.com\n");
-        
+
         return content.toString();
+    }
+
+    private String escapeHtml(String text) {
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private String sha256Hex(String text) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                String h = Integer.toHexString(0xff & b);
+                if (h.length() == 1) {
+                    hex.append('0');
+                }
+                hex.append(h);
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm is not available", e);
+        }
     }
 }
