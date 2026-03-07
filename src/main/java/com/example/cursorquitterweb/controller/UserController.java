@@ -10,6 +10,7 @@ import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.dto.UserChallengeRankDto;
 import com.example.cursorquitterweb.dto.ChallengeLeaderboardResponse;
+import com.example.cursorquitterweb.dto.UserRelapseHistoryResponse;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.OssService;
 import com.example.cursorquitterweb.service.PhoneAuthService;
@@ -535,6 +536,26 @@ public class UserController {
         } else {
             return ApiResponse.error("用户不存在或没有挑战开始时间");
         }
+    }
+
+    /**
+     * 查询用户复发历史（含统计）
+     */
+    @GetMapping("/{id}/relapse-history")
+    public ApiResponse<UserRelapseHistoryResponse> getUserRelapseHistory(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "10") int limit) {
+        logger.info("查询用户复发历史，用户ID: {}, 条数: {}", id, limit);
+
+        if (limit <= 0 || limit > 100) {
+            return ApiResponse.error("条数必须在1-100之间");
+        }
+
+        UserRelapseHistoryResponse response = userService.getUserRelapseHistory(id, limit);
+        if (response == null) {
+            return ApiResponse.error("用户不存在");
+        }
+        return ApiResponse.success("复发历史查询成功", response);
     }
     
     /**

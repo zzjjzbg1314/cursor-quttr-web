@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.service;
 import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
+import com.example.cursorquitterweb.dto.UserRelapseHistoryResponse;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -195,4 +196,12 @@ public interface UserService {
      * @return 更新后的用户对象
      */
     User updateLastLoginTime(UUID userId, OffsetDateTime lastLoginTime);
+
+    /**
+     * 查询用户复发历史（包含统计信息）
+     * @param userId 用户ID
+     * @param limit 返回历史条数，默认10
+     * @return 用户复发历史响应
+     */
+    UserRelapseHistoryResponse getUserRelapseHistory(UUID userId, int limit);
 }

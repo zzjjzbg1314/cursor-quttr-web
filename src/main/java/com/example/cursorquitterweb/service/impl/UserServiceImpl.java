@@ -8,6 +8,7 @@ import com.example.cursorquitterweb.util.LogUtil;
 import com.example.cursorquitterweb.dto.UserLeaderboardDto;
 import com.example.cursorquitterweb.dto.UserRankDto;
 import com.example.cursorquitterweb.dto.UserChallengeRankDto;
+import com.example.cursorquitterweb.dto.UserRelapseHistoryResponse;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -139,6 +140,40 @@ public class UserServiceImpl implements UserService {
     public void resetUserChallengeTime(UUID userId) {
         logger.info("重置用户挑战时间，用户ID: {}", userId);
         OffsetDateTime now = OffsetDateTime.now();
+
+        Optional<User> userOpt = findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.warn("用户不存在，无法重置挑战时间，用户ID: {}", userId);
+            return;
+        }
+
+        OffsetDateTime challengeStartTime = userOpt.get().getChallengeResetTime();
+        if (challengeStartTime == null) {
+            logger.warn("用户 challenge_reset_time 为空，使用当前时间兜底，用户ID: {}", userId);
+            challengeStartTime = now;
+        }
+
+        int durationDays = calculateRelapseDurationDays(challengeStartTime, now);
+        String relapseRecordId = UUID.randomUUID().toString();
+
+        String insertRelapseSql = "INSERT INTO challenge_relapse_records (" +
+            "id, user_id, challenge_start_time, relapse_time, duration_days, created_at, updated_at" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?)";
+        int insertedRows = d1Util.execute(
+            insertRelapseSql,
+            relapseRecordId,
+            EntityMapper.uuidToString(userId),
+            EntityMapper.offsetDateTimeToString(challengeStartTime),
+            EntityMapper.offsetDateTimeToString(now),
+            durationDays,
+            EntityMapper.offsetDateTimeToString(now),
+            EntityMapper.offsetDateTimeToString(now)
+        );
+
+        if (insertedRows <= 0) {
+            logger.error("复发记录写入失败，用户ID: {}", userId);
+            throw new RuntimeException("复发记录写入失败");
+        }
         
         // 一次性更新挑战时间和重启次数
         String sql = "UPDATE users SET challenge_reset_time = ?, " +
@@ -151,10 +186,22 @@ public class UserServiceImpl implements UserService {
             EntityMapper.uuidToString(userId));
         
         if (updatedRows > 0) {
-            logger.info("用户挑战时间重置成功，用户ID: {}, 已自动增加重启次数", userId);
+            logger.info("用户挑战时间重置成功，用户ID: {}, 已写入复发记录: {}, 持续天数: {}, 已自动增加重启次数",
+                userId, relapseRecordId, durationDays);
         } else {
             logger.warn("用户不存在，无法重置挑战时间，用户ID: {}", userId);
         }
+    }
+
+    private int calculateRelapseDurationDays(OffsetDateTime challengeStartTime, OffsetDateTime relapseTime) {
+        long days = ChronoUnit.DAYS.between(challengeStartTime.toLocalDate(), relapseTime.toLocalDate()) + 1;
+        if (days < 0) {
+            return 0;
+        }
+        if (days > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) days;
     }
     
     @Override
@@ -493,6 +540,7 @@ public class UserServiceImpl implements UserService {
                     days = 0;
                 }
                 return new UserChallengeRankDto(
+                    EntityMapper.getString(row, "id"),
                     EntityMapper.getString(row, "nickname"),
                     EntityMapper.getString(row, "avatar_url"),
                     days
@@ -537,6 +585,47 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginTime(time);
         user.setUpdatedAt(now);
         return user;
+    }
+
+    @Override
+    public UserRelapseHistoryResponse getUserRelapseHistory(UUID userId, int limit) {
+        logger.info("查询用户复发历史，用户ID: {}, 条数: {}", userId, limit);
+
+        Optional<User> userOpt = findById(userId);
+        if (!userOpt.isPresent()) {
+            logger.warn("用户不存在，无法查询复发历史，用户ID: {}", userId);
+            return null;
+        }
+
+        User user = userOpt.get();
+        String userIdStr = EntityMapper.uuidToString(userId);
+
+        long relapseCount = user.getRestartCount() != null ? user.getRestartCount().longValue() : 0L;
+        Long rank = getUserRankByChallengeResetTime(userId);
+        long totalUsers = d1Util.countTable("users");
+
+        String historySql = "SELECT challenge_start_time, relapse_time, duration_days " +
+                            "FROM challenge_relapse_records " +
+                            "WHERE user_id = ? " +
+                            "ORDER BY relapse_time DESC " +
+                            "LIMIT ?";
+        List<Map<String, Object>> rows = d1Util.queryList(historySql, userIdStr, limit);
+
+        List<UserRelapseHistoryResponse.RelapseHistoryItem> history = rows.stream()
+            .map(row -> new UserRelapseHistoryResponse.RelapseHistoryItem(
+                EntityMapper.getString(row, "challenge_start_time"),
+                EntityMapper.getString(row, "relapse_time"),
+                EntityMapper.getInteger(row, "duration_days")
+            ))
+            .collect(Collectors.toList());
+
+        return new UserRelapseHistoryResponse(
+            relapseCount,
+            user.getBestRecord(),
+            rank,
+            totalUsers,
+            history
+        );
     }
     
     /**

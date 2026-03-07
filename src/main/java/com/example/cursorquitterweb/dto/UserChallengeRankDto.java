@@ -6,6 +6,7 @@ package com.example.cursorquitterweb.dto;
 public class UserChallengeRankDto {
 
     private int rank;
+    private String userId;
     private String name;
     private long days;
     private String avatarUrl;
@@ -13,10 +14,19 @@ public class UserChallengeRankDto {
     public UserChallengeRankDto() {
     }
 
-    public UserChallengeRankDto(String name, String avatarUrl, long days) {
+    public UserChallengeRankDto(String userId, String name, String avatarUrl, long days) {
+        this.userId = userId;
         this.name = name;
         this.avatarUrl = avatarUrl;
         this.days = days;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public int getRank() {
