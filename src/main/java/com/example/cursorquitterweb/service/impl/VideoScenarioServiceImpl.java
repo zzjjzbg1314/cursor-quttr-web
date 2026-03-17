@@ -248,7 +248,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
      */
     private VideoScenario mapToVideoScenario(Map<String, Object> row) {
         VideoScenario videoScenario = new VideoScenario();
-        videoScenario.setVideoId(EntityMapper.getUUID(row, "videoId"));
+        videoScenario.setVideoId(getCompatibleVideoId(row));
         videoScenario.setType(EntityMapper.getString(row, "type"));
         videoScenario.setTitle(EntityMapper.getString(row, "title"));
         videoScenario.setSubtitle(EntityMapper.getString(row, "subtitle"));
@@ -259,8 +259,8 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
         videoScenario.setColor(EntityMapper.getString(row, "color"));
         videoScenario.setQuotes(EntityMapper.getString(row, "quotes"));
         videoScenario.setAuthor(EntityMapper.getString(row, "author"));
-        videoScenario.setCreateAt(EntityMapper.getOffsetDateTime(row, "create_at"));
-        videoScenario.setUpdateAt(EntityMapper.getOffsetDateTime(row, "update_at"));
+        videoScenario.setCreateAt(getCompatibleCreateAt(row));
+        videoScenario.setUpdateAt(getCompatibleUpdateAt(row));
         return videoScenario;
     }
     
@@ -270,6 +270,7 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
     private Map<String, Object> videoScenarioToMap(VideoScenario videoScenario) {
         Map<String, Object> data = new HashMap<>();
         EntityMapper.putIfNotNull(data, "videoId", videoScenario.getVideoId());
+        EntityMapper.putIfNotNull(data, "video_id", videoScenario.getVideoId());
         EntityMapper.putIfNotNull(data, "type", videoScenario.getType());
         EntityMapper.putIfNotNull(data, "title", videoScenario.getTitle());
         EntityMapper.putIfNotNull(data, "subtitle", videoScenario.getSubtitle());
@@ -280,9 +281,26 @@ public class VideoScenarioServiceImpl implements VideoScenarioService {
         EntityMapper.putIfNotNull(data, "color", videoScenario.getColor());
         EntityMapper.putIfNotNull(data, "quotes", videoScenario.getQuotes());
         EntityMapper.putIfNotNull(data, "author", videoScenario.getAuthor());
+        EntityMapper.putIfNotNull(data, "createAt", videoScenario.getCreateAt());
         EntityMapper.putIfNotNull(data, "create_at", videoScenario.getCreateAt());
+        EntityMapper.putIfNotNull(data, "updateAt", videoScenario.getUpdateAt());
         EntityMapper.putIfNotNull(data, "update_at", videoScenario.getUpdateAt());
         return data;
+    }
+
+    private UUID getCompatibleVideoId(Map<String, Object> row) {
+        UUID videoId = EntityMapper.getUUID(row, "videoId");
+        return videoId != null ? videoId : EntityMapper.getUUID(row, "video_id");
+    }
+
+    private OffsetDateTime getCompatibleCreateAt(Map<String, Object> row) {
+        OffsetDateTime createAt = EntityMapper.getOffsetDateTime(row, "create_at");
+        return createAt != null ? createAt : EntityMapper.getOffsetDateTime(row, "createAt");
+    }
+
+    private OffsetDateTime getCompatibleUpdateAt(Map<String, Object> row) {
+        OffsetDateTime updateAt = EntityMapper.getOffsetDateTime(row, "update_at");
+        return updateAt != null ? updateAt : EntityMapper.getOffsetDateTime(row, "updateAt");
     }
     
     @Override
