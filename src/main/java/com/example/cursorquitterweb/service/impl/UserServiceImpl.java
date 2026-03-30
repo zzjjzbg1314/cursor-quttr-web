@@ -80,7 +80,8 @@ public class UserServiceImpl implements UserService {
     public User createUser(String nickname, String avatarUrl) {
         logger.info("创建新用户，昵称: {}", nickname);
         
-        User user = new User(nickname);
+        User user = User.initUser();
+        user.setNickname(nickname);
         user.setAvatarUrl(avatarUrl);
         
         User savedUser = save(user);
