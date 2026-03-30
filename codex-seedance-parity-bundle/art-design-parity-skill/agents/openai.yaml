@@ -1,0 +1,4 @@
+interface:
+  display_name: "Art Design Parity"
+  short_description: "Claude 对齐版服化道提示词设计技能"
+  default_prompt: "Use $art-design-parity-skill to update the character and scene prompt libraries."

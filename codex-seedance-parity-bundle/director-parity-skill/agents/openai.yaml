@@ -1,0 +1,4 @@
+interface:
+  display_name: "Director Parity Skill"
+  short_description: "Claude 对齐版导演讲戏本生成技能"
+  default_prompt: "Use $director-parity-skill to turn this episode script into a director packet."

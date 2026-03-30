@@ -1,0 +1,4 @@
+interface:
+  display_name: "Art Review Parity"
+  short_description: "Claude 对齐版服化道设计审核技能"
+  default_prompt: "Use $art-direction-review-parity-skill to review the new art prompt entries."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seedance Producer Parity"
+  short_description: "Claude 风格三阶段短剧制片流水线"
+  default_prompt: "Use $seedance-drama-producer-parity to run the Codex version of the short-drama prompt pipeline."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compliance Review Parity"
+  short_description: "Claude 对齐版内容合规审核技能"
+  default_prompt: "Use $compliance-review-parity-skill to perform the compliance pass on this stage output."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seedance Review Parity"
+  short_description: "Claude 对齐版 Seedance 提示词审核技能"
+  default_prompt: "Use $seedance-prompt-review-parity-skill to review this Seedance prompt package."

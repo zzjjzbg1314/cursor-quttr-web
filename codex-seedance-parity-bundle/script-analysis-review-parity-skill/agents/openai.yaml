@@ -1,0 +1,4 @@
+interface:
+  display_name: "Script Review Parity"
+  short_description: "Claude 对齐版导演分析审核技能"
+  default_prompt: "Use $script-analysis-review-parity-skill to review this director analysis draft."

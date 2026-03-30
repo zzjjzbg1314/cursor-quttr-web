@@ -1,0 +1,4 @@
+interface:
+  display_name: "Storyboard Parity"
+  short_description: "Claude 对齐版 Seedance 分镜写作技能"
+  default_prompt: "Use $seedance-storyboard-parity-skill to write Seedance prompts for this episode."
