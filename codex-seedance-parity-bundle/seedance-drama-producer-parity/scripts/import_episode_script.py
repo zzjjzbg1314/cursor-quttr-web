@@ -13,7 +13,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from bootstrap_story_project import ensure_agent_state, ensure_base_dirs, ensure_episode_dir, install_root_templates
+from bootstrap_story_project import (
+    ensure_agent_state,
+    ensure_base_dirs,
+    ensure_episode_dir,
+    ensure_project_config,
+    install_root_templates,
+)
 
 
 def slugify_name(name: str) -> str:
@@ -29,6 +35,7 @@ def slugify_name(name: str) -> str:
 def import_script(skill_dir: Path, target_dir: Path, source_path: Path, episode: str, name: str | None, force: bool) -> Path:
     ensure_base_dirs(target_dir)
     install_root_templates(skill_dir, target_dir, force)
+    ensure_project_config(target_dir, force)
     ensure_agent_state(target_dir, episode, force)
     ensure_episode_dir(target_dir, episode)
 

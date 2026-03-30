@@ -19,6 +19,24 @@
 }
 ```
 
+## .producer-config.json
+
+保持以下结构：
+
+```json
+{
+  "visual_style": "",
+  "target_medium": "",
+  "language": "中文",
+  "last_episode": ""
+}
+```
+
+开始 `~start` 之前，至少要补齐：
+
+- `visual_style`
+- `target_medium`
+
 ## outputs/<集数>/01-director-analysis.md
 
 至少包含：

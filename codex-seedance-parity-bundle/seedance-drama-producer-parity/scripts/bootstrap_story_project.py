@@ -57,6 +57,24 @@ def ensure_base_dirs(target_dir: Path) -> None:
         (target_dir / directory).mkdir(parents=True, exist_ok=True)
 
 
+def ensure_project_config(target_dir: Path, force: bool) -> None:
+    config_path = target_dir / ".producer-config.json"
+    default_config = {
+        "visual_style": "",
+        "target_medium": "",
+        "language": "中文",
+        "last_episode": "",
+    }
+    if config_path.exists() and not force:
+        print(f"跳过 {config_path}")
+        return
+    config_path.write_text(
+        json.dumps(default_config, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(f"写入 {config_path}")
+
+
 def ensure_agent_state(target_dir: Path, episode: str | None, force: bool) -> None:
     state_path = target_dir / ".agent-state.json"
     default_state = {
@@ -102,6 +120,7 @@ def main() -> int:
 
     ensure_base_dirs(target_dir)
     install_root_templates(skill_dir, target_dir, args.force)
+    ensure_project_config(target_dir, args.force)
     ensure_agent_state(target_dir, args.episode[0] if args.episode else None, args.force)
 
     for episode in args.episode:

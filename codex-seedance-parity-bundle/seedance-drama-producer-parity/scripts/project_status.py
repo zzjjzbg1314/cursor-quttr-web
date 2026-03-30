@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+from project_config import load_config
+
 
 EPISODE_RE = re.compile(r"(ep\d{2})", re.IGNORECASE)
 
@@ -66,6 +68,18 @@ def load_agent_state(root: Path, current_episode: str | None) -> str:
     return "全新会话"
 
 
+def choose_next_step(current_stage: str, current_episode: str, config: dict[str, str]) -> str:
+    if current_stage == "导演分析阶段":
+        if not config.get("visual_style") or not config.get("target_medium"):
+            return f"输入 ~start {current_episode}，然后按提示填写视觉风格和目标媒介"
+        return f"输入 ~start {current_episode}"
+    if current_stage == "服化道设计阶段":
+        return f"输入 ~design {current_episode}"
+    if current_stage == "分镜编写阶段":
+        return f"输入 ~prompt {current_episode}"
+    return "当前所有已识别集数均已完成，可继续下一集或提出修改意见"
+
+
 def render_markdown(payload: dict[str, object]) -> str:
     lines: list[str] = []
     lines.append("📊 **项目进度检测**")
@@ -83,26 +97,27 @@ def render_markdown(payload: dict[str, object]) -> str:
     lines.append(f"**当前集数**：{payload['current_episode'] or '无'}")
     lines.append(f"**当前阶段**：{payload['current_stage'] or '等待剧本'}")
     lines.append(f"**Agent 状态**：{payload['agent_state']}")
+    config = payload.get("config")
+    if isinstance(config, dict):
+        lines.append(
+            f"**项目配置**：视觉风格={config.get('visual_style') or '未设置'}，目标媒介={config.get('target_medium') or '未设置'}"
+        )
     lines.append(f"**下一步**：{payload['next_step']}")
     return "\n".join(lines)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="检测短剧提示词项目状态。")
-    parser.add_argument("target_dir", help="项目根目录")
-    parser.add_argument("--json", action="store_true", help="输出 JSON")
-    args = parser.parse_args()
-
-    root = Path(args.target_dir).resolve()
+def build_payload(root: Path) -> dict[str, object]:
     script_dir = root / "script"
     character_text = read_text(root / "assets" / "character-prompts.md")
     scene_text = read_text(root / "assets" / "scene-prompts.md")
+    config = load_config(root)
 
     payload: dict[str, object] = {
         "episodes": [],
         "current_episode": "",
         "current_stage": "",
         "agent_state": "全新会话",
+        "config": config,
         "next_step": "请先创建 script/ 并放入带 ep 编号的剧本文件",
     }
 
@@ -114,11 +129,7 @@ def main() -> int:
             discovered.append((episode, path))
 
     if not discovered:
-        if args.json:
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
-        else:
-            print(render_markdown(payload))
-        return 0
+        return payload
 
     episode_rows: list[dict[str, str]] = []
     first_incomplete: str | None = None
@@ -142,20 +153,25 @@ def main() -> int:
     current_stage = first_stage or "已完成"
     agent_state = load_agent_state(root, current_episode)
 
-    next_step_map = {
-        "导演分析阶段": f"输入 ~start {current_episode}",
-        "服化道设计阶段": f"输入 ~design {current_episode}",
-        "分镜编写阶段": f"输入 ~prompt {current_episode}",
-        "已完成": "当前所有已识别集数均已完成，可继续下一集或提出修改意见",
-    }
-
     payload = {
         "episodes": episode_rows,
         "current_episode": current_episode,
         "current_stage": current_stage,
         "agent_state": agent_state,
-        "next_step": next_step_map[current_stage],
+        "config": config,
+        "next_step": choose_next_step(current_stage, current_episode, config),
     }
+    return payload
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="检测短剧提示词项目状态。")
+    parser.add_argument("target_dir", help="项目根目录")
+    parser.add_argument("--json", action="store_true", help="输出 JSON")
+    args = parser.parse_args()
+
+    root = Path(args.target_dir).resolve()
+    payload = build_payload(root)
 
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))

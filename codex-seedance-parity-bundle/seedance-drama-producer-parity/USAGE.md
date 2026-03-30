@@ -36,12 +36,24 @@ python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/impo
 python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/project_status.py <你的项目目录>
 ```
 
+如果你想先看主控会怎么路由命令：
+
+```bash
+python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/command_router.py route <你的项目目录> "~start ep01" --json
+```
+
 ### 4. 打开 Codex 新会话
 
 进入你的项目目录后，直接说：
 
 ```text
 Use $seedance-drama-producer-parity to run the short-drama pipeline in this project.
+```
+
+如果你想先把项目配置写好，也可以直接执行：
+
+```bash
+python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/project_config.py set <你的项目目录> --visual-style "真人写实" --target-medium "短剧"
 ```
 
 ### 5. 按阶段执行
@@ -365,3 +377,16 @@ python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/proj
 - `当前阶段：导演分析阶段`
 
 说明目录结构和剧本命名已经正常。
+
+### 为什么 `~start` 先问我两个问题
+
+这是对齐原版主控行为。导演分析开始前必须先确认：
+
+- 视觉风格
+- 目标媒介
+
+如果你不想在会话里再答一次，可以提前写入：
+
+```bash
+python3 /Users/zongjei/.codex/skills/seedance-drama-producer-parity/scripts/project_config.py set <你的项目目录> --visual-style "真人写实" --target-medium "短剧"
+```
