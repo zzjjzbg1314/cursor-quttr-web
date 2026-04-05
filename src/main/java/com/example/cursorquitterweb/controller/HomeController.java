@@ -28,7 +28,8 @@ public class HomeController {
             "HTTPS安全访问",
             "SSL证书管理",
             "群组聊天功能",
-            "白噪音内容管理"
+            "白噪音内容管理",
+            "纯音乐内容管理"
         });
         appInfo.put("endpoints", new String[]{
             "/api/hello - 欢迎信息",
@@ -36,6 +37,7 @@ public class HomeController {
             "/api/wechat/login - 微信登录",
             "/api/wechat/health - 微信服务健康检查",
             "/api/white-noises - 白噪音内容接口",
+            "/api/pure-musics - 纯音乐内容接口",
             "/api/ssl/info - SSL证书信息",
             "/api/ssl/status - SSL状态",
             "/api/logs/level - 日志级别",
