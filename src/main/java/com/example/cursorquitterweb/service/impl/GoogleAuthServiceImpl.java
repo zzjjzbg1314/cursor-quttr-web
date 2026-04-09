@@ -74,6 +74,10 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             
             user = userOpt.get();
             
+            if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
+                user.setLanguage(request.getLanguage());
+            }
+            
             // 更新登录时间（通过 preUpdate 自动更新 updated_at）
             user.setLastLoginTime(OffsetDateTime.now());
             user.preUpdate();
@@ -108,6 +112,10 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
             // 设置最后登录时间
             user.setLastLoginTime(OffsetDateTime.now());
+
+            if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
+                user.setLanguage(request.getLanguage());
+            }
             
             // 保存用户
             user = userService.save(user);

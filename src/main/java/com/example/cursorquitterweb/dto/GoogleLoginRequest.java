@@ -30,6 +30,9 @@ public class GoogleLoginRequest {
     
     @JsonProperty("picture")
     private String picture;
+
+    @JsonProperty("language")
+    private String language;
     
     public GoogleLoginRequest() {
     }
@@ -89,6 +92,14 @@ public class GoogleLoginRequest {
     public void setPicture(String picture) {
         this.picture = picture;
     }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
     
     @Override
     public String toString() {
@@ -98,7 +109,7 @@ public class GoogleLoginRequest {
                 ", name='" + name + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
+                ", language='" + language + '\'' +
                 '}';
     }
 }
-
