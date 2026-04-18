@@ -79,6 +79,27 @@ public class DeepSeekApiUtil {
         
         return generateContent(prompt);
     }
+
+    /**
+     * 将中文社区帖子内容翻译成适合海外社区的英文
+     *
+     * @param sourceText 中文原文
+     * @return 英文翻译
+     */
+    public String translateCommunityPostToEnglish(String sourceText) {
+        return translateCommunityTextToEnglish(sourceText, "post", null);
+    }
+
+    /**
+     * 将中文社区评论/回复内容翻译成适合海外社区的英文
+     *
+     * @param sourceText 中文原文
+     * @param relatedContext 上下文，可传入对应帖子内容
+     * @return 英文翻译
+     */
+    public String translateCommunityCommentToEnglish(String sourceText, String relatedContext) {
+        return translateCommunityTextToEnglish(sourceText, "comment", relatedContext);
+    }
     
     /**
      * 调用DeepSeek API生成内容
@@ -152,6 +173,89 @@ public class DeepSeekApiUtil {
             return getDefaultContent(prompt);
         }
     }
+
+    /**
+     * 严格模式翻译社区内容。该方法用于一次性数据同步，不允许静默降级成无关默认文案。
+     */
+    private String translateCommunityTextToEnglish(String sourceText, String contentType, String relatedContext) {
+        if (sourceText == null) {
+            return null;
+        }
+
+        String trimmedSource = sourceText.trim();
+        if (trimmedSource.isEmpty() || !containsChineseCharacters(trimmedSource)) {
+            return trimmedSource;
+        }
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalStateException("DeepSeek API密钥未配置，无法执行社区内容翻译");
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+
+            List<Map<String, String>> messages = new ArrayList<>();
+
+            Map<String, String> systemMessage = new HashMap<>();
+            systemMessage.put("role", "system");
+            systemMessage.put("content",
+                "You are translating user-generated community content from Chinese into natural English for a recovery app. " +
+                "The topic is quitting pornography, recovery, relapse, self-control, and mutual support. " +
+                "Preserve the original meaning, emotional tone, and humility. " +
+                "Use safe, non-explicit language suitable for an app store community. " +
+                "Do not add facts, do not moralize, do not turn it into marketing copy, and return only the translation text.");
+            messages.add(systemMessage);
+
+            StringBuilder prompt = new StringBuilder();
+            prompt.append("Translate the following Chinese ").append(contentType)
+                .append(" into fluent, concise English.\n");
+            if (relatedContext != null && !relatedContext.trim().isEmpty()) {
+                prompt.append("Context for tone only:\n").append(relatedContext.trim()).append("\n\n");
+            }
+            prompt.append("Chinese source:\n").append(trimmedSource).append("\n\n")
+                .append("Return only the English translation.");
+
+            Map<String, String> userMessage = new HashMap<>();
+            userMessage.put("role", "user");
+            userMessage.put("content", prompt.toString());
+            messages.add(userMessage);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", model);
+            requestBody.put("messages", messages);
+            requestBody.put("temperature", 0.2);
+            requestBody.put("max_tokens", 600);
+            requestBody.put("stream", false);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, request, String.class);
+
+            if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+                throw new IllegalStateException("DeepSeek翻译响应异常: " + response.getStatusCode());
+            }
+
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            JsonNode choices = jsonNode.get("choices");
+            if (choices == null || !choices.isArray() || choices.size() == 0) {
+                throw new IllegalStateException("DeepSeek翻译结果为空");
+            }
+
+            JsonNode content = choices.get(0).path("message").path("content");
+            String translated = normalizeTranslatedContent(content.asText());
+            if (translated.isEmpty()) {
+                throw new IllegalStateException("DeepSeek翻译内容为空");
+            }
+
+            LogUtil.logInfo(logger, "DeepSeek翻译成功，类型: {}, 原文长度: {}, 译文长度: {}",
+                contentType, trimmedSource.length(), translated.length());
+            return translated;
+        } catch (Exception e) {
+            LogUtil.logError(logger, "DeepSeek社区内容翻译失败", e);
+            throw new RuntimeException("社区内容翻译失败: " + e.getMessage(), e);
+        }
+    }
     
     /**
      * 获取默认内容（当API调用失败时使用）
@@ -172,5 +276,30 @@ public class DeepSeekApiUtil {
             return "I completely agree. Keep up the great work!";
         }
     }
-}
 
+    private boolean containsChineseCharacters(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            Character.UnicodeScript script = Character.UnicodeScript.of(text.charAt(i));
+            if (script == Character.UnicodeScript.HAN) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String normalizeTranslatedContent(String content) {
+        if (content == null) {
+            return "";
+        }
+
+        String normalized = content.trim();
+        if (normalized.startsWith("Translation:")) {
+            normalized = normalized.substring("Translation:".length()).trim();
+        }
+        if ((normalized.startsWith("\"") && normalized.endsWith("\""))
+            || (normalized.startsWith("“") && normalized.endsWith("”"))) {
+            normalized = normalized.substring(1, normalized.length() - 1).trim();
+        }
+        return normalized;
+    }
+}
