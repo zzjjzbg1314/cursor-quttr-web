@@ -39,38 +39,66 @@ public class CommunityCnToGlSyncServiceImpl implements CommunityCnToGlSyncServic
 
     @Override
     public CommunityCnToGlSyncResult syncSince(LocalDate startDate, boolean force) {
+        return syncInternal(startDate, null, force);
+    }
+
+    @Override
+    public CommunityCnToGlSyncResult syncRange(LocalDate startDate, LocalDate endDateExclusive, boolean force) {
+        if (endDateExclusive == null) {
+            throw new IllegalArgumentException("endDateExclusive不能为空");
+        }
+        if (!endDateExclusive.isAfter(startDate)) {
+            throw new IllegalArgumentException("endDateExclusive必须晚于startDate");
+        }
+        return syncInternal(startDate, endDateExclusive, force);
+    }
+
+    private CommunityCnToGlSyncResult syncInternal(LocalDate startDate, LocalDate endDateExclusive, boolean force) {
         if (!syncing.compareAndSet(false, true)) {
             throw new IllegalStateException("同步任务正在执行中，请勿重复触发");
         }
 
         OffsetDateTime startedAt = OffsetDateTime.now();
         try {
-            return doSync(startDate, force, startedAt);
+            return doSync(startDate, endDateExclusive, force, startedAt);
         } finally {
             syncing.set(false);
         }
     }
 
-    private CommunityCnToGlSyncResult doSync(LocalDate startDate, boolean force, OffsetDateTime startedAt) {
+    private CommunityCnToGlSyncResult doSync(LocalDate startDate, LocalDate endDateExclusive, boolean force, OffsetDateTime startedAt) {
         OffsetDateTime startDateTime = startDate.atStartOfDay().atOffset(DEFAULT_ZONE_OFFSET);
         String startDateTimeString = EntityMapper.offsetDateTimeToString(startDateTime);
+        OffsetDateTime endDateTime = endDateExclusive != null
+            ? endDateExclusive.atStartOfDay().atOffset(DEFAULT_ZONE_OFFSET)
+            : null;
+        String endDateTimeString = endDateTime != null ? EntityMapper.offsetDateTimeToString(endDateTime) : null;
 
-        LogUtil.logInfo(logger, "开始执行国内社区同步到海外社区，startDate={}, force={}", startDate, force);
+        LogUtil.logInfo(logger, "开始执行国内社区同步到海外社区，startDate={}, endDateExclusive={}, force={}",
+            startDate, endDateExclusive, force);
 
         if (!force) {
-            long existingGlPosts = d1Util.queryLong(
-                "SELECT COUNT(*) AS count FROM posts_gl WHERE created_at >= ?",
-                startDateTimeString
-            );
+            long existingGlPosts = endDateTime != null
+                ? d1Util.queryLong(
+                    "SELECT COUNT(*) AS count FROM posts_gl WHERE created_at >= ? AND created_at < ?",
+                    startDateTimeString, endDateTimeString)
+                : d1Util.queryLong(
+                    "SELECT COUNT(*) AS count FROM posts_gl WHERE created_at >= ?",
+                    startDateTimeString);
             if (existingGlPosts > 0) {
                 throw new IllegalStateException("海外帖子表在该时间窗口已存在数据，默认拒绝重复同步；如确认重跑，请传 force=true");
             }
         }
 
-        List<Map<String, Object>> sourcePosts = d1Util.queryList(
-            "SELECT * FROM posts WHERE created_at >= ? ORDER BY created_at ASC",
-            startDateTimeString
-        );
+        List<Map<String, Object>> sourcePosts = endDateTime != null
+            ? d1Util.queryList(
+                "SELECT * FROM posts WHERE created_at >= ? AND created_at < ? ORDER BY created_at ASC",
+                startDateTimeString, endDateTimeString
+            )
+            : d1Util.queryList(
+                "SELECT * FROM posts WHERE created_at >= ? ORDER BY created_at ASC",
+                startDateTimeString
+            );
 
         List<String> sourcePostIds = sourcePosts.stream()
             .map(row -> getRequiredString(row, "post_id"))
@@ -100,6 +128,7 @@ public class CommunityCnToGlSyncServiceImpl implements CommunityCnToGlSyncServic
         OffsetDateTime completedAt = OffsetDateTime.now();
         CommunityCnToGlSyncResult result = new CommunityCnToGlSyncResult();
         result.setStartDate(startDate.toString());
+        result.setEndDateExclusive(endDateExclusive != null ? endDateExclusive.toString() : null);
         result.setForce(force);
         result.setSourcePostCount(sourcePosts.size());
         result.setSourceCommentCount(sourceComments.size());
@@ -114,8 +143,8 @@ public class CommunityCnToGlSyncServiceImpl implements CommunityCnToGlSyncServic
         result.setDurationMs(completedAt.toInstant().toEpochMilli() - startedAt.toInstant().toEpochMilli());
 
         LogUtil.logInfo(logger,
-            "国内社区同步完成，posts={}, comments={}, likes={}, durationMs={}",
-            targetPosts.size(), targetComments.size(), targetLikes.size(), result.getDurationMs());
+            "国内社区同步完成，startDate={}, endDateExclusive={}, posts={}, comments={}, likes={}, durationMs={}",
+            startDate, endDateExclusive, targetPosts.size(), targetComments.size(), targetLikes.size(), result.getDurationMs());
         return result;
     }
 

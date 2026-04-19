@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 public class CommunityCnToGlSyncResult {
 
     private String startDate;
+    private String endDateExclusive;
     private Boolean force;
     private Integer sourcePostCount;
     private Integer sourceCommentCount;
@@ -35,6 +36,14 @@ public class CommunityCnToGlSyncResult {
 
     public void setForce(Boolean force) {
         this.force = force;
+    }
+
+    public String getEndDateExclusive() {
+        return endDateExclusive;
+    }
+
+    public void setEndDateExclusive(String endDateExclusive) {
+        this.endDateExclusive = endDateExclusive;
     }
 
     public Integer getSourcePostCount() {

@@ -10,4 +10,6 @@ import java.time.LocalDate;
 public interface CommunityCnToGlSyncService {
 
     CommunityCnToGlSyncResult syncSince(LocalDate startDate, boolean force);
+
+    CommunityCnToGlSyncResult syncRange(LocalDate startDate, LocalDate endDateExclusive, boolean force);
 }
