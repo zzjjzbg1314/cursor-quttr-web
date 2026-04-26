@@ -78,11 +78,17 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public User createUser(String nickname, String avatarUrl) {
+        return createUser(nickname, avatarUrl, null, null);
+    }
+
+    @Override
+    public User createUser(String nickname, String avatarUrl, String countryCode, String emojiCountry) {
         logger.info("创建新用户，昵称: {}", nickname);
         
         User user = User.initUser();
         user.setNickname(nickname);
         user.setAvatarUrl(avatarUrl);
+        applyCountryInfo(user, countryCode, emojiCountry);
         
         User savedUser = save(user);
         logger.info("用户创建成功，ID: {}", savedUser.getId());
@@ -639,6 +645,8 @@ public class UserServiceImpl implements UserService {
         user.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
         user.setGender(EntityMapper.getInteger(row, "gender") != null ? 
             EntityMapper.getInteger(row, "gender").shortValue() : null);
+        user.setCountryCode(EntityMapper.getString(row, "country_code"));
+        user.setEmojiCountry(EntityMapper.getString(row, "emoji_country"));
         user.setLanguage(EntityMapper.getString(row, "language"));
         user.setPhoneNumber(EntityMapper.getString(row, "phone_number"));
         user.setRegistrationTime(EntityMapper.getOffsetDateTime(row, "registration_time"));
@@ -664,6 +672,8 @@ public class UserServiceImpl implements UserService {
         if (user.getGender() != null) {
             data.put("gender", user.getGender().intValue());
         }
+        EntityMapper.putIfNotNull(data, "country_code", user.getCountryCode());
+        EntityMapper.putIfNotNull(data, "emoji_country", user.getEmojiCountry());
         EntityMapper.putIfNotNull(data, "language", user.getLanguage());
         EntityMapper.putIfNotNull(data, "phone_number", user.getPhoneNumber());
         EntityMapper.putIfNotNull(data, "registration_time", user.getRegistrationTime());
@@ -676,5 +686,14 @@ public class UserServiceImpl implements UserService {
         EntityMapper.putIfNotNull(data, "updated_at", user.getUpdatedAt());
         EntityMapper.putIfNotNull(data, "lastlogin_time", user.getLastLoginTime());
         return data;
+    }
+
+    private void applyCountryInfo(User user, String countryCode, String emojiCountry) {
+        if (countryCode != null && !countryCode.trim().isEmpty()) {
+            user.setCountryCode(countryCode.trim());
+        }
+        if (emojiCountry != null && !emojiCountry.trim().isEmpty()) {
+            user.setEmojiCountry(emojiCountry.trim());
+        }
     }
 }

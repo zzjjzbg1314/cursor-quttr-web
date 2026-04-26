@@ -17,6 +17,10 @@ public class User {
     private String avatarUrl;
     
     private Short gender;
+
+    private String countryCode;
+
+    private String emojiCountry;
     
     private String language = "zh_CN";
     
@@ -83,6 +87,22 @@ public class User {
     
     public void setGender(Short gender) {
         this.gender = gender;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
     }
     
     public String getLanguage() {
@@ -189,6 +209,8 @@ public class User {
         user.setNickname("新用户");
         user.setAvatarUrl("https://example.com/default-avatar.jpg");
         user.setGender((short) 0); // 0: 未知, 1: 男, 2: 女
+        user.setCountryCode(null);
+        user.setEmojiCountry(null);
         user.setLanguage("zh_CN");
         user.setPhoneNumber(null); // 手机号字段不初始化，允许为空
         user.setBestRecord(1);
@@ -206,6 +228,8 @@ public class User {
                 ", nickname='" + nickname + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", gender=" + gender +
+                ", countryCode='" + countryCode + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 ", language='" + language + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", registrationTime=" + registrationTime +

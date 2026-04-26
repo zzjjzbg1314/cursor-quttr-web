@@ -5,7 +5,6 @@ import com.example.cursorquitterweb.service.CommunityCnToGlSyncService;
 import com.example.cursorquitterweb.util.LogUtil;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -26,7 +25,7 @@ public class CommunityCnToGlDailySyncTask {
     /**
      * 每天凌晨 03:15 执行，同步前一天的数据。
      */
-    @Scheduled(cron = "0 15 3 * * ?", zone = "Asia/Shanghai")
+    // @Scheduled(cron = "0 15 3 * * ?", zone = "Asia/Shanghai")
     public void syncPreviousDayCommunityData() {
         LocalDate today = LocalDate.now(SHANGHAI_ZONE);
         LocalDate previousDay = today.minusDays(1);

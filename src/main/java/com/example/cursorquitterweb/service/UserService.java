@@ -29,6 +29,11 @@ public interface UserService {
      * 创建新用户
      */
     User createUser(String nickname, String avatarUrl);
+
+    /**
+     * 创建新用户（带国家信息）
+     */
+    User createUser(String nickname, String avatarUrl, String countryCode, String emojiCountry);
     
     /**
      * 更新用户信息

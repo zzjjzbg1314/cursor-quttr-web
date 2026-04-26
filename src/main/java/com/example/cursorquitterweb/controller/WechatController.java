@@ -72,13 +72,17 @@ public class WechatController {
 
                 // 用户已存在，直接使用现有用户信息
                 user = existingUser.get();
+                applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
+                user = userService.updateUser(user);
                 LogUtil.logInfo(logger, "用户已存在，用户ID: {}", user.getId());
             } else {
                 // 创建新用户
                 isNewUser = true;
                 user = userService.createUser(
                     wechatUserInfo.getNickname(),
-                    wechatUserInfo.getHeadimgurl()
+                    wechatUserInfo.getHeadimgurl(),
+                    request.getCountryCode(),
+                    request.getEmojiCountry()
                 );
 
                 String identityData = wechatUserInfo.getUnionid() != null && !wechatUserInfo.getUnionid().trim().isEmpty()
@@ -114,5 +118,14 @@ public class WechatController {
     public ResponseEntity<ApiResponse<String>> health() {
         LogUtil.logDebug(logger, "微信服务健康检查");
         return ResponseEntity.ok(ApiResponse.success("微信服务正常"));
+    }
+
+    private void applyCountryInfo(User user, String countryCode, String emojiCountry) {
+        if (countryCode != null && !countryCode.trim().isEmpty()) {
+            user.setCountryCode(countryCode.trim());
+        }
+        if (emojiCountry != null && !emojiCountry.trim().isEmpty()) {
+            user.setEmojiCountry(emojiCountry.trim());
+        }
     }
 } 

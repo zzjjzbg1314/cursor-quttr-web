@@ -81,6 +81,7 @@ public class UserController {
         user.setNickname(request.getNickname());
         user.setAge(request.getAge());
         user.setGender(request.getGender());
+        applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
         user.setAvatarUrl(avatarUrl);
         user.setRestartCount(0);
         User savedUser = userService.save(user);
@@ -103,8 +104,11 @@ public class UserController {
     @PostMapping
     public ApiResponse<User> createUser(@RequestBody CreateUserRequest request) {
         logger.info("创建新用户，昵称: {}", request.getNickname());
-        
-        User user = userService.createUser(request.getNickname(), request.getAvatarUrl());
+        User user = userService.createUser(
+            request.getNickname(),
+            request.getAvatarUrl(),
+            request.getCountryCode(),
+            request.getEmojiCountry());
         if (request.getQuitReason() != null) {
             user.setQuitReason(request.getQuitReason());
         }
@@ -114,6 +118,7 @@ public class UserController {
         if (request.getRestartCount() != null) {
             user.setRestartCount(request.getRestartCount());
         }
+        applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
         user = userService.updateUser(user);
         return ApiResponse.success("用户创建成功", user);
     }
@@ -159,6 +164,7 @@ public class UserController {
         if (request.getQuitReason() != null) {
             user.setQuitReason(request.getQuitReason());
         }
+        applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
         
         User updatedUser = userService.updateUser(user);
         logger.info("用户基本信息更新成功，ID: {}", id);
@@ -202,6 +208,7 @@ public class UserController {
         if (request.getRestartCount() != null) {
             user.setRestartCount(request.getRestartCount());
         }
+        applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
         
         User updatedUser = userService.updateUser(user);
         return ApiResponse.success("用户信息更新成功", updatedUser);
@@ -599,6 +606,10 @@ public class UserController {
         
         try {
             OneClickLoginResponse response = phoneAuthService.oneClickLogin(request.getAccessToken());
+            if (response != null && response.getUser() != null) {
+                applyCountryInfo(response.getUser(), request.getCountryCode(), request.getEmojiCountry());
+                response.setUser(userService.updateUser(response.getUser()));
+            }
             String message = response.getIsNewUser() ? "新用户注册成功" : "登录成功";
             logger.info("一键登录成功，手机号: {}, 是否新用户: {}", 
                        response.getPhoneNumber() != null ? 
@@ -644,6 +655,8 @@ public class UserController {
         private String nickname;
         private Integer age;
         private Short gender;
+        private String countryCode;
+        private String emojiCountry;
         
         // Getters and Setters
         public String getNickname() {
@@ -669,6 +682,22 @@ public class UserController {
         public void setGender(Short gender) {
             this.gender = gender;
         }
+
+        public String getCountryCode() {
+            return countryCode;
+        }
+
+        public void setCountryCode(String countryCode) {
+            this.countryCode = countryCode;
+        }
+
+        public String getEmojiCountry() {
+            return emojiCountry;
+        }
+
+        public void setEmojiCountry(String emojiCountry) {
+            this.emojiCountry = emojiCountry;
+        }
     }
     
     /**
@@ -680,6 +709,8 @@ public class UserController {
         private String quitReason;
         private Integer age;
         private Integer restartCount;
+        private String countryCode;
+        private String emojiCountry;
         
         // Getters and Setters
         public String getNickname() {
@@ -721,6 +752,22 @@ public class UserController {
         public void setRestartCount(Integer restartCount) {
             this.restartCount = restartCount;
         }
+
+        public String getCountryCode() {
+            return countryCode;
+        }
+
+        public void setCountryCode(String countryCode) {
+            this.countryCode = countryCode;
+        }
+
+        public String getEmojiCountry() {
+            return emojiCountry;
+        }
+
+        public void setEmojiCountry(String emojiCountry) {
+            this.emojiCountry = emojiCountry;
+        }
     }
     
     /**
@@ -730,6 +777,8 @@ public class UserController {
         private String nickname;
         private String avatarUrl;
         private Short gender;
+        private String countryCode;
+        private String emojiCountry;
         private String language;
         private String phoneNumber;
         private String quitReason;
@@ -759,6 +808,22 @@ public class UserController {
         
         public void setGender(Short gender) {
             this.gender = gender;
+        }
+
+        public String getCountryCode() {
+            return countryCode;
+        }
+
+        public void setCountryCode(String countryCode) {
+            this.countryCode = countryCode;
+        }
+
+        public String getEmojiCountry() {
+            return emojiCountry;
+        }
+
+        public void setEmojiCountry(String emojiCountry) {
+            this.emojiCountry = emojiCountry;
         }
         
         public String getLanguage() {
@@ -841,6 +906,8 @@ public class UserController {
         private String nickname;
         private Integer age;
         private Short gender;
+        private String countryCode;
+        private String emojiCountry;
         private String avatarUrl;
         private String quitReason;
         
@@ -868,6 +935,22 @@ public class UserController {
         public void setGender(Short gender) {
             this.gender = gender;
         }
+
+        public String getCountryCode() {
+            return countryCode;
+        }
+
+        public void setCountryCode(String countryCode) {
+            this.countryCode = countryCode;
+        }
+
+        public String getEmojiCountry() {
+            return emojiCountry;
+        }
+
+        public void setEmojiCountry(String emojiCountry) {
+            this.emojiCountry = emojiCountry;
+        }
         
         public String getAvatarUrl() {
             return avatarUrl;
@@ -883,6 +966,15 @@ public class UserController {
         
         public void setQuitReason(String quitReason) {
             this.quitReason = quitReason;
+        }
+    }
+
+    private void applyCountryInfo(User user, String countryCode, String emojiCountry) {
+        if (countryCode != null && !countryCode.trim().isEmpty()) {
+            user.setCountryCode(countryCode.trim());
+        }
+        if (emojiCountry != null && !emojiCountry.trim().isEmpty()) {
+            user.setEmojiCountry(emojiCountry.trim());
         }
     }
 

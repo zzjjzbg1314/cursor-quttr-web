@@ -9,6 +9,12 @@ public class WechatLoginRequest {
     
     @JsonProperty("code")
     private String code;
+
+    @JsonProperty("country_code")
+    private String countryCode;
+
+    @JsonProperty("emoji_country")
+    private String emojiCountry;
     
     public WechatLoginRequest() {}
     
@@ -23,11 +29,29 @@ public class WechatLoginRequest {
     public void setCode(String code) {
         this.code = code;
     }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     @Override
     public String toString() {
         return "WechatLoginRequest{" +
                 "code='" + code + '\'' +
+                ", countryCode='" + countryCode + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 '}';
     }
-} 
+}

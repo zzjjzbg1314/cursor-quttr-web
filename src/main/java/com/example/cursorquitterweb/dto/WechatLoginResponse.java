@@ -15,6 +15,8 @@ public class WechatLoginResponse {
     private String nickname;
     private String avatarUrl;
     private Short gender;
+    private String countryCode;
+    private String emojiCountry;
     private String language;
     private String phoneNumber;
     private OffsetDateTime registrationTime;
@@ -37,6 +39,8 @@ public class WechatLoginResponse {
         this.nickname = user.getNickname();
         this.avatarUrl = user.getAvatarUrl();
         this.gender = user.getGender();
+        this.countryCode = user.getCountryCode();
+        this.emojiCountry = user.getEmojiCountry();
         this.language = user.getLanguage();
         this.phoneNumber = user.getPhoneNumber();
         this.registrationTime = user.getRegistrationTime();
@@ -81,6 +85,22 @@ public class WechatLoginResponse {
 
     public void setGender(Short gender) {
         this.gender = gender;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
     }
 
     public String getLanguage() {

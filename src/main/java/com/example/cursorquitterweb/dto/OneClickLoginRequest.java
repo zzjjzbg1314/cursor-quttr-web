@@ -10,6 +10,10 @@ public class OneClickLoginRequest {
     @NotBlank(message = "访问令牌不能为空")
     private String accessToken;
 
+    private String countryCode;
+
+    private String emojiCountry;
+
     public OneClickLoginRequest() {
     }
 
@@ -25,11 +29,28 @@ public class OneClickLoginRequest {
         this.accessToken = accessToken;
     }
 
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
+
     @Override
     public String toString() {
         return "OneClickLoginRequest{" +
                 "accessToken='" + accessToken + '\'' +
+                ", countryCode='" + countryCode + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 '}';
     }
 }
-

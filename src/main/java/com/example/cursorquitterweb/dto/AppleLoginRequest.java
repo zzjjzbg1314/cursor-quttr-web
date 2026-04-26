@@ -31,6 +31,12 @@ public class AppleLoginRequest {
     
     @JsonProperty("language")
     private String language;
+
+    @JsonProperty("country_code")
+    private String countryCode;
+
+    @JsonProperty("emoji_country")
+    private String emojiCountry;
     
     public AppleLoginRequest() {
     }
@@ -90,6 +96,22 @@ public class AppleLoginRequest {
     public void setLanguage(String language) {
         this.language = language;
     }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     @Override
     public String toString() {
@@ -99,7 +121,8 @@ public class AppleLoginRequest {
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
                 ", language='" + language + '\'' +
+                ", countryCode='" + countryCode + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 '}';
     }
 }
-

@@ -77,6 +77,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
                 user.setLanguage(request.getLanguage());
             }
+            applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
             
             // 更新登录时间（通过 preUpdate 自动更新 updated_at）
             user.setLastLoginTime(OffsetDateTime.now());
@@ -116,6 +117,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
                 user.setLanguage(request.getLanguage());
             }
+            applyCountryInfo(user, request.getCountryCode(), request.getEmojiCountry());
             
             // 保存用户
             user = userService.save(user);
@@ -227,5 +229,14 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             nicknameBuilder.append(allowedCharacters.charAt(randomIndex));
         }
         return nicknameBuilder.toString();
+    }
+
+    private void applyCountryInfo(User user, String countryCode, String emojiCountry) {
+        if (countryCode != null && !countryCode.trim().isEmpty()) {
+            user.setCountryCode(countryCode.trim());
+        }
+        if (emojiCountry != null && !emojiCountry.trim().isEmpty()) {
+            user.setEmojiCountry(emojiCountry.trim());
+        }
     }
 }
