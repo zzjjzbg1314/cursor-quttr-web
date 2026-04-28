@@ -645,8 +645,8 @@ public class UserServiceImpl implements UserService {
         user.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
         user.setGender(EntityMapper.getInteger(row, "gender") != null ? 
             EntityMapper.getInteger(row, "gender").shortValue() : null);
-        user.setCountryCode(EntityMapper.getString(row, "country_code"));
-        user.setEmojiCountry(EntityMapper.getString(row, "emoji_country"));
+        user.setCountryCode(resolveCountryCode(row));
+        user.setEmojiCountry(resolveEmojiCountry(row));
         user.setLanguage(EntityMapper.getString(row, "language"));
         user.setPhoneNumber(EntityMapper.getString(row, "phone_number"));
         user.setRegistrationTime(EntityMapper.getOffsetDateTime(row, "registration_time"));
@@ -672,8 +672,8 @@ public class UserServiceImpl implements UserService {
         if (user.getGender() != null) {
             data.put("gender", user.getGender().intValue());
         }
-        EntityMapper.putIfNotNull(data, "country_code", user.getCountryCode());
-        EntityMapper.putIfNotNull(data, "emoji_country", user.getEmojiCountry());
+        EntityMapper.putIfNotNull(data, "countryCode", user.getCountryCode());
+        EntityMapper.putIfNotNull(data, "emojiCountry", user.getEmojiCountry());
         EntityMapper.putIfNotNull(data, "language", user.getLanguage());
         EntityMapper.putIfNotNull(data, "phone_number", user.getPhoneNumber());
         EntityMapper.putIfNotNull(data, "registration_time", user.getRegistrationTime());
@@ -695,5 +695,21 @@ public class UserServiceImpl implements UserService {
         if (emojiCountry != null && !emojiCountry.trim().isEmpty()) {
             user.setEmojiCountry(emojiCountry.trim());
         }
+    }
+
+    private String resolveCountryCode(Map<String, Object> row) {
+        String countryCode = EntityMapper.getString(row, "countryCode");
+        if (countryCode != null) {
+            return countryCode;
+        }
+        return EntityMapper.getString(row, "country_code");
+    }
+
+    private String resolveEmojiCountry(Map<String, Object> row) {
+        String emojiCountry = EntityMapper.getString(row, "emojiCountry");
+        if (emojiCountry != null) {
+            return emojiCountry;
+        }
+        return EntityMapper.getString(row, "emoji_country");
     }
 }
