@@ -12,6 +12,8 @@ public class CreateCommentRequest {
     private String userStage;  // 用户阶段
     private String avatarUrl;  // 用户头像
     private String content;  // 评论内容
+    private String originalLanguage;
+    private String emojiCountry;
     
     public CreateCommentRequest() {}
     
@@ -80,6 +82,22 @@ public class CreateCommentRequest {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getOriginalLanguage() {
+        return originalLanguage;
+    }
+
+    public void setOriginalLanguage(String originalLanguage) {
+        this.originalLanguage = originalLanguage;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     @Override
     public String toString() {
@@ -90,6 +108,8 @@ public class CreateCommentRequest {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", originalLanguage='" + originalLanguage + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 '}';
     }
 }

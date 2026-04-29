@@ -17,6 +17,10 @@ public class CreatePostRequest {
     
     
     private String content;
+
+    private String originalLanguage;
+
+    private String emojiCountry;
     
     public CreatePostRequest() {}
     
@@ -76,6 +80,22 @@ public class CreatePostRequest {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getOriginalLanguage() {
+        return originalLanguage;
+    }
+
+    public void setOriginalLanguage(String originalLanguage) {
+        this.originalLanguage = originalLanguage;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     @Override
     public String toString() {
@@ -85,6 +105,8 @@ public class CreatePostRequest {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", originalLanguage='" + originalLanguage + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 '}';
     }
 }

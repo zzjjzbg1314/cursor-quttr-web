@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.service.PostService;
 import com.example.cursorquitterweb.service.PostLikeService;
 import com.example.cursorquitterweb.service.CommentService;
+import com.example.cursorquitterweb.service.CommunityContentTranslationService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ public class PostServiceImpl implements PostService {
     
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private CommunityContentTranslationService communityContentTranslationService;
     
     @Override
     public Optional<Post> findById(UUID postId) {
@@ -55,14 +59,24 @@ public class PostServiceImpl implements PostService {
     
     @Override
     public Post createPost(UUID userId, String userNickname, String userStage, String content) {
-        Post post = new Post(userId, userNickname, userStage, content);
-        return savePost(post);
+        return createPost(userId, userNickname, userStage, null, content, null, null);
     }
     
     @Override
     public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content) {
+        return createPost(userId, userNickname, userStage, avatarUrl, content, null, null);
+    }
+
+    @Override
+    public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content,
+                           String originalLanguage, String emojiCountry) {
         Post post = new Post(userId, userNickname, userStage, avatarUrl, content);
-        return savePost(post);
+        post.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
+        post.setEmojiCountry(emojiCountry);
+        setOriginalLanguageContent(post);
+        Post savedPost = savePost(post);
+        communityContentTranslationService.translatePostAsync(savedPost.getPostId(), savedPost.getContent(), savedPost.getOriginalLanguage());
+        return savedPost;
     }
     
     @Override
@@ -71,8 +85,15 @@ public class PostServiceImpl implements PostService {
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
             post.setContent(content);
+            post.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(null, content));
+            post.setTranslationStatus("pending");
+            post.setTranslatedAt(null);
+            clearTranslatedContent(post);
+            setOriginalLanguageContent(post);
             post.preUpdate();
-            return savePost(post);
+            Post savedPost = savePost(post);
+            communityContentTranslationService.translatePostAsync(savedPost.getPostId(), savedPost.getContent(), savedPost.getOriginalLanguage());
+            return savedPost;
         }
         throw new RuntimeException("帖子不存在或已被删除");
     }
@@ -200,6 +221,9 @@ public class PostServiceImpl implements PostService {
             "SELECT " +
             "p.post_id, p.user_id, p.user_nickname, p.user_stage, p.avatar_url, " +
             "p.content, p.is_deleted, p.created_at, p.updated_at, " +
+            "p.original_language, p.content_zh, p.content_en, p.content_ja, p.content_ko, " +
+            "p.content_de, p.content_fr, p.content_pt, p.content_es, p.translation_status, " +
+            "p.translated_at, p.emojiCountry, " +
             "COALESCE(pl.like_count, 0) as upvotes, " +
             "COALESCE(comment_counts.comment_count, 0) as comment_count, " +
             "COUNT(*) OVER() as total_count " +
@@ -237,6 +261,7 @@ public class PostServiceImpl implements PostService {
             post.setUserStage(EntityMapper.getString(row, "user_stage"));
             post.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
             post.setContent(EntityMapper.getString(row, "content"));
+            applyTranslationFields(post, row);
             Object isDeletedObj = row.get("is_deleted");
             if (isDeletedObj instanceof Boolean) {
                 post.setIsDeleted((Boolean) isDeletedObj);
@@ -269,6 +294,7 @@ public class PostServiceImpl implements PostService {
                 upvotes,
                 commentCount
             );
+            applyTranslationFields(dto, post);
             
             content.add(dto);
         }
@@ -359,6 +385,7 @@ public class PostServiceImpl implements PostService {
         post.setUserStage(EntityMapper.getString(row, "user_stage"));
         post.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
         post.setContent(EntityMapper.getString(row, "content"));
+        applyTranslationFields(post, row);
         Object isDeletedObj = row.get("is_deleted");
         if (isDeletedObj instanceof Boolean) {
             post.setIsDeleted((Boolean) isDeletedObj);
@@ -383,6 +410,22 @@ public class PostServiceImpl implements PostService {
         EntityMapper.putIfNotNull(data, "user_stage", post.getUserStage());
         EntityMapper.putIfNotNull(data, "avatar_url", post.getAvatarUrl());
         EntityMapper.putIfNotNull(data, "content", post.getContent());
+        EntityMapper.putIfNotNull(data, "original_language", post.getOriginalLanguage());
+        data.put("content_zh", post.getContentZh());
+        data.put("content_en", post.getContentEn());
+        data.put("content_ja", post.getContentJa());
+        data.put("content_ko", post.getContentKo());
+        data.put("content_de", post.getContentDe());
+        data.put("content_fr", post.getContentFr());
+        data.put("content_pt", post.getContentPt());
+        data.put("content_es", post.getContentEs());
+        EntityMapper.putIfNotNull(data, "translation_status", post.getTranslationStatus());
+        if (post.getTranslatedAt() != null) {
+            EntityMapper.putIfNotNull(data, "translated_at", post.getTranslatedAt());
+        } else {
+            data.put("translated_at", null);
+        }
+        EntityMapper.putIfNotNull(data, "emojiCountry", post.getEmojiCountry());
         EntityMapper.putIfNotNull(data, "is_deleted", post.getIsDeleted());
         EntityMapper.putIfNotNull(data, "created_at", post.getCreatedAt());
         EntityMapper.putIfNotNull(data, "updated_at", post.getUpdatedAt());
@@ -412,7 +455,7 @@ public class PostServiceImpl implements PostService {
                 post.getUpdatedAt(),
                 upvotes,
                 commentCount
-        );
+        ).withTranslationsFrom(post);
     }
     
     /**
@@ -441,6 +484,70 @@ public class PostServiceImpl implements PostService {
                 post.getUpdatedAt(),
                 upvotes,
                 commentCount
-        );
+        ).withTranslationsFrom(post);
+    }
+
+    private void applyTranslationFields(Post post, Map<String, Object> row) {
+        post.setOriginalLanguage(EntityMapper.getString(row, "original_language"));
+        post.setContentZh(EntityMapper.getString(row, "content_zh"));
+        post.setContentEn(EntityMapper.getString(row, "content_en"));
+        post.setContentJa(EntityMapper.getString(row, "content_ja"));
+        post.setContentKo(EntityMapper.getString(row, "content_ko"));
+        post.setContentDe(EntityMapper.getString(row, "content_de"));
+        post.setContentFr(EntityMapper.getString(row, "content_fr"));
+        post.setContentPt(EntityMapper.getString(row, "content_pt"));
+        post.setContentEs(EntityMapper.getString(row, "content_es"));
+        post.setTranslationStatus(EntityMapper.getString(row, "translation_status"));
+        post.setTranslatedAt(EntityMapper.getOffsetDateTime(row, "translated_at"));
+        post.setEmojiCountry(EntityMapper.getString(row, "emojiCountry"));
+    }
+
+    private void applyTranslationFields(PostWithUpvotesDto dto, Post post) {
+        dto.withTranslationsFrom(post);
+    }
+
+    private void setOriginalLanguageContent(Post post) {
+        if (post.getOriginalLanguage() == null || post.getContent() == null) {
+            return;
+        }
+        switch (post.getOriginalLanguage()) {
+            case "zh":
+                post.setContentZh(post.getContent());
+                break;
+            case "en":
+                post.setContentEn(post.getContent());
+                break;
+            case "ja":
+                post.setContentJa(post.getContent());
+                break;
+            case "ko":
+                post.setContentKo(post.getContent());
+                break;
+            case "de":
+                post.setContentDe(post.getContent());
+                break;
+            case "fr":
+                post.setContentFr(post.getContent());
+                break;
+            case "pt":
+                post.setContentPt(post.getContent());
+                break;
+            case "es":
+                post.setContentEs(post.getContent());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void clearTranslatedContent(Post post) {
+        post.setContentZh(null);
+        post.setContentEn(null);
+        post.setContentJa(null);
+        post.setContentKo(null);
+        post.setContentDe(null);
+        post.setContentFr(null);
+        post.setContentPt(null);
+        post.setContentEs(null);
     }
 }

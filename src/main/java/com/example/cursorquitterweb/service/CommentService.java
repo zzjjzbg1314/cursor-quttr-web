@@ -24,6 +24,12 @@ public interface CommentService {
      * 创建新评论
      */
     Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl, String content);
+
+    /**
+     * 创建新评论（包含国际化字段）
+     */
+    Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl,
+                          String content, String originalLanguage, String emojiCountry);
     
     /**
      * 更新评论内容
@@ -143,6 +149,14 @@ public interface CommentService {
     Comment createReplyComment(String postId, String userId, String userNickname, String userStage, 
                                String avatarUrl, String content, String parentCommentId, 
                                String replyToUserId, String replyToUserNickname, String replyToCommentId);
+
+    /**
+     * 创建回复评论（包含国际化字段）
+     */
+    Comment createReplyComment(String postId, String userId, String userNickname, String userStage,
+                               String avatarUrl, String content, String parentCommentId,
+                               String replyToUserId, String replyToUserNickname, String replyToCommentId,
+                               String originalLanguage, String emojiCountry);
     
     /**
      * 获取帖子的所有一级评论（不包括回复）

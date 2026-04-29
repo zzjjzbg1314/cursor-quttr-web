@@ -37,7 +37,9 @@ public class PostController {
                 request.getUserNickname(),
                 request.getUserStage(),
                 request.getAvatarUrl(),
-                request.getContent()
+                request.getContent(),
+                request.getOriginalLanguage(),
+                request.getEmojiCountry()
             );
             return ApiResponse.success("帖子创建成功", post);
         } catch (Exception e) {

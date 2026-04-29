@@ -100,6 +100,10 @@ public class DeepSeekApiUtil {
     public String translateCommunityCommentToEnglish(String sourceText, String relatedContext) {
         return translateCommunityTextToEnglish(sourceText, "comment", relatedContext);
     }
+
+    public String translateCommunityText(String sourceText, String contentType, String targetLanguage, String relatedContext) {
+        return translateCommunityText(sourceText, contentType, targetLanguage, relatedContext, false);
+    }
     
     /**
      * 调用DeepSeek API生成内容
@@ -178,12 +182,16 @@ public class DeepSeekApiUtil {
      * 严格模式翻译社区内容。该方法用于一次性数据同步，不允许静默降级成无关默认文案。
      */
     private String translateCommunityTextToEnglish(String sourceText, String contentType, String relatedContext) {
+        return translateCommunityText(sourceText, contentType, "en", relatedContext, true);
+    }
+
+    private String translateCommunityText(String sourceText, String contentType, String targetLanguage, String relatedContext, boolean skipNonChinese) {
         if (sourceText == null) {
             return null;
         }
 
         String trimmedSource = sourceText.trim();
-        if (trimmedSource.isEmpty() || !containsChineseCharacters(trimmedSource)) {
+        if (trimmedSource.isEmpty() || (skipNonChinese && !containsChineseCharacters(trimmedSource))) {
             return trimmedSource;
         }
 
@@ -201,7 +209,7 @@ public class DeepSeekApiUtil {
             Map<String, String> systemMessage = new HashMap<>();
             systemMessage.put("role", "system");
             systemMessage.put("content",
-                "You are translating user-generated community content from Chinese into natural English for a recovery app. " +
+                "You are translating user-generated community content into natural " + languageName(targetLanguage) + " for a recovery app. " +
                 "The topic is quitting pornography, recovery, relapse, self-control, and mutual support. " +
                 "Preserve the original meaning, emotional tone, and humility. " +
                 "Use safe, non-explicit language suitable for an app store community. " +
@@ -209,13 +217,13 @@ public class DeepSeekApiUtil {
             messages.add(systemMessage);
 
             StringBuilder prompt = new StringBuilder();
-            prompt.append("Translate the following Chinese ").append(contentType)
-                .append(" into fluent, concise English.\n");
+            prompt.append("Translate the following ").append(contentType)
+                .append(" into fluent, concise ").append(languageName(targetLanguage)).append(".\n");
             if (relatedContext != null && !relatedContext.trim().isEmpty()) {
                 prompt.append("Context for tone only:\n").append(relatedContext.trim()).append("\n\n");
             }
-            prompt.append("Chinese source:\n").append(trimmedSource).append("\n\n")
-                .append("Return only the English translation.");
+            prompt.append("Source text:\n").append(trimmedSource).append("\n\n")
+                .append("Return only the translated text.");
 
             Map<String, String> userMessage = new HashMap<>();
             userMessage.put("role", "user");
@@ -226,7 +234,7 @@ public class DeepSeekApiUtil {
             requestBody.put("model", model);
             requestBody.put("messages", messages);
             requestBody.put("temperature", 0.2);
-            requestBody.put("max_tokens", 600);
+            requestBody.put("max_tokens", 900);
             requestBody.put("stream", false);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
@@ -301,5 +309,31 @@ public class DeepSeekApiUtil {
             normalized = normalized.substring(1, normalized.length() - 1).trim();
         }
         return normalized;
+    }
+
+    private String languageName(String languageCode) {
+        if (languageCode == null) {
+            return "English";
+        }
+        switch (languageCode.toLowerCase()) {
+            case "zh":
+                return "Simplified Chinese";
+            case "en":
+                return "English";
+            case "ja":
+                return "Japanese";
+            case "ko":
+                return "Korean";
+            case "de":
+                return "German";
+            case "fr":
+                return "French";
+            case "pt":
+                return "Portuguese";
+            case "es":
+                return "Spanish";
+            default:
+                return "English";
+        }
     }
 }

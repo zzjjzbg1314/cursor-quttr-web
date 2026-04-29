@@ -1,5 +1,7 @@
 package com.example.cursorquitterweb.dto;
 
+import com.example.cursorquitterweb.entity.Post;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -16,6 +18,18 @@ public class PostWithUpvotesDto {
     private String avatarUrl;
     
     private String content;
+    private String originalLanguage;
+    private String contentZh;
+    private String contentEn;
+    private String contentJa;
+    private String contentKo;
+    private String contentDe;
+    private String contentFr;
+    private String contentPt;
+    private String contentEs;
+    private String translationStatus;
+    private OffsetDateTime translatedAt;
+    private String emojiCountry;
     private Boolean isDeleted;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
@@ -104,6 +118,102 @@ public class PostWithUpvotesDto {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getOriginalLanguage() {
+        return originalLanguage;
+    }
+
+    public void setOriginalLanguage(String originalLanguage) {
+        this.originalLanguage = originalLanguage;
+    }
+
+    public String getContentZh() {
+        return contentZh;
+    }
+
+    public void setContentZh(String contentZh) {
+        this.contentZh = contentZh;
+    }
+
+    public String getContentEn() {
+        return contentEn;
+    }
+
+    public void setContentEn(String contentEn) {
+        this.contentEn = contentEn;
+    }
+
+    public String getContentJa() {
+        return contentJa;
+    }
+
+    public void setContentJa(String contentJa) {
+        this.contentJa = contentJa;
+    }
+
+    public String getContentKo() {
+        return contentKo;
+    }
+
+    public void setContentKo(String contentKo) {
+        this.contentKo = contentKo;
+    }
+
+    public String getContentDe() {
+        return contentDe;
+    }
+
+    public void setContentDe(String contentDe) {
+        this.contentDe = contentDe;
+    }
+
+    public String getContentFr() {
+        return contentFr;
+    }
+
+    public void setContentFr(String contentFr) {
+        this.contentFr = contentFr;
+    }
+
+    public String getContentPt() {
+        return contentPt;
+    }
+
+    public void setContentPt(String contentPt) {
+        this.contentPt = contentPt;
+    }
+
+    public String getContentEs() {
+        return contentEs;
+    }
+
+    public void setContentEs(String contentEs) {
+        this.contentEs = contentEs;
+    }
+
+    public String getTranslationStatus() {
+        return translationStatus;
+    }
+
+    public void setTranslationStatus(String translationStatus) {
+        this.translationStatus = translationStatus;
+    }
+
+    public OffsetDateTime getTranslatedAt() {
+        return translatedAt;
+    }
+
+    public void setTranslatedAt(OffsetDateTime translatedAt) {
+        this.translatedAt = translatedAt;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     public Boolean getIsDeleted() {
         return isDeleted;
@@ -144,6 +254,25 @@ public class PostWithUpvotesDto {
     public void setCommentCount(Integer commentCount) {
         this.commentCount = commentCount;
     }
+
+    public PostWithUpvotesDto withTranslationsFrom(Post post) {
+        if (post == null) {
+            return this;
+        }
+        this.originalLanguage = post.getOriginalLanguage();
+        this.contentZh = post.getContentZh();
+        this.contentEn = post.getContentEn();
+        this.contentJa = post.getContentJa();
+        this.contentKo = post.getContentKo();
+        this.contentDe = post.getContentDe();
+        this.contentFr = post.getContentFr();
+        this.contentPt = post.getContentPt();
+        this.contentEs = post.getContentEs();
+        this.translationStatus = post.getTranslationStatus();
+        this.translatedAt = post.getTranslatedAt();
+        this.emojiCountry = post.getEmojiCountry();
+        return this;
+    }
     
     @Override
     public String toString() {
@@ -154,6 +283,10 @@ public class PostWithUpvotesDto {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", originalLanguage='" + originalLanguage + '\'' +
+                ", translationStatus='" + translationStatus + '\'' +
+                ", translatedAt=" + translatedAt +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 ", isDeleted=" + isDeleted +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

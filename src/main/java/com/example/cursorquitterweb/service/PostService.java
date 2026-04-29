@@ -33,6 +33,12 @@ public interface PostService {
      * 创建新帖子（包含头像URL）
      */
     Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content);
+
+    /**
+     * 创建新帖子（包含国际化字段）
+     */
+    Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content,
+                    String originalLanguage, String emojiCountry);
     
     /**
      * 更新帖子信息

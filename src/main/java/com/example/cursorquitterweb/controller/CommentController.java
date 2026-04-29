@@ -43,7 +43,9 @@ public class CommentController {
                 request.getUserNickname(),
                 request.getUserStage(),
                 request.getAvatarUrl(),
-                request.getContent()
+                request.getContent(),
+                request.getOriginalLanguage(),
+                request.getEmojiCountry()
             );
             return ApiResponse.success("评论创建成功", comment);
         } catch (Exception e) {
@@ -79,7 +81,9 @@ public class CommentController {
                 request.getParentCommentId(),
                 request.getReplyToUserId(),
                 request.getReplyToUserNickname(),
-                request.getReplyToCommentId()
+                request.getReplyToCommentId(),
+                request.getOriginalLanguage(),
+                request.getEmojiCountry()
             );
             return ApiResponse.success("回复创建成功", comment);
         } catch (Exception e) {

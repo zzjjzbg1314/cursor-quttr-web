@@ -5,6 +5,7 @@ import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.dto.CommentWithRepliesPageResult;
 import com.example.cursorquitterweb.entity.Comment;
 import com.example.cursorquitterweb.service.CommentService;
+import com.example.cursorquitterweb.service.CommunityContentTranslationService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class CommentServiceImpl implements CommentService {
     
     @Autowired
     private CloudflareD1Util d1Util;
+
+    @Autowired
+    private CommunityContentTranslationService communityContentTranslationService;
     
     @Override
     public Optional<Comment> findById(UUID commentId) {
@@ -33,6 +37,12 @@ public class CommentServiceImpl implements CommentService {
     
     @Override
     public Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl, String content) {
+        return createComment(postId, userId, userNickname, userStage, avatarUrl, content, null, null);
+    }
+
+    @Override
+    public Comment createComment(String postId, String userId, String userNickname, String userStage, String avatarUrl,
+                                 String content, String originalLanguage, String emojiCountry) {
         try {
             // 将String类型的ID转换为UUID类型
             UUID postUuid = UUID.fromString(postId);
@@ -47,7 +57,12 @@ public class CommentServiceImpl implements CommentService {
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content);
             // 确保comment_level为1（一级评论）
             comment.setCommentLevel((short) 1);
-            return saveComment(comment);
+            comment.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
+            comment.setEmojiCountry(emojiCountry);
+            setOriginalLanguageContent(comment);
+            Comment savedComment = saveComment(comment);
+            communityContentTranslationService.translateCommentAsync(savedComment.getCommentId(), savedComment.getContent(), savedComment.getOriginalLanguage());
+            return savedComment;
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("无效的UUID格式: " + e.getMessage());
         }
@@ -59,8 +74,11 @@ public class CommentServiceImpl implements CommentService {
         if (optionalComment.isPresent()) {
             Comment comment = optionalComment.get();
             comment.setContent(content);
+            resetTranslation(comment);
             comment.preUpdate();
-            return saveComment(comment);
+            Comment savedComment = saveComment(comment);
+            communityContentTranslationService.translateCommentAsync(savedComment.getCommentId(), savedComment.getContent(), savedComment.getOriginalLanguage());
+            return savedComment;
         }
         throw new RuntimeException("评论不存在或已被删除");
     }
@@ -74,8 +92,11 @@ public class CommentServiceImpl implements CommentService {
             if (avatarUrl != null) {
                 comment.setAvatarUrl(avatarUrl);
             }
+            resetTranslation(comment);
             comment.preUpdate();
-            return saveComment(comment);
+            Comment savedComment = saveComment(comment);
+            communityContentTranslationService.translateCommentAsync(savedComment.getCommentId(), savedComment.getContent(), savedComment.getOriginalLanguage());
+            return savedComment;
         }
         throw new RuntimeException("评论不存在或已被删除");
     }
@@ -281,6 +302,15 @@ public class CommentServiceImpl implements CommentService {
     public Comment createReplyComment(String postId, String userId, String userNickname, String userStage, 
                                      String avatarUrl, String content, String parentCommentId, 
                                      String replyToUserId, String replyToUserNickname, String replyToCommentId) {
+        return createReplyComment(postId, userId, userNickname, userStage, avatarUrl, content,
+            parentCommentId, replyToUserId, replyToUserNickname, replyToCommentId, null, null);
+    }
+
+    @Override
+    public Comment createReplyComment(String postId, String userId, String userNickname, String userStage,
+                                     String avatarUrl, String content, String parentCommentId,
+                                     String replyToUserId, String replyToUserNickname, String replyToCommentId,
+                                     String originalLanguage, String emojiCountry) {
         try {
             // 转换字符串ID为UUID
             UUID postUuid = UUID.fromString(postId);
@@ -310,8 +340,13 @@ public class CommentServiceImpl implements CommentService {
             // 创建回复评论
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content,
                     parentCommentUuid, replyToUserUuid, replyToUserNickname, replyToCommentUuid, rootCommentUuid);
+            comment.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
+            comment.setEmojiCountry(emojiCountry);
+            setOriginalLanguageContent(comment);
             
-            return saveComment(comment);
+            Comment savedComment = saveComment(comment);
+            communityContentTranslationService.translateCommentAsync(savedComment.getCommentId(), savedComment.getContent(), savedComment.getOriginalLanguage());
+            return savedComment;
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("无效的UUID格式: " + e.getMessage());
         }
@@ -592,6 +627,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setUserStage(EntityMapper.getString(row, "user_stage"));
         comment.setAvatarUrl(EntityMapper.getString(row, "avatar_url"));
         comment.setContent(EntityMapper.getString(row, "content"));
+        applyTranslationFields(comment, row);
         Object isDeletedObj = row.get("is_deleted");
         if (isDeletedObj instanceof Boolean) {
             comment.setIsDeleted((Boolean) isDeletedObj);
@@ -628,6 +664,22 @@ public class CommentServiceImpl implements CommentService {
         EntityMapper.putIfNotNull(data, "user_stage", comment.getUserStage());
         EntityMapper.putIfNotNull(data, "avatar_url", comment.getAvatarUrl());
         EntityMapper.putIfNotNull(data, "content", comment.getContent());
+        EntityMapper.putIfNotNull(data, "original_language", comment.getOriginalLanguage());
+        data.put("content_zh", comment.getContentZh());
+        data.put("content_en", comment.getContentEn());
+        data.put("content_ja", comment.getContentJa());
+        data.put("content_ko", comment.getContentKo());
+        data.put("content_de", comment.getContentDe());
+        data.put("content_fr", comment.getContentFr());
+        data.put("content_pt", comment.getContentPt());
+        data.put("content_es", comment.getContentEs());
+        EntityMapper.putIfNotNull(data, "translation_status", comment.getTranslationStatus());
+        if (comment.getTranslatedAt() != null) {
+            EntityMapper.putIfNotNull(data, "translated_at", comment.getTranslatedAt());
+        } else {
+            data.put("translated_at", null);
+        }
+        EntityMapper.putIfNotNull(data, "emojiCountry", comment.getEmojiCountry());
         EntityMapper.putIfNotNull(data, "is_deleted", comment.getIsDeleted());
         EntityMapper.putIfNotNull(data, "created_at", comment.getCreatedAt());
         EntityMapper.putIfNotNull(data, "updated_at", comment.getUpdatedAt());
@@ -638,5 +690,73 @@ public class CommentServiceImpl implements CommentService {
         EntityMapper.putIfNotNull(data, "comment_level", comment.getCommentLevel());
         EntityMapper.putIfNotNull(data, "root_comment_id", comment.getRootCommentId());
         return data;
+    }
+
+    private void applyTranslationFields(Comment comment, Map<String, Object> row) {
+        comment.setOriginalLanguage(EntityMapper.getString(row, "original_language"));
+        comment.setContentZh(EntityMapper.getString(row, "content_zh"));
+        comment.setContentEn(EntityMapper.getString(row, "content_en"));
+        comment.setContentJa(EntityMapper.getString(row, "content_ja"));
+        comment.setContentKo(EntityMapper.getString(row, "content_ko"));
+        comment.setContentDe(EntityMapper.getString(row, "content_de"));
+        comment.setContentFr(EntityMapper.getString(row, "content_fr"));
+        comment.setContentPt(EntityMapper.getString(row, "content_pt"));
+        comment.setContentEs(EntityMapper.getString(row, "content_es"));
+        comment.setTranslationStatus(EntityMapper.getString(row, "translation_status"));
+        comment.setTranslatedAt(EntityMapper.getOffsetDateTime(row, "translated_at"));
+        comment.setEmojiCountry(EntityMapper.getString(row, "emojiCountry"));
+    }
+
+    private void resetTranslation(Comment comment) {
+        comment.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(null, comment.getContent()));
+        comment.setTranslationStatus("pending");
+        comment.setTranslatedAt(null);
+        clearTranslatedContent(comment);
+        setOriginalLanguageContent(comment);
+    }
+
+    private void setOriginalLanguageContent(Comment comment) {
+        if (comment.getOriginalLanguage() == null || comment.getContent() == null) {
+            return;
+        }
+        switch (comment.getOriginalLanguage()) {
+            case "zh":
+                comment.setContentZh(comment.getContent());
+                break;
+            case "en":
+                comment.setContentEn(comment.getContent());
+                break;
+            case "ja":
+                comment.setContentJa(comment.getContent());
+                break;
+            case "ko":
+                comment.setContentKo(comment.getContent());
+                break;
+            case "de":
+                comment.setContentDe(comment.getContent());
+                break;
+            case "fr":
+                comment.setContentFr(comment.getContent());
+                break;
+            case "pt":
+                comment.setContentPt(comment.getContent());
+                break;
+            case "es":
+                comment.setContentEs(comment.getContent());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void clearTranslatedContent(Comment comment) {
+        comment.setContentZh(null);
+        comment.setContentEn(null);
+        comment.setContentJa(null);
+        comment.setContentKo(null);
+        comment.setContentDe(null);
+        comment.setContentFr(null);
+        comment.setContentPt(null);
+        comment.setContentEs(null);
     }
 }

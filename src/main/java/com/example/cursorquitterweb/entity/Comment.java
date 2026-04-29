@@ -23,6 +23,30 @@ public class Comment {
     private String avatarUrl;
     
     private String content;
+
+    private String originalLanguage;
+
+    private String contentZh;
+
+    private String contentEn;
+
+    private String contentJa;
+
+    private String contentKo;
+
+    private String contentDe;
+
+    private String contentFr;
+
+    private String contentPt;
+
+    private String contentEs;
+
+    private String translationStatus = "pending";
+
+    private OffsetDateTime translatedAt;
+
+    private String emojiCountry;
     
     private Boolean isDeleted = false;
     
@@ -144,6 +168,102 @@ public class Comment {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getOriginalLanguage() {
+        return originalLanguage;
+    }
+
+    public void setOriginalLanguage(String originalLanguage) {
+        this.originalLanguage = originalLanguage;
+    }
+
+    public String getContentZh() {
+        return contentZh;
+    }
+
+    public void setContentZh(String contentZh) {
+        this.contentZh = contentZh;
+    }
+
+    public String getContentEn() {
+        return contentEn;
+    }
+
+    public void setContentEn(String contentEn) {
+        this.contentEn = contentEn;
+    }
+
+    public String getContentJa() {
+        return contentJa;
+    }
+
+    public void setContentJa(String contentJa) {
+        this.contentJa = contentJa;
+    }
+
+    public String getContentKo() {
+        return contentKo;
+    }
+
+    public void setContentKo(String contentKo) {
+        this.contentKo = contentKo;
+    }
+
+    public String getContentDe() {
+        return contentDe;
+    }
+
+    public void setContentDe(String contentDe) {
+        this.contentDe = contentDe;
+    }
+
+    public String getContentFr() {
+        return contentFr;
+    }
+
+    public void setContentFr(String contentFr) {
+        this.contentFr = contentFr;
+    }
+
+    public String getContentPt() {
+        return contentPt;
+    }
+
+    public void setContentPt(String contentPt) {
+        this.contentPt = contentPt;
+    }
+
+    public String getContentEs() {
+        return contentEs;
+    }
+
+    public void setContentEs(String contentEs) {
+        this.contentEs = contentEs;
+    }
+
+    public String getTranslationStatus() {
+        return translationStatus;
+    }
+
+    public void setTranslationStatus(String translationStatus) {
+        this.translationStatus = translationStatus;
+    }
+
+    public OffsetDateTime getTranslatedAt() {
+        return translatedAt;
+    }
+
+    public void setTranslatedAt(OffsetDateTime translatedAt) {
+        this.translatedAt = translatedAt;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     public Boolean getIsDeleted() {
         return isDeleted;
@@ -234,6 +354,10 @@ public class Comment {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", originalLanguage='" + originalLanguage + '\'' +
+                ", translationStatus='" + translationStatus + '\'' +
+                ", translatedAt=" + translatedAt +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 ", isDeleted=" + isDeleted +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

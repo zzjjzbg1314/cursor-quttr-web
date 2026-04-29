@@ -11,6 +11,8 @@ public class CreateReplyRequest {
     private String userStage;  // 用户阶段
     private String avatarUrl;  // 用户头像
     private String content;  // 回复内容
+    private String originalLanguage;
+    private String emojiCountry;
     
     // 回复相关字段
     private String parentCommentId;  // 父评论ID（必需）
@@ -83,6 +85,22 @@ public class CreateReplyRequest {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getOriginalLanguage() {
+        return originalLanguage;
+    }
+
+    public void setOriginalLanguage(String originalLanguage) {
+        this.originalLanguage = originalLanguage;
+    }
+
+    public String getEmojiCountry() {
+        return emojiCountry;
+    }
+
+    public void setEmojiCountry(String emojiCountry) {
+        this.emojiCountry = emojiCountry;
+    }
     
     public String getParentCommentId() {
         return parentCommentId;
@@ -125,6 +143,8 @@ public class CreateReplyRequest {
                 ", userStage='" + userStage + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
                 ", content='" + content + '\'' +
+                ", originalLanguage='" + originalLanguage + '\'' +
+                ", emojiCountry='" + emojiCountry + '\'' +
                 ", parentCommentId='" + parentCommentId + '\'' +
                 ", replyToUserId='" + replyToUserId + '\'' +
                 ", replyToUserNickname='" + replyToUserNickname + '\'' +
@@ -132,4 +152,3 @@ public class CreateReplyRequest {
                 '}';
     }
 }
-
