@@ -4,8 +4,10 @@ import com.example.cursorquitterweb.dto.CommentPageResult;
 import com.example.cursorquitterweb.dto.CommentWithRepliesDTO;
 import com.example.cursorquitterweb.dto.CommentWithRepliesPageResult;
 import com.example.cursorquitterweb.entity.Comment;
+import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.service.CommentService;
 import com.example.cursorquitterweb.service.CommunityContentTranslationService;
+import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private CommunityContentTranslationService communityContentTranslationService;
+
+    @Autowired
+    private UserService userService;
     
     @Override
     public Optional<Comment> findById(UUID commentId) {
@@ -57,8 +62,9 @@ public class CommentServiceImpl implements CommentService {
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content);
             // 确保comment_level为1（一级评论）
             comment.setCommentLevel((short) 1);
-            comment.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
-            comment.setEmojiCountry(emojiCountry);
+            String normalizedLanguage = communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content);
+            comment.setOriginalLanguage(normalizedLanguage);
+            comment.setEmojiCountry(resolveEmojiCountry(emojiCountry, userUuid, normalizedLanguage));
             setOriginalLanguageContent(comment);
             Comment savedComment = saveComment(comment);
             communityContentTranslationService.translateCommentAsync(savedComment.getCommentId(), savedComment.getContent(), savedComment.getOriginalLanguage());
@@ -340,8 +346,9 @@ public class CommentServiceImpl implements CommentService {
             // 创建回复评论
             Comment comment = new Comment(postUuid, userUuid, userNickname, userStage, avatarUrl, content,
                     parentCommentUuid, replyToUserUuid, replyToUserNickname, replyToCommentUuid, rootCommentUuid);
-            comment.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
-            comment.setEmojiCountry(emojiCountry);
+            String normalizedLanguage = communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content);
+            comment.setOriginalLanguage(normalizedLanguage);
+            comment.setEmojiCountry(resolveEmojiCountry(emojiCountry, userUuid, normalizedLanguage));
             setOriginalLanguageContent(comment);
             
             Comment savedComment = saveComment(comment);
@@ -758,5 +765,47 @@ public class CommentServiceImpl implements CommentService {
         comment.setContentFr(null);
         comment.setContentPt(null);
         comment.setContentEs(null);
+    }
+
+    private String resolveEmojiCountry(String requestEmojiCountry, UUID userId, String originalLanguage) {
+        if (requestEmojiCountry != null && !requestEmojiCountry.trim().isEmpty()) {
+            return requestEmojiCountry.trim();
+        }
+        if (userId != null) {
+            Optional<User> userOpt = userService.findById(userId);
+            if (userOpt.isPresent()) {
+                String userEmojiCountry = userOpt.get().getEmojiCountry();
+                if (userEmojiCountry != null && !userEmojiCountry.trim().isEmpty()) {
+                    return userEmojiCountry.trim();
+                }
+            }
+        }
+        return defaultEmojiCountryByLanguage(originalLanguage);
+    }
+
+    private String defaultEmojiCountryByLanguage(String originalLanguage) {
+        if (originalLanguage == null) {
+            return null;
+        }
+        switch (originalLanguage) {
+            case "zh":
+                return "\uD83C\uDDE8\uD83C\uDDF3";
+            case "en":
+                return "\uD83C\uDDFA\uD83C\uDDF8";
+            case "ja":
+                return "\uD83C\uDDEF\uD83C\uDDF5";
+            case "ko":
+                return "\uD83C\uDDF0\uD83C\uDDF7";
+            case "de":
+                return "\uD83C\uDDE9\uD83C\uDDEA";
+            case "fr":
+                return "\uD83C\uDDEB\uD83C\uDDF7";
+            case "pt":
+                return "\uD83C\uDDF5\uD83C\uDDF9";
+            case "es":
+                return "\uD83C\uDDEA\uD83C\uDDF8";
+            default:
+                return null;
+        }
     }
 }

@@ -168,9 +168,9 @@ deepseek:
     # DeepSeek API密钥（通过环境变量设置）
     key: ${DEEPSEEK_API_KEY:}
     # DeepSeek API地址（使用OpenAI兼容格式）
-    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/v1/chat/completions}
-    # 模型名称（默认使用deepseek-chat）
-    model: ${DEEPSEEK_API_MODEL:deepseek-chat}
+    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/chat/completions}
+    # 模型名称（默认使用官方推荐的 deepseek-v4-flash）
+    model: ${DEEPSEEK_API_MODEL:deepseek-v4-flash}
 
 # 声网（Agora）配置
 agora:

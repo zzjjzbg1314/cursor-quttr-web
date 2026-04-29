@@ -1,12 +1,14 @@
 package com.example.cursorquitterweb.service.impl;
 
 import com.example.cursorquitterweb.entity.Post;
+import com.example.cursorquitterweb.entity.User;
 import com.example.cursorquitterweb.dto.PostPageResult;
 import com.example.cursorquitterweb.dto.PostWithUpvotesDto;
 import com.example.cursorquitterweb.service.PostService;
 import com.example.cursorquitterweb.service.PostLikeService;
 import com.example.cursorquitterweb.service.CommentService;
 import com.example.cursorquitterweb.service.CommunityContentTranslationService;
+import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
 import com.example.cursorquitterweb.util.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private CommunityContentTranslationService communityContentTranslationService;
+
+    @Autowired
+    private UserService userService;
     
     @Override
     public Optional<Post> findById(UUID postId) {
@@ -71,8 +76,9 @@ public class PostServiceImpl implements PostService {
     public Post createPost(UUID userId, String userNickname, String userStage, String avatarUrl, String content,
                            String originalLanguage, String emojiCountry) {
         Post post = new Post(userId, userNickname, userStage, avatarUrl, content);
-        post.setOriginalLanguage(communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content));
-        post.setEmojiCountry(emojiCountry);
+        String normalizedLanguage = communityContentTranslationService.normalizeOriginalLanguage(originalLanguage, content);
+        post.setOriginalLanguage(normalizedLanguage);
+        post.setEmojiCountry(resolveEmojiCountry(emojiCountry, userId, normalizedLanguage));
         setOriginalLanguageContent(post);
         Post savedPost = savePost(post);
         communityContentTranslationService.translatePostAsync(savedPost.getPostId(), savedPost.getContent(), savedPost.getOriginalLanguage());
@@ -549,5 +555,47 @@ public class PostServiceImpl implements PostService {
         post.setContentFr(null);
         post.setContentPt(null);
         post.setContentEs(null);
+    }
+
+    private String resolveEmojiCountry(String requestEmojiCountry, UUID userId, String originalLanguage) {
+        if (requestEmojiCountry != null && !requestEmojiCountry.trim().isEmpty()) {
+            return requestEmojiCountry.trim();
+        }
+        if (userId != null) {
+            Optional<User> userOpt = userService.findById(userId);
+            if (userOpt.isPresent()) {
+                String userEmojiCountry = userOpt.get().getEmojiCountry();
+                if (userEmojiCountry != null && !userEmojiCountry.trim().isEmpty()) {
+                    return userEmojiCountry.trim();
+                }
+            }
+        }
+        return defaultEmojiCountryByLanguage(originalLanguage);
+    }
+
+    private String defaultEmojiCountryByLanguage(String originalLanguage) {
+        if (originalLanguage == null) {
+            return null;
+        }
+        switch (originalLanguage) {
+            case "zh":
+                return "\uD83C\uDDE8\uD83C\uDDF3";
+            case "en":
+                return "\uD83C\uDDFA\uD83C\uDDF8";
+            case "ja":
+                return "\uD83C\uDDEF\uD83C\uDDF5";
+            case "ko":
+                return "\uD83C\uDDF0\uD83C\uDDF7";
+            case "de":
+                return "\uD83C\uDDE9\uD83C\uDDEA";
+            case "fr":
+                return "\uD83C\uDDEB\uD83C\uDDF7";
+            case "pt":
+                return "\uD83C\uDDF5\uD83C\uDDF9";
+            case "es":
+                return "\uD83C\uDDEA\uD83C\uDDF8";
+            default:
+                return null;
+        }
     }
 }
