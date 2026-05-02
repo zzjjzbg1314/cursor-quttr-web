@@ -53,8 +53,8 @@ public class CommentServiceImpl implements CommentService {
             UUID postUuid = UUID.fromString(postId);
             UUID userUuid = UUID.fromString(userId);
             
-            // 检查是否已存在相同内容的评论（防止重复插入）
-            if (existsByContent(postUuid, content)) {
+            // 只拦截同一用户短时间内的重复提交，允许不同用户发表相同短评论。
+            if (existsRecentDuplicateByUser(postUuid, userUuid, content)) {
                 throw new RuntimeException("评论内容已存在，无法重复创建");
             }
             
@@ -325,8 +325,8 @@ public class CommentServiceImpl implements CommentService {
             UUID replyToUserUuid = replyToUserId != null ? UUID.fromString(replyToUserId) : null;
             UUID replyToCommentUuid = replyToCommentId != null ? UUID.fromString(replyToCommentId) : null;
             
-            // 检查是否已存在相同内容的回复（防止重复插入）
-            if (existsByContent(postUuid, content)) {
+            // 只拦截同一用户短时间内的重复提交，允许不同用户发表相同短回复。
+            if (existsRecentDuplicateByUser(postUuid, userUuid, content)) {
                 throw new RuntimeException("回复内容已存在，无法重复创建");
             }
             
@@ -569,6 +569,20 @@ public class CommentServiceImpl implements CommentService {
     public boolean existsByContent(UUID postId, String content) {
         String sql = "SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND content = ? AND is_deleted = ?";
         long count = d1Util.queryLong(sql, EntityMapper.uuidToString(postId), content, false);
+        return count > 0;
+    }
+
+    private boolean existsRecentDuplicateByUser(UUID postId, UUID userId, String content) {
+        String sql = "SELECT COUNT(*) as count FROM comments " +
+            "WHERE post_id = ? AND user_id = ? AND content = ? AND is_deleted = ? AND created_at >= ?";
+        long count = d1Util.queryLong(
+            sql,
+            EntityMapper.uuidToString(postId),
+            EntityMapper.uuidToString(userId),
+            content,
+            false,
+            EntityMapper.offsetDateTimeToString(OffsetDateTime.now().minusSeconds(10))
+        );
         return count > 0;
     }
     

@@ -37,8 +37,17 @@ fi
 
 # 检查SSL证书
 echo "检查SSL证书..."
-if [ -f "src/main/resources/kejiapi.cn.jks" ]; then
-    echo "✓ 找到SSL证书文件: kejiapi.cn.jks"
+SSL_KEY_STORE_PATH=${SSL_KEY_STORE:-classpath:kejiapi.cn.jks}
+SSL_KEY_STORE_FILE=${SSL_KEY_STORE_PATH#classpath:}
+SSL_KEY_STORE_FILE=${SSL_KEY_STORE_FILE#file:}
+SSL_KEY_STORE_BASENAME=${SSL_KEY_STORE_FILE##*/}
+SSL_KEY_STORE_LOCAL_PATH=$SSL_KEY_STORE_FILE
+if [[ "$SSL_KEY_STORE_PATH" == classpath:* ]]; then
+    SSL_KEY_STORE_LOCAL_PATH="src/main/resources/$SSL_KEY_STORE_FILE"
+fi
+
+if [ -f "$SSL_KEY_STORE_LOCAL_PATH" ]; then
+    echo "✓ 找到SSL证书文件: $SSL_KEY_STORE_PATH"
     
     # 检查SSL环境变量
     if [ -z "$SSL_KEY_STORE_PASSWORD" ]; then
@@ -51,15 +60,14 @@ if [ -f "src/main/resources/kejiapi.cn.jks" ]; then
     fi
     
     if [ -z "$SSL_KEY_ALIAS" ]; then
-        echo "警告: 未设置SSL_KEY_ALIAS环境变量，将使用默认别名: kejiapi.cn"
-        echo "请设置SSL证书别名:"
-        echo "export SSL_KEY_ALIAS=kejiapi.cn"
-        echo ""
+        SSL_KEY_ALIAS=${SSL_KEY_STORE_BASENAME%.jks}
+        export SSL_KEY_ALIAS
+        echo "未设置SSL_KEY_ALIAS环境变量，将使用证书文件名作为别名: $SSL_KEY_ALIAS"
     else
         echo "✓ SSL证书别名已配置: $SSL_KEY_ALIAS"
     fi
 else
-    echo "警告: 未找到SSL证书文件，将使用HTTP模式"
+    echo "警告: 未找到SSL证书文件: $SSL_KEY_STORE_PATH，将使用HTTP模式"
 fi
 
 # 检查微信配置
@@ -88,12 +96,15 @@ fi
 
 # 启动应用
 echo "启动应用..."
-if [ -f "src/main/resources/kejiapi.cn.jks" ] && [ ! -z "$SSL_KEY_STORE_PASSWORD" ]; then
-    echo "应用将在 https://localhost:8080 启动（HTTPS模式）"
-    echo "微信登录接口: https://localhost:8080/api/wechat/login"
+SERVER_PORT_DISPLAY=${SERVER_PORT:-443}
+SERVER_HTTP_PORT_DISPLAY=${SERVER_HTTP_PORT:-8080}
+if [ -f "$SSL_KEY_STORE_LOCAL_PATH" ] && [ ! -z "$SSL_KEY_STORE_PASSWORD" ]; then
+    echo "应用将在 https://localhost:$SERVER_PORT_DISPLAY 启动（HTTPS模式）"
+    echo "HTTP端口 localhost:$SERVER_HTTP_PORT_DISPLAY 将重定向到HTTPS"
+    echo "微信登录接口: https://localhost:$SERVER_PORT_DISPLAY/api/wechat/login"
 else
-    echo "应用将在 http://localhost:8080 启动（HTTP模式）"
-    echo "微信登录接口: http://localhost:8080/api/wechat/login"
+    echo "应用将在 http://localhost:$SERVER_HTTP_PORT_DISPLAY 启动（HTTP模式）"
+    echo "微信登录接口: http://localhost:$SERVER_HTTP_PORT_DISPLAY/api/wechat/login"
 fi
 echo "按 Ctrl+C 停止应用"
 echo ""

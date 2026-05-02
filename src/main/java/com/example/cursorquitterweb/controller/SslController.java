@@ -55,7 +55,12 @@ public class SslController {
         
         if (sslEnabled && keyStorePath != null && !keyStorePath.isEmpty()) {
             try {
-                ClassPathResource resource = new ClassPathResource(keyStorePath);
+                String resourcePath = keyStorePath;
+                if (resourcePath.startsWith("classpath:")) {
+                    resourcePath = resourcePath.substring("classpath:".length());
+                }
+
+                ClassPathResource resource = new ClassPathResource(resourcePath);
                 if (resource.exists()) {
                     KeyStore keyStore = KeyStore.getInstance("JKS");
                     keyStore.load(resource.getInputStream(), keyStorePassword.toCharArray());
