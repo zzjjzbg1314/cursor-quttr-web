@@ -45,14 +45,7 @@ public class PureMusicController {
         try {
             logger.info("创建纯音乐内容，请求参数: {}", request);
 
-            PureMusic pureMusic = pureMusicService.createPureMusic(
-                request.getImage(),
-                request.getAudiourl(),
-                request.getVideourl(),
-                request.getVideourlLd(),
-                request.getColor(),
-                request.getContextText()
-            );
+            PureMusic pureMusic = pureMusicService.createPureMusic(request);
 
             return ResponseEntity.ok(ApiResponse.success("纯音乐内容创建成功", pureMusicService.convertToDto(pureMusic)));
         } catch (Exception e) {
@@ -100,15 +93,7 @@ public class PureMusicController {
         try {
             logger.info("更新纯音乐内容，ID: {}, 请求参数: {}", videoId, request);
 
-            PureMusic pureMusic = pureMusicService.updatePureMusic(
-                videoId,
-                request.getImage(),
-                request.getAudiourl(),
-                request.getVideourl(),
-                request.getVideourlLd(),
-                request.getColor(),
-                request.getContextText()
-            );
+            PureMusic pureMusic = pureMusicService.updatePureMusic(videoId, request);
 
             return ResponseEntity.ok(ApiResponse.success("纯音乐内容更新成功", pureMusicService.convertToDto(pureMusic)));
         } catch (Exception e) {

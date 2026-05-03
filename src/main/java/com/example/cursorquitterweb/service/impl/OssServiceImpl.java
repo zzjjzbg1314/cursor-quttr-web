@@ -54,6 +54,14 @@ public class OssServiceImpl implements OssService {
         // 生成文件路径
         String fileName = generateFileName(file);
         String objectKey = avatarPrefix + fileName;
+        return uploadAvatar(file, objectKey);
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile file, String objectKey) throws Exception {
+        logger.info("开始上传用户头像到阿里云OSS，OSS路径: {}", objectKey);
+
+        validateFile(file);
         
         try (InputStream inputStream = file.getInputStream()) {
             // 设置对象元数据
@@ -71,7 +79,7 @@ public class OssServiceImpl implements OssService {
             logger.info("头像上传成功，OSS路径: {}, URL: {}", objectKey, url);
             return url;
         } catch (Exception e) {
-            logger.error("头像上传失败，错误: {}", e.getMessage(), e);
+            logger.error("头像上传到阿里云OSS失败，OSS路径: {}, 错误: {}", objectKey, e.getMessage(), e);
             throw new Exception("上传头像失败: " + e.getMessage(), e);
         }
     }
@@ -186,4 +194,3 @@ public class OssServiceImpl implements OssService {
         return "https://" + bucketName + "." + endpointDomain + "/" + objectKey;
     }
 }
-

@@ -19,6 +19,24 @@ public class PureMusic {
 
     private String videourlLd;
 
+    private String audiourlSg;
+
+    private String videourlSg;
+
+    private String videourlLdSg;
+
+    private String audiourlUs;
+
+    private String videourlUs;
+
+    private String videourlLdUs;
+
+    private String audiourlDe;
+
+    private String videourlDe;
+
+    private String videourlLdDe;
+
     private String color;
 
     // 多语言文案的 JSON 字符串，实际结构由 DTO 层解析
@@ -83,6 +101,78 @@ public class PureMusic {
         this.videourlLd = videourlLd;
     }
 
+    public String getAudiourlSg() {
+        return audiourlSg;
+    }
+
+    public void setAudiourlSg(String audiourlSg) {
+        this.audiourlSg = audiourlSg;
+    }
+
+    public String getVideourlSg() {
+        return videourlSg;
+    }
+
+    public void setVideourlSg(String videourlSg) {
+        this.videourlSg = videourlSg;
+    }
+
+    public String getVideourlLdSg() {
+        return videourlLdSg;
+    }
+
+    public void setVideourlLdSg(String videourlLdSg) {
+        this.videourlLdSg = videourlLdSg;
+    }
+
+    public String getAudiourlUs() {
+        return audiourlUs;
+    }
+
+    public void setAudiourlUs(String audiourlUs) {
+        this.audiourlUs = audiourlUs;
+    }
+
+    public String getVideourlUs() {
+        return videourlUs;
+    }
+
+    public void setVideourlUs(String videourlUs) {
+        this.videourlUs = videourlUs;
+    }
+
+    public String getVideourlLdUs() {
+        return videourlLdUs;
+    }
+
+    public void setVideourlLdUs(String videourlLdUs) {
+        this.videourlLdUs = videourlLdUs;
+    }
+
+    public String getAudiourlDe() {
+        return audiourlDe;
+    }
+
+    public void setAudiourlDe(String audiourlDe) {
+        this.audiourlDe = audiourlDe;
+    }
+
+    public String getVideourlDe() {
+        return videourlDe;
+    }
+
+    public void setVideourlDe(String videourlDe) {
+        this.videourlDe = videourlDe;
+    }
+
+    public String getVideourlLdDe() {
+        return videourlLdDe;
+    }
+
+    public void setVideourlLdDe(String videourlLdDe) {
+        this.videourlLdDe = videourlLdDe;
+    }
+
     public String getColor() {
         return color;
     }
@@ -127,6 +217,15 @@ public class PureMusic {
                 ", audiourl='" + audiourl + '\'' +
                 ", videourl='" + videourl + '\'' +
                 ", videourlLd='" + videourlLd + '\'' +
+                ", audiourlSg='" + audiourlSg + '\'' +
+                ", videourlSg='" + videourlSg + '\'' +
+                ", videourlLdSg='" + videourlLdSg + '\'' +
+                ", audiourlUs='" + audiourlUs + '\'' +
+                ", videourlUs='" + videourlUs + '\'' +
+                ", videourlLdUs='" + videourlLdUs + '\'' +
+                ", audiourlDe='" + audiourlDe + '\'' +
+                ", videourlDe='" + videourlDe + '\'' +
+                ", videourlLdDe='" + videourlLdDe + '\'' +
                 ", color='" + color + '\'' +
                 ", contextText='" + contextText + '\'' +
                 ", createAt=" + createAt +

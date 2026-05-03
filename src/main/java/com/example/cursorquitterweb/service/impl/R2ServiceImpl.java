@@ -49,6 +49,14 @@ public class R2ServiceImpl implements R2Service {
         // 生成文件路径
         String fileName = generateFileName(file);
         String objectKey = r2Config.getAvatarPrefix() + fileName;
+        return uploadAvatar(file, objectKey);
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile file, String objectKey) throws Exception {
+        logger.info("开始上传用户头像到 Cloudflare R2，R2路径: {}", objectKey);
+
+        validateFile(file);
         
         try (InputStream inputStream = file.getInputStream()) {
             // 构建 PutObjectRequest
@@ -68,7 +76,7 @@ public class R2ServiceImpl implements R2Service {
             logger.info("头像上传成功，R2路径: {}, URL: {}", objectKey, url);
             return url;
         } catch (Exception e) {
-            logger.error("头像上传失败，错误: {}", e.getMessage(), e);
+            logger.error("头像上传到 Cloudflare R2 失败，R2路径: {}, 错误: {}", objectKey, e.getMessage(), e);
             throw new Exception("上传头像失败: " + e.getMessage(), e);
         }
     }
@@ -210,4 +218,3 @@ public class R2ServiceImpl implements R2Service {
         }
     }
 }
-

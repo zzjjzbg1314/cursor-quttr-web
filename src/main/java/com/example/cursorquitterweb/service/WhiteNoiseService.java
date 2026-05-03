@@ -2,6 +2,8 @@ package com.example.cursorquitterweb.service;
 
 import com.example.cursorquitterweb.dto.WhiteNoiseDto;
 import com.example.cursorquitterweb.dto.WhiteNoiseLanguageContentDto;
+import com.example.cursorquitterweb.dto.CreateWhiteNoiseRequest;
+import com.example.cursorquitterweb.dto.UpdateWhiteNoiseRequest;
 import com.example.cursorquitterweb.entity.WhiteNoise;
 import com.example.cursorquitterweb.util.LogUtil;
 import com.example.cursorquitterweb.util.CloudflareD1Util;
@@ -43,22 +45,26 @@ public class WhiteNoiseService {
     }
 
     @CacheEvict(value = "whiteNoises", allEntries = true)
-    public WhiteNoise createWhiteNoise(String image, String audiourl, String videourl, String videourlLd, String color, Map<String, WhiteNoiseLanguageContentDto> contextText) {
-        WhiteNoise whiteNoise = new WhiteNoise(image, audiourl, videourl, videourlLd, color, serializeContextText(contextText));
+    public WhiteNoise createWhiteNoise(CreateWhiteNoiseRequest request) {
+        WhiteNoise whiteNoise = new WhiteNoise();
+        applyRequestFields(whiteNoise, request.getImage(), request.getAudiourl(), request.getVideourl(), request.getVideourlLd(),
+                request.getAudiourlSg(), request.getVideourlSg(), request.getVideourlLdSg(),
+                request.getAudiourlUs(), request.getVideourlUs(), request.getVideourlLdUs(),
+                request.getAudiourlDe(), request.getVideourlDe(), request.getVideourlLdDe(),
+                request.getColor(), request.getContextText());
         return saveWhiteNoise(whiteNoise);
     }
 
     @CacheEvict(value = "whiteNoises", allEntries = true)
-    public WhiteNoise updateWhiteNoise(UUID videoId, String image, String audiourl, String videourl, String videourlLd, String color, Map<String, WhiteNoiseLanguageContentDto> contextText) {
+    public WhiteNoise updateWhiteNoise(UUID videoId, UpdateWhiteNoiseRequest request) {
         WhiteNoise whiteNoise = findById(videoId)
             .orElseThrow(() -> new RuntimeException("白噪音内容不存在"));
 
-        if (image != null) whiteNoise.setImage(image);
-        if (audiourl != null) whiteNoise.setAudiourl(audiourl);
-        if (videourl != null) whiteNoise.setVideourl(videourl);
-        if (videourlLd != null) whiteNoise.setVideourlLd(videourlLd);
-        if (color != null) whiteNoise.setColor(color);
-        if (contextText != null) whiteNoise.setContextText(serializeContextText(contextText));
+        applyRequestFields(whiteNoise, request.getImage(), request.getAudiourl(), request.getVideourl(), request.getVideourlLd(),
+                request.getAudiourlSg(), request.getVideourlSg(), request.getVideourlLdSg(),
+                request.getAudiourlUs(), request.getVideourlUs(), request.getVideourlLdUs(),
+                request.getAudiourlDe(), request.getVideourlDe(), request.getVideourlLdDe(),
+                request.getColor(), request.getContextText());
 
         return saveWhiteNoise(whiteNoise);
     }
@@ -98,6 +104,15 @@ public class WhiteNoiseService {
         whiteNoise.setAudiourl(EntityMapper.getString(row, "audiourl"));
         whiteNoise.setVideourl(EntityMapper.getString(row, "videourl"));
         whiteNoise.setVideourlLd(getCompatibleVideourlLd(row));
+        whiteNoise.setAudiourlSg(getCompatibleString(row, "audiourl_sg", "audiourlSg"));
+        whiteNoise.setVideourlSg(getCompatibleString(row, "videourl_sg", "videourlSg"));
+        whiteNoise.setVideourlLdSg(getCompatibleString(row, "videourlld_sg", "videourlLdSg"));
+        whiteNoise.setAudiourlUs(getCompatibleString(row, "audiourl_us", "audiourlUs"));
+        whiteNoise.setVideourlUs(getCompatibleString(row, "videourl_us", "videourlUs"));
+        whiteNoise.setVideourlLdUs(getCompatibleString(row, "videourlld_us", "videourlLdUs"));
+        whiteNoise.setAudiourlDe(getCompatibleString(row, "audiourl_de", "audiourlDe"));
+        whiteNoise.setVideourlDe(getCompatibleString(row, "videourl_de", "videourlDe"));
+        whiteNoise.setVideourlLdDe(getCompatibleString(row, "videourlld_de", "videourlLdDe"));
         whiteNoise.setColor(EntityMapper.getString(row, "color"));
         whiteNoise.setContextText(getCompatibleContextText(row));
         whiteNoise.setCreateAt(EntityMapper.getOffsetDateTime(row, "createAt"));
@@ -112,6 +127,15 @@ public class WhiteNoiseService {
         EntityMapper.putIfNotNull(data, "audiourl", whiteNoise.getAudiourl());
         EntityMapper.putIfNotNull(data, "videourl", whiteNoise.getVideourl());
         EntityMapper.putIfNotNull(data, "videourlld", whiteNoise.getVideourlLd());
+        EntityMapper.putIfNotNull(data, "audiourl_sg", whiteNoise.getAudiourlSg());
+        EntityMapper.putIfNotNull(data, "videourl_sg", whiteNoise.getVideourlSg());
+        EntityMapper.putIfNotNull(data, "videourlld_sg", whiteNoise.getVideourlLdSg());
+        EntityMapper.putIfNotNull(data, "audiourl_us", whiteNoise.getAudiourlUs());
+        EntityMapper.putIfNotNull(data, "videourl_us", whiteNoise.getVideourlUs());
+        EntityMapper.putIfNotNull(data, "videourlld_us", whiteNoise.getVideourlLdUs());
+        EntityMapper.putIfNotNull(data, "audiourl_de", whiteNoise.getAudiourlDe());
+        EntityMapper.putIfNotNull(data, "videourl_de", whiteNoise.getVideourlDe());
+        EntityMapper.putIfNotNull(data, "videourlld_de", whiteNoise.getVideourlLdDe());
         EntityMapper.putIfNotNull(data, "color", whiteNoise.getColor());
         EntityMapper.putIfNotNull(data, "contexttext", whiteNoise.getContextText());
         EntityMapper.putIfNotNull(data, "createAt", whiteNoise.getCreateAt());
@@ -122,6 +146,11 @@ public class WhiteNoiseService {
     private String getCompatibleVideourlLd(Map<String, Object> row) {
         String value = EntityMapper.getString(row, "videourlld");
         return value != null ? value : EntityMapper.getString(row, "videourlLd");
+    }
+
+    private String getCompatibleString(Map<String, Object> row, String primaryKey, String legacyKey) {
+        String value = EntityMapper.getString(row, primaryKey);
+        return value != null ? value : EntityMapper.getString(row, legacyKey);
     }
 
     private String getCompatibleContextText(Map<String, Object> row) {
@@ -139,6 +168,15 @@ public class WhiteNoiseService {
             whiteNoise.getAudiourl(),
             whiteNoise.getVideourl(),
             whiteNoise.getVideourlLd(),
+            whiteNoise.getAudiourlSg(),
+            whiteNoise.getVideourlSg(),
+            whiteNoise.getVideourlLdSg(),
+            whiteNoise.getAudiourlUs(),
+            whiteNoise.getVideourlUs(),
+            whiteNoise.getVideourlLdUs(),
+            whiteNoise.getAudiourlDe(),
+            whiteNoise.getVideourlDe(),
+            whiteNoise.getVideourlLdDe(),
             whiteNoise.getColor(),
             deserializeContextText(whiteNoise.getContextText()),
             whiteNoise.getCreateAt(),
@@ -177,5 +215,38 @@ public class WhiteNoiseService {
             logger.warn("白噪音多语言文案解析失败，已返回空对象: {}", contextText, e);
             return new java.util.LinkedHashMap<>();
         }
+    }
+
+    private void applyRequestFields(WhiteNoise whiteNoise,
+                                    String image,
+                                    String audiourl,
+                                    String videourl,
+                                    String videourlLd,
+                                    String audiourlSg,
+                                    String videourlSg,
+                                    String videourlLdSg,
+                                    String audiourlUs,
+                                    String videourlUs,
+                                    String videourlLdUs,
+                                    String audiourlDe,
+                                    String videourlDe,
+                                    String videourlLdDe,
+                                    String color,
+                                    Map<String, WhiteNoiseLanguageContentDto> contextText) {
+        if (image != null) whiteNoise.setImage(image);
+        if (audiourl != null) whiteNoise.setAudiourl(audiourl);
+        if (videourl != null) whiteNoise.setVideourl(videourl);
+        if (videourlLd != null) whiteNoise.setVideourlLd(videourlLd);
+        if (audiourlSg != null) whiteNoise.setAudiourlSg(audiourlSg);
+        if (videourlSg != null) whiteNoise.setVideourlSg(videourlSg);
+        if (videourlLdSg != null) whiteNoise.setVideourlLdSg(videourlLdSg);
+        if (audiourlUs != null) whiteNoise.setAudiourlUs(audiourlUs);
+        if (videourlUs != null) whiteNoise.setVideourlUs(videourlUs);
+        if (videourlLdUs != null) whiteNoise.setVideourlLdUs(videourlLdUs);
+        if (audiourlDe != null) whiteNoise.setAudiourlDe(audiourlDe);
+        if (videourlDe != null) whiteNoise.setVideourlDe(videourlDe);
+        if (videourlLdDe != null) whiteNoise.setVideourlLdDe(videourlLdDe);
+        if (color != null) whiteNoise.setColor(color);
+        if (contextText != null) whiteNoise.setContextText(serializeContextText(contextText));
     }
 }

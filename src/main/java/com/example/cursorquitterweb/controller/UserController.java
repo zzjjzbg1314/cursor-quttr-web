@@ -12,7 +12,7 @@ import com.example.cursorquitterweb.dto.UserChallengeRankDto;
 import com.example.cursorquitterweb.dto.ChallengeLeaderboardResponse;
 import com.example.cursorquitterweb.dto.UserRelapseHistoryResponse;
 import com.example.cursorquitterweb.entity.User;
-import com.example.cursorquitterweb.service.OssService;
+import com.example.cursorquitterweb.service.AvatarStorageService;
 import com.example.cursorquitterweb.service.PhoneAuthService;
 import com.example.cursorquitterweb.service.UserService;
 import com.example.cursorquitterweb.service.RecoverJourneyService;
@@ -45,7 +45,7 @@ public class UserController {
     private RecoverJourneyService recoverJourneyService;
     
     @Autowired
-    private OssService ossService;
+    private AvatarStorageService avatarStorageService;
     
     @Autowired
     private PhoneAuthService phoneAuthService;
@@ -635,8 +635,7 @@ public class UserController {
         logger.info("上传用户头像");
         
         try {
-            // 上传头像到阿里云OSS
-            String avatarUrl = ossService.uploadAvatar(file);
+            String avatarUrl = avatarStorageService.uploadAvatar(file);
             
             AvatarUploadResponse response = new AvatarUploadResponse(avatarUrl);
             logger.info("头像上传成功，头像URL: {}", avatarUrl);

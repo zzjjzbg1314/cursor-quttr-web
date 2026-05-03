@@ -44,14 +44,7 @@ public class WhiteNoiseController {
         try {
             logger.info("创建白噪音内容，请求参数: {}", request);
 
-            WhiteNoise whiteNoise = whiteNoiseService.createWhiteNoise(
-                request.getImage(),
-                request.getAudiourl(),
-                request.getVideourl(),
-                request.getVideourlLd(),
-                request.getColor(),
-                request.getContextText()
-            );
+            WhiteNoise whiteNoise = whiteNoiseService.createWhiteNoise(request);
 
             WhiteNoiseDto dto = whiteNoiseService.convertToDto(whiteNoise);
             return ResponseEntity.ok(ApiResponse.success("白噪音内容创建成功", dto));
@@ -83,15 +76,7 @@ public class WhiteNoiseController {
         try {
             logger.info("更新白噪音内容，ID: {}, 请求参数: {}", videoId, request);
 
-            WhiteNoise whiteNoise = whiteNoiseService.updateWhiteNoise(
-                videoId,
-                request.getImage(),
-                request.getAudiourl(),
-                request.getVideourl(),
-                request.getVideourlLd(),
-                request.getColor(),
-                request.getContextText()
-            );
+            WhiteNoise whiteNoise = whiteNoiseService.updateWhiteNoise(videoId, request);
 
             return ResponseEntity.ok(ApiResponse.success("白噪音内容更新成功", whiteNoiseService.convertToDto(whiteNoise)));
         } catch (Exception e) {
