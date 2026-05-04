@@ -34,6 +34,14 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=12h
 
+# 节点路由配置
+app:
+  routing:
+    cn-base-url: ${ROUTING_CN_BASE_URL:https://www.kejiapi.cn}
+    sg-base-url: ${ROUTING_SG_BASE_URL:https://www.globalkejiapi.asia}
+    us-base-url: ${ROUTING_US_BASE_URL:https://www.globalkejiapi.top}
+    default-base-url: ${ROUTING_DEFAULT_BASE_URL:https://www.globalkejiapi.top}
+
 # 微信配置
 wechat:
   app-id: ${WECHAT_APP_ID:wx17ff09b51a727ae2}

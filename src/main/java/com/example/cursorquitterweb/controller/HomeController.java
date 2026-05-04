@@ -34,6 +34,7 @@ public class HomeController {
         appInfo.put("endpoints", new String[]{
             "/api/hello - 欢迎信息",
             "/api/health - 健康检查",
+            "/api/bootstrap - 节点引导信息",
             "/api/wechat/login - 微信登录",
             "/api/wechat/health - 微信服务健康检查",
             "/api/white-noises - 白噪音内容接口",
