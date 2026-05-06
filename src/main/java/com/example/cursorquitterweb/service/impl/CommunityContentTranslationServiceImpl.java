@@ -21,6 +21,9 @@ public class CommunityContentTranslationServiceImpl implements CommunityContentT
 
     private static final Logger logger = LogUtil.getLogger(CommunityContentTranslationServiceImpl.class);
     private static final String[] SUPPORTED_LANGUAGES = {"zh", "en", "ja", "ko", "de", "fr", "pt", "es"};
+    private static final int MAX_TRANSLATION_RETRY_COUNT = 5;
+    private static final int MAX_TRANSLATION_ATTEMPT_COUNT = MAX_TRANSLATION_RETRY_COUNT + 1;
+    private static final long RETRY_BASE_DELAY_MILLIS = 1000L;
 
     @Autowired
     private CloudflareD1Util d1Util;
@@ -73,29 +76,74 @@ public class CommunityContentTranslationServiceImpl implements CommunityContentT
         }
 
         String normalizedLanguage = normalizeOriginalLanguage(originalLanguage, content);
+        markTranslationProcessing(tableName, idColumn, id);
+
+        Exception lastException = null;
+        for (int attempt = 1; attempt <= MAX_TRANSLATION_ATTEMPT_COUNT; attempt++) {
+            try {
+                Map<String, Object> translations = buildTranslations(content, normalizedLanguage, contentType);
+                translations.put("translation_status", "completed");
+                translations.put("translated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
+                translations.put("updated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
+                d1Util.updateById(tableName, translations, idColumn, EntityMapper.uuidToString(id));
+                if (attempt > 1) {
+                    logger.info("社区内容翻译重试成功，table: {}, id: {}, attempt: {}", tableName, id, attempt);
+                }
+                return;
+            } catch (Exception e) {
+                lastException = e;
+                if (attempt >= MAX_TRANSLATION_ATTEMPT_COUNT) {
+                    break;
+                }
+                logger.warn("社区内容翻译失败，准备重试，table: {}, id: {}, attempt: {}/{}",
+                        tableName, id, attempt, MAX_TRANSLATION_ATTEMPT_COUNT, e);
+                waitBeforeRetry(attempt);
+            }
+        }
+
+        logger.error("社区内容翻译最终失败，table: {}, id: {}, retryCount: {}",
+                tableName, id, MAX_TRANSLATION_RETRY_COUNT, lastException);
+        markTranslationFailed(tableName, idColumn, id);
+    }
+
+    private Map<String, Object> buildTranslations(String content, String normalizedLanguage, String contentType) {
+        Map<String, Object> translations = new HashMap<>();
+        for (String targetLanguage : SUPPORTED_LANGUAGES) {
+            String translatedContent = normalizedLanguage.equals(targetLanguage)
+                    ? content
+                    : deepSeekApiUtil.translateCommunityText(content, contentType, targetLanguage, null);
+            translations.put("content_" + targetLanguage, translatedContent);
+        }
+        return translations;
+    }
+
+    private void markTranslationProcessing(String tableName, String idColumn, UUID id) {
         try {
             Map<String, Object> data = new HashMap<>();
             data.put("translation_status", "processing");
             data.put("updated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
             d1Util.updateById(tableName, data, idColumn, EntityMapper.uuidToString(id));
-
-            Map<String, Object> translations = new HashMap<>();
-            for (String targetLanguage : SUPPORTED_LANGUAGES) {
-                String translatedContent = normalizedLanguage.equals(targetLanguage)
-                    ? content
-                    : deepSeekApiUtil.translateCommunityText(content, contentType, targetLanguage, null);
-                translations.put("content_" + targetLanguage, translatedContent);
-            }
-            translations.put("translation_status", "completed");
-            translations.put("translated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
-            translations.put("updated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
-            d1Util.updateById(tableName, translations, idColumn, EntityMapper.uuidToString(id));
         } catch (Exception e) {
-            logger.error("社区内容翻译失败，table: {}, id: {}", tableName, id, e);
+            logger.warn("更新翻译处理中状态失败，table: {}, id: {}", tableName, id, e);
+        }
+    }
+
+    private void markTranslationFailed(String tableName, String idColumn, UUID id) {
+        try {
             Map<String, Object> failed = new HashMap<>();
             failed.put("translation_status", "failed");
             failed.put("updated_at", EntityMapper.offsetDateTimeToString(OffsetDateTime.now()));
             d1Util.updateById(tableName, failed, idColumn, EntityMapper.uuidToString(id));
+        } catch (Exception e) {
+            logger.error("更新翻译失败状态失败，table: {}, id: {}", tableName, id, e);
+        }
+    }
+
+    private void waitBeforeRetry(int failedAttempt) {
+        try {
+            Thread.sleep(RETRY_BASE_DELAY_MILLIS * failedAttempt);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
