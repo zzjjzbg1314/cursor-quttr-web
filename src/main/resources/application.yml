@@ -196,3 +196,29 @@ upush:
   android-app-key: ${UPUSH_ANDROID_APP_KEY:691f51568560e34872ef335e}
   # Android App Master Secret
   android-master-secret: ${UPUSH_ANDROID_MASTER_SECRET:s6uz1fhnt7qbp6qwguu7rjwhbkwlk8tt}
+
+# AI 音乐 MV 独立子模块。
+# 默认关闭，关闭时不会注册接口、访问独立 D1 或启动任何后台任务。
+# 这里严禁复用 cloudflare.d1.database-id 和 cloudflare.r2.bucket。
+music-mv:
+  enabled: ${MUSIC_MV_ENABLED:false}
+  d1:
+    enabled: ${MUSIC_MV_D1_ENABLED:false}
+    base-url: ${MUSIC_MV_CLOUDFLARE_API_BASE_URL:https://api.cloudflare.com/client/v4}
+    account-id: ${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}
+    database-id: ${MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID:}
+    api-token: ${MUSIC_MV_CLOUDFLARE_D1_API_TOKEN:}
+  r2:
+    account-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCOUNT_ID:}
+    bucket: ${MUSIC_MV_CLOUDFLARE_R2_BUCKET:}
+    access-key-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCESS_KEY_ID:}
+    secret-access-key: ${MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY:}
+    public-base-url: ${MUSIC_MV_CLOUDFLARE_R2_PUBLIC_BASE_URL:}
+  security:
+    client-token: ${MUSIC_MV_CLIENT_TOKEN:}
+    renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}
+  render:
+    allow-loopback-http: ${MUSIC_MV_ALLOW_LOOPBACK_HTTP:false}
+    default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}
+    max-output-bytes: ${MUSIC_MV_MAX_OUTPUT_BYTES:2147483648}
+    local-storage-dir: ${MUSIC_MV_LOCAL_STORAGE_DIR:storage/music-mv-render}
