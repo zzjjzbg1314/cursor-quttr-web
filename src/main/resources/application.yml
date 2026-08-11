@@ -5,7 +5,7 @@ server:
   ssl:
     enabled: ${SERVER_SSL_ENABLED:true}
     key-store: ${SSL_KEY_STORE:classpath:kejiapi.cn.jks}
-    key-store-password: ${SSL_KEY_STORE_PASSWORD:ussis711}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:l66t3m1a}
     key-store-type: ${SSL_KEY_STORE_TYPE:JKS}
     key-alias: ${SSL_KEY_ALIAS:kejiapi.cn}
 
