@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.support.ApiException;
+import com.example.cursorquitterweb.musicmv.support.LoopbackRequestSupport;
 
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -23,8 +24,12 @@ public class RendererAuthenticationService {
 
     public void requireAuthorized(String suppliedToken) {
         if (configuredToken.isEmpty()) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "RENDERER_API_DISABLED", "Renderer API is not configured", true, null);
+            if (LoopbackRequestSupport.isLoopbackRequest()) {
+                return;
+            }
+            throw new ApiException(HttpStatus.UNAUTHORIZED,
+                    "RENDERER_PAIRING_REQUIRED",
+                    "Remote renderers must pair with the backend before polling jobs");
         }
         byte[] expected = configuredToken.getBytes(StandardCharsets.UTF_8);
         byte[] supplied = suppliedToken == null

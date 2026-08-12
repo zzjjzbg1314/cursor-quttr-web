@@ -53,6 +53,14 @@ public class D1DatabaseClient {
         return enabled && !isBlank(accountId) && !isBlank(databaseId) && !isBlank(apiToken);
     }
 
+    /**
+     * Non-secret identifier used by the explicit schema safety gate. Never
+     * expose the account id or API token through controller responses.
+     */
+    public String getDatabaseId() {
+        return databaseId;
+    }
+
     public D1QueryResult query(String sql, Object... params) {
         return query(sql, Arrays.asList(params));
     }
@@ -110,7 +118,7 @@ public class D1DatabaseClient {
             throw new IllegalStateException(
                     "Cloudflare D1 request failed. Check MUSIC_MV_CLOUDFLARE_ACCOUNT_ID, "
                             + "MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID and "
-                            + "MUSIC_MV_CLOUDFLARE_D1_API_TOKEN. "
+                            + "MUSIC_MV_CLOUDFLARE_API_TOKEN. "
                             + "Account ID is the 32-character Cloudflare account id, not the D1 database UUID. "
                             + "URL=" + url + ", response=" + e.getResponseBodyAsString(),
                     e

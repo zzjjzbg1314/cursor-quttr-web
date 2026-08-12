@@ -19,7 +19,10 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 @RestControllerAdvice(assignableTypes = {
         MusicMvRenderJobController.class,
         RendererMusicMvRenderJobController.class,
-        RendererNodeController.class
+        RendererNodeController.class,
+        MusicMvTemplateCatalogController.class,
+        RendererTemplateCatalogController.class,
+        MusicMvD1SchemaController.class
 })
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvExceptionHandler {

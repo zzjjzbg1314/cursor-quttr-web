@@ -207,16 +207,27 @@ music-mv:
     base-url: ${MUSIC_MV_CLOUDFLARE_API_BASE_URL:https://api.cloudflare.com/client/v4}
     account-id: ${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}
     database-id: ${MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID:}
-    api-token: ${MUSIC_MV_CLOUDFLARE_D1_API_TOKEN:}
+    api-token: ${MUSIC_MV_CLOUDFLARE_D1_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
   r2:
-    account-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCOUNT_ID:}
-    bucket: ${MUSIC_MV_CLOUDFLARE_R2_BUCKET:}
-    access-key-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCESS_KEY_ID:}
-    secret-access-key: ${MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY:}
+    account-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
+    bucket: ${MUSIC_MV_CLOUDFLARE_R2_BUCKET:${MUSIC_MV_R2_BUCKET:}}
+    access-key-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCESS_KEY_ID:${MUSIC_MV_R2_ACCESS_KEY_ID:}}
+    secret-access-key: ${MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY:${MUSIC_MV_R2_SECRET_ACCESS_KEY:}}
     public-base-url: ${MUSIC_MV_CLOUDFLARE_R2_PUBLIC_BASE_URL:}
   security:
     client-token: ${MUSIC_MV_CLIENT_TOKEN:}
     renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}
+    template-sync-token: ${MUSIC_MV_TEMPLATE_SYNC_TOKEN:}
+  media:
+    cloudflare-api-base-url: ${MUSIC_MV_CLOUDFLARE_MEDIA_API_BASE_URL:https://api.cloudflare.com/client/v4}
+    images:
+      account-id: ${MUSIC_MV_CLOUDFLARE_IMAGES_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
+      api-token: ${MUSIC_MV_CLOUDFLARE_IMAGES_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
+      delivery-base-url: ${MUSIC_MV_CLOUDFLARE_IMAGES_DELIVERY_BASE_URL:${MUSIC_MV_IMAGES_DELIVERY_URL:}}
+    stream:
+      account-id: ${MUSIC_MV_CLOUDFLARE_STREAM_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
+      api-token: ${MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
+      delivery-base-url: ${MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL:${MUSIC_MV_STREAM_DELIVERY_URL:}}
   render:
     allow-loopback-http: ${MUSIC_MV_ALLOW_LOOPBACK_HTTP:false}
     default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}

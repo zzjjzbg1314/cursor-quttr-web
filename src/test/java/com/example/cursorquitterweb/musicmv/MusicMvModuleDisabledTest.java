@@ -12,9 +12,12 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.example.cursorquitterweb.musicmv.controller.MusicMvRenderJobController;
+import com.example.cursorquitterweb.musicmv.controller.MusicMvTemplateCatalogController;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
+import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService;
+import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
 
 class MusicMvModuleDisabledTest {
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
@@ -26,6 +29,9 @@ class MusicMvModuleDisabledTest {
         contextRunner.run(context -> {
             assertThat(context).doesNotHaveBean(MusicMvRenderJobController.class);
             assertThat(context).doesNotHaveBean(MusicMvRenderJobService.class);
+            assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogController.class);
+            assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogService.class);
+            assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogRepository.class);
             assertThat(context).doesNotHaveBean(MusicMvRenderJobRepository.class);
             assertThat(context).doesNotHaveBean(D1DatabaseClient.class);
 

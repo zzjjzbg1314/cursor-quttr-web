@@ -2,6 +2,16 @@
 -- Apply this file only to MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID.
 -- Never apply it to the existing cursor-quttr-web production D1 database.
 
+-- The initializer writes the current schema version and source-file digest
+-- only after all idempotent DDL and category seed statements have succeeded.
+CREATE TABLE IF NOT EXISTS music_mv_schema_metadata (
+  schema_key TEXT PRIMARY KEY,
+  schema_version INTEGER NOT NULL,
+  schema_sha256 TEXT NOT NULL,
+  applied_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 -- Cloud template catalog. The website backend is the only application allowed
 -- to query or mutate these tables. Browser and Mac renderer traffic goes
 -- through website-backend APIs.

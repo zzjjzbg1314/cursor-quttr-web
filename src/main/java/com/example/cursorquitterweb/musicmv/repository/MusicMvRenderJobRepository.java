@@ -30,9 +30,13 @@ public class MusicMvRenderJobRepository {
     public Map<String, Object> renderableVersion(String templateId, String versionId) {
         return d1.query("SELECT t.template_id, t.status AS template_status, "
                         + "t.current_version_id, v.version_id, v.status AS version_status, "
-                        + "v.validation_status, v.source_availability, v.source_node_id, "
+                        + "v.validation_status, CASE WHEN v.source_availability='available' "
+                        + "AND n.status='online' AND n.last_seen_at>=datetime('now','-90 seconds') "
+                        + "THEN 'available' ELSE 'unavailable' END AS source_availability, "
+                        + "v.source_node_id, "
                         + "v.slot_count, v.cycle_duration_seconds "
                         + "FROM templates t JOIN template_versions v ON v.template_id=t.template_id "
+                        + "LEFT JOIN renderer_nodes n ON n.node_id=v.source_node_id "
                         + "WHERE t.template_id=? AND v.version_id=? AND t.deleted_at IS NULL LIMIT 1",
                 templateId, versionId).firstRow();
     }
@@ -72,6 +76,14 @@ public class MusicMvRenderJobRepository {
                 + "WHERE node_id=? LIMIT 1", nodeId).firstRow();
     }
 
+    public List<Map<String, Object>> rendererNodes() {
+        return d1.query("SELECT node_id,name,status,runtime_version,runtime_sha256,last_seen_at,"
+                + "last_error,created_at,updated_at,CASE WHEN last_seen_at IS NULL THEN NULL ELSE "
+                + "MAX(0,CAST(strftime('%s','now') AS INTEGER)-"
+                + "CAST(strftime('%s',last_seen_at) AS INTEGER)) END AS heartbeat_age_seconds "
+                + "FROM renderer_nodes ORDER BY name,node_id").getRows();
+    }
+
     public void heartbeat(RendererHeartbeatRequest request) {
         d1.query("INSERT INTO renderer_nodes "
                         + "(node_id, name, status, runtime_version, runtime_sha256, last_seen_at, "
@@ -94,7 +106,10 @@ public class MusicMvRenderJobRepository {
                         + "updated_at=CURRENT_TIMESTAMP, error_code=NULL, error_message=NULL "
                         + "WHERE job_id=(SELECT j.job_id FROM music_mv_render_jobs j "
                         + "JOIN template_versions v ON v.version_id=j.version_id "
+                        + "JOIN renderer_nodes n ON n.node_id=v.source_node_id "
                         + "WHERE v.source_node_id=? AND v.source_availability='available' "
+                        + "AND n.node_id=? AND n.status='online' "
+                        + "AND n.last_seen_at>=datetime('now','-90 seconds') "
                         + "AND v.status='published' AND v.validation_status='exact' "
                         + "AND j.cancel_requested=0 AND j.attempt_count<j.max_attempts "
                         + "AND (j.status='queued' OR (j.status IN ('leased','rendering','uploading') "
@@ -102,7 +117,7 @@ public class MusicMvRenderJobRepository {
                         + "ORDER BY j.priority DESC, j.created_at, j.job_id LIMIT 1) "
                         + "AND cancel_requested=0 AND attempt_count<max_attempts "
                         + "RETURNING " + JOB_COLUMNS,
-                nodeId, leaseToken, leaseModifier, nodeId).firstRow();
+                nodeId, leaseToken, leaseModifier, nodeId, nodeId).firstRow();
     }
 
     public Map<String, Object> renew(String jobId, String nodeId, String leaseToken,

@@ -4,21 +4,21 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.example.cursorquitterweb.musicmv.support.LoopbackRequestSupport;
 
+/** Dedicated credential for immutable template promotion and media upload. */
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
-public class MusicMvRenderClientAuthenticationService {
+public class TemplateSyncAuthenticationService {
     private final String configuredToken;
 
-    public MusicMvRenderClientAuthenticationService(
-            @Value("${music-mv.security.client-token:}") String configuredToken
-    ) {
+    public TemplateSyncAuthenticationService(
+            @Value("${music-mv.security.template-sync-token:}") String configuredToken) {
         this.configuredToken = configuredToken == null ? "" : configuredToken.trim();
     }
 
@@ -28,15 +28,15 @@ public class MusicMvRenderClientAuthenticationService {
                 return;
             }
             throw new ApiException(HttpStatus.UNAUTHORIZED,
-                    "MV_RENDER_PAIRING_REQUIRED",
-                    "Remote Music MV clients must pair before creating render jobs");
+                    "TEMPLATE_SYNC_PAIRING_REQUIRED",
+                    "Remote template sync clients must pair with the backend");
         }
         byte[] expected = configuredToken.getBytes(StandardCharsets.UTF_8);
-        byte[] supplied = suppliedToken == null
-                ? new byte[0] : suppliedToken.getBytes(StandardCharsets.UTF_8);
+        byte[] supplied = suppliedToken == null ? new byte[0]
+                : suppliedToken.getBytes(StandardCharsets.UTF_8);
         if (!MessageDigest.isEqual(expected, supplied)) {
             throw new ApiException(HttpStatus.UNAUTHORIZED,
-                    "INVALID_MV_RENDER_CLIENT_TOKEN", "Invalid render client credential");
+                    "INVALID_TEMPLATE_SYNC_TOKEN", "Invalid template sync credential");
         }
     }
 }
