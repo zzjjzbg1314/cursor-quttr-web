@@ -202,6 +202,7 @@ upush:
 # 这里严禁复用 cloudflare.d1.database-id 和 cloudflare.r2.bucket。
 music-mv:
   enabled: ${MUSIC_MV_ENABLED:false}
+  public-base-url: ${MUSIC_MV_PUBLIC_BASE_URL:}
   d1:
     enabled: ${MUSIC_MV_D1_ENABLED:false}
     base-url: ${MUSIC_MV_CLOUDFLARE_API_BASE_URL:https://api.cloudflare.com/client/v4}

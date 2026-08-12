@@ -80,6 +80,36 @@ class MusicMvRenderJobServiceTest {
         assertEquals("MV_RENDER_NATIVE_EVIDENCE_NOT_EXACT", exception.getCode());
     }
 
+    @Test
+    void acceptsOnlyCapabilityProtectedLocalInputWhenGeneralLoopbackIsDisabled() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), false, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        String capabilityUrl = "http://127.0.0.1:8080/api/music-mv/v1/assets/"
+                + "mva_0123456789abcdef0123456789abcdef?access=" + repeat('d');
+        request.getMusic().setUrl(capabilityUrl);
+        for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
+            binding.getAsset().setUrl(capabilityUrl);
+        }
+        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
+        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
+        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
+
+        assertEquals("queued", service.create("website-backend", request).get("status"));
+    }
+
+    @Test
+    void rejectsUnprotectedLocalInputWhenGeneralLoopbackIsDisabled() {
+        MusicMvRenderJobService service = new MusicMvRenderJobService(
+                mock(MusicMvRenderJobRepository.class),
+                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), false, 2);
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> service.create("website-backend", request()));
+        assertEquals("MV_RENDER_ASSET_URL_BLOCKED", exception.getCode());
+    }
+
     private MusicMvRenderJobCreateRequest request() {
         MusicMvRenderJobCreateRequest request = new MusicMvRenderJobCreateRequest();
         request.setRequestId("req_1");

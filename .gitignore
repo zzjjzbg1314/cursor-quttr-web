@@ -58,4 +58,8 @@ application-template.yml
 *.p12
 *.jks
 secrets/
-keys/ 
+keys/
+
+# Music MV runtime inputs and rendered outputs
+storage/music-mv-render/inputs/
+storage/music-mv-render/outputs/

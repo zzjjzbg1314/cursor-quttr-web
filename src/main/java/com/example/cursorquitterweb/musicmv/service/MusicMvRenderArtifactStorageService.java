@@ -11,7 +11,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -106,7 +106,7 @@ public class MusicMvRenderArtifactStorageService {
         }
         Path path = localPath(storageKey);
         if (!Files.isRegularFile(path)) return null;
-        return new InputStreamResource(Files.newInputStream(path));
+        return new FileSystemResource(path.toFile());
     }
 
     public void delete(String storageKey) {

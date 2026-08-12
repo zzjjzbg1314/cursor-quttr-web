@@ -1,14 +1,18 @@
 package com.example.cursorquitterweb.musicmv.controller;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpRange;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -74,7 +79,10 @@ public class MusicMvRenderJobController {
     public ResponseEntity<?> output(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
-            @PathVariable String jobId
+            @RequestHeader(value = HttpHeaders.RANGE, required = false) String range,
+            @PathVariable String jobId,
+            @RequestParam(defaultValue = "false") boolean inline,
+            HttpServletResponse servletResponse
     ) throws IOException {
         authentication.requireAuthorized(token);
         OutputAccess output = service.output(clientId, jobId);
@@ -84,9 +92,42 @@ public class MusicMvRenderJobController {
         }
         Resource resource = output.getResource();
         ResponseEntity.BodyBuilder response = ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"music-mv.mp4\"")
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"")
                 .contentType(MediaType.parseMediaType(output.getContentType() == null
                         ? "video/mp4" : output.getContentType()));
+        if (range != null && !range.trim().isEmpty() && resource != null) {
+            List<HttpRange> ranges = HttpRange.parseRanges(range);
+            if (!ranges.isEmpty()) {
+                long resourceLength = resource.contentLength();
+                HttpRange requested = ranges.get(0);
+                final long start = requested.getRangeStart(resourceLength);
+                final long end = requested.getRangeEnd(resourceLength);
+                final long regionLength = end - start + 1L;
+                servletResponse.setStatus(HttpStatus.PARTIAL_CONTENT.value());
+                servletResponse.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
+                servletResponse.setHeader(HttpHeaders.CONTENT_RANGE,
+                        "bytes " + start + "-" + end + "/" + resourceLength);
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                        (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"");
+                servletResponse.setContentType(output.getContentType() == null
+                        ? "video/mp4" : output.getContentType());
+                servletResponse.setContentLengthLong(regionLength);
+                try (RandomAccessFile file = new RandomAccessFile(resource.getFile(), "r")) {
+                    file.seek(start);
+                    byte[] buffer = new byte[64 * 1024];
+                    long remaining = regionLength;
+                    while (remaining > 0L) {
+                        int read = file.read(buffer, 0, (int) Math.min(buffer.length, remaining));
+                        if (read < 0) break;
+                        servletResponse.getOutputStream().write(buffer, 0, read);
+                        remaining -= read;
+                    }
+                }
+                return null;
+            }
+        }
         if (output.getSizeBytes() != null) response.contentLength(output.getSizeBytes().longValue());
         return response.body(resource);
     }

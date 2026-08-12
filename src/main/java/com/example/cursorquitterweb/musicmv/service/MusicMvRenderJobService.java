@@ -300,6 +300,11 @@ public class MusicMvRenderJobService {
             if ("https".equalsIgnoreCase(uri.getScheme())) return;
             if (allowLoopbackHttp && "http".equalsIgnoreCase(uri.getScheme())
                     && isLoopbackHost(uri.getHost())) return;
+            if ("http".equalsIgnoreCase(uri.getScheme()) && isLoopbackHost(uri.getHost())
+                    && uri.getPath() != null
+                    && uri.getPath().matches("/api/music-mv/v1/assets/mva_[a-f0-9]{32}")
+                    && uri.getQuery() != null
+                    && uri.getQuery().matches("access=[a-f0-9]{64}")) return;
         } catch (IllegalArgumentException ignored) {
             // Normalized into a stable public API error below.
         }
