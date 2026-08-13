@@ -30,6 +30,12 @@ MUSIC_MV_CLOUDFLARE_IMAGES_DELIVERY_BASE_URL=https://imagedelivery.net/<account-
 MUSIC_MV_CLOUDFLARE_STREAM_ACCOUNT_ID=<Cloudflare account id>
 MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN=<Stream read/edit token>
 MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL=https://customer-<code>.cloudflarestream.com
+
+# AI 写歌供应商（首个适配器为 KIE，可由 provider 配置替换）
+MUSIC_MV_AI_PROVIDER=kie
+MUSIC_MV_KIE_API_KEY=<KIE API key>
+MUSIC_MV_KIE_WEBHOOK_HMAC_KEY=<KIE settings webhook HMAC key>
+MUSIC_MV_PUBLIC_BASE_URL=https://<public website backend origin>
 ```
 
 如需将最终用户渲染成片存入独立 R2，再配置：
@@ -63,7 +69,7 @@ Content-Type: application/json
 {"expectedDatabaseId":"<same new independent D1 database id>"}
 ```
 
-初始化器会先读取 `sqlite_master`：只含 D1 保留表 `_cf_KV` 的新库可以初始化；只含本模块表的半完成库可以幂等续传；发现 `users`、`posts` 等任何非 Music MV 表会直接拒绝。完成后会核对 11 张专用表、12 个固定一级分类和 schema SHA-256，并写入 `music_mv_schema_metadata`。成功后立即把 `MUSIC_MV_D1_ALLOW_SCHEMA_INITIALIZE` 改回 `false`。
+初始化器会先读取 `sqlite_master`：只含 D1 保留表 `_cf_KV` 的新库可以初始化；只含本模块表的半完成库可以幂等续传；发现 `users`、`posts` 等任何非 Music MV 表会直接拒绝。完成后会核对 15 张专用表、12 个固定一级分类和 schema SHA-256，并写入 `music_mv_schema_metadata`。成功后立即把 `MUSIC_MV_D1_ALLOW_SCHEMA_INITIALIZE` 改回 `false`。
 
 不要对现网 D1 执行 `src/main/resources/db/music-mv-d1-schema.sql`。初始化后，由 Mac 的模板晋升协议幂等写入已经验收通过的模板元数据、双语信息、版本、卡槽合同、验收证据和来源节点。封面通过一次性地址上传到 Images，完整 MV 通过 TUS 上传到 Stream；草稿原件仍保留在对应 Mac 节点。
 
@@ -86,6 +92,20 @@ Content-Type: application/json
 - `GET /api/music-mv/v1/render-jobs/{jobId}`
 - `POST /api/music-mv/v1/render-jobs/{jobId}/cancel`
 - `GET /api/music-mv/v1/render-jobs/{jobId}/output`
+
+网站后端 AI 写歌：
+
+- `POST /api/music-mv/v1/songs`：以 `requestId` 幂等创建写歌任务
+- `GET /api/music-mv/v1/songs/{jobId}`：读取状态、候选歌曲和事件
+- `GET /api/music-mv/v1/songs/{jobId}?refresh=true`：回调丢失时主动向供应商对账
+- `POST /api/music-mv/v1/songs/{jobId}/candidates/{candidateId}/select`：选择候选并固化到 Music MV 素材存储；响应中的 `renderMusicAsset` 可直接传入渲染任务 `music`
+
+KIE 回调边界：
+
+- `POST /api/music-mv/v1/provider-webhooks/kie/music`
+- 回调必须同时通过 `X-Webhook-Timestamp`、`X-Webhook-Signature` 的 HMAC-SHA256 校验和五分钟重放窗口。
+- KIE task id、状态和原始响应只保存在 provider attempt；网站前端只看到稳定的 Music MV 写歌任务与候选合同。
+- KIE 生成资源仅保留有限时间，因此选中候选时会复制到模块自己的 R2；R2 未配置的本地开发环境则进入本地素材存储。
 
 网站使用 `X-Music-Mv-Client-Token` 与 `X-Music-Mv-Client-Id`。
 

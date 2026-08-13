@@ -156,6 +156,105 @@ CREATE TABLE IF NOT EXISTS template_media (
 CREATE INDEX IF NOT EXISTS idx_template_media_lookup
   ON template_media(template_id, version_id, media_role, status);
 
+-- Provider-neutral AI songwriting tasks. Provider-specific identifiers and
+-- payloads are kept in attempts so the product contract never depends on KIE.
+CREATE TABLE IF NOT EXISTS ai_music_jobs (
+  job_id TEXT PRIMARY KEY,
+  client_id TEXT NOT NULL,
+  request_id TEXT NOT NULL,
+  status TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  progress REAL NOT NULL DEFAULT 0,
+  primary_provider_code TEXT NOT NULL,
+  active_attempt_id TEXT,
+  selected_candidate_id TEXT,
+  request_fingerprint TEXT NOT NULL,
+  request_json TEXT NOT NULL,
+  error_code TEXT,
+  error_message TEXT,
+  retryable INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  UNIQUE (client_id, request_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_client
+  ON ai_music_jobs(client_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_status
+  ON ai_music_jobs(status, updated_at);
+
+CREATE TABLE IF NOT EXISTS ai_music_provider_attempts (
+  attempt_id TEXT PRIMARY KEY,
+  job_id TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
+  provider_task_id TEXT,
+  status TEXT NOT NULL,
+  attempt_number INTEGER NOT NULL,
+  request_json TEXT NOT NULL,
+  response_json TEXT,
+  credits_used REAL,
+  submission_unknown INTEGER NOT NULL DEFAULT 0,
+  error_code TEXT,
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  UNIQUE (provider_code, provider_task_id),
+  UNIQUE (job_id, attempt_number),
+  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_music_provider_attempts_job
+  ON ai_music_provider_attempts(job_id, attempt_number DESC);
+
+CREATE TABLE IF NOT EXISTS ai_music_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  job_id TEXT NOT NULL,
+  attempt_id TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
+  provider_task_id TEXT NOT NULL,
+  provider_audio_id TEXT NOT NULL,
+  status TEXT NOT NULL,
+  title TEXT,
+  lyrics TEXT,
+  style TEXT,
+  duration_seconds REAL,
+  provider_audio_url TEXT,
+  provider_stream_url TEXT,
+  provider_image_url TEXT,
+  storage_key TEXT,
+  storage_url TEXT,
+  storage_sha256 TEXT,
+  storage_size_bytes INTEGER,
+  storage_file_name TEXT,
+  storage_content_type TEXT,
+  selected INTEGER NOT NULL DEFAULT 0,
+  raw_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (provider_code, provider_task_id, provider_audio_id),
+  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id),
+  FOREIGN KEY (attempt_id) REFERENCES ai_music_provider_attempts(attempt_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_music_candidates_job
+  ON ai_music_candidates(job_id, created_at, candidate_id);
+
+CREATE TABLE IF NOT EXISTS ai_music_job_events (
+  event_id TEXT PRIMARY KEY,
+  job_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  provider_code TEXT,
+  detail_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_music_job_events_job
+  ON ai_music_job_events(job_id, created_at, event_id);
+
 -- Asynchronous user-facing AI music MV render queue. Large music, image and
 -- video bytes stay outside D1; only contracts, leases and immutable evidence
 -- are stored here.

@@ -229,6 +229,15 @@ music-mv:
       account-id: ${MUSIC_MV_CLOUDFLARE_STREAM_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
       api-token: ${MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
       delivery-base-url: ${MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL:${MUSIC_MV_STREAM_DELIVERY_URL:}}
+  ai-music:
+    provider: ${MUSIC_MV_AI_PROVIDER:kie}
+    kie:
+      enabled: ${MUSIC_MV_KIE_ENABLED:true}
+      base-url: ${MUSIC_MV_KIE_BASE_URL:https://api.kie.ai}
+      api-key: ${MUSIC_MV_KIE_API_KEY:}
+      webhook-hmac-key: ${MUSIC_MV_KIE_WEBHOOK_HMAC_KEY:}
+      model: ${MUSIC_MV_KIE_MODEL:V5_5}
+      webhook-max-age-seconds: ${MUSIC_MV_KIE_WEBHOOK_MAX_AGE_SECONDS:300}
   render:
     allow-loopback-http: ${MUSIC_MV_ALLOW_LOOPBACK_HTTP:false}
     default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}

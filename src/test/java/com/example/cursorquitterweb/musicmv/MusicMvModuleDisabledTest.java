@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import com.example.cursorquitterweb.musicmv.controller.MusicMvRenderJobController;
 import com.example.cursorquitterweb.musicmv.controller.MusicMvTemplateCatalogController;
+import com.example.cursorquitterweb.musicmv.controller.AiMusicSongController;
+import com.example.cursorquitterweb.musicmv.aimusic.KieAiMusicProvider;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
@@ -28,6 +30,8 @@ class MusicMvModuleDisabledTest {
     void disabledModuleRegistersNoControllerRepositoryServiceOrRoute() {
         contextRunner.run(context -> {
             assertThat(context).doesNotHaveBean(MusicMvRenderJobController.class);
+            assertThat(context).doesNotHaveBean(AiMusicSongController.class);
+            assertThat(context).doesNotHaveBean(KieAiMusicProvider.class);
             assertThat(context).doesNotHaveBean(MusicMvRenderJobService.class);
             assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogController.class);
             assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogService.class);

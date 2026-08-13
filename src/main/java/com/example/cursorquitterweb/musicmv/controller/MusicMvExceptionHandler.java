@@ -23,7 +23,9 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
         RendererNodeController.class,
         MusicMvTemplateCatalogController.class,
         RendererTemplateCatalogController.class,
-        MusicMvD1SchemaController.class
+        MusicMvD1SchemaController.class,
+        AiMusicSongController.class,
+        KieAiMusicWebhookController.class
 })
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvExceptionHandler {
