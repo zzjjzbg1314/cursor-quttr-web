@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,7 @@ public class AiMusicCandidateStorageService {
     private final MusicMvInputAssetStorageService storage;
     private final RestTemplate restTemplate;
 
+    @Autowired
     public AiMusicCandidateStorageService(AiMusicJobRepository repository,
                                           MusicMvInputAssetStorageService storage) {
         this(repository, storage, downloadClient());

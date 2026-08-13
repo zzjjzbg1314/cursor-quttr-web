@@ -15,8 +15,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
@@ -26,6 +28,24 @@ import com.example.cursorquitterweb.musicmv.service.R2StorageService;
 class AiMusicCandidateStorageServiceTest {
     @TempDir
     Path tempDir;
+
+    @Test
+    void springSelectsTheProductionConstructor() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);
+        try (AnnotationConfigApplicationContext context =
+                     new AnnotationConfigApplicationContext()) {
+            TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
+                    context, "music-mv.enabled=true");
+            context.registerBean(AiMusicJobRepository.class, () -> repository);
+            context.registerBean(MusicMvInputAssetStorageService.class, () -> storage);
+            context.registerBean(AiMusicCandidateStorageService.class);
+            context.refresh();
+
+            org.junit.jupiter.api.Assertions.assertNotNull(
+                    context.getBean(AiMusicCandidateStorageService.class));
+        }
+    }
 
     @Test
     void copiesSelectedProviderAudioIntoOwnedRenderAssetStorage() {

@@ -11,6 +11,14 @@ public interface AiMusicProvider {
 
     String webhookPath();
 
+    /**
+     * Lets each provider protect and shape its callback URL without leaking
+     * provider-specific fields into the public songwriting contract.
+     */
+    default String callbackUrl(String publicBaseUrl, String jobId) {
+        return publicBaseUrl + webhookPath();
+    }
+
     Submission submit(GenerateSongCommand command);
 
     TaskSnapshot query(String providerTaskId);
@@ -25,6 +33,8 @@ public interface AiMusicProvider {
         private String callbackUrl;
         private String negativeTags;
         private String vocalGender;
+        private Double styleWeight;
+        private Double weirdnessConstraint;
 
         public String getPrompt() { return prompt; }
         public void setPrompt(String value) { prompt = value; }
@@ -44,6 +54,10 @@ public interface AiMusicProvider {
         public void setNegativeTags(String value) { negativeTags = value; }
         public String getVocalGender() { return vocalGender; }
         public void setVocalGender(String value) { vocalGender = value; }
+        public Double getStyleWeight() { return styleWeight; }
+        public void setStyleWeight(Double value) { styleWeight = value; }
+        public Double getWeirdnessConstraint() { return weirdnessConstraint; }
+        public void setWeirdnessConstraint(Double value) { weirdnessConstraint = value; }
     }
 
     final class Submission {

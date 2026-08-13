@@ -15,6 +15,7 @@ import com.example.cursorquitterweb.musicmv.controller.MusicMvRenderJobControlle
 import com.example.cursorquitterweb.musicmv.controller.MusicMvTemplateCatalogController;
 import com.example.cursorquitterweb.musicmv.controller.AiMusicSongController;
 import com.example.cursorquitterweb.musicmv.aimusic.KieAiMusicProvider;
+import com.example.cursorquitterweb.musicmv.aimusic.SunoApiAiMusicProvider;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
@@ -32,6 +33,7 @@ class MusicMvModuleDisabledTest {
             assertThat(context).doesNotHaveBean(MusicMvRenderJobController.class);
             assertThat(context).doesNotHaveBean(AiMusicSongController.class);
             assertThat(context).doesNotHaveBean(KieAiMusicProvider.class);
+            assertThat(context).doesNotHaveBean(SunoApiAiMusicProvider.class);
             assertThat(context).doesNotHaveBean(MusicMvRenderJobService.class);
             assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogController.class);
             assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogService.class);

@@ -40,7 +40,7 @@ public class AiMusicGenerationService {
             AiMusicProviderRegistry providers,
             AiMusicCandidateStorageService candidateStorage,
             ObjectMapper objectMapper,
-            @Value("${music-mv.ai-music.provider:kie}") String defaultProvider,
+            @Value("${music-mv.ai-music.provider:sunoapi}") String defaultProvider,
             @Value("${music-mv.public-base-url:}") String publicBaseUrl
     ) {
         this.repository = repository;
@@ -72,7 +72,7 @@ public class AiMusicGenerationService {
         AiMusicProvider provider = providers.require(defaultProvider);
         String jobId = IdUtils.token("aimusic");
         String attemptId = IdUtils.token("aimusicatt");
-        GenerateSongCommand command = command(request, requestBaseUrl, provider);
+        GenerateSongCommand command = command(request, requestBaseUrl, provider, jobId);
         String providerRequestJson = json(commandView(command));
         repository.create(jobId, owner, request.getRequestId(), provider.providerCode(),
                 fingerprint, requestJson);
@@ -133,23 +133,33 @@ public class AiMusicGenerationService {
     }
 
     public void acceptKieCallback(TaskSnapshot snapshot) {
-        if (snapshot == null || blank(snapshot.getProviderTaskId())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "KIE_WEBHOOK_TASK_ID_MISSING",
-                    "KIE callback task id is missing");
+        acceptProviderCallback("kie", null, snapshot);
+    }
+
+    public void acceptProviderCallback(String providerCode, String expectedJobId,
+                                       TaskSnapshot snapshot) {
+        String provider = normalize(providerCode);
+        if (blank(provider) || snapshot == null || blank(snapshot.getProviderTaskId())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_WEBHOOK_TASK_ID_MISSING",
+                    "AI music callback task id is missing");
         }
-        Map<String, Object> attempt = repository.attemptByProviderTask("kie",
+        Map<String, Object> attempt = repository.attemptByProviderTask(provider,
                 snapshot.getProviderTaskId());
         if (attempt == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "AI_MUSIC_PROVIDER_TASK_NOT_FOUND",
                     "Provider task is not associated with an AI music job");
+        }
+        String jobId = RowUtils.str(attempt, "job_id");
+        if (!blank(expectedJobId) && !expectedJobId.equals(jobId)) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "AI_MUSIC_WEBHOOK_JOB_MISMATCH",
+                    "AI music callback does not match the protected job");
         }
         String currentStatus = RowUtils.str(attempt, "status");
         if (("completed".equals(currentStatus) || "failed".equals(currentStatus))
                 && !currentStatus.equals(snapshot.getStatus())) {
             return;
         }
-        applySnapshot(RowUtils.str(attempt, "job_id"), RowUtils.str(attempt, "attempt_id"),
-                "kie", snapshot);
+        applySnapshot(jobId, RowUtils.str(attempt, "attempt_id"), provider, snapshot);
     }
 
     private void refresh(Map<String, Object> job) {
@@ -176,31 +186,38 @@ public class AiMusicGenerationService {
                 singleton("providerTaskId", snapshot.getProviderTaskId()));
     }
 
-    private GenerateSongCommand command(AiMusicSongCreateRequest request, String requestBaseUrl,
-                                         AiMusicProvider provider) {
+    GenerateSongCommand command(AiMusicSongCreateRequest request, String requestBaseUrl,
+                                AiMusicProvider provider, String jobId) {
         boolean instrumental = Boolean.TRUE.equals(request.getInstrumental());
-        boolean providedLyrics = "provided".equalsIgnoreCase(request.getLyricsMode());
+        boolean advanced = "advanced".equalsIgnoreCase(request.getMode())
+                || "provided".equalsIgnoreCase(request.getLyricsMode());
         GenerateSongCommand command = new GenerateSongCommand();
-        command.setCustomMode(providedLyrics);
+        command.setCustomMode(advanced);
         command.setInstrumental(instrumental);
-        String prompt = providedLyrics ? request.getLyrics() : storyPrompt(request);
-        if (!providedLyrics && prompt.length() > 500) {
+        String prompt = advanced
+                ? (instrumental ? null : trim(request.getLyrics()))
+                : storyPrompt(request);
+        if (!advanced && prompt.length() > 500) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_STORY_TOO_LONG",
                     "The song story and style must fit within 500 characters");
         }
         command.setPrompt(prompt);
-        command.setStyle(providedLyrics && blank(request.getStyle()) ? "Pop" : request.getStyle());
-        command.setTitle(blank(request.getTitle()) ? "My Story Song" : request.getTitle().trim());
-        command.setModel(provider.defaultModel());
+        command.setStyle(advanced ? trim(request.getStyle()) : null);
+        command.setTitle(advanced ? trim(request.getTitle()) : null);
+        command.setModel(blank(request.getModel())
+                ? provider.defaultModel() : request.getModel().trim().toUpperCase(Locale.ROOT));
         String base = !publicBaseUrl.isEmpty() ? publicBaseUrl : trimTrailingSlash(requestBaseUrl);
-        command.setCallbackUrl(base + provider.webhookPath());
-        command.setNegativeTags(request.getNegativeTags());
-        command.setVocalGender(request.getVocalGender());
+        command.setCallbackUrl(provider.callbackUrl(base, jobId));
+        command.setNegativeTags(advanced ? trim(request.getNegativeTags()) : null);
+        command.setVocalGender(advanced && !instrumental ? trim(request.getVocalGender()) : null);
+        command.setStyleWeight(advanced ? request.getStyleWeight() : null);
+        command.setWeirdnessConstraint(advanced ? request.getWeirdnessConstraint() : null);
         return command;
     }
 
     private String storyPrompt(AiMusicSongCreateRequest request) {
-        StringBuilder prompt = new StringBuilder("Write an original song");
+        StringBuilder prompt = new StringBuilder(Boolean.TRUE.equals(request.getInstrumental())
+                ? "Create an original instrumental track" : "Write an original song");
         if (!blank(request.getLanguage())) {
             prompt.append(" in ").append(request.getLanguage().trim());
         }
@@ -209,17 +226,44 @@ public class AiMusicGenerationService {
         return prompt.toString();
     }
 
-    private void validate(AiMusicSongCreateRequest request) {
-        if ("provided".equalsIgnoreCase(request.getLyricsMode()) && blank(request.getLyrics())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LYRICS_REQUIRED",
-                    "Lyrics are required when lyricsMode is provided");
+    void validate(AiMusicSongCreateRequest request) {
+        boolean instrumental = Boolean.TRUE.equals(request.getInstrumental());
+        boolean advanced = "advanced".equalsIgnoreCase(request.getMode())
+                || "provided".equalsIgnoreCase(request.getLyricsMode());
+        if (!advanced && blank(request.getStory())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_STORY_REQUIRED",
+                    "Describe the song you want to create");
         }
-        if (Boolean.TRUE.equals(request.getInstrumental())
-                && "provided".equalsIgnoreCase(request.getLyricsMode())) {
+        if (advanced && blank(request.getTitle())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_TITLE_REQUIRED",
+                    "A title is required in Advanced mode");
+        }
+        if (advanced && blank(request.getStyle())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_STYLE_REQUIRED",
+                    "A music style is required in Advanced mode");
+        }
+        String model = blank(request.getModel()) ? "" : request.getModel().trim().toUpperCase(Locale.ROOT);
+        if (advanced && ("V4".equals(model) || "V4_5ALL".equals(model))
+                && request.getTitle() != null && request.getTitle().length() > 80) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_TITLE_TOO_LONG",
+                    "This music model supports titles up to 80 characters");
+        }
+        if (advanced && !instrumental && blank(request.getLyrics())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LYRICS_REQUIRED",
+                    "Lyrics are required for a vocal song in Advanced mode");
+        }
+        if (advanced && !instrumental
+                && !"provided".equalsIgnoreCase(request.getLyricsMode())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LYRICS_MODE_REQUIRED",
+                    "Advanced vocal songs must use provided lyrics");
+        }
+        if (instrumental && "provided".equalsIgnoreCase(request.getLyricsMode())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LYRICS_MODE_CONFLICT",
                     "Instrumental songs cannot use provided lyrics");
         }
     }
+
+    private String trim(String value) { return value == null ? null : value.trim(); }
 
     private Map<String, Object> view(Map<String, Object> row, boolean replay) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
@@ -282,7 +326,12 @@ public class AiMusicGenerationService {
     }
 
     private Map<String, Object> commandView(GenerateSongCommand command) {
-        return objectMapper.convertValue(command, new TypeReference<Map<String, Object>>() { });
+        Map<String, Object> result = objectMapper.convertValue(command,
+                new TypeReference<Map<String, Object>>() { });
+        if (result.containsKey("callbackUrl")) {
+            result.put("callbackUrl", "[provider callback URL redacted]");
+        }
+        return result;
     }
 
     private void addEvent(String jobId, String type, String status, String providerCode,

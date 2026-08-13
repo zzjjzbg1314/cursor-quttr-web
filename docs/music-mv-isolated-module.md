@@ -31,10 +31,11 @@ MUSIC_MV_CLOUDFLARE_STREAM_ACCOUNT_ID=<Cloudflare account id>
 MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN=<Stream read/edit token>
 MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL=https://customer-<code>.cloudflarestream.com
 
-# AI 写歌供应商（首个适配器为 KIE，可由 provider 配置替换）
-MUSIC_MV_AI_PROVIDER=kie
-MUSIC_MV_KIE_API_KEY=<KIE API key>
-MUSIC_MV_KIE_WEBHOOK_HMAC_KEY=<KIE settings webhook HMAC key>
+# AI 写歌供应商（默认使用 sunoapi.org，可由 provider 配置替换）
+MUSIC_MV_AI_PROVIDER=sunoapi
+MUSIC_MV_SUNOAPI_API_KEY=<sunoapi.org API key>
+# 可选；不配置时使用 API key 派生回调保护令牌
+MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET=<dedicated random secret>
 MUSIC_MV_PUBLIC_BASE_URL=https://<public website backend origin>
 ```
 
@@ -100,7 +101,15 @@ Content-Type: application/json
 - `GET /api/music-mv/v1/songs/{jobId}?refresh=true`：回调丢失时主动向供应商对账
 - `POST /api/music-mv/v1/songs/{jobId}/candidates/{candidateId}/select`：选择候选并固化到 Music MV 素材存储；响应中的 `renderMusicAsset` 可直接传入渲染任务 `music`
 
-KIE 回调边界：
+SunoAPI 回调边界：
+
+- `POST /api/music-mv/v1/provider-webhooks/sunoapi/music`
+- sunoapi.org 官方回调合同未提供请求签名；模块在每个回调 URL 中加入由服务端密钥和内部 job id 派生的不可猜令牌，并再次核对回调 task id 与 job/provider attempt 的绑定关系。
+- `MUSIC_MV_PUBLIC_BASE_URL` 必须是 sunoapi.org 可以访问的 HTTPS 网站后端地址。
+- SunoAPI task id、状态和原始响应只保存在 provider attempt；网站前端只看到稳定的 Music MV 写歌任务与候选合同。
+- SunoAPI 生成资源仅保留 15 天，因此选中候选时会复制到模块自己的 R2；R2 未配置的本地开发环境则进入本地素材存储。
+
+备用 KIE 回调边界：
 
 - `POST /api/music-mv/v1/provider-webhooks/kie/music`
 - 回调必须同时通过 `X-Webhook-Timestamp`、`X-Webhook-Signature` 的 HMAC-SHA256 校验和五分钟重放窗口。

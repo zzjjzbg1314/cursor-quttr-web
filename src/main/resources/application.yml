@@ -230,7 +230,13 @@ music-mv:
       api-token: ${MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
       delivery-base-url: ${MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL:${MUSIC_MV_STREAM_DELIVERY_URL:}}
   ai-music:
-    provider: ${MUSIC_MV_AI_PROVIDER:kie}
+    provider: ${MUSIC_MV_AI_PROVIDER:sunoapi}
+    sunoapi:
+      enabled: ${MUSIC_MV_SUNOAPI_ENABLED:true}
+      base-url: ${MUSIC_MV_SUNOAPI_BASE_URL:https://api.sunoapi.org}
+      api-key: ${MUSIC_MV_SUNOAPI_API_KEY:}
+      callback-token-secret: ${MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_API_KEY:}}
+      model: ${MUSIC_MV_SUNOAPI_MODEL:V5_5}
     kie:
       enabled: ${MUSIC_MV_KIE_ENABLED:true}
       base-url: ${MUSIC_MV_KIE_BASE_URL:https://api.kie.ai}

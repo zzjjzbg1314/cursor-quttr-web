@@ -1,5 +1,8 @@
 package com.example.cursorquitterweb.musicmv.dto;
 
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -8,12 +11,11 @@ public class AiMusicSongCreateRequest {
     @NotBlank
     @Size(max = 128)
     private String requestId;
-    @NotBlank
     @Size(max = 5000)
     private String story;
     @Size(max = 1000)
     private String style;
-    @Size(max = 80)
+    @Size(max = 100)
     private String title;
     @Size(max = 32)
     private String language;
@@ -26,6 +28,18 @@ public class AiMusicSongCreateRequest {
     private String negativeTags;
     @Pattern(regexp = "(?i)^(m|f)?$")
     private String vocalGender;
+    @Pattern(regexp = "(?i)^(simple|advanced)$")
+    private String mode = "simple";
+    @Pattern(regexp = "(?i)^(V4|V4_5|V4_5PLUS|V4_5ALL|V5|V5_5)?$")
+    private String model;
+    @DecimalMin("0.00")
+    @DecimalMax("1.00")
+    @Digits(integer = 1, fraction = 2)
+    private Double styleWeight;
+    @DecimalMin("0.00")
+    @DecimalMax("1.00")
+    @Digits(integer = 1, fraction = 2)
+    private Double weirdnessConstraint;
 
     public String getRequestId() { return requestId; }
     public void setRequestId(String value) { requestId = value; }
@@ -47,4 +61,12 @@ public class AiMusicSongCreateRequest {
     public void setNegativeTags(String value) { negativeTags = value; }
     public String getVocalGender() { return vocalGender; }
     public void setVocalGender(String value) { vocalGender = value; }
+    public String getMode() { return mode; }
+    public void setMode(String value) { mode = value; }
+    public String getModel() { return model; }
+    public void setModel(String value) { model = value; }
+    public Double getStyleWeight() { return styleWeight; }
+    public void setStyleWeight(Double value) { styleWeight = value; }
+    public Double getWeirdnessConstraint() { return weirdnessConstraint; }
+    public void setWeirdnessConstraint(Double value) { weirdnessConstraint = value; }
 }
