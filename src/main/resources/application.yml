@@ -231,6 +231,7 @@ music-mv:
       delivery-base-url: ${MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL:${MUSIC_MV_STREAM_DELIVERY_URL:}}
   ai-music:
     provider: ${MUSIC_MV_AI_PROVIDER:sunoapi}
+    task-token-secret: ${MUSIC_MV_AI_TASK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_API_KEY:}}}
     sunoapi:
       enabled: ${MUSIC_MV_SUNOAPI_ENABLED:true}
       base-url: ${MUSIC_MV_SUNOAPI_BASE_URL:https://api.sunoapi.org}

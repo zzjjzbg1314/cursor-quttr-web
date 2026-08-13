@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.GenerateSongCommand;
+import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.LyricsSnapshot;
 import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.Submission;
 import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.TaskSnapshot;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
@@ -122,6 +123,44 @@ class SunoApiAiMusicProviderTest {
         assertThat(snapshot.getStatus()).isEqualTo("completed");
         assertThat(snapshot.getCandidates()).hasSize(1);
         assertThat(snapshot.getCandidates().get(0).getDurationSeconds()).isEqualTo(181.0d);
+    }
+
+    @Test
+    void submitsAndQueriesStandaloneLyrics() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(once(), requestTo("https://api.sunoapi.test/api/v1/lyrics"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer suno-secret"))
+                .andExpect(jsonPath("$.prompt").value("A song about growing up together"))
+                .andExpect(jsonPath("$.callBackUrl").value("https://app.test/lyrics-callback"))
+                .andRespond(withSuccess("{\"code\":200,\"data\":{\"taskId\":\"lyrics-1\"}}",
+                        MediaType.APPLICATION_JSON));
+        SunoApiAiMusicProvider provider = provider(restTemplate);
+
+        Submission submission = provider.submitLyrics("A song about growing up together",
+                "https://app.test/lyrics-callback");
+
+        assertThat(submission.getProviderTaskId()).isEqualTo("lyrics-1");
+        server.verify();
+
+        server.reset();
+        server.expect(once(), requestTo(
+                        "https://api.sunoapi.test/api/v1/lyrics/record-info?taskId=lyrics-1"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\"code\":200,\"data\":{\"taskId\":\"lyrics-1\","
+                        + "\"status\":\"SUCCESS\",\"response\":{\"data\":[{"
+                        + "\"title\":\"Growing Up\",\"text\":\"[Verse]\\nSide by side\","
+                        + "\"status\":\"complete\",\"errorMessage\":\"\"}]}}}",
+                        MediaType.APPLICATION_JSON));
+
+        LyricsSnapshot snapshot = provider.queryLyrics("lyrics-1");
+
+        assertThat(snapshot.getStatus()).isEqualTo("completed");
+        assertThat(snapshot.getCandidates()).hasSize(1);
+        assertThat(snapshot.getCandidates().get(0).getTitle()).isEqualTo("Growing Up");
+        assertThat(snapshot.getCandidates().get(0).getText()).contains("[Verse]");
+        server.verify();
     }
 
     private SunoApiAiMusicProvider provider(RestTemplate restTemplate) {

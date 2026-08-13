@@ -32,6 +32,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.support.ApiException;
+import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.LyricsCandidate;
+import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.LyricsSnapshot;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,6 +82,43 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
     @Override
     public String webhookPath() {
         return "/api/music-mv/v1/provider-webhooks/sunoapi/music";
+    }
+
+    @Override
+    public boolean supportsLyrics() { return true; }
+
+    @Override
+    public Submission submitLyrics(String prompt, String callbackUrl) {
+        ensureConfigured();
+        Map<String, Object> body = new LinkedHashMap<String, Object>();
+        body.put("prompt", prompt);
+        body.put("callBackUrl", callbackUrl);
+        Map<String, Object> response = exchange(HttpMethod.POST, "/api/v1/lyrics", body);
+        String taskId = text(node(response).path("data"), "taskId", "task_id");
+        if (blank(taskId)) {
+            throw providerError("SUNOAPI_LYRICS_RESPONSE_INVALID",
+                    "SunoAPI accepted the lyrics request but returned no task id", false);
+        }
+        return new Submission(taskId, response);
+    }
+
+    @Override
+    public LyricsSnapshot queryLyrics(String providerTaskId) {
+        ensureConfigured();
+        String path = UriComponentsBuilder.fromPath("/api/v1/lyrics/record-info")
+                .queryParam("taskId", providerTaskId).build().encode().toUriString();
+        Map<String, Object> response = exchange(HttpMethod.GET, path, null);
+        JsonNode data = node(response).path("data");
+        LyricsSnapshot snapshot = new LyricsSnapshot();
+        String responseTaskId = text(data, "taskId", "task_id");
+        snapshot.setProviderTaskId(blank(responseTaskId) ? providerTaskId : responseTaskId);
+        snapshot.setStatus(normalizeLyricsStatus(text(data, "status")));
+        snapshot.setErrorCode(text(data, "errorCode", "error_code"));
+        snapshot.setErrorMessage(text(data, "errorMessage", "error_message"));
+        snapshot.setRetryable(isLyricsRetryable(text(data, "status"), snapshot.getErrorCode()));
+        snapshot.setCandidates(parseLyricsCandidates(data.path("response").path("data")));
+        snapshot.setRaw(response);
+        return snapshot;
     }
 
     @Override
@@ -231,6 +270,20 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
         return result;
     }
 
+    private List<LyricsCandidate> parseLyricsCandidates(JsonNode values) {
+        List<LyricsCandidate> result = new ArrayList<LyricsCandidate>();
+        if (!values.isArray()) return result;
+        for (JsonNode value : values) {
+            LyricsCandidate candidate = new LyricsCandidate();
+            candidate.setTitle(text(value, "title"));
+            candidate.setText(text(value, "text", "lyrics"));
+            candidate.setStatus(text(value, "status"));
+            candidate.setErrorMessage(text(value, "errorMessage", "error_message"));
+            if (!blank(candidate.getText())) result.add(candidate);
+        }
+        return result;
+    }
+
     private String normalizeStatus(String status) {
         String normalized = upper(status);
         if ("SUCCESS".equals(normalized)) return "completed";
@@ -245,6 +298,22 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
         if (code != 200 || "error".equalsIgnoreCase(callbackType)) return "failed";
         if ("complete".equalsIgnoreCase(callbackType)) return "completed";
         return "generating";
+    }
+
+    private String normalizeLyricsStatus(String status) {
+        String normalized = upper(status);
+        if ("SUCCESS".equals(normalized)) return "completed";
+        if ("PENDING".equals(normalized) || blank(normalized)) return "queued";
+        return "failed";
+    }
+
+    private boolean isLyricsRetryable(String status, String errorCode) {
+        String normalized = upper(status);
+        return "CREATE_TASK_FAILED".equals(normalized)
+                || "GENERATE_LYRICS_FAILED".equals(normalized)
+                || "CALLBACK_EXCEPTION".equals(normalized)
+                || "451".equals(errorCode) || "455".equals(errorCode)
+                || "500".equals(errorCode);
     }
 
     private boolean isRetryable(String status, String errorCode) {

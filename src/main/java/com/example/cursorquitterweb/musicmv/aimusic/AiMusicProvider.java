@@ -23,6 +23,20 @@ public interface AiMusicProvider {
 
     TaskSnapshot query(String providerTaskId);
 
+    default boolean supportsLyrics() { return false; }
+
+    default String lyricsWebhookPath() {
+        return "/api/music-mv/v1/provider-webhooks/" + providerCode() + "/lyrics";
+    }
+
+    default Submission submitLyrics(String prompt, String callbackUrl) {
+        throw new UnsupportedOperationException("Lyrics generation is not supported");
+    }
+
+    default LyricsSnapshot queryLyrics(String providerTaskId) {
+        throw new UnsupportedOperationException("Lyrics generation is not supported");
+    }
+
     final class GenerateSongCommand {
         private String prompt;
         private String style;
@@ -129,5 +143,48 @@ public interface AiMusicProvider {
         public void setImageUrl(String value) { imageUrl = value; }
         public Map<String, Object> getRaw() { return raw; }
         public void setRaw(Map<String, Object> value) { raw = value; }
+    }
+
+    final class LyricsSnapshot {
+        private String providerTaskId;
+        private String status;
+        private String errorCode;
+        private String errorMessage;
+        private boolean retryable;
+        private List<LyricsCandidate> candidates = new ArrayList<LyricsCandidate>();
+        private Map<String, Object> raw;
+
+        public String getProviderTaskId() { return providerTaskId; }
+        public void setProviderTaskId(String value) { providerTaskId = value; }
+        public String getStatus() { return status; }
+        public void setStatus(String value) { status = value; }
+        public String getErrorCode() { return errorCode; }
+        public void setErrorCode(String value) { errorCode = value; }
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String value) { errorMessage = value; }
+        public boolean isRetryable() { return retryable; }
+        public void setRetryable(boolean value) { retryable = value; }
+        public List<LyricsCandidate> getCandidates() { return candidates; }
+        public void setCandidates(List<LyricsCandidate> value) {
+            candidates = value == null ? new ArrayList<LyricsCandidate>() : value;
+        }
+        public Map<String, Object> getRaw() { return raw; }
+        public void setRaw(Map<String, Object> value) { raw = value; }
+    }
+
+    final class LyricsCandidate {
+        private String title;
+        private String text;
+        private String status;
+        private String errorMessage;
+
+        public String getTitle() { return title; }
+        public void setTitle(String value) { title = value; }
+        public String getText() { return text; }
+        public void setText(String value) { text = value; }
+        public String getStatus() { return status; }
+        public void setStatus(String value) { status = value; }
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String value) { errorMessage = value; }
     }
 }
