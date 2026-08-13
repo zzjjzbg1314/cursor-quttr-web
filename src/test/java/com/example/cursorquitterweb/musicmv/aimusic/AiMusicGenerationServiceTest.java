@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.musicmv.aimusic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -89,6 +90,37 @@ class AiMusicGenerationServiceTest {
                 .isInstanceOfSatisfying(ApiException.class,
                         exception -> assertThat(exception.getCode())
                                 .isEqualTo("AI_MUSIC_WEBHOOK_JOB_MISMATCH"));
+    }
+
+    @Test
+    void serverSideSyncQueriesPersistedTaskWithoutSubmittingAgain() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        Map<String, Object> job = new LinkedHashMap<String, Object>();
+        job.put("job_id", "aimusic_1");
+        Map<String, Object> attempt = new LinkedHashMap<String, Object>();
+        attempt.put("attempt_id", "attempt_1");
+        attempt.put("provider_code", "sunoapi");
+        attempt.put("provider_task_id", "provider_task_1");
+        TaskSnapshot snapshot = new TaskSnapshot();
+        snapshot.setProviderTaskId("provider_task_1");
+        snapshot.setStatus("completed");
+        snapshot.setCandidates(Collections.<AiMusicProvider.Candidate>emptyList());
+        when(repository.refreshableJobs(8, 20)).thenReturn(Collections.singletonList(job));
+        when(repository.claimStatusRefresh("aimusic_1", null)).thenReturn(true);
+        when(repository.activeAttempt("aimusic_1")).thenReturn(attempt);
+        when(provider.providerCode()).thenReturn("sunoapi");
+        when(provider.query("provider_task_1")).thenReturn(snapshot);
+        AiMusicGenerationService service = new AiMusicGenerationService(repository,
+                new AiMusicProviderRegistry(Collections.singletonList(provider)),
+                mock(AiMusicCandidateStorageService.class), new ObjectMapper(),
+                "sunoapi", "https://app.test");
+
+        assertThat(service.synchronizeActiveJobs(8, 20)).isEqualTo(1);
+
+        verify(provider).query("provider_task_1");
+        verify(repository).applySnapshot("aimusic_1", "attempt_1", "completed",
+                "null", null, null, false);
     }
 
     private AiMusicGenerationService service() {

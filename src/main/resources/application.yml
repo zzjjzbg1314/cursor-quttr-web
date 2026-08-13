@@ -232,6 +232,14 @@ music-mv:
   ai-music:
     provider: ${MUSIC_MV_AI_PROVIDER:sunoapi}
     task-token-secret: ${MUSIC_MV_AI_TASK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_API_KEY:}}}
+    # Server-side status reconciliation. It only queries already submitted provider task ids;
+    # browser polling can pause without leaving a song permanently stuck in "generating".
+    status-sync:
+      enabled: ${MUSIC_MV_AI_STATUS_SYNC_ENABLED:true}
+      interval-ms: ${MUSIC_MV_AI_STATUS_SYNC_INTERVAL_MS:5000}
+      initial-delay-ms: ${MUSIC_MV_AI_STATUS_SYNC_INITIAL_DELAY_MS:5000}
+      stale-after-seconds: ${MUSIC_MV_AI_STATUS_SYNC_STALE_AFTER_SECONDS:8}
+      batch-size: ${MUSIC_MV_AI_STATUS_SYNC_BATCH_SIZE:20}
     sunoapi:
       enabled: ${MUSIC_MV_SUNOAPI_ENABLED:true}
       base-url: ${MUSIC_MV_SUNOAPI_BASE_URL:https://api.sunoapi.org}

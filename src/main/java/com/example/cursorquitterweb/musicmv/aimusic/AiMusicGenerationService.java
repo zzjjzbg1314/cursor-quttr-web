@@ -11,6 +11,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -28,6 +30,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class AiMusicGenerationService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AiMusicGenerationService.class);
     private final AiMusicJobRepository repository;
     private final AiMusicProviderRegistry providers;
     private final AiMusicCandidateStorageService candidateStorage;
@@ -130,6 +133,29 @@ public class AiMusicGenerationService {
         addEvent(jobId, "candidate_selected", "completed", RowUtils.str(job, "primary_provider_code"),
                 singleton("candidateId", candidateId));
         return get(clientId, jobId, false);
+    }
+
+    /**
+     * Refreshes stale active jobs independently of browser polling. Provider queries are
+     * idempotent and use the already persisted provider task id, so this cannot create a second
+     * paid generation request.
+     */
+    public int synchronizeActiveJobs(int staleAfterSeconds, int limit) {
+        int synchronizedCount = 0;
+        for (Map<String, Object> job : repository.refreshableJobs(staleAfterSeconds, limit)) {
+            try {
+                if (!repository.claimStatusRefresh(RowUtils.str(job, "job_id"),
+                        RowUtils.str(job, "updated_at"))) {
+                    continue;
+                }
+                refresh(job);
+                synchronizedCount++;
+            } catch (RuntimeException exception) {
+                LOGGER.warn("AI music status sync failed for job {}: {}",
+                        RowUtils.str(job, "job_id"), exception.getMessage());
+            }
+        }
+        return synchronizedCount;
     }
 
     public void acceptKieCallback(TaskSnapshot snapshot) {

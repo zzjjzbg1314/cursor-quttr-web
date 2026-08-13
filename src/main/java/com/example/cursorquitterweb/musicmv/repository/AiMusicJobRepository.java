@@ -91,6 +91,30 @@ public class AiMusicJobRepository {
                         + "ON j.active_attempt_id=a.attempt_id WHERE j.job_id=? LIMIT 1", jobId).firstRow();
     }
 
+    /**
+     * Returns provider-backed jobs whose browser polling has gone quiet. The stale cutoff lets
+     * browser polling remain the fast path while the server takes over whenever the page is
+     * hidden, closed, offline, or suspended.
+     */
+    public List<Map<String, Object>> refreshableJobs(int staleAfterSeconds, int limit) {
+        String staleModifier = "-" + Math.max(1, staleAfterSeconds) + " seconds";
+        return d1.query("SELECT " + prefixedJobColumns("j") + " FROM ai_music_jobs j "
+                        + "JOIN ai_music_provider_attempts a ON a.attempt_id=j.active_attempt_id "
+                        + "WHERE j.status IN ('queued','generating') "
+                        + "AND a.provider_task_id IS NOT NULL AND a.provider_task_id<>'' "
+                        + "AND j.updated_at<=datetime('now',?) "
+                        + "ORDER BY j.updated_at,j.created_at LIMIT ?",
+                staleModifier, Integer.valueOf(Math.max(1, limit))).getRows();
+    }
+
+    /** Atomically leases one stale row so only one application instance queries the provider. */
+    public boolean claimStatusRefresh(String jobId, String expectedUpdatedAt) {
+        return d1.query("UPDATE ai_music_jobs SET updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE job_id=? AND updated_at=? AND status IN ('queued','generating') "
+                        + "RETURNING job_id",
+                jobId, expectedUpdatedAt).firstRow() != null;
+    }
+
     public void applySnapshot(String jobId, String attemptId, String status, String rawJson,
                               String errorCode, String errorMessage, boolean retryable) {
         String attemptStatus = status;
@@ -173,5 +197,15 @@ public class AiMusicJobRepository {
                         + "(event_id,job_id,event_type,status,provider_code,detail_json,created_at) "
                         + "VALUES (?,?,?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
                 eventId, jobId, type, status, providerCode, detailJson);
+    }
+
+    private String prefixedJobColumns(String alias) {
+        String[] columns = JOB_COLUMNS.split(",");
+        StringBuilder result = new StringBuilder();
+        for (String column : columns) {
+            if (result.length() > 0) result.append(',');
+            result.append(alias).append('.').append(column);
+        }
+        return result.toString();
     }
 }
