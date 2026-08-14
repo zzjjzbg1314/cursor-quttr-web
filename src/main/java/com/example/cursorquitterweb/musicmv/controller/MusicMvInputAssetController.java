@@ -51,7 +51,7 @@ public class MusicMvInputAssetController {
             HttpServletRequest request
     ) throws IOException {
         authentication.requireAuthorized(token);
-        String ownerId = auth.effectiveClientId(request, clientId);
+        String ownerId = auth.requireUserId(request);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         StoredInputAsset asset = storage.store(ownerId, kind, fileName,
                 request.getContentType(), sizeBytes,

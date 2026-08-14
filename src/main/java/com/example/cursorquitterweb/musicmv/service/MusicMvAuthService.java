@@ -100,6 +100,21 @@ public class MusicMvAuthService {
         return clientId;
     }
 
+    /**
+     * Returns the authenticated product user that owns the current request.
+     * Browser supplied workspace ids are deliberately ignored here: protected
+     * music and render APIs must derive ownership from the signed session only.
+     */
+    public String requireUserId(HttpServletRequest request) {
+        Map<String, Object> user = sessionUser(request);
+        String userId = user == null ? null : trim(RowUtils.str(user, "user_id"));
+        if (userId == null) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED",
+                    "Sign in to create and access your music");
+        }
+        return userId;
+    }
+
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         String token = cookie(request, SESSION_COOKIE);
         if (token != null) repository.revokeSession(sha256(token));

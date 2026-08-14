@@ -218,6 +218,9 @@ CREATE INDEX IF NOT EXISTS idx_template_media_lookup
 -- payloads are kept in attempts so the product contract never depends on KIE.
 CREATE TABLE IF NOT EXISTS ai_music_jobs (
   job_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  -- Retained during the v4 transition so older deployed readers can coexist.
+  -- New writes always store the authenticated user id in both columns.
   client_id TEXT NOT NULL,
   request_id TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -234,15 +237,21 @@ CREATE TABLE IF NOT EXISTS ai_music_jobs (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   completed_at TEXT,
-  UNIQUE (client_id, request_id)
+  UNIQUE (client_id, request_id),
+  UNIQUE (user_id, request_id),
+  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_user
+  ON ai_music_jobs(user_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_music_jobs_user_request
+  ON ai_music_jobs(user_id, request_id) WHERE user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_client
   ON ai_music_jobs(client_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_status
   ON ai_music_jobs(status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_library
-  ON ai_music_jobs(client_id, status, job_id);
+  ON ai_music_jobs(user_id, status, job_id);
 
 CREATE TABLE IF NOT EXISTS ai_music_provider_attempts (
   attempt_id TEXT PRIMARY KEY,

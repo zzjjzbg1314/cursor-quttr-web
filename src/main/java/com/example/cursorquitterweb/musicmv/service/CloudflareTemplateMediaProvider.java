@@ -79,6 +79,30 @@ public class CloudflareTemplateMediaProvider {
 
     public boolean imagesDeliveryConfigured() { return !imagesDeliveryBaseUrl.isEmpty(); }
     public boolean streamDeliveryConfigured() { return !streamDeliveryBaseUrl.isEmpty(); }
+
+    /**
+     * Builds public delivery fields from the stable provider asset id at response time.
+     * D1 intentionally stores the provider and asset id as the source of truth; generated
+     * URLs are deployment configuration and therefore must not be required in persisted JSON.
+     */
+    public Map<String, Object> resolveDeliveryDetails(String provider, String providerAssetId,
+                                                       Map<String, Object> persistedDetails) {
+        Map<String, Object> details = new LinkedHashMap<String, Object>();
+        if (persistedDetails != null) details.putAll(persistedDetails);
+        String assetId = trim(providerAssetId);
+        if (assetId.isEmpty()) return details;
+
+        if ("cloudflare_images".equals(provider) && imagesDeliveryConfigured()) {
+            putIfBlank(details, "deliveryUrl",
+                    imagesDeliveryBaseUrl + "/" + assetId + "/public");
+        } else if ("cloudflare_stream".equals(provider) && streamDeliveryConfigured()) {
+            Map<String, Object> generated = streamDeliveryDetails(assetId);
+            putIfBlank(details, "playbackUrl", generated.get("playbackUrl"));
+            putIfBlank(details, "thumbnailUrl", generated.get("thumbnailUrl"));
+        }
+        return details;
+    }
+
     public boolean imagesDeliveryValid() {
         try {
             URI uri = URI.create(imagesDeliveryBaseUrl);
@@ -160,6 +184,27 @@ public class CloudflareTemplateMediaProvider {
         return new MediaState(ready ? "ready" : "processing", details);
     }
 
+    public boolean isReusableReadyAsset(String provider, String providerAssetId) {
+        try {
+            MediaState state;
+            if ("cloudflare_images".equals(provider)) {
+                state = imageState(providerAssetId);
+            } else if ("cloudflare_stream".equals(provider)) {
+                state = streamState(providerAssetId);
+            } else {
+                return false;
+            }
+            return "ready".equals(state.getStatus());
+        } catch (IllegalStateException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof HttpStatusCodeException
+                    && ((HttpStatusCodeException) cause).getRawStatusCode() == 404) {
+                return false;
+            }
+            throw exception;
+        }
+    }
+
     public MediaState streamState(String providerAssetId) {
         requireStreamConfigured();
         JsonNode result = jsonExchange(apiBaseUrl + "/accounts/" + streamAccountId
@@ -207,6 +252,13 @@ public class CloudflareTemplateMediaProvider {
         details.put("playbackUrl", streamDeliveryBaseUrl + "/" + uid + "/manifest/video.m3u8");
         details.put("thumbnailUrl", streamDeliveryBaseUrl + "/" + uid + "/thumbnails/thumbnail.jpg");
         return details;
+    }
+
+    private static void putIfBlank(Map<String, Object> target, String key, Object value) {
+        Object existing = target.get(key);
+        if (existing == null || String.valueOf(existing).trim().isEmpty()) {
+            target.put(key, value);
+        }
     }
 
     private void requireImagesConfigured() {

@@ -48,7 +48,7 @@ class AiMusicJobRepositoryTest {
         repository.libraryCandidates("client_1", "100%_Love", "selected", "title", 25,
                 null, null, null);
 
-        assertThat(d1.sql).contains("j.client_id=?");
+        assertThat(d1.sql).contains("j.user_id=?");
         assertThat(d1.sql).contains("j.status='completed'");
         assertThat(d1.sql).contains("LOWER(COALESCE(c.title,'')) LIKE ? ESCAPE");
         assertThat(d1.sql).contains("c.selected=1");

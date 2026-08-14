@@ -18,19 +18,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
     private MusicMvTemplateCatalogRepository repository;
+    private CloudflareTemplateMediaProvider mediaProvider;
     private MusicMvTemplateCatalogService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(MusicMvTemplateCatalogRepository.class);
+        mediaProvider = mock(CloudflareTemplateMediaProvider.class);
         service = new MusicMvTemplateCatalogService(repository,
-                mock(CloudflareTemplateMediaProvider.class), mock(D1DatabaseClient.class),
+                mediaProvider, mock(D1DatabaseClient.class),
                 new ObjectMapper());
         Map<String, Object> category = new LinkedHashMap<String, Object>();
         category.put("enabled", Integer.valueOf(1));
@@ -75,6 +78,42 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_MEDIA_NOT_READY", error.getCode());
         verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
+    void replacesReadyDatabaseRecordWhenCloudflareAssetWasDeleted() {
+        Map<String, Object> version = row("version_id", "tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        Map<String, Object> existing = row("media_id", "media_1");
+        existing.put("source_sha256", hash('a'));
+        existing.put("status", "ready");
+        existing.put("provider", "cloudflare_images");
+        existing.put("provider_asset_id", "deleted-image");
+        existing.put("provider_details_json", "{\"ready\":true}");
+        when(repository.mediaByRole("tplver_1", "cover")).thenReturn(existing);
+        when(mediaProvider.isReusableReadyAsset("cloudflare_images", "deleted-image"))
+                .thenReturn(false);
+        when(mediaProvider.createImageUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_images", "replacement-image", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("cover");
+        request.setSourceSha256(hash('a'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setWidth(Integer.valueOf(1080));
+        request.setHeight(Integer.valueOf(1920));
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", false, request);
+
+        assertEquals("media_1", result.get("mediaId"));
+        assertEquals("awaiting_upload", result.get("status"));
+        assertFalse((Boolean) result.get("idempotentReplay"));
+        verify(repository).upsertMedia(anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString(), anyString(), any(Long.class),
+                any(), any(), any(), anyString());
     }
 
     private TemplatePromotionRequest validPromotion() {

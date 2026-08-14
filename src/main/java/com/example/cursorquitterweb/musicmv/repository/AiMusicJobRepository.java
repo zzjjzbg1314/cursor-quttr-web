@@ -13,7 +13,7 @@ import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
 @Repository
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class AiMusicJobRepository {
-    private static final String JOB_COLUMNS = "job_id,client_id,request_id,status,stage,progress,"
+    private static final String JOB_COLUMNS = "job_id,user_id,client_id,request_id,status,stage,progress,"
             + "primary_provider_code,active_attempt_id,selected_candidate_id,request_fingerprint,"
             + "request_json,error_code,error_message,retryable,created_at,updated_at,completed_at";
 
@@ -23,9 +23,9 @@ public class AiMusicJobRepository {
         this.d1 = d1;
     }
 
-    public Map<String, Object> byClientRequest(String clientId, String requestId) {
+    public Map<String, Object> byClientRequest(String userId, String requestId) {
         return d1.query("SELECT " + JOB_COLUMNS + " FROM ai_music_jobs "
-                + "WHERE client_id=? AND request_id=? LIMIT 1", clientId, requestId).firstRow();
+                + "WHERE user_id=? AND request_id=? LIMIT 1", userId, requestId).firstRow();
     }
 
     public Map<String, Object> byId(String jobId) {
@@ -33,17 +33,17 @@ public class AiMusicJobRepository {
                 jobId).firstRow();
     }
 
-    public Map<String, Object> owned(String clientId, String jobId) {
+    public Map<String, Object> owned(String userId, String jobId) {
         return d1.query("SELECT " + JOB_COLUMNS + " FROM ai_music_jobs "
-                + "WHERE job_id=? AND client_id=? LIMIT 1", jobId, clientId).firstRow();
+                + "WHERE job_id=? AND user_id=? LIMIT 1", jobId, userId).firstRow();
     }
 
-    public void create(String jobId, String clientId, String requestId, String providerCode,
+    public void create(String jobId, String userId, String requestId, String providerCode,
                        String fingerprint, String requestJson) {
-        d1.query("INSERT INTO ai_music_jobs (job_id,client_id,request_id,status,stage,progress,"
+        d1.query("INSERT INTO ai_music_jobs (job_id,user_id,client_id,request_id,status,stage,progress,"
                         + "primary_provider_code,request_fingerprint,request_json,retryable,created_at,updated_at) "
-                        + "VALUES (?,?,?,'submitting','provider_submission',0,?,?,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
-                jobId, clientId, requestId, providerCode, fingerprint, requestJson);
+                        + "VALUES (?,?,?,?,'submitting','provider_submission',0,?,?,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
+                jobId, userId, userId, requestId, providerCode, fingerprint, requestJson);
     }
 
     public void createAttempt(String attemptId, String jobId, String providerCode,
@@ -161,12 +161,12 @@ public class AiMusicJobRepository {
                 + "WHERE job_id=? ORDER BY created_at,candidate_id", jobId).getRows();
     }
 
-    public List<Map<String, Object>> libraryCandidates(String clientId, String keyword,
+    public List<Map<String, Object>> libraryCandidates(String userId, String keyword,
                                                         String filter, String sort,
                                                         int limit, Object cursorSortValue,
                                                         String cursorCreatedAt,
                                                         String cursorCandidateId) {
-        LibraryQuery query = libraryQuery(clientId, keyword, filter);
+        LibraryQuery query = libraryQuery(userId, keyword, filter);
         List<Object> params = new ArrayList<Object>(query.params);
         StringBuilder where = new StringBuilder(query.where);
         appendLibraryCursor(where, params, sort, cursorSortValue, cursorCreatedAt,
@@ -284,10 +284,10 @@ public class AiMusicJobRepository {
         return result.toString();
     }
 
-    private LibraryQuery libraryQuery(String clientId, String keyword, String filter) {
-        StringBuilder where = new StringBuilder("WHERE j.client_id=? AND j.status='completed'");
+    private LibraryQuery libraryQuery(String userId, String keyword, String filter) {
+        StringBuilder where = new StringBuilder("WHERE j.user_id=? AND j.status='completed'");
         List<Object> params = new ArrayList<Object>();
-        params.add(clientId);
+        params.add(userId);
         String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         if (!normalizedKeyword.isEmpty()) {
             String like = "%" + escapeLike(normalizedKeyword) + "%";

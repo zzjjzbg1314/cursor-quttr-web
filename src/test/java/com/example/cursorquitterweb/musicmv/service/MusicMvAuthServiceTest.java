@@ -53,4 +53,32 @@ class MusicMvAuthServiceTest {
 
         assertEquals("usr_signed_in", service.effectiveClientId(request, "web_attacker1"));
     }
+
+    @Test
+    void protectedMusicApiRequiresSignedInSession() {
+        MusicMvAuthService service = new MusicMvAuthService(mock(MusicMvAuthRepository.class),
+                mock(MusicMvOidcIdentityService.class), 30);
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.requireUserId(new MockHttpServletRequest()));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, error.getStatus());
+        assertEquals("AUTH_REQUIRED", error.getCode());
+    }
+
+    @Test
+    void protectedMusicApiUsesSessionUserOnly() {
+        MusicMvAuthRepository repository = mock(MusicMvAuthRepository.class);
+        Map<String, Object> user = new LinkedHashMap<String, Object>();
+        user.put("user_id", "usr_signed_in");
+        user.put("session_id", "session_1");
+        when(repository.findBySessionTokenHash(anyString())).thenReturn(user);
+        MusicMvAuthService service = new MusicMvAuthService(repository,
+                mock(MusicMvOidcIdentityService.class), 30);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new javax.servlet.http.Cookie(MusicMvAuthService.SESSION_COOKIE,
+                "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"));
+
+        assertEquals("usr_signed_in", service.requireUserId(request));
+    }
 }

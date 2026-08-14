@@ -178,7 +178,9 @@ public class MusicMvTemplateCatalogService {
         }
         Map<String, Object> existing = repository.mediaByRole(versionId, expectedRole);
         if (existing != null && request.getSourceSha256().equalsIgnoreCase(
-                RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))) {
+                RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))
+                && mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),
+                RowUtils.str(existing, "provider_asset_id"))) {
             Map<String, Object> ready = mediaSessionView(RowUtils.str(existing, "media_id"),
                     null, "ready", parseObject(RowUtils.str(existing, "provider_details_json")));
             ready.put("idempotentReplay", Boolean.TRUE);
@@ -403,7 +405,9 @@ public class MusicMvTemplateCatalogService {
                     {"durationSeconds","duration_seconds"},{"errorMessage","error_message"},
                     {"createdAt","created_at"},{"updatedAt","updated_at"},{"readyAt","ready_at"}};
             for (String[] field : fields) copy(item, field[0], row, field[1]);
-            item.put("providerDetails", parseObject(RowUtils.str(row, "provider_details_json")));
+            item.put("providerDetails", mediaProvider.resolveDeliveryDetails(
+                    RowUtils.str(row, "provider"), RowUtils.str(row, "provider_asset_id"),
+                    parseObject(RowUtils.str(row, "provider_details_json"))));
             result.add(item);
         }
         return result;
@@ -414,9 +418,11 @@ public class MusicMvTemplateCatalogService {
         if (provider == null) return null;
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("provider", provider);
-        result.put("providerAssetId", RowUtils.str(row, prefix + "_asset_id"));
-        result.put("providerDetails", parseObject(RowUtils.str(row,
-                prefix + "_provider_details_json")));
+        String providerAssetId = RowUtils.str(row, prefix + "_asset_id");
+        result.put("providerAssetId", providerAssetId);
+        result.put("providerDetails", mediaProvider.resolveDeliveryDetails(
+                provider, providerAssetId, parseObject(RowUtils.str(row,
+                        prefix + "_provider_details_json"))));
         return result;
     }
 

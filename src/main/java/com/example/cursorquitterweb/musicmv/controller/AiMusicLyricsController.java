@@ -47,7 +47,7 @@ public class AiMusicLyricsController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        String ownerId = auth.effectiveClientId(servletRequest, clientId);
+        String ownerId = auth.requireUserId(servletRequest);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();
@@ -62,6 +62,6 @@ public class AiMusicLyricsController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(auth.effectiveClientId(servletRequest, clientId), taskId);
+        return service.get(auth.requireUserId(servletRequest), taskId);
     }
 }

@@ -97,8 +97,8 @@ public class MusicMvAuthRepository {
     public void claimAnonymousWork(String userId, String anonymousClientId) {
         if (anonymousClientId == null || anonymousClientId.equals(userId)) return;
         List<D1Statement> statements = Arrays.asList(
-                D1Statement.of("UPDATE ai_music_jobs SET client_id=?,updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE client_id=?", userId, anonymousClientId),
+                D1Statement.of("UPDATE ai_music_jobs SET user_id=?,client_id=?,updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE client_id=?", userId, userId, anonymousClientId),
                 D1Statement.of("UPDATE music_mv_render_jobs SET client_id=?,updated_at=CURRENT_TIMESTAMP "
                         + "WHERE client_id=?", userId, anonymousClientId)
         );

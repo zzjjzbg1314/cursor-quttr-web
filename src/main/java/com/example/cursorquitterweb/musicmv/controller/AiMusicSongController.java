@@ -49,7 +49,7 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        String ownerId = auth.effectiveClientId(servletRequest, clientId);
+        String ownerId = auth.requireUserId(servletRequest);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();
@@ -68,7 +68,7 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.list(auth.effectiveClientId(servletRequest, clientId),
+        return service.list(auth.requireUserId(servletRequest),
                 keyword, filter, sort, cursor, pageSize);
     }
 
@@ -81,7 +81,7 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(auth.effectiveClientId(servletRequest, clientId), jobId, refresh);
+        return service.get(auth.requireUserId(servletRequest), jobId, refresh);
     }
 
     @PostMapping("/{jobId}/candidates/{candidateId}/select")
@@ -93,7 +93,7 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        String ownerId = auth.effectiveClientId(servletRequest, clientId);
+        String ownerId = auth.requireUserId(servletRequest);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();

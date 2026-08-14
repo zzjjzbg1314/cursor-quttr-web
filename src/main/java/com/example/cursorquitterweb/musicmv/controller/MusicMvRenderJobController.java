@@ -58,7 +58,7 @@ public class MusicMvRenderJobController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.create(auth.effectiveClientId(servletRequest, clientId), request);
+        return service.create(auth.requireUserId(servletRequest), request);
     }
 
     @GetMapping("/{jobId}")
@@ -69,7 +69,7 @@ public class MusicMvRenderJobController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(auth.effectiveClientId(servletRequest, clientId), jobId);
+        return service.get(auth.requireUserId(servletRequest), jobId);
     }
 
     @PostMapping("/{jobId}/cancel")
@@ -80,7 +80,7 @@ public class MusicMvRenderJobController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.cancel(auth.effectiveClientId(servletRequest, clientId), jobId);
+        return service.cancel(auth.requireUserId(servletRequest), jobId);
     }
 
     @GetMapping("/{jobId}/output")
@@ -94,7 +94,7 @@ public class MusicMvRenderJobController {
             HttpServletResponse servletResponse
     ) throws IOException {
         authentication.requireAuthorized(token);
-        OutputAccess output = service.output(auth.effectiveClientId(servletRequest, clientId), jobId);
+        OutputAccess output = service.output(auth.requireUserId(servletRequest), jobId);
         if (output.getRedirectUrl() != null) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(output.getRedirectUrl())).build();

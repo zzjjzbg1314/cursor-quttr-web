@@ -18,6 +18,9 @@ import java.net.URI;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.MediaState;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.UploadSession;
@@ -74,6 +77,36 @@ class CloudflareTemplateMediaProviderTest {
         CloudflareTemplateMediaProvider provider = provider(new RestTemplate());
         assertTrue(provider.imagesDeliveryValid());
         assertTrue(provider.streamDeliveryValid());
+    }
+
+    @Test
+    void resolvesImageDeliveryUrlFromPersistedProviderAssetId() {
+        Map<String, Object> persisted = new LinkedHashMap<String, Object>();
+        persisted.put("ready", Boolean.TRUE);
+
+        Map<String, Object> details = provider(new RestTemplate()).resolveDeliveryDetails(
+                "cloudflare_images", "existing-image-id", persisted);
+
+        assertEquals(Boolean.TRUE, details.get("ready"));
+        assertEquals("https://imagedelivery.net/account-hash/existing-image-id/public",
+                details.get("deliveryUrl"));
+        assertEquals(null, persisted.get("deliveryUrl"));
+    }
+
+    @Test
+    void preservesPersistedDeliveryUrlAndResolvesStreamFields() {
+        Map<String, Object> persistedImage = new LinkedHashMap<String, Object>();
+        persistedImage.put("deliveryUrl", "https://images.example/custom.jpg");
+        Map<String, Object> imageDetails = provider(new RestTemplate()).resolveDeliveryDetails(
+                "cloudflare_images", "image-id", persistedImage);
+        assertEquals("https://images.example/custom.jpg", imageDetails.get("deliveryUrl"));
+
+        Map<String, Object> streamDetails = provider(new RestTemplate()).resolveDeliveryDetails(
+                "cloudflare_stream", "stream-id", new LinkedHashMap<String, Object>());
+        assertEquals("https://customer-code.cloudflarestream.com/stream-id/manifest/video.m3u8",
+                streamDetails.get("playbackUrl"));
+        assertEquals("https://customer-code.cloudflarestream.com/stream-id/thumbnails/thumbnail.jpg",
+                streamDetails.get("thumbnailUrl"));
     }
 
     @Test

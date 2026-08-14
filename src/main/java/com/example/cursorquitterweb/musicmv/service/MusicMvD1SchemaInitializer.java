@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 3;
+    static final int SCHEMA_VERSION = 4;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -79,6 +79,7 @@ public class MusicMvD1SchemaInitializer {
         Set<String> existingOwnedTables = new LinkedHashSet<String>(existingTables);
         existingOwnedTables.retainAll(KNOWN_TABLES);
 
+        reconcileAiMusicOwnership(existingTables);
         int batches = applyStatements(source.statements);
         d1.query("INSERT INTO music_mv_schema_metadata "
                         + "(schema_key,schema_version,schema_sha256,applied_at,updated_at) "
@@ -139,6 +140,29 @@ public class MusicMvD1SchemaInitializer {
             batchCount++;
         }
         return batchCount;
+    }
+
+    /**
+     * D1/SQLite cannot add a NOT NULL foreign-key column to an existing table
+     * without rebuilding it. For the v3 -> v4 upgrade we add a nullable column,
+     * backfill rows that had already been claimed by a real user, and let every
+     * new application write populate it. Anonymous legacy rows intentionally
+     * remain unowned and are therefore invisible to authenticated libraries.
+     */
+    private void reconcileAiMusicOwnership(Set<String> existingTables) {
+        if (!existingTables.contains("ai_music_jobs")) return;
+        boolean hasUserId = false;
+        for (Map<String, Object> row : d1.query("PRAGMA table_info(ai_music_jobs)").getRows()) {
+            if ("user_id".equals(RowUtils.str(row, "name"))) {
+                hasUserId = true;
+                break;
+            }
+        }
+        if (!hasUserId) {
+            d1.query("ALTER TABLE ai_music_jobs ADD COLUMN user_id TEXT");
+        }
+        d1.query("UPDATE ai_music_jobs SET user_id=client_id "
+                + "WHERE user_id IS NULL AND client_id LIKE 'usr\\_%' ESCAPE '\\'");
     }
 
     private Map<String, Object> verify(String expectedSha256) {
