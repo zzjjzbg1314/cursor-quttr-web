@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 
 class MusicMvInputAssetControllerTest {
@@ -20,6 +21,7 @@ class MusicMvInputAssetControllerTest {
     void setUp() {
         MusicMvInputAssetController controller = new MusicMvInputAssetController(
                 new MusicMvRenderClientAuthenticationService("isolated-client-token"),
+                mock(MusicMvAuthService.class),
                 mock(MusicMvInputAssetStorageService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new MusicMvExceptionHandler()).build();

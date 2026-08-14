@@ -30,7 +30,7 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(2);
+        assertThat(result.get("schemaVersion")).isEqualTo(3);
         assertThat(result.get("categoryCount")).isEqualTo(12L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
@@ -115,7 +115,7 @@ class MusicMvD1SchemaInitializerTest {
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(2));
+                metadata.put("schema_version", Integer.valueOf(3));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }
@@ -134,6 +134,7 @@ class MusicMvD1SchemaInitializerTest {
         private static List<String> knownTables() {
             return Arrays.asList(
                     "music_mv_schema_metadata", "template_categories", "templates",
+                    "music_mv_users", "music_mv_user_identities", "music_mv_user_sessions",
                     "template_translations", "renderer_nodes", "template_versions",
                     "template_slots", "template_media", "music_mv_render_jobs",
                     "music_mv_render_job_events", "template_validation_records",

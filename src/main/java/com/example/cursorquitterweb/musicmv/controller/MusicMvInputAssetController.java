@@ -22,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.LocalAsset;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.StoredInputAsset;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 
 @RestController
@@ -29,11 +30,14 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthentic
 @RequestMapping("/api/music-mv/v1/assets")
 public class MusicMvInputAssetController {
     private final MusicMvRenderClientAuthenticationService authentication;
+    private final MusicMvAuthService auth;
     private final MusicMvInputAssetStorageService storage;
 
     public MusicMvInputAssetController(MusicMvRenderClientAuthenticationService authentication,
+                                       MusicMvAuthService auth,
                                        MusicMvInputAssetStorageService storage) {
         this.authentication = authentication;
+        this.auth = auth;
         this.storage = storage;
     }
 
@@ -47,8 +51,9 @@ public class MusicMvInputAssetController {
             HttpServletRequest request
     ) throws IOException {
         authentication.requireAuthorized(token);
+        String ownerId = auth.effectiveClientId(request, clientId);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        StoredInputAsset asset = storage.store(clientId, kind, fileName,
+        StoredInputAsset asset = storage.store(ownerId, kind, fileName,
                 request.getContentType(), sizeBytes,
                 request.getInputStream(), baseUrl);
         Map<String, Object> response = new LinkedHashMap<String, Object>();

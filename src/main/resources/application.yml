@@ -219,6 +219,15 @@ music-mv:
     client-token: ${MUSIC_MV_CLIENT_TOKEN:}
     renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}
     template-sync-token: ${MUSIC_MV_TEMPLATE_SYNC_TOKEN:}
+  auth:
+    session-days: ${MUSIC_MV_AUTH_SESSION_DAYS:30}
+    google:
+      client-id: ${MUSIC_MV_GOOGLE_CLIENT_ID:}
+      jwks-url: ${MUSIC_MV_GOOGLE_JWKS_URL:https://www.googleapis.com/oauth2/v3/certs}
+    apple:
+      client-id: ${MUSIC_MV_APPLE_CLIENT_ID:}
+      redirect-uri: ${MUSIC_MV_APPLE_REDIRECT_URI:}
+      jwks-url: ${MUSIC_MV_APPLE_JWKS_URL:https://appleid.apple.com/auth/keys}
   media:
     cloudflare-api-base-url: ${MUSIC_MV_CLOUDFLARE_MEDIA_API_BASE_URL:https://api.cloudflare.com/client/v4}
     images:

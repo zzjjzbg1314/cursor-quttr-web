@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.musicmv.aimusic;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -112,6 +113,117 @@ public class AiMusicGenerationService {
         result.put("candidates", candidateViews(repository.candidates(jobId)));
         result.put("events", eventViews(repository.events(jobId)));
         return result;
+    }
+
+    public Map<String, Object> list(String clientId, String keyword, String requestedFilter,
+                                    String requestedSort, String encodedCursor, Integer pageSize) {
+        String owner = requireId(clientId, "AI_MUSIC_CLIENT_ID_INVALID");
+        String filter = normalize(blank(requestedFilter) ? "all" : requestedFilter);
+        if (!"all".equals(filter) && !"selected".equals(filter)
+                && !"vocal".equals(filter) && !"instrumental".equals(filter)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LIBRARY_FILTER_INVALID",
+                    "Song filter is invalid");
+        }
+        String sort = normalize(blank(requestedSort) ? "newest" : requestedSort);
+        if (!"newest".equals(sort) && !"oldest".equals(sort)
+                && !"title".equals(sort) && !"duration".equals(sort)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LIBRARY_SORT_INVALID",
+                    "Song sort is invalid");
+        }
+        int normalizedPageSize = pageSize == null ? 24
+                : Math.max(1, Math.min(100, pageSize.intValue()));
+        String query = blank(keyword) ? null : keyword.trim();
+        LibraryCursor cursor = decodeLibraryCursor(encodedCursor, query, filter, sort);
+        List<Map<String, Object>> rows = repository.libraryCandidates(owner, query, filter, sort,
+                normalizedPageSize + 1, cursor == null ? null : cursor.sortValue,
+                cursor == null ? null : cursor.createdAt,
+                cursor == null ? null : cursor.candidateId);
+        boolean hasMore = rows.size() > normalizedPageSize;
+        if (hasMore) rows = new ArrayList<Map<String, Object>>(rows.subList(0, normalizedPageSize));
+        List<Map<String, Object>> items = candidateViews(rows);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("items", items);
+        result.put("pageSize", Integer.valueOf(normalizedPageSize));
+        result.put("hasMore", Boolean.valueOf(hasMore));
+        result.put("nextCursor", hasMore && !rows.isEmpty()
+                ? encodeLibraryCursor(rows.get(rows.size() - 1), query, filter, sort) : null);
+        result.put("filter", filter);
+        result.put("sort", sort);
+        return result;
+    }
+
+    private String encodeLibraryCursor(Map<String, Object> row, String query, String filter,
+                                       String sort) {
+        Map<String, Object> value = new LinkedHashMap<String, Object>();
+        value.put("version", Integer.valueOf(1));
+        value.put("query", normalizeLibraryQuery(query));
+        value.put("filter", filter);
+        value.put("sort", sort);
+        value.put("createdAt", RowUtils.str(row, "created_at"));
+        value.put("candidateId", RowUtils.str(row, "candidate_id"));
+        if ("title".equals(sort)) {
+            String title = RowUtils.str(row, "title");
+            value.put("sortValue", title == null ? "" : title.toLowerCase(Locale.ROOT));
+        } else if ("duration".equals(sort)) {
+            Double duration = RowUtils.dbl(row, "duration_seconds");
+            value.put("sortValue", Double.valueOf(duration == null ? 0d : duration.doubleValue()));
+        }
+        try {
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(
+                    objectMapper.writeValueAsBytes(value));
+        } catch (Exception exception) {
+            throw new IllegalStateException("Could not encode the song library cursor", exception);
+        }
+    }
+
+    private LibraryCursor decodeLibraryCursor(String encoded, String query, String filter,
+                                              String sort) {
+        if (blank(encoded)) return null;
+        try {
+            Map<String, Object> value = objectMapper.readValue(
+                    Base64.getUrlDecoder().decode(encoded),
+                    new TypeReference<Map<String, Object>>() { });
+            Number version = (Number) value.get("version");
+            String cursorQuery = value.get("query") == null ? "" : String.valueOf(value.get("query"));
+            String cursorFilter = value.get("filter") == null ? "" : String.valueOf(value.get("filter"));
+            String cursorSort = value.get("sort") == null ? "" : String.valueOf(value.get("sort"));
+            String createdAt = value.get("createdAt") == null ? null : String.valueOf(value.get("createdAt"));
+            String candidateId = value.get("candidateId") == null ? null
+                    : String.valueOf(value.get("candidateId"));
+            if (version == null || version.intValue() != 1
+                    || !normalizeLibraryQuery(query).equals(cursorQuery)
+                    || !filter.equals(cursorFilter) || !sort.equals(cursorSort)
+                    || blank(createdAt) || blank(candidateId)) {
+                throw new IllegalArgumentException("Cursor does not match this query");
+            }
+            Object sortValue = value.get("sortValue");
+            if ("title".equals(sort) && !(sortValue instanceof String)) {
+                throw new IllegalArgumentException("Title cursor is incomplete");
+            }
+            if ("duration".equals(sort) && !(sortValue instanceof Number)) {
+                throw new IllegalArgumentException("Duration cursor is incomplete");
+            }
+            return new LibraryCursor(sortValue, createdAt, candidateId);
+        } catch (Exception exception) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LIBRARY_CURSOR_INVALID",
+                    "Song library cursor is invalid");
+        }
+    }
+
+    private String normalizeLibraryQuery(String query) {
+        return blank(query) ? "" : query.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static final class LibraryCursor {
+        private final Object sortValue;
+        private final String createdAt;
+        private final String candidateId;
+
+        private LibraryCursor(Object sortValue, String createdAt, String candidateId) {
+            this.sortValue = sortValue;
+            this.createdAt = createdAt;
+            this.candidateId = candidateId;
+        }
     }
 
     public Map<String, Object> select(String clientId, String jobId, String candidateId,
@@ -314,6 +426,7 @@ public class AiMusicGenerationService {
         for (Map<String, Object> row : rows) {
             Map<String, Object> value = new LinkedHashMap<String, Object>();
             value.put("candidateId", RowUtils.str(row, "candidate_id"));
+            value.put("jobId", RowUtils.str(row, "job_id"));
             value.put("status", RowUtils.str(row, "status"));
             value.put("title", RowUtils.str(row, "title"));
             value.put("lyrics", RowUtils.str(row, "lyrics"));
@@ -324,6 +437,8 @@ public class AiMusicGenerationService {
             value.put("streamUrl", RowUtils.str(row, "provider_stream_url"));
             value.put("imageUrl", RowUtils.str(row, "provider_image_url"));
             value.put("selected", Boolean.valueOf(RowUtils.bool(row, "selected")));
+            value.put("createdAt", RowUtils.str(row, "created_at"));
+            value.put("updatedAt", RowUtils.str(row, "updated_at"));
             if (!blank(RowUtils.str(row, "storage_sha256"))) {
                 Map<String, Object> renderAsset = new LinkedHashMap<String, Object>();
                 renderAsset.put("url", RowUtils.str(row, "storage_url"));

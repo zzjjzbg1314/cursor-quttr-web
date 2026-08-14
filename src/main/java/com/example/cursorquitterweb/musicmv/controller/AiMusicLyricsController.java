@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.aimusic.AiLyricsGenerationService;
 import com.example.cursorquitterweb.musicmv.dto.AiMusicLyricsCreateRequest;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 
 @RestController
@@ -26,11 +27,14 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthentic
 @RequestMapping("/api/music-mv/v1/lyrics")
 public class AiMusicLyricsController {
     private final MusicMvRenderClientAuthenticationService authentication;
+    private final MusicMvAuthService auth;
     private final AiLyricsGenerationService service;
 
     public AiMusicLyricsController(MusicMvRenderClientAuthenticationService authentication,
+                                   MusicMvAuthService auth,
                                    AiLyricsGenerationService service) {
         this.authentication = authentication;
+        this.auth = auth;
         this.service = service;
     }
 
@@ -43,19 +47,21 @@ public class AiMusicLyricsController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
+        String ownerId = auth.effectiveClientId(servletRequest, clientId);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();
-        return service.create(clientId, request, requestBaseUrl);
+        return service.create(ownerId, request, requestBaseUrl);
     }
 
     @GetMapping("/{taskId}")
     public Map<String, Object> get(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
-            @PathVariable String taskId
+            @PathVariable String taskId,
+            HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(clientId, taskId);
+        return service.get(auth.effectiveClientId(servletRequest, clientId), taskId);
     }
 }

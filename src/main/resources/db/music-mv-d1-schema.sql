@@ -12,6 +12,64 @@ CREATE TABLE IF NOT EXISTS music_mv_schema_metadata (
   updated_at TEXT NOT NULL
 );
 
+-- Consumer accounts for the Music MV product. These tables deliberately live
+-- in the dedicated Music MV D1 and are not related to cursor-quttr-web's legacy
+-- users or user_identities tables.
+CREATE TABLE IF NOT EXISTS music_mv_users (
+  user_id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  handle TEXT NOT NULL,
+  avatar_url TEXT,
+  email TEXT,
+  locale TEXT NOT NULL DEFAULT 'en',
+  status TEXT NOT NULL DEFAULT 'active',
+  last_login_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_music_mv_users_handle
+  ON music_mv_users(handle);
+CREATE INDEX IF NOT EXISTS idx_music_mv_users_email
+  ON music_mv_users(email);
+
+CREATE TABLE IF NOT EXISTS music_mv_user_identities (
+  identity_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  provider_subject TEXT NOT NULL,
+  provider_email TEXT,
+  email_verified INTEGER NOT NULL DEFAULT 0,
+  provider_display_name TEXT,
+  provider_avatar_url TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  last_login_at TEXT NOT NULL,
+  UNIQUE (provider, provider_subject),
+  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_identities_user
+  ON music_mv_user_identities(user_id, provider);
+
+CREATE TABLE IF NOT EXISTS music_mv_user_sessions (
+  session_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  token_sha256 TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  revoked_at TEXT,
+  UNIQUE (token_sha256),
+  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_sessions_user
+  ON music_mv_user_sessions(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_sessions_token
+  ON music_mv_user_sessions(token_sha256, expires_at, revoked_at);
+
 -- Cloud template catalog. The website backend is the only application allowed
 -- to query or mutate these tables. Browser and Mac renderer traffic goes
 -- through website-backend APIs.
@@ -183,6 +241,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_client
   ON ai_music_jobs(client_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_status
   ON ai_music_jobs(status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_library
+  ON ai_music_jobs(client_id, status, job_id);
 
 CREATE TABLE IF NOT EXISTS ai_music_provider_attempts (
   attempt_id TEXT PRIMARY KEY,

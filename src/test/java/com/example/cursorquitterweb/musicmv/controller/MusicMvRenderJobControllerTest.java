@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService;
 
 class MusicMvRenderJobControllerTest {
@@ -21,7 +22,7 @@ class MusicMvRenderJobControllerTest {
         MusicMvRenderClientAuthenticationService authentication =
                 new MusicMvRenderClientAuthenticationService("isolated-client-token");
         MusicMvRenderJobController controller = new MusicMvRenderJobController(
-                authentication, mock(MusicMvRenderJobService.class));
+                authentication, mock(MusicMvAuthService.class), mock(MusicMvRenderJobService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new MusicMvExceptionHandler())
                 .build();

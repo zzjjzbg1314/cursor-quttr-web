@@ -20,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.aimusic.AiMusicGenerationService;
 import com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 
 /** Public, provider-neutral songwriting API for the website backend. */
@@ -28,11 +29,14 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthentic
 @RequestMapping("/api/music-mv/v1/songs")
 public class AiMusicSongController {
     private final MusicMvRenderClientAuthenticationService authentication;
+    private final MusicMvAuthService auth;
     private final AiMusicGenerationService service;
 
     public AiMusicSongController(MusicMvRenderClientAuthenticationService authentication,
+                                 MusicMvAuthService auth,
                                  AiMusicGenerationService service) {
         this.authentication = authentication;
+        this.auth = auth;
         this.service = service;
     }
 
@@ -45,10 +49,27 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
+        String ownerId = auth.effectiveClientId(servletRequest, clientId);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();
-        return service.create(clientId, request, requestBaseUrl);
+        return service.create(ownerId, request, requestBaseUrl);
+    }
+
+    @GetMapping
+    public Map<String, Object> list(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
+            @RequestParam(value = "q", required = false) String keyword,
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "cursor", required = false) String cursor,
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            HttpServletRequest servletRequest
+    ) {
+        authentication.requireAuthorized(token);
+        return service.list(auth.effectiveClientId(servletRequest, clientId),
+                keyword, filter, sort, cursor, pageSize);
     }
 
     @GetMapping("/{jobId}")
@@ -56,10 +77,11 @@ public class AiMusicSongController {
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
             @PathVariable String jobId,
-            @RequestParam(defaultValue = "false") boolean refresh
+            @RequestParam(defaultValue = "false") boolean refresh,
+            HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(clientId, jobId, refresh);
+        return service.get(auth.effectiveClientId(servletRequest, clientId), jobId, refresh);
     }
 
     @PostMapping("/{jobId}/candidates/{candidateId}/select")
@@ -71,9 +93,10 @@ public class AiMusicSongController {
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
+        String ownerId = auth.effectiveClientId(servletRequest, clientId);
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();
-        return service.select(clientId, jobId, candidateId, requestBaseUrl);
+        return service.select(ownerId, jobId, candidateId, requestBaseUrl);
     }
 }

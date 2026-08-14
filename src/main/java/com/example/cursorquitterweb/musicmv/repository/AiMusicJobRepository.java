@@ -1,6 +1,8 @@
 package com.example.cursorquitterweb.musicmv.repository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -152,11 +154,84 @@ public class AiMusicJobRepository {
     }
 
     public List<Map<String, Object>> candidates(String jobId) {
-        return d1.query("SELECT candidate_id,status,title,lyrics,style,duration_seconds,"
+        return d1.query("SELECT candidate_id,job_id,status,title,lyrics,style,duration_seconds,"
                         + "provider_audio_url,provider_stream_url,provider_image_url,storage_url,storage_sha256,"
                         + "storage_size_bytes,storage_file_name,storage_content_type,selected,created_at,updated_at "
                         + "FROM ai_music_candidates "
-                        + "WHERE job_id=? ORDER BY created_at,candidate_id", jobId).getRows();
+                + "WHERE job_id=? ORDER BY created_at,candidate_id", jobId).getRows();
+    }
+
+    public List<Map<String, Object>> libraryCandidates(String clientId, String keyword,
+                                                        String filter, String sort,
+                                                        int limit, Object cursorSortValue,
+                                                        String cursorCreatedAt,
+                                                        String cursorCandidateId) {
+        LibraryQuery query = libraryQuery(clientId, keyword, filter);
+        List<Object> params = new ArrayList<Object>(query.params);
+        StringBuilder where = new StringBuilder(query.where);
+        appendLibraryCursor(where, params, sort, cursorSortValue, cursorCreatedAt,
+                cursorCandidateId);
+        params.add(Integer.valueOf(limit));
+        String orderBy;
+        if ("oldest".equals(sort)) {
+            orderBy = "c.created_at ASC,c.candidate_id ASC";
+        } else if ("title".equals(sort)) {
+            orderBy = "LOWER(COALESCE(c.title,'')) ASC,c.created_at DESC,c.candidate_id DESC";
+        } else if ("duration".equals(sort)) {
+            orderBy = "COALESCE(c.duration_seconds,0) DESC,c.created_at DESC,c.candidate_id DESC";
+        } else {
+            orderBy = "c.created_at DESC,c.candidate_id DESC";
+        }
+        return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
+                        + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
+                        + "c.provider_image_url,c.storage_url,c.storage_sha256,c.storage_size_bytes,"
+                        + "c.storage_file_name,c.storage_content_type,c.selected,c.created_at,c.updated_at,"
+                        + "j.status AS job_status,j.completed_at AS job_completed_at "
+                        + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
+                        + where + " ORDER BY " + orderBy + " LIMIT ?",
+                params).getRows();
+    }
+
+    private void appendLibraryCursor(StringBuilder where, List<Object> params, String sort,
+                                     Object sortValue, String createdAt, String candidateId) {
+        if (createdAt == null || candidateId == null) return;
+        if ("oldest".equals(sort)) {
+            where.append(" AND (c.created_at>? OR (c.created_at=? AND c.candidate_id>?))");
+            params.add(createdAt);
+            params.add(createdAt);
+            params.add(candidateId);
+            return;
+        }
+        if ("title".equals(sort)) {
+            String expression = "LOWER(COALESCE(c.title,''))";
+            where.append(" AND (").append(expression).append(">? OR (")
+                    .append(expression).append("=? AND c.created_at<?) OR (")
+                    .append(expression).append("=? AND c.created_at=? AND c.candidate_id<?))");
+            params.add(sortValue);
+            params.add(sortValue);
+            params.add(createdAt);
+            params.add(sortValue);
+            params.add(createdAt);
+            params.add(candidateId);
+            return;
+        }
+        if ("duration".equals(sort)) {
+            String expression = "COALESCE(c.duration_seconds,0)";
+            where.append(" AND (").append(expression).append("<? OR (")
+                    .append(expression).append("=? AND c.created_at<?) OR (")
+                    .append(expression).append("=? AND c.created_at=? AND c.candidate_id<?))");
+            params.add(sortValue);
+            params.add(sortValue);
+            params.add(createdAt);
+            params.add(sortValue);
+            params.add(createdAt);
+            params.add(candidateId);
+            return;
+        }
+        where.append(" AND (c.created_at<? OR (c.created_at=? AND c.candidate_id<?))");
+        params.add(createdAt);
+        params.add(createdAt);
+        params.add(candidateId);
     }
 
     public Map<String, Object> candidate(String jobId, String candidateId) {
@@ -207,5 +282,43 @@ public class AiMusicJobRepository {
             result.append(alias).append('.').append(column);
         }
         return result.toString();
+    }
+
+    private LibraryQuery libraryQuery(String clientId, String keyword, String filter) {
+        StringBuilder where = new StringBuilder("WHERE j.client_id=? AND j.status='completed'");
+        List<Object> params = new ArrayList<Object>();
+        params.add(clientId);
+        String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
+        if (!normalizedKeyword.isEmpty()) {
+            String like = "%" + escapeLike(normalizedKeyword) + "%";
+            where.append(" AND (LOWER(COALESCE(c.title,'')) LIKE ? ESCAPE '\\'"
+                    + " OR LOWER(COALESCE(c.style,'')) LIKE ? ESCAPE '\\'"
+                    + " OR LOWER(COALESCE(c.lyrics,'')) LIKE ? ESCAPE '\\')");
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+        if ("selected".equals(filter)) {
+            where.append(" AND c.selected=1");
+        } else if ("vocal".equals(filter)) {
+            where.append(" AND LENGTH(TRIM(COALESCE(c.lyrics,'')))>0");
+        } else if ("instrumental".equals(filter)) {
+            where.append(" AND LENGTH(TRIM(COALESCE(c.lyrics,'')))=0");
+        }
+        return new LibraryQuery(where.toString(), params);
+    }
+
+    private String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    private static final class LibraryQuery {
+        private final String where;
+        private final List<Object> params;
+
+        private LibraryQuery(String where, List<Object> params) {
+            this.where = where;
+            this.params = params;
+        }
     }
 }

@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 2;
+    static final int SCHEMA_VERSION = 3;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -44,6 +44,9 @@ public class MusicMvD1SchemaInitializer {
     private static final Set<String> KNOWN_TABLES = Collections.unmodifiableSet(
             new LinkedHashSet<String>(Arrays.asList(
                     "music_mv_schema_metadata",
+                    "music_mv_users",
+                    "music_mv_user_identities",
+                    "music_mv_user_sessions",
                     "template_categories",
                     "templates",
                     "template_translations",

@@ -37,6 +37,13 @@ MUSIC_MV_SUNOAPI_API_KEY=<sunoapi.org API key>
 # 可选；不配置时使用 API key 派生回调保护令牌
 MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET=<dedicated random secret>
 MUSIC_MV_PUBLIC_BASE_URL=https://<public website backend origin>
+
+# C 端登录（至少配置一种）
+MUSIC_MV_GOOGLE_CLIENT_ID=<Google Web OAuth client id>
+MUSIC_MV_APPLE_CLIENT_ID=<Apple Services ID>
+MUSIC_MV_APPLE_REDIRECT_URI=https://<website origin>/create
+# 可选，默认 30 天，范围 1-90 天
+MUSIC_MV_AUTH_SESSION_DAYS=30
 ```
 
 如需将最终用户渲染成片存入独立 R2，再配置：
@@ -70,7 +77,7 @@ Content-Type: application/json
 {"expectedDatabaseId":"<same new independent D1 database id>"}
 ```
 
-初始化器会先读取 `sqlite_master`：只含 D1 保留表 `_cf_KV` 的新库可以初始化；只含本模块表的半完成库可以幂等续传；发现 `users`、`posts` 等任何非 Music MV 表会直接拒绝。完成后会核对 15 张专用表、12 个固定一级分类和 schema SHA-256，并写入 `music_mv_schema_metadata`。成功后立即把 `MUSIC_MV_D1_ALLOW_SCHEMA_INITIALIZE` 改回 `false`。
+初始化器会先读取 `sqlite_master`，再以幂等方式补齐本模块表；它只使用 `MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID` 指向的专用 Music MV D1，不读取旧 Quittr 数据源。完成后会核对 18 张专用表、12 个固定一级分类和 schema SHA-256，并写入 `music_mv_schema_metadata`。其中 `music_mv_users`、`music_mv_user_identities`、`music_mv_user_sessions` 只属于 Music MV 用户体系，与旧站用户表无关联。
 
 不要对现网 D1 执行 `src/main/resources/db/music-mv-d1-schema.sql`。初始化后，由 Mac 的模板晋升协议幂等写入已经验收通过的模板元数据、双语信息、版本、卡槽合同、验收证据和来源节点。封面通过一次性地址上传到 Images，完整 MV 通过 TUS 上传到 Stream；草稿原件仍保留在对应 Mac 节点。
 
@@ -100,6 +107,15 @@ Content-Type: application/json
 - `GET /api/music-mv/v1/songs/{jobId}`：读取状态、候选歌曲和事件
 - `GET /api/music-mv/v1/songs/{jobId}?refresh=true`：回调丢失时主动向供应商对账
 - `POST /api/music-mv/v1/songs/{jobId}/candidates/{candidateId}/select`：选择候选并固化到 Music MV 素材存储；响应中的 `renderMusicAsset` 可直接传入渲染任务 `music`
+
+网站用户登录：
+
+- `GET /api/music-mv/v1/auth/providers`：读取 Google/Apple 登录可用状态和公开客户端配置
+- `POST /api/music-mv/v1/auth/sso`：验证 Google/Apple ID token，建立 HttpOnly 会话，并认领当前匿名浏览器的歌曲与 MV 任务
+- `GET /api/music-mv/v1/auth/session`：读取当前登录用户
+- `POST /api/music-mv/v1/auth/logout`：撤销当前会话
+- 未登录时 `X-Music-Mv-Client-Id` 仍表示浏览器匿名工作区；登录后服务端只使用会话中的 `usr_*`，不会信任前端伪造的用户 ID。
+- 会话 Cookie 只保存随机明文令牌；D1 仅保存 SHA-256 摘要。默认 `HttpOnly`、`SameSite=Lax`，HTTPS 下自动启用 `Secure`。
 
 SunoAPI 回调边界：
 

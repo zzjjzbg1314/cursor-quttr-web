@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
+import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService.OutputAccess;
@@ -36,11 +38,14 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService.Outp
 @RequestMapping("/api/music-mv/v1/render-jobs")
 public class MusicMvRenderJobController {
     private final MusicMvRenderClientAuthenticationService authentication;
+    private final MusicMvAuthService auth;
     private final MusicMvRenderJobService service;
 
     public MusicMvRenderJobController(MusicMvRenderClientAuthenticationService authentication,
+                                      MusicMvAuthService auth,
                                       MusicMvRenderJobService service) {
         this.authentication = authentication;
+        this.auth = auth;
         this.service = service;
     }
 
@@ -49,30 +54,33 @@ public class MusicMvRenderJobController {
     public Map<String, Object> create(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
-            @Valid @RequestBody MusicMvRenderJobCreateRequest request
+            @Valid @RequestBody MusicMvRenderJobCreateRequest request,
+            HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.create(clientId, request);
+        return service.create(auth.effectiveClientId(servletRequest, clientId), request);
     }
 
     @GetMapping("/{jobId}")
     public Map<String, Object> get(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
-            @PathVariable String jobId
+            @PathVariable String jobId,
+            HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.get(clientId, jobId);
+        return service.get(auth.effectiveClientId(servletRequest, clientId), jobId);
     }
 
     @PostMapping("/{jobId}/cancel")
     public Map<String, Object> cancel(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
-            @PathVariable String jobId
+            @PathVariable String jobId,
+            HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.cancel(clientId, jobId);
+        return service.cancel(auth.effectiveClientId(servletRequest, clientId), jobId);
     }
 
     @GetMapping("/{jobId}/output")
@@ -82,10 +90,11 @@ public class MusicMvRenderJobController {
             @RequestHeader(value = HttpHeaders.RANGE, required = false) String range,
             @PathVariable String jobId,
             @RequestParam(defaultValue = "false") boolean inline,
+            HttpServletRequest servletRequest,
             HttpServletResponse servletResponse
     ) throws IOException {
         authentication.requireAuthorized(token);
-        OutputAccess output = service.output(clientId, jobId);
+        OutputAccess output = service.output(auth.effectiveClientId(servletRequest, clientId), jobId);
         if (output.getRedirectUrl() != null) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(output.getRedirectUrl())).build();
