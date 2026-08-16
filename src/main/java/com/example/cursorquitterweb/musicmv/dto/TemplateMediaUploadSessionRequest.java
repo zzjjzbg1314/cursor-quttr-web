@@ -14,6 +14,7 @@ public class TemplateMediaUploadSessionRequest {
     @Min(1) private Integer height;
     @DecimalMin("0.001") private Double durationSeconds;
     private String filename;
+    private Boolean forceReplace;
 
     public String getRole() { return role; }
     public void setRole(String value) { role = value; }
@@ -29,4 +30,6 @@ public class TemplateMediaUploadSessionRequest {
     public void setDurationSeconds(Double value) { durationSeconds = value; }
     public String getFilename() { return filename; }
     public void setFilename(String value) { filename = value; }
+    public Boolean getForceReplace() { return forceReplace; }
+    public void setForceReplace(Boolean value) { forceReplace = value; }
 }

@@ -8,48 +8,66 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Properties;
-import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.example.cursorquitterweb.musicmv.support.IdUtils;
+import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvInputAssetStorageService {
     private static final long MAX_MUSIC_BYTES = 500L * 1024L * 1024L;
     private static final long MAX_IMAGE_BYTES = 50L * 1024L * 1024L;
-    private static final Duration DOWNLOAD_TTL = Duration.ofDays(7);
+    private static final Duration IMAGE_RETENTION = Duration.ofDays(30);
+    private static final Duration MUSIC_RETENTION = Duration.ofDays(3650);
+    private static final Duration R2_DOWNLOAD_TTL = Duration.ofMinutes(15);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final R2StorageService r2;
     private final Path localRoot;
     private final String configuredPublicBaseUrl;
+    private final boolean requireCloudInputAssets;
 
     public MusicMvInputAssetStorageService(
             R2StorageService r2,
             @Value("${music-mv.render.local-storage-dir:storage/music-mv-render}") String localDir,
-            @Value("${music-mv.public-base-url:}") String configuredPublicBaseUrl
+            @Value("${music-mv.public-base-url:}") String configuredPublicBaseUrl,
+            @Value("${music-mv.render.require-cloud-input-assets:true}") boolean requireCloudInputAssets
     ) {
         this.r2 = r2;
         this.localRoot = Paths.get(localDir).toAbsolutePath().normalize().resolve("inputs");
         this.configuredPublicBaseUrl = configuredPublicBaseUrl == null
                 ? "" : configuredPublicBaseUrl.trim();
+        this.requireCloudInputAssets = requireCloudInputAssets;
     }
 
     public StoredInputAsset store(String clientId, String kind, String fileName,
                                   String contentType, long contentLength, InputStream input,
                                   String requestBaseUrl) throws IOException {
         String normalizedKind = normalizeKind(kind);
+        String normalizedOwnerId = normalizeOwnerId(clientId);
+        if (requireCloudInputAssets && !r2.isConfigured()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "MV_INPUT_CLOUD_STORAGE_UNAVAILABLE",
+                    "Cloud photo storage is temporarily unavailable", true, null);
+        }
         long maxBytes = "music".equals(normalizedKind) ? MAX_MUSIC_BYTES : MAX_IMAGE_BYTES;
         if (contentLength <= 0L || contentLength > maxBytes) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MV_INPUT_ASSET_SIZE_INVALID",
@@ -79,17 +97,28 @@ public class MusicMvInputAssetStorageService {
             throw new IOException("Store Music MV input asset failed", exception);
         }
 
-        Instant expiresAt = Instant.now().plus(DOWNLOAD_TTL);
-        String downloadUrl;
+        Instant expiresAt = Instant.now().plus("music".equals(normalizedKind)
+                ? MUSIC_RETENTION : IMAGE_RETENTION);
+        String accessToken = accessToken(expiresAt);
+        String baseUrl = !configuredPublicBaseUrl.isEmpty()
+                ? configuredPublicBaseUrl : requestBaseUrl;
+        String downloadUrl = capabilityUrl(baseUrl, assetId, accessToken);
         String storage;
         try {
             if (r2.isConfigured()) {
-                String objectKey = "music-mv-inputs/" + safeId(clientId) + "/" + assetId
-                        + "/" + safeFileName;
+                String objectKey = r2ObjectKey(normalizedKind, assetId, accessToken);
                 try (InputStream stagedInput = Files.newInputStream(staging)) {
                     r2.write(objectKey, stagedInput, contentLength, normalizedContentType);
                 }
-                downloadUrl = r2.presignedGetUrl(objectKey, DOWNLOAD_TTL);
+                Properties metadata = metadata(normalizedOwnerId, normalizedKind, accessToken,
+                        safeFileName, normalizedContentType, contentLength, sha256, expiresAt);
+                try {
+                    r2.write(r2MetadataKey(normalizedKind, assetId, accessToken),
+                            propertiesBytes(metadata), "application/octet-stream");
+                } catch (RuntimeException exception) {
+                    r2.delete(objectKey);
+                    throw exception;
+                }
                 storage = "r2";
                 Files.deleteIfExists(staging);
             } else {
@@ -100,24 +129,12 @@ public class MusicMvInputAssetStorageService {
                 Path source = assetDir.resolve("source" + extension).normalize();
                 requireInside(source);
                 Files.move(staging, source, StandardCopyOption.REPLACE_EXISTING);
-                String accessToken = UUID.randomUUID().toString().replace("-", "")
-                        + UUID.randomUUID().toString().replace("-", "");
-                Properties metadata = new Properties();
-                metadata.setProperty("accessToken", accessToken);
-                metadata.setProperty("fileName", safeFileName);
-                metadata.setProperty("contentType", normalizedContentType);
-                metadata.setProperty("sizeBytes", Long.toString(contentLength));
-                metadata.setProperty("sha256", sha256);
+                Properties metadata = metadata(normalizedOwnerId, normalizedKind, accessToken,
+                        safeFileName, normalizedContentType, contentLength, sha256, expiresAt);
                 metadata.setProperty("sourceFile", source.getFileName().toString());
-                metadata.setProperty("expiresAt", expiresAt.toString());
                 try (OutputStream metadataOutput = Files.newOutputStream(assetDir.resolve("asset.properties"))) {
                     metadata.store(metadataOutput, "Music MV input asset");
                 }
-                String baseUrl = !configuredPublicBaseUrl.isEmpty()
-                        ? configuredPublicBaseUrl : requestBaseUrl;
-                downloadUrl = UriComponentsBuilder.fromHttpUrl(trimTrailingSlash(baseUrl))
-                        .path("/api/music-mv/v1/assets/").path(assetId)
-                        .queryParam("access", accessToken).build().toUriString();
                 storage = "local";
             }
         } catch (Exception exception) {
@@ -129,9 +146,19 @@ public class MusicMvInputAssetStorageService {
                 safeFileName, normalizedContentType, contentLength, expiresAt, storage);
     }
 
-    public LocalAsset localAsset(String assetId, String accessToken) throws IOException {
+    public InputAssetAccess access(String assetId, String accessToken) throws IOException {
         if (assetId == null || !assetId.matches("mva_[a-f0-9]{32}")) {
             throw notFound();
+        }
+        if (r2.isConfigured() && validR2Capability(accessToken)) {
+            for (String kind : new String[] {"music", "image"}) {
+                String objectKey = r2ObjectKey(kind, assetId, accessToken);
+                if (r2.exists(objectKey)) {
+                    requireNotExpired(r2Metadata(kind, assetId, accessToken, false));
+                    return InputAssetAccess.redirect(r2.presignedGetUrl(objectKey,
+                            R2_DOWNLOAD_TTL));
+                }
+            }
         }
         Path assetDir = localRoot.resolve(assetId).normalize();
         requireInside(assetDir);
@@ -156,9 +183,81 @@ public class MusicMvInputAssetStorageService {
         requireInside(source);
         if (!Files.isRegularFile(source)) throw notFound();
         Resource resource = new InputStreamResource(Files.newInputStream(source));
-        return new LocalAsset(resource, metadata.getProperty("fileName", "asset"),
+        return InputAssetAccess.local(resource, metadata.getProperty("fileName", "asset"),
                 metadata.getProperty("contentType", "application/octet-stream"),
                 Long.parseLong(metadata.getProperty("sizeBytes", "0")));
+    }
+
+    /** Kept for local-storage tests and callers that explicitly need a resource. */
+    public LocalAsset localAsset(String assetId, String accessToken) throws IOException {
+        InputAssetAccess result = access(assetId, accessToken);
+        if (result.getLocalAsset() == null) throw notFound();
+        return result.getLocalAsset();
+    }
+
+    /**
+     * Resolves a browser-submitted photo back to canonical server-owned cloud metadata.
+     * The render contract never trusts URL, hash, size or type values supplied by the browser.
+     */
+    public void requireOwnedCloudAsset(String ownerId,
+                                       MusicMvRenderJobCreateRequest.Asset asset,
+                                       String expectedKind) {
+        if (!r2.isConfigured()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "MV_INPUT_CLOUD_STORAGE_UNAVAILABLE",
+                    "Cloud photo storage is temporarily unavailable", true, null);
+        }
+        AssetCapability capability = parseCapability(asset == null ? null : asset.getUrl());
+        Properties metadata = r2Metadata(expectedKind, capability.assetId,
+                capability.accessToken, true);
+        requireNotExpired(metadata);
+        if (!normalizeOwnerId(ownerId).equals(metadata.getProperty("ownerId"))) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "MV_INPUT_ASSET_NOT_FOUND",
+                    "Input asset was not found");
+        }
+        requireMetadataEquals(asset, metadata);
+    }
+
+    @Scheduled(cron = "${music-mv.render.input-cleanup-cron:0 25 3 * * ?}")
+    public void cleanupExpiredAssets() {
+        cleanupExpiredLocalAssets();
+        if (!r2.isConfigured()) return;
+        for (String key : r2.listKeys("music-mv-inputs/")) {
+            if (!key.matches("music-mv-inputs/(music|image)/mva_[a-f0-9]{32}/[a-f0-9]{64}(\\.properties)?")) {
+                continue;
+            }
+            String token = key.substring(key.lastIndexOf('/') + 1).replace(".properties", "");
+            if (!validR2Capability(token)) r2.delete(key);
+        }
+    }
+
+    private void cleanupExpiredLocalAssets() {
+        if (!Files.isDirectory(localRoot)) return;
+        try (Stream<Path> children = Files.list(localRoot)) {
+            children.filter(Files::isDirectory)
+                    .filter(path -> !".staging".equals(path.getFileName().toString()))
+                    .forEach(path -> {
+                        Path metadataPath = path.resolve("asset.properties");
+                        Properties metadata = new Properties();
+                        try (InputStream input = Files.newInputStream(metadataPath)) {
+                            metadata.load(input);
+                            Instant expiresAt = Instant.parse(metadata.getProperty("expiresAt"));
+                            if (Instant.now().isAfter(expiresAt)) deleteTree(path);
+                        } catch (Exception ignored) {
+                            // Preserve unreadable directories for manual inspection.
+                        }
+                    });
+        } catch (IOException ignored) {
+            // Best-effort maintenance must never affect request processing.
+        }
+    }
+
+    private void deleteTree(Path root) throws IOException {
+        try (Stream<Path> paths = Files.walk(root)) {
+            for (Path path : (Iterable<Path>) paths.sorted(Comparator.reverseOrder())::iterator) {
+                Files.deleteIfExists(path);
+            }
+        }
     }
 
     private long copyAndDigest(InputStream input, Path target, MessageDigest digest,
@@ -211,15 +310,6 @@ public class MusicMvInputAssetStorageService {
         }
     }
 
-    private String safeId(String value) {
-        String result = value == null ? "" : value.trim();
-        if (!result.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,127}")) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_RENDER_CLIENT_ID_INVALID",
-                    "Identifier is invalid");
-        }
-        return result;
-    }
-
     private String extension(String fileName) {
         int dot = fileName.lastIndexOf('.');
         return dot > 0 && dot >= fileName.length() - 10 ? fileName.substring(dot) : "";
@@ -233,6 +323,142 @@ public class MusicMvInputAssetStorageService {
                     "MV_INPUT_PUBLIC_URL_MISSING", "Music MV public base URL is unavailable");
         }
         return result;
+    }
+
+    private String capabilityUrl(String baseUrl, String assetId, String accessToken) {
+        return UriComponentsBuilder.fromHttpUrl(trimTrailingSlash(baseUrl))
+                .path("/api/music-mv/v1/assets/").path(assetId)
+                .queryParam("access", accessToken).build().toUriString();
+    }
+
+    private String r2ObjectKey(String kind, String assetId, String accessToken) {
+        return "music-mv-inputs/" + kind + "/" + assetId + "/" + accessToken;
+    }
+
+    private String r2MetadataKey(String kind, String assetId, String accessToken) {
+        return r2ObjectKey(kind, assetId, accessToken) + ".properties";
+    }
+
+    private Properties metadata(String ownerId, String kind, String accessToken,
+                                String fileName, String contentType, long sizeBytes,
+                                String sha256, Instant expiresAt) {
+        Properties metadata = new Properties();
+        metadata.setProperty("ownerId", ownerId);
+        metadata.setProperty("kind", kind);
+        metadata.setProperty("accessToken", accessToken);
+        metadata.setProperty("fileName", fileName);
+        metadata.setProperty("contentType", contentType);
+        metadata.setProperty("sizeBytes", Long.toString(sizeBytes));
+        metadata.setProperty("sha256", sha256);
+        metadata.setProperty("expiresAt", expiresAt.toString());
+        return metadata;
+    }
+
+    private byte[] propertiesBytes(Properties properties) {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            properties.store(output, "Music MV cloud input asset");
+            return output.toByteArray();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Serialize input asset metadata failed", exception);
+        }
+    }
+
+    private Properties r2Metadata(String kind, String assetId, String accessToken,
+                                  boolean required) {
+        String key = r2MetadataKey(kind, assetId, accessToken);
+        if (!r2.exists(key)) {
+            if (required) throw notFound();
+            return null; // Legacy assets remain downloadable but cannot enter new render jobs.
+        }
+        Properties metadata = new Properties();
+        try (InputStream input = new ByteArrayInputStream(r2.read(key))) {
+            metadata.load(input);
+            return metadata;
+        } catch (IOException | RuntimeException exception) {
+            if (required) throw notFound();
+            return null;
+        }
+    }
+
+    private void requireNotExpired(Properties metadata) {
+        if (metadata == null) return;
+        try {
+            if (Instant.now().isAfter(Instant.parse(metadata.getProperty("expiresAt")))) {
+                throw new ApiException(HttpStatus.GONE, "MV_INPUT_ASSET_EXPIRED",
+                        "Input asset has expired");
+            }
+        } catch (ApiException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw notFound();
+        }
+    }
+
+    private void requireMetadataEquals(MusicMvRenderJobCreateRequest.Asset asset,
+                                       Properties metadata) {
+        boolean exact = asset != null
+                && metadata.getProperty("sha256", "").equalsIgnoreCase(asset.getSha256())
+                && metadata.getProperty("fileName", "").equals(asset.getFileName())
+                && metadata.getProperty("contentType", "").equalsIgnoreCase(asset.getContentType())
+                && Long.toString(asset.getSizeBytes() == null ? -1L : asset.getSizeBytes())
+                        .equals(metadata.getProperty("sizeBytes", ""));
+        if (!exact) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "MV_INPUT_ASSET_METADATA_MISMATCH",
+                    "Uploaded photo metadata does not match cloud storage");
+        }
+    }
+
+    private AssetCapability parseCapability(String value) {
+        try {
+            java.net.URI uri = java.net.URI.create(value);
+            String path = uri.getPath();
+            java.util.List<String> access = UriComponentsBuilder.fromUri(uri).build()
+                    .getQueryParams().get("access");
+            if (path == null || !path.matches(".*/api/music-mv/v1/assets/mva_[a-f0-9]{32}")
+                    || access == null || access.size() != 1 || !validR2Capability(access.get(0))) {
+                throw new IllegalArgumentException("invalid capability");
+            }
+            return new AssetCapability(path.substring(path.lastIndexOf('/') + 1), access.get(0));
+        } catch (RuntimeException exception) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_INPUT_ASSET_URL_INVALID",
+                    "Photo must be uploaded before creating a video");
+        }
+    }
+
+    private String normalizeOwnerId(String value) {
+        String normalized = value == null ? "" : value.trim();
+        if (!normalized.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,127}")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_INPUT_OWNER_INVALID",
+                    "Input asset owner is invalid");
+        }
+        return normalized;
+    }
+
+    private static final class AssetCapability {
+        private final String assetId;
+        private final String accessToken;
+
+        private AssetCapability(String assetId, String accessToken) {
+            this.assetId = assetId;
+            this.accessToken = accessToken;
+        }
+    }
+
+    private String accessToken(Instant expiresAt) {
+        byte[] random = new byte[24];
+        SECURE_RANDOM.nextBytes(random);
+        return String.format("%016x", expiresAt.getEpochSecond()) + hex(random);
+    }
+
+    private boolean validR2Capability(String value) {
+        if (value == null || !value.matches("[a-f0-9]{64}")) return false;
+        try {
+            long epochSeconds = Long.parseUnsignedLong(value.substring(0, 16), 16);
+            return !Instant.now().isAfter(Instant.ofEpochSecond(epochSeconds));
+        } catch (RuntimeException exception) {
+            return false;
+        }
     }
 
     private ApiException notFound() {
@@ -299,5 +525,28 @@ public class MusicMvInputAssetStorageService {
         public String getFileName() { return fileName; }
         public String getContentType() { return contentType; }
         public long getSizeBytes() { return sizeBytes; }
+    }
+
+    public static final class InputAssetAccess {
+        private final String redirectUrl;
+        private final LocalAsset localAsset;
+
+        private InputAssetAccess(String redirectUrl, LocalAsset localAsset) {
+            this.redirectUrl = redirectUrl;
+            this.localAsset = localAsset;
+        }
+
+        static InputAssetAccess redirect(String url) {
+            return new InputAssetAccess(url, null);
+        }
+
+        static InputAssetAccess local(Resource resource, String fileName,
+                                      String contentType, long sizeBytes) {
+            return new InputAssetAccess(null,
+                    new LocalAsset(resource, fileName, contentType, sizeBytes));
+        }
+
+        public String getRedirectUrl() { return redirectUrl; }
+        public LocalAsset getLocalAsset() { return localAsset; }
     }
 }

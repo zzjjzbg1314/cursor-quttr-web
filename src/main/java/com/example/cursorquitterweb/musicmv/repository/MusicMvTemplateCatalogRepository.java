@@ -240,6 +240,29 @@ public class MusicMvTemplateCatalogRepository {
                 translation(templateId, "en", nameEn, descriptionEn)));
     }
 
+    public void replaceSlots(String templateId, String versionId,
+                             List<TemplatePromotionRequest.Slot> slots) {
+        List<D1Statement> statements = new ArrayList<D1Statement>();
+        statements.add(statement("DELETE FROM template_slots WHERE version_id=? AND EXISTS ("
+                + "SELECT 1 FROM template_versions WHERE version_id=? AND template_id=?)",
+                versionId, versionId, templateId));
+        for (TemplatePromotionRequest.Slot slot : slots) {
+            statements.add(statement("INSERT INTO template_slots "
+                    + "(slot_id,version_id,slot_key,slot_type,display_name,timeline_order,aspect_ratio,"
+                    + "crop_policy,repeat_policy,is_required,material_id,material_group) "
+                    + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    IdUtils.token("slot"), versionId, slot.getSlotKey(), slot.getSlotType(),
+                    slot.getDisplayName(), slot.getTimelineOrder(), slot.getAspectRatio(),
+                    slot.getCropPolicy(), slot.getRepeatPolicy(),
+                    Integer.valueOf(Boolean.FALSE.equals(slot.getRequired()) ? 0 : 1),
+                    slot.getMaterialId(), slot.getMaterialGroup()));
+        }
+        statements.add(statement("UPDATE template_versions SET slot_count=? "
+                + "WHERE version_id=? AND template_id=?",
+                Integer.valueOf(slots.size()), versionId, templateId));
+        d1.batch(statements);
+    }
+
     public void upsertMedia(String mediaId, String templateId, String versionId, String role,
                             String provider, String providerAssetId, String status, String sha256,
                             long sizeBytes, Integer width, Integer height, Double duration,

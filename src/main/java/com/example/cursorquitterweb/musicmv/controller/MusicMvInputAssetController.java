@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.musicmv.controller;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.LocalAsset;
+import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.InputAssetAccess;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.StoredInputAsset;
 import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
@@ -72,7 +74,12 @@ public class MusicMvInputAssetController {
     @GetMapping("/{assetId}")
     public ResponseEntity<?> download(@PathVariable String assetId,
                                       @RequestParam String access) throws IOException {
-        LocalAsset asset = storage.localAsset(assetId, access);
+        InputAssetAccess accessResult = storage.access(assetId, access);
+        if (accessResult.getRedirectUrl() != null) {
+            return ResponseEntity.status(302)
+                    .location(URI.create(accessResult.getRedirectUrl())).build();
+        }
+        LocalAsset asset = accessResult.getLocalAsset();
         return ResponseEntity.ok()
                 .contentLength(asset.getSizeBytes())
                 .contentType(MediaType.parseMediaType(asset.getContentType()))

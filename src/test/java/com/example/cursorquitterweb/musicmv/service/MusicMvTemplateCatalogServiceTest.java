@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -114,6 +115,88 @@ class MusicMvTemplateCatalogServiceTest {
         verify(repository).upsertMedia(anyString(), anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString(), any(Long.class),
                 any(), any(), any(), anyString());
+    }
+
+    @Test
+    void forceReplaceCreatesFreshAssetEvenWhenExistingAssetIsReusable() {
+        Map<String, Object> version = row("version_id", "tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        Map<String, Object> existing = row("media_id", "media_1");
+        existing.put("source_sha256", hash('a'));
+        existing.put("status", "ready");
+        existing.put("provider", "cloudflare_stream");
+        existing.put("provider_asset_id", "old-stream");
+        when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(existing);
+        when(mediaProvider.isReusableReadyAsset("cloudflare_stream", "old-stream"))
+                .thenReturn(true);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "new-stream", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("full_mv");
+        request.setSourceSha256(hash('a'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setWidth(Integer.valueOf(1080));
+        request.setHeight(Integer.valueOf(1920));
+        request.setDurationSeconds(Double.valueOf(180));
+        request.setFilename("showcase.mp4");
+        request.setForceReplace(Boolean.TRUE);
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+
+        assertEquals("media_1", result.get("mediaId"));
+        assertEquals("awaiting_upload", result.get("status"));
+        assertFalse((Boolean) result.get("idempotentReplay"));
+        verify(mediaProvider).createStreamUpload(anyString(), any());
+    }
+
+    @Test
+    void reconcilesDerivedSlotsForTheSameImmutableSource() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        Map<String, Object> version = row("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+
+        TemplateSlotReconcileRequest request = reconcileRequest();
+        Map<String, Object> result = service.reconcileSlots("tpl_1", "tplver_1", request);
+
+        assertEquals("reconciled", result.get("status"));
+        assertEquals(Integer.valueOf(1), result.get("slotCount"));
+        verify(repository).replaceSlots("tpl_1", "tplver_1", request.getSlots());
+    }
+
+    @Test
+    void rejectsSlotReconciliationFromAnotherSourceSnapshot() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        Map<String, Object> version = row("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+
+        TemplateSlotReconcileRequest request = reconcileRequest();
+        request.setSourceLocalKey("templates/tpl_1/other");
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.reconcileSlots("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_SLOT_SOURCE_MISMATCH", error.getCode());
+        verify(repository, never()).replaceSlots(anyString(), anyString(), any());
+    }
+
+    private TemplateSlotReconcileRequest reconcileRequest() {
+        TemplateSlotReconcileRequest request = new TemplateSlotReconcileRequest();
+        request.setSourceNodeId("mac-1");
+        request.setSourceLocalKey("templates/tpl_1/tplver_1");
+        TemplatePromotionRequest.Slot slot = new TemplatePromotionRequest.Slot();
+        slot.setSlotKey("photo_1");
+        slot.setSlotType("image");
+        slot.setDisplayName("Photo 1");
+        slot.setTimelineOrder(Integer.valueOf(0));
+        slot.setCropPolicy("fill");
+        slot.setRepeatPolicy("cycle");
+        request.getSlots().add(slot);
+        return request;
     }
 
     private TemplatePromotionRequest validPromotion() {

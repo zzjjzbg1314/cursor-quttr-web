@@ -60,15 +60,45 @@ public class MusicMvRenderJobRepository {
 
     public void create(String jobId, String clientId, String requestId,
                        String templateId, String versionId, int maxAttempts,
-                       String requestFingerprint, String requestJson, String outputContentType) {
+                       String requestFingerprint, String requestJson, String outputContentType,
+                       String initialStage) {
         d1.query("INSERT INTO music_mv_render_jobs "
                         + "(job_id, client_id, request_id, template_id, version_id, status, stage, "
                         + "progress, priority, attempt_count, max_attempts, request_fingerprint, request_json, "
                         + "cancel_requested, output_content_type, retryable, created_at, updated_at) "
-                        + "VALUES (?, ?, ?, ?, ?, 'queued', 'queued', 0, 0, 0, ?, ?, ?, 0, ?, 0, "
+                        + "VALUES (?, ?, ?, ?, ?, 'queued', ?, 0, 0, 0, ?, ?, ?, 0, ?, 0, "
                         + "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                 jobId, clientId, requestId, templateId, versionId,
-                Integer.valueOf(maxAttempts), requestFingerprint, requestJson, outputContentType);
+                initialStage, Integer.valueOf(maxAttempts), requestFingerprint, requestJson,
+                outputContentType);
+    }
+
+    public List<Map<String, Object>> ownedJobs(String clientId, int limit) {
+        return d1.query("SELECT " + prefixedJobColumns("j") + ","
+                        + "COALESCE(en.name,df.name,t.slug) AS template_name,t.category_key,"
+                        + "json_extract(j.request_json,'$.musicCandidateId') AS music_candidate_id,"
+                        + "COALESCE(c.title,c.storage_file_name,'Original AI song') AS song_name "
+                        + "FROM music_mv_render_jobs j "
+                        + "JOIN templates t ON t.template_id=j.template_id "
+                        + "LEFT JOIN template_translations en ON en.template_id=t.template_id "
+                        + "AND en.locale='en' "
+                        + "LEFT JOIN template_translations df ON df.template_id=t.template_id "
+                        + "AND df.locale=t.default_locale "
+                        + "LEFT JOIN ai_music_candidates c ON c.candidate_id="
+                        + "json_extract(j.request_json,'$.musicCandidateId') "
+                        + "WHERE j.client_id=? ORDER BY j.created_at DESC,j.job_id DESC LIMIT ?",
+                clientId, Integer.valueOf(Math.max(1, Math.min(100, limit)))).getRows();
+    }
+
+    private String prefixedJobColumns(String alias) {
+        String[] columns = JOB_COLUMNS.split(",");
+        StringBuilder result = new StringBuilder();
+        for (String raw : columns) {
+            String column = raw.trim();
+            if (result.length() > 0) result.append(',');
+            result.append(alias).append('.').append(column).append(" AS ").append(column);
+        }
+        return result.toString();
     }
 
     public Map<String, Object> rendererNode(String nodeId) {

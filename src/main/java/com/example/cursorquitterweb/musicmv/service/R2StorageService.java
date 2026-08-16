@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -186,6 +188,24 @@ public class R2StorageService {
             }
             continuationToken = response.nextContinuationToken();
         } while (continuationToken != null && !continuationToken.trim().isEmpty());
+    }
+
+    public List<String> listKeys(String objectPrefix) {
+        String prefix = normalizeObjectKey(objectPrefix);
+        List<String> keys = new ArrayList<String>();
+        String continuationToken = null;
+        do {
+            ListObjectsV2Response response = client().listObjectsV2(
+                    ListObjectsV2Request.builder()
+                            .bucket(bucket)
+                            .prefix(prefix)
+                            .continuationToken(continuationToken)
+                            .build()
+            );
+            for (S3Object object : response.contents()) keys.add(object.key());
+            continuationToken = response.nextContinuationToken();
+        } while (continuationToken != null && !continuationToken.trim().isEmpty());
+        return keys;
     }
 
     public void delete(String objectKey) {

@@ -20,7 +20,9 @@ public class MusicMvRenderJobCreateRequest {
     private String templateId;
     @NotBlank
     private String templateVersionId;
-    @NotNull
+    @NotBlank
+    @Size(max = 128)
+    private String musicCandidateId;
     @Valid
     private Asset music;
     @NotNull
@@ -42,6 +44,8 @@ public class MusicMvRenderJobCreateRequest {
     public void setTemplateId(String value) { templateId = value; }
     public String getTemplateVersionId() { return templateVersionId; }
     public void setTemplateVersionId(String value) { templateVersionId = value; }
+    public String getMusicCandidateId() { return musicCandidateId; }
+    public void setMusicCandidateId(String value) { musicCandidateId = value; }
     public Asset getMusic() { return music; }
     public void setMusic(Asset value) { music = value; }
     public List<SlotBinding> getSlotBindings() { return slotBindings; }

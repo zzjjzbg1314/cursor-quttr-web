@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMetadataUpdateRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.MediaState;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.UploadSession;
@@ -148,6 +149,27 @@ public class MusicMvTemplateCatalogService {
         return result;
     }
 
+    public Map<String, Object> reconcileSlots(String templateId, String versionId,
+                                               TemplateSlotReconcileRequest request) {
+        Map<String, Object> version = requireVersion(templateId, versionId);
+        String expectedNode = RowUtils.str(version, "source_node_id");
+        String expectedLocalKey = RowUtils.str(version, "source_local_key");
+        if (!request.getSourceNodeId().equals(expectedNode)
+                || !request.getSourceLocalKey().equals(expectedLocalKey)) {
+            throw conflict("TEMPLATE_SLOT_SOURCE_MISMATCH",
+                    "Slot reconciliation source does not match the immutable template version");
+        }
+        requireUniqueSlots(request.getSlots());
+        repository.replaceSlots(templateId, versionId, request.getSlots());
+
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("templateId", templateId);
+        result.put("versionId", versionId);
+        result.put("status", "reconciled");
+        result.put("slotCount", Integer.valueOf(request.getSlots().size()));
+        return result;
+    }
+
     public Map<String, Object> updateMetadata(String templateId, TemplateMetadataUpdateRequest request) {
         requireTemplate(templateId);
         requireCategory(request.getCategoryKey());
@@ -177,7 +199,8 @@ public class MusicMvTemplateCatalogService {
                     "Full MV upload requires durationSeconds and filename");
         }
         Map<String, Object> existing = repository.mediaByRole(versionId, expectedRole);
-        if (existing != null && request.getSourceSha256().equalsIgnoreCase(
+        boolean forceReplace = Boolean.TRUE.equals(request.getForceReplace());
+        if (!forceReplace && existing != null && request.getSourceSha256().equalsIgnoreCase(
                 RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))
                 && mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),
                 RowUtils.str(existing, "provider_asset_id"))) {

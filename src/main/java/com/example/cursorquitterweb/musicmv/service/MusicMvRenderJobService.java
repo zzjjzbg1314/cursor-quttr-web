@@ -26,6 +26,7 @@ import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderFailRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderLeaseRequest;
+import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.example.cursorquitterweb.musicmv.support.IdUtils;
@@ -39,20 +40,26 @@ public class MusicMvRenderJobService {
     private static final int MAX_JSON_BYTES = 256 * 1024;
 
     private final MusicMvRenderJobRepository repository;
+    private final AiMusicJobRepository aiMusicJobs;
     private final MusicMvRenderArtifactStorageService artifacts;
+    private final MusicMvInputAssetStorageService inputAssets;
     private final ObjectMapper objectMapper;
     private final boolean allowLoopbackHttp;
     private final int defaultMaxAttempts;
 
     public MusicMvRenderJobService(
             MusicMvRenderJobRepository repository,
+            AiMusicJobRepository aiMusicJobs,
             MusicMvRenderArtifactStorageService artifacts,
+            MusicMvInputAssetStorageService inputAssets,
             ObjectMapper objectMapper,
             @Value("${music-mv.render.allow-loopback-http:false}") boolean allowLoopbackHttp,
             @Value("${music-mv.render.default-max-attempts:2}") int defaultMaxAttempts
     ) {
         this.repository = repository;
+        this.aiMusicJobs = aiMusicJobs;
         this.artifacts = artifacts;
+        this.inputAssets = inputAssets;
         this.objectMapper = objectMapper;
         this.allowLoopbackHttp = allowLoopbackHttp;
         this.defaultMaxAttempts = Math.max(1, Math.min(5, defaultMaxAttempts));
@@ -62,13 +69,14 @@ public class MusicMvRenderJobService {
         String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
         requireId(request.getRequestId(), "MV_RENDER_REQUEST_ID_INVALID");
         validateSettings(request);
+        resolveOwnedMusic(normalizedClientId, request);
         validateAsset(request.getMusic(), true);
 
         Map<String, Object> version = repository.renderableVersion(
                 request.getTemplateId(), request.getTemplateVersionId());
         requireRenderableVersion(version, request);
         List<Map<String, Object>> slots = repository.slots(request.getTemplateVersionId());
-        requireSlotBindings(slots, request.getSlotBindings());
+        requireSlotBindings(normalizedClientId, slots, request.getSlotBindings());
 
         String requestJson = json(request);
         requireJsonSize(requestJson, "MV_RENDER_REQUEST_TOO_LARGE");
@@ -86,10 +94,16 @@ public class MusicMvRenderJobService {
         }
 
         String jobId = IdUtils.token("mvr");
+        boolean rendererAvailable = "available".equals(RowUtils.str(version,
+                "source_availability"));
+        String initialStage = rendererAvailable ? "queued" : "waiting_for_renderer";
         repository.create(jobId, normalizedClientId, request.getRequestId(),
                 request.getTemplateId(), request.getTemplateVersionId(), defaultMaxAttempts,
-                fingerprint, requestJson, "video/mp4");
-        addEvent(jobId, "created", "queued", null, singleton("requestId", request.getRequestId()));
+                fingerprint, requestJson, "video/mp4", initialStage);
+        Map<String, Object> createdDetail = new LinkedHashMap<String, Object>();
+        createdDetail.put("requestId", request.getRequestId());
+        createdDetail.put("rendererAvailable", Boolean.valueOf(rendererAvailable));
+        addEvent(jobId, "created", initialStage, null, createdDetail);
         Map<String, Object> row = requireJob(repository.byId(jobId));
         Map<String, Object> view = clientView(row);
         view.put("idempotentReplay", Boolean.FALSE);
@@ -100,6 +114,18 @@ public class MusicMvRenderJobService {
         Map<String, Object> row = requireOwnedJob(clientId, jobId);
         Map<String, Object> result = clientView(row);
         result.put("events", eventViews(repository.events(jobId)));
+        return result;
+    }
+
+    public Map<String, Object> list(String clientId, int limit) {
+        String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : repository.ownedJobs(normalizedClientId, limit)) {
+            items.add(clientView(row));
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("items", items);
+        result.put("count", Integer.valueOf(items.size()));
         return result;
     }
 
@@ -230,14 +256,40 @@ public class MusicMvRenderJobService {
         boolean ready = "published".equals(RowUtils.str(row, "template_status"))
                 && "published".equals(RowUtils.str(row, "version_status"))
                 && "exact".equals(RowUtils.str(row, "validation_status"))
-                && "available".equals(RowUtils.str(row, "source_availability"))
                 && request.getTemplateVersionId().equals(RowUtils.str(row, "current_version_id"))
                 && RowUtils.str(row, "source_node_id") != null;
         if (!ready) throw conflict("MV_RENDER_TEMPLATE_NOT_RENDERABLE",
-                "Template version is not published, exact, current and available on a renderer");
+                "Template version is not published, exact, current and assigned to a renderer");
     }
 
-    private void requireSlotBindings(List<Map<String, Object>> slots,
+    private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request) {
+        String candidateId = requireId(request.getMusicCandidateId(),
+                "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
+        Map<String, Object> candidate = aiMusicJobs.ownedCandidate(userId, candidateId);
+        if (candidate == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "MV_RENDER_MUSIC_CANDIDATE_NOT_FOUND",
+                    "The selected AI song was not found");
+        }
+        String storageUrl = RowUtils.str(candidate, "storage_url");
+        String sha256 = RowUtils.str(candidate, "storage_sha256");
+        Long sizeBytes = RowUtils.lng(candidate, "storage_size_bytes");
+        String fileName = RowUtils.str(candidate, "storage_file_name");
+        String contentType = RowUtils.str(candidate, "storage_content_type");
+        if (!"stored".equals(RowUtils.str(candidate, "status")) || storageUrl == null
+                || sha256 == null || sizeBytes == null || fileName == null || contentType == null) {
+            throw conflict("MV_RENDER_MUSIC_NOT_STORED",
+                    "The selected AI song is not ready for video rendering");
+        }
+        MusicMvRenderJobCreateRequest.Asset asset = new MusicMvRenderJobCreateRequest.Asset();
+        asset.setUrl(storageUrl);
+        asset.setSha256(sha256);
+        asset.setSizeBytes(sizeBytes);
+        asset.setFileName(fileName);
+        asset.setContentType(contentType);
+        request.setMusic(asset);
+    }
+
+    private void requireSlotBindings(String ownerId, List<Map<String, Object>> slots,
                                      List<MusicMvRenderJobCreateRequest.SlotBinding> bindings) {
         if (slots == null || slots.isEmpty()) {
             throw conflict("MV_RENDER_TEMPLATE_HAS_NO_SLOTS", "Template has no material slots");
@@ -257,6 +309,7 @@ public class MusicMvRenderJobService {
                 throw badRequest("MV_RENDER_SLOT_DUPLICATE", "A material slot was provided twice");
             }
             validateAsset(binding.getAsset(), false);
+            inputAssets.requireOwnedCloudAsset(ownerId, binding.getAsset(), "image");
         }
         if (!expected.equals(actual)) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
@@ -322,6 +375,7 @@ public class MusicMvRenderJobService {
         Map<String, Object> canonical = new LinkedHashMap<String, Object>();
         canonical.put("templateId", request.getTemplateId());
         canonical.put("templateVersionId", request.getTemplateVersionId());
+        canonical.put("musicCandidateId", request.getMusicCandidateId());
         canonical.put("musicSha256", request.getMusic().getSha256().toLowerCase());
         canonical.put("musicSizeBytes", request.getMusic().getSizeBytes());
         List<Map<String, Object>> slots = new ArrayList<Map<String, Object>>();
@@ -351,7 +405,15 @@ public class MusicMvRenderJobService {
         result.put("outputReady", Boolean.valueOf(outputReady));
         if (outputReady) result.put("outputDownloadPath", outputPath(RowUtils.str(row, "job_id")));
         result.put("result", parseObject(RowUtils.str(row, "result_json")));
+        putIfPresent(result, "templateName", row.get("template_name"));
+        putIfPresent(result, "categoryKey", row.get("category_key"));
+        putIfPresent(result, "musicCandidateId", row.get("music_candidate_id"));
+        putIfPresent(result, "songName", row.get("song_name"));
         return result;
+    }
+
+    private void putIfPresent(Map<String, Object> target, String key, Object value) {
+        if (value != null) target.put(key, value);
     }
 
     private Map<String, Object> rendererView(Map<String, Object> row) {

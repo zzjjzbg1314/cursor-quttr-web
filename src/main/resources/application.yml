@@ -215,6 +215,12 @@ music-mv:
     access-key-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCESS_KEY_ID:${MUSIC_MV_R2_ACCESS_KEY_ID:}}
     secret-access-key: ${MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY:${MUSIC_MV_R2_SECRET_ACCESS_KEY:}}
     public-base-url: ${MUSIC_MV_CLOUDFLARE_R2_PUBLIC_BASE_URL:}
+  render:
+    require-cloud-input-assets: ${MUSIC_MV_REQUIRE_CLOUD_INPUT_ASSETS:true}
+    allow-loopback-http: ${MUSIC_MV_ALLOW_LOOPBACK_HTTP:false}
+    default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}
+    max-output-bytes: ${MUSIC_MV_MAX_OUTPUT_BYTES:2147483648}
+    local-storage-dir: ${MUSIC_MV_LOCAL_STORAGE_DIR:storage/music-mv-render}
   security:
     client-token: ${MUSIC_MV_CLIENT_TOKEN:}
     renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}
@@ -262,8 +268,3 @@ music-mv:
       webhook-hmac-key: ${MUSIC_MV_KIE_WEBHOOK_HMAC_KEY:}
       model: ${MUSIC_MV_KIE_MODEL:V5_5}
       webhook-max-age-seconds: ${MUSIC_MV_KIE_WEBHOOK_MAX_AGE_SECONDS:300}
-  render:
-    allow-loopback-http: ${MUSIC_MV_ALLOW_LOOPBACK_HTTP:false}
-    default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}
-    max-output-bytes: ${MUSIC_MV_MAX_OUTPUT_BYTES:2147483648}
-    local-storage-dir: ${MUSIC_MV_LOCAL_STORAGE_DIR:storage/music-mv-render}

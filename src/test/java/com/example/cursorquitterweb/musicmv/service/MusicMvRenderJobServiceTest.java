@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
+import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
@@ -26,10 +27,12 @@ class MusicMvRenderJobServiceTest {
     @Test
     void createsExactPublishedTemplateJobAndSupportsIdempotentReplay() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(
-                repository, artifacts, new ObjectMapper(), true, 2);
+                repository, aiMusicJobs, artifacts, inputAssets(), new ObjectMapper(), true, 2);
         MusicMvRenderJobCreateRequest request = request();
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
         when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
         when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
         when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
@@ -40,7 +43,7 @@ class MusicMvRenderJobServiceTest {
         ArgumentCaptor<String> fingerprint = ArgumentCaptor.forClass(String.class);
         verify(repository).create(anyString(), eq("website-backend"), eq("req_1"),
                 eq("tpl_1"), eq("tplver_1"), eq(2), fingerprint.capture(),
-                anyString(), eq("video/mp4"));
+                anyString(), eq("video/mp4"), eq("queued"));
 
         when(repository.byClientRequest("website-backend", "req_1"))
                 .thenReturn(row("mvr_existing", fingerprint.getValue()));
@@ -52,9 +55,12 @@ class MusicMvRenderJobServiceTest {
     @Test
     void rejectsIncompleteSlotContract() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
-                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), true, 2);
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
         MusicMvRenderJobCreateRequest request = request();
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
         request.setSlotBindings(Collections.singletonList(request.getSlotBindings().get(0)));
         when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
         when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
@@ -68,7 +74,9 @@ class MusicMvRenderJobServiceTest {
     void rejectsCompletionWithoutSingleExactNativeEncode() {
         MusicMvRenderJobService service = new MusicMvRenderJobService(
                 mock(MusicMvRenderJobRepository.class),
-                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), false, 2);
+                mock(AiMusicJobRepository.class),
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
+                new ObjectMapper(), false, 2);
         MusicMvRenderCompleteRequest request = new MusicMvRenderCompleteRequest();
         request.setSemanticIntegrity("degraded");
         request.setVideoEncodeCount(Integer.valueOf(1));
@@ -83,12 +91,16 @@ class MusicMvRenderJobServiceTest {
     @Test
     void acceptsOnlyCapabilityProtectedLocalInputWhenGeneralLoopbackIsDisabled() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
-                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), false, 2);
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), false, 2);
         MusicMvRenderJobCreateRequest request = request();
         String capabilityUrl = "http://127.0.0.1:8080/api/music-mv/v1/assets/"
                 + "mva_0123456789abcdef0123456789abcdef?access=" + repeat('d');
-        request.getMusic().setUrl(capabilityUrl);
+        Map<String, Object> candidate = candidate();
+        candidate.put("storage_url", capabilityUrl);
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate);
         for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
             binding.getAsset().setUrl(capabilityUrl);
         }
@@ -101,13 +113,44 @@ class MusicMvRenderJobServiceTest {
 
     @Test
     void rejectsUnprotectedLocalInputWhenGeneralLoopbackIsDisabled() {
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(
                 mock(MusicMvRenderJobRepository.class),
-                mock(MusicMvRenderArtifactStorageService.class), new ObjectMapper(), false, 2);
+                aiMusicJobs,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
+                new ObjectMapper(), false, 2);
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
 
         ApiException exception = assertThrows(ApiException.class,
                 () -> service.create("website-backend", request()));
         assertEquals("MV_RENDER_ASSET_URL_BLOCKED", exception.getCode());
+    }
+
+    @Test
+    void queuesSafelyWhenAssignedRendererIsOffline() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
+                new ObjectMapper(), true, 2);
+        Map<String, Object> offlineVersion = version();
+        offlineVersion.put("source_availability", "unavailable");
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(offlineVersion);
+        when(repository.slots("tplver_1"))
+                .thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
+        when(repository.byId(anyString())).thenAnswer(invocation -> {
+            Map<String, Object> created = row(invocation.getArgument(0), null);
+            created.put("stage", "waiting_for_renderer");
+            return created;
+        });
+
+        Map<String, Object> created = service.create("website-backend", request());
+
+        assertEquals("waiting_for_renderer", created.get("stage"));
+        verify(repository).create(anyString(), eq("website-backend"), eq("req_1"),
+                eq("tpl_1"), eq("tplver_1"), eq(2), anyString(), anyString(),
+                eq("video/mp4"), eq("waiting_for_renderer"));
     }
 
     private MusicMvRenderJobCreateRequest request() {
@@ -115,6 +158,7 @@ class MusicMvRenderJobServiceTest {
         request.setRequestId("req_1");
         request.setTemplateId("tpl_1");
         request.setTemplateVersionId("tplver_1");
+        request.setMusicCandidateId("song_1");
         request.setMusic(asset("http://127.0.0.1:8080/uploads/music.m4a", "music.m4a", "audio/mp4", 100L, 'a'));
         request.setSlotBindings(Arrays.asList(
                 binding("photo_01", asset("http://127.0.0.1:8080/uploads/1.jpg", "1.jpg", "image/jpeg", 50L, 'b')),
@@ -122,6 +166,10 @@ class MusicMvRenderJobServiceTest {
         request.setAllowTemplateLoop(Boolean.TRUE);
         request.setFadeOutSeconds(Double.valueOf(0.0d));
         return request;
+    }
+
+    private MusicMvInputAssetStorageService inputAssets() {
+        return mock(MusicMvInputAssetStorageService.class);
     }
 
     private MusicMvRenderJobCreateRequest.Asset asset(String url, String name,
@@ -151,6 +199,18 @@ class MusicMvRenderJobServiceTest {
         row.put("source_availability", "available");
         row.put("current_version_id", "tplver_1");
         row.put("source_node_id", "mac-music-mv-primary");
+        return row;
+    }
+
+    private Map<String, Object> candidate() {
+        Map<String, Object> row = new LinkedHashMap<String, Object>();
+        row.put("candidate_id", "song_1");
+        row.put("status", "stored");
+        row.put("storage_url", "http://127.0.0.1:8080/uploads/music.m4a");
+        row.put("storage_sha256", repeat('a'));
+        row.put("storage_size_bytes", Long.valueOf(100L));
+        row.put("storage_file_name", "music.m4a");
+        row.put("storage_content_type", "audio/mp4");
         return row;
     }
 
