@@ -219,6 +219,43 @@ public class CloudflareTemplateMediaProvider {
         return new MediaState(ready ? "ready" : "processing", details);
     }
 
+    /** Permanently removes a template showcase asset from its Cloudflare product. */
+    public void deleteAsset(String provider, String providerAssetId) {
+        String assetId = required(trim(providerAssetId), "Cloudflare asset id is required");
+        if ("cloudflare_images".equals(provider)) {
+            requireImagesConfigured();
+            deleteIgnoringMissing(apiBaseUrl + "/accounts/" + imagesAccountId
+                    + "/images/v1/" + assetId, imagesApiToken);
+            return;
+        }
+        if ("cloudflare_stream".equals(provider)) {
+            requireStreamConfigured();
+            deleteIgnoringMissing(apiBaseUrl + "/accounts/" + streamAccountId
+                    + "/stream/" + assetId, streamApiToken);
+            return;
+        }
+        throw new IllegalStateException("Unsupported template media provider: " + provider);
+    }
+
+    private void deleteIgnoringMissing(String url, String token) {
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE,
+                    new HttpEntity<Void>(bearer(token)), String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            if (!root.path("success").asBoolean(false)) {
+                throw new IllegalStateException("Cloudflare media delete failed: "
+                        + root.path("errors"));
+            }
+        } catch (HttpStatusCodeException exception) {
+            if (exception.getRawStatusCode() == 404) return;
+            throw providerFailure("Cloudflare media delete failed", exception);
+        } catch (RuntimeException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new IllegalStateException("Parse Cloudflare media delete response failed", exception);
+        }
+    }
+
     private JsonNode jsonExchange(String url, HttpMethod method, HttpEntity<?> entity) {
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, method, entity, String.class);

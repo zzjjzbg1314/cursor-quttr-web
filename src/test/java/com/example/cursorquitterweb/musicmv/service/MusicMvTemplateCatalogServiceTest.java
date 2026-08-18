@@ -184,6 +184,44 @@ class MusicMvTemplateCatalogServiceTest {
         verify(repository, never()).replaceSlots(anyString(), anyString(), any());
     }
 
+    @Test
+    void permanentlyDeletesOfflineTemplateMediaAndCatalogGraph() {
+        Map<String, Object> template = row("status", "offline");
+        when(repository.template("tpl_1")).thenReturn(template);
+        when(repository.projectReferenceCount("tpl_1")).thenReturn(Long.valueOf(0L));
+        when(repository.renderJobReferenceCount("tpl_1")).thenReturn(Long.valueOf(0L));
+        Map<String, Object> cover = row("provider", "cloudflare_images");
+        cover.put("provider_asset_id", "image-1");
+        Map<String, Object> fullMv = row("provider", "cloudflare_stream");
+        fullMv.put("provider_asset_id", "stream-1");
+        when(repository.mediaForTemplate("tpl_1"))
+                .thenReturn(java.util.Arrays.asList(cover, fullMv));
+
+        Map<String, Object> result = service.action("tpl_1", "delete-template", null);
+
+        assertEquals(Boolean.TRUE, result.get("deleted"));
+        assertEquals(Integer.valueOf(2), result.get("deletedMediaCount"));
+        verify(mediaProvider).deleteAsset("cloudflare_images", "image-1");
+        verify(mediaProvider).deleteAsset("cloudflare_stream", "stream-1");
+        verify(repository).deleteTemplate("tpl_1");
+    }
+
+    @Test
+    void refusesPermanentDeletionUntilOfflineAndUnreferenced() {
+        when(repository.template("tpl_1")).thenReturn(row("status", "published"));
+        ApiException published = assertThrows(ApiException.class,
+                () -> service.action("tpl_1", "delete-template", null));
+        assertEquals("TEMPLATE_DELETE_REQUIRES_OFFLINE", published.getCode());
+
+        when(repository.template("tpl_1")).thenReturn(row("status", "offline"));
+        when(repository.projectReferenceCount("tpl_1")).thenReturn(Long.valueOf(1L));
+        ApiException referenced = assertThrows(ApiException.class,
+                () -> service.action("tpl_1", "delete-template", null));
+        assertEquals("TEMPLATE_DELETE_REFERENCED", referenced.getCode());
+        verify(mediaProvider, never()).deleteAsset(anyString(), anyString());
+        verify(repository, never()).deleteTemplate(anyString());
+    }
+
     private TemplateSlotReconcileRequest reconcileRequest() {
         TemplateSlotReconcileRequest request = new TemplateSlotReconcileRequest();
         request.setSourceNodeId("mac-1");

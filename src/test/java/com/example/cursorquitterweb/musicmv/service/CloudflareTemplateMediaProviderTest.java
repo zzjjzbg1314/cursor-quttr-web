@@ -126,6 +126,44 @@ class CloudflareTemplateMediaProviderTest {
         server.verify();
     }
 
+    @Test
+    void permanentlyDeletesImagesAndStreamAssets() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(once(), requestTo(
+                        "https://api.cloudflare.test/accounts/account/images/v1/image-1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer images-secret"))
+                .andRespond(withSuccess("{\"success\":true,\"result\":{}}",
+                        MediaType.APPLICATION_JSON));
+        server.expect(once(), requestTo(
+                        "https://api.cloudflare.test/accounts/account/stream/stream-1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer stream-secret"))
+                .andRespond(withSuccess("{\"success\":true,\"result\":{}}",
+                        MediaType.APPLICATION_JSON));
+
+        CloudflareTemplateMediaProvider provider = provider(restTemplate);
+        provider.deleteAsset("cloudflare_images", "image-1");
+        provider.deleteAsset("cloudflare_stream", "stream-1");
+
+        server.verify();
+    }
+
+    @Test
+    void treatsAlreadyDeletedProviderAssetAsSuccessfulDeletion() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(once(), requestTo(
+                        "https://api.cloudflare.test/accounts/account/images/v1/missing-image"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        provider(restTemplate).deleteAsset("cloudflare_images", "missing-image");
+
+        server.verify();
+    }
+
     private CloudflareTemplateMediaProvider provider(RestTemplate restTemplate) {
         return new CloudflareTemplateMediaProvider(new ObjectMapper(), restTemplate,
                 "https://api.cloudflare.test", "account", "images-secret",

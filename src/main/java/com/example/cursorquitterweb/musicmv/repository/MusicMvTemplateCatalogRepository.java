@@ -160,6 +160,22 @@ public class MusicMvTemplateCatalogRepository {
                 + "WHERE version_id=? ORDER BY media_role", versionId).getRows();
     }
 
+    public List<Map<String, Object>> mediaForTemplate(String templateId) {
+        return d1.query("SELECT media_id, media_role, provider, provider_asset_id, status "
+                + "FROM template_media WHERE template_id=? ORDER BY version_id, media_role",
+                templateId).getRows();
+    }
+
+    public long projectReferenceCount(String templateId) {
+        return count("SELECT COUNT(*) AS total FROM music_mv_projects "
+                + "WHERE template_id=? AND deleted_at IS NULL", templateId);
+    }
+
+    public long renderJobReferenceCount(String templateId) {
+        return count("SELECT COUNT(*) AS total FROM music_mv_render_jobs WHERE template_id=?",
+                templateId);
+    }
+
     public Map<String, Object> mediaByRole(String versionId, String role) {
         return d1.query("SELECT * FROM template_media WHERE version_id=? AND media_role=? LIMIT 1",
                 versionId, role).firstRow();
@@ -300,6 +316,37 @@ public class MusicMvTemplateCatalogRepository {
     public void setOffline(String templateId) {
         d1.query("UPDATE templates SET status='offline',revision=revision+1,updated_at=CURRENT_TIMESTAMP "
                 + "WHERE template_id=? AND deleted_at IS NULL", templateId);
+    }
+
+    /** Deletes the complete catalog graph after the service has removed provider assets. */
+    public void deleteTemplate(String templateId) {
+        d1.batch(Arrays.asList(
+                statement("DELETE FROM template_media WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM template_slots WHERE version_id IN ("
+                        + "SELECT version_id FROM template_versions WHERE template_id=?) AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM template_validation_records WHERE version_id IN ("
+                        + "SELECT version_id FROM template_versions WHERE template_id=?) AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM template_translations WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM template_versions WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM templates WHERE template_id=? AND status='offline'",
+                        templateId)));
+    }
+
+    private long count(String sql, String templateId) {
+        Map<String, Object> row = d1.query(sql, templateId).firstRow();
+        Object value = row == null ? null : row.get("total");
+        return value instanceof Number ? ((Number) value).longValue()
+                : value == null ? 0L : Long.parseLong(String.valueOf(value));
     }
 
     public Map<String, Object> readiness() {

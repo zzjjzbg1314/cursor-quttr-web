@@ -287,7 +287,48 @@ public class MusicMvTemplateCatalogService {
             result.put("status", "offline");
             return result;
         }
+        if ("delete-template".equals(normalized)) {
+            return deleteTemplate(templateId);
+        }
         throw badRequest("TEMPLATE_ACTION_UNSUPPORTED", "Template action is unsupported in cloud mode");
+    }
+
+    private Map<String, Object> deleteTemplate(String templateId) {
+        Map<String, Object> template = repository.template(templateId);
+        if (template == null) {
+            Map<String, Object> replay = new LinkedHashMap<String, Object>();
+            replay.put("templateId", templateId);
+            replay.put("deleted", Boolean.TRUE);
+            replay.put("idempotentReplay", Boolean.TRUE);
+            return replay;
+        }
+        if (!"offline".equals(RowUtils.str(template, "status"))) {
+            throw conflict("TEMPLATE_DELETE_REQUIRES_OFFLINE",
+                    "Template must be offline before permanent deletion");
+        }
+        long projectReferences = repository.projectReferenceCount(templateId);
+        long renderJobReferences = repository.renderJobReferenceCount(templateId);
+        if (projectReferences > 0L || renderJobReferences > 0L) {
+            Map<String, Object> details = new LinkedHashMap<String, Object>();
+            details.put("projectReferences", Long.valueOf(projectReferences));
+            details.put("renderJobReferences", Long.valueOf(renderJobReferences));
+            throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_DELETE_REFERENCED",
+                    "Template is still referenced by user projects or render jobs", false, details);
+        }
+
+        java.util.List<Map<String, Object>> media = repository.mediaForTemplate(templateId);
+        for (Map<String, Object> item : media) {
+            mediaProvider.deleteAsset(RowUtils.str(item, "provider"),
+                    RowUtils.str(item, "provider_asset_id"));
+        }
+        repository.deleteTemplate(templateId);
+
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("templateId", templateId);
+        result.put("deleted", Boolean.TRUE);
+        result.put("deletedMediaCount", Integer.valueOf(media.size()));
+        result.put("idempotentReplay", Boolean.FALSE);
+        return result;
     }
 
     public Map<String, Object> readiness() {
