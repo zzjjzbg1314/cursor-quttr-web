@@ -50,6 +50,15 @@ class MusicMvRenderJobServiceTest {
         Map<String, Object> replay = service.create("website-backend", request);
         assertEquals(Boolean.TRUE, replay.get("idempotentReplay"));
         assertEquals("mvr_existing", replay.get("jobId"));
+
+        MusicMvRenderJobCreateRequest.Crop changedCrop = new MusicMvRenderJobCreateRequest.Crop();
+        changedCrop.setX(Double.valueOf(65.0d));
+        changedCrop.setY(Double.valueOf(50.0d));
+        changedCrop.setZoom(Double.valueOf(1.0d));
+        request.getSlotBindings().get(0).setCrop(changedCrop);
+        ApiException conflict = assertThrows(ApiException.class,
+                () -> service.create("website-backend", request));
+        assertEquals("MV_RENDER_IDEMPOTENCY_CONFLICT", conflict.getCode());
     }
 
     @Test
@@ -188,6 +197,11 @@ class MusicMvRenderJobServiceTest {
         MusicMvRenderJobCreateRequest.SlotBinding binding = new MusicMvRenderJobCreateRequest.SlotBinding();
         binding.setSlotKey(key);
         binding.setAsset(asset);
+        MusicMvRenderJobCreateRequest.Crop crop = new MusicMvRenderJobCreateRequest.Crop();
+        crop.setX(Double.valueOf(50.0d));
+        crop.setY(Double.valueOf(50.0d));
+        crop.setZoom(Double.valueOf(1.0d));
+        binding.setCrop(crop);
         return binding;
     }
 

@@ -19,6 +19,7 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 @RestControllerAdvice(assignableTypes = {
         MusicMvRenderJobController.class,
         MusicMvInputAssetController.class,
+        MusicMvProjectDraftController.class,
         RendererMusicMvRenderJobController.class,
         RendererNodeController.class,
         MusicMvTemplateCatalogController.class,

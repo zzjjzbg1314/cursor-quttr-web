@@ -70,6 +70,75 @@ CREATE INDEX IF NOT EXISTS idx_music_mv_user_sessions_user
 CREATE INDEX IF NOT EXISTS idx_music_mv_user_sessions_token
   ON music_mv_user_sessions(token_sha256, expires_at, revoked_at);
 
+-- Reusable, private user media library. Binary data remains in private R2;
+-- D1 stores only ownership, lifecycle and deduplication metadata.
+CREATE TABLE IF NOT EXISTS music_mv_user_assets (
+  asset_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  project_id TEXT,
+  kind TEXT NOT NULL,
+  storage TEXT NOT NULL,
+  asset_url TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  content_type TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  expires_at TEXT NOT NULL,
+  last_used_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_assets_library
+  ON music_mv_user_assets(user_id, kind, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_assets_project
+  ON music_mv_user_assets(user_id, project_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_music_mv_user_assets_hash
+  ON music_mv_user_assets(user_id, kind, sha256, status);
+
+-- Cloud project drafts make the Song -> Template -> Photos flow resumable on
+-- another device. The JSON is UI state only; referenced binary assets remain
+-- in R2 and are linked through music_mv_project_assets.
+CREATE TABLE IF NOT EXISTS music_mv_projects (
+  project_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  current_step TEXT NOT NULL DEFAULT 'song',
+  song_candidate_id TEXT,
+  template_id TEXT,
+  template_version_id TEXT,
+  draft_json TEXT NOT NULL DEFAULT '{}',
+  revision INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  submitted_at TEXT,
+  deleted_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_music_mv_projects_user
+  ON music_mv_projects(user_id, status, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS music_mv_project_assets (
+  project_id TEXT NOT NULL,
+  asset_id TEXT NOT NULL,
+  slot_key TEXT NOT NULL,
+  timeline_order INTEGER NOT NULL,
+  crop_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (project_id, slot_key),
+  FOREIGN KEY (project_id) REFERENCES music_mv_projects(project_id),
+  FOREIGN KEY (asset_id) REFERENCES music_mv_user_assets(asset_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_music_mv_project_assets_asset
+  ON music_mv_project_assets(asset_id, project_id);
+
 -- Cloud template catalog. The website backend is the only application allowed
 -- to query or mutate these tables. Browser and Mac renderer traffic goes
 -- through website-backend APIs.

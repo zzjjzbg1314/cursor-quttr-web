@@ -224,7 +224,7 @@ music-mv:
   security:
     client-token: ${MUSIC_MV_CLIENT_TOKEN:}
     renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}
-    template-sync-token: ${MUSIC_MV_TEMPLATE_SYNC_TOKEN:}
+    template-sync-token: ${MUSIC_MV_TEMPLATE_SYNC_TOKEN:} 
   auth:
     session-days: ${MUSIC_MV_AUTH_SESSION_DAYS:30}
     google:

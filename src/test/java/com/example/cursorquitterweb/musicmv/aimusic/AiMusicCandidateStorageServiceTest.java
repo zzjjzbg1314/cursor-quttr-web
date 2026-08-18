@@ -53,7 +53,7 @@ class AiMusicCandidateStorageServiceTest {
         R2StorageService r2 = mock(R2StorageService.class);
         when(r2.isConfigured()).thenReturn(false);
         MusicMvInputAssetStorageService storage = new MusicMvInputAssetStorageService(
-                r2, tempDir.toString(), "https://backend.test", false);
+                r2, tempDir.toString(), "https://backend.test", false, 3650L);
         RestTemplate restTemplate = new RestTemplate();
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
         server.expect(once(), requestTo("https://1.1.1.1/generated.mp3"))

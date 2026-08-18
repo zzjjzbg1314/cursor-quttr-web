@@ -384,6 +384,11 @@ public class MusicMvRenderJobService {
             slot.put("slotKey", binding.getSlotKey());
             slot.put("sha256", binding.getAsset().getSha256().toLowerCase());
             slot.put("sizeBytes", binding.getAsset().getSizeBytes());
+            if (binding.getCrop() != null) {
+                slot.put("cropX", binding.getCrop().getX());
+                slot.put("cropY", binding.getCrop().getY());
+                slot.put("cropZoom", binding.getCrop().getZoom());
+            }
             slots.add(slot);
         }
         Collections.sort(slots, new Comparator<Map<String, Object>>() {

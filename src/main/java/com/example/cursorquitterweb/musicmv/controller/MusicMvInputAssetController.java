@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,9 +24,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.LocalAsset;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.InputAssetAccess;
-import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.StoredInputAsset;
 import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
+import com.example.cursorquitterweb.musicmv.service.MusicMvUserAssetService;
 
 @RestController
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -34,13 +35,32 @@ public class MusicMvInputAssetController {
     private final MusicMvRenderClientAuthenticationService authentication;
     private final MusicMvAuthService auth;
     private final MusicMvInputAssetStorageService storage;
+    private final MusicMvUserAssetService userAssets;
 
     public MusicMvInputAssetController(MusicMvRenderClientAuthenticationService authentication,
                                        MusicMvAuthService auth,
-                                       MusicMvInputAssetStorageService storage) {
+                                       MusicMvInputAssetStorageService storage,
+                                       MusicMvUserAssetService userAssets) {
         this.authentication = authentication;
         this.auth = auth;
         this.storage = storage;
+        this.userAssets = userAssets;
+    }
+
+    @GetMapping("/readiness")
+    public Map<String, Object> readiness(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            HttpServletRequest request
+    ) {
+        authentication.requireAuthorized(token);
+        auth.requireUserId(request);
+        boolean configured = storage.isCloudStorageConfigured();
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
+        response.put("storage", "r2");
+        response.put("configured", Boolean.valueOf(configured));
+        response.put("required", Boolean.valueOf(storage.isCloudStorageRequired()));
+        response.put("uploadAvailable", Boolean.valueOf(configured));
+        return response;
     }
 
     @PostMapping
@@ -50,24 +70,40 @@ public class MusicMvInputAssetController {
             @RequestParam String kind,
             @RequestParam String fileName,
             @RequestParam long sizeBytes,
+            @RequestParam(required = false) String projectId,
             HttpServletRequest request
     ) throws IOException {
         authentication.requireAuthorized(token);
         String ownerId = auth.requireUserId(request);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        StoredInputAsset asset = storage.store(ownerId, kind, fileName,
-                request.getContentType(), sizeBytes,
-                request.getInputStream(), baseUrl);
+        return userAssets.upload(ownerId, projectId, kind, fileName,
+                request.getContentType(), sizeBytes, request.getInputStream(), baseUrl);
+    }
+
+    @GetMapping
+    public Map<String, Object> list(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @RequestParam(defaultValue = "recent") String scope,
+            @RequestParam(required = false) String projectId,
+            @RequestParam(defaultValue = "image") String kind,
+            @RequestParam(defaultValue = "40") int limit,
+            HttpServletRequest request
+    ) {
+        authentication.requireAuthorized(token);
+        return userAssets.list(auth.requireUserId(request), scope, projectId, kind, limit);
+    }
+
+    @DeleteMapping("/{assetId}")
+    public Map<String, Object> delete(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String assetId,
+            HttpServletRequest request
+    ) throws IOException {
+        authentication.requireAuthorized(token);
+        userAssets.delete(auth.requireUserId(request), assetId);
         Map<String, Object> response = new LinkedHashMap<String, Object>();
-        response.put("assetId", asset.getAssetId());
-        response.put("kind", asset.getKind());
-        response.put("url", asset.getUrl());
-        response.put("sha256", asset.getSha256());
-        response.put("fileName", asset.getFileName());
-        response.put("contentType", asset.getContentType());
-        response.put("sizeBytes", Long.valueOf(asset.getSizeBytes()));
-        response.put("expiresAt", asset.getExpiresAt());
-        response.put("storage", asset.getStorage());
+        response.put("assetId", assetId);
+        response.put("deleted", Boolean.TRUE);
         return response;
     }
 

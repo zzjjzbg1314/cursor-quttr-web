@@ -97,10 +97,36 @@ public class MusicMvRenderJobCreateRequest {
         @NotNull
         @Valid
         private Asset asset;
+        @Valid
+        private Crop crop;
 
         public String getSlotKey() { return slotKey; }
         public void setSlotKey(String value) { slotKey = value; }
         public Asset getAsset() { return asset; }
         public void setAsset(Asset value) { asset = value; }
+        public Crop getCrop() { return crop; }
+        public void setCrop(Crop value) { crop = value; }
+    }
+
+    public static class Crop {
+        @NotNull
+        @DecimalMin("0.0")
+        @DecimalMax("100.0")
+        private Double x;
+        @NotNull
+        @DecimalMin("0.0")
+        @DecimalMax("100.0")
+        private Double y;
+        @NotNull
+        @DecimalMin("1.0")
+        @DecimalMax("4.0")
+        private Double zoom;
+
+        public Double getX() { return x; }
+        public void setX(Double value) { x = value; }
+        public Double getY() { return y; }
+        public void setY(Double value) { y = value; }
+        public Double getZoom() { return zoom; }
+        public void setZoom(Double value) { zoom = value; }
     }
 }
