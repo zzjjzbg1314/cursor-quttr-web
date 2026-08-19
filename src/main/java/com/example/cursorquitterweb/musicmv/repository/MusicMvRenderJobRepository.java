@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.dto.RendererHeartbeatRequest;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
+import com.example.cursorquitterweb.musicmv.service.D1Statement;
 
 @Repository
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -234,6 +235,18 @@ public class MusicMvRenderJobRepository {
                         + "WHERE job_id=? AND client_id=? AND status NOT IN ('completed','failed','canceled') "
                         + "RETURNING " + JOB_COLUMNS,
                 jobId, clientId).firstRow();
+    }
+
+    public void deleteOwnedTerminal(String jobId, String clientId) {
+        String ownedTerminal = "SELECT 1 FROM music_mv_render_jobs WHERE job_id=? "
+                + "AND client_id=? AND status IN ('completed','failed','canceled')";
+        d1.batch(java.util.Arrays.asList(
+                D1Statement.of("DELETE FROM music_mv_render_job_events WHERE job_id=? "
+                                + "AND EXISTS (" + ownedTerminal + ")",
+                        jobId, jobId, clientId),
+                D1Statement.of("DELETE FROM music_mv_render_jobs WHERE job_id=? "
+                                + "AND client_id=? AND status IN ('completed','failed','canceled')",
+                        jobId, clientId)));
     }
 
     public void addEvent(String eventId, String jobId, String eventType,

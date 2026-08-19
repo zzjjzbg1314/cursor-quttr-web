@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.core.io.Resource;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpRange;
@@ -92,6 +93,16 @@ public class MusicMvRenderJobController {
     ) {
         authentication.requireAuthorized(token);
         return service.cancel(auth.requireUserId(servletRequest), jobId);
+    }
+
+    @DeleteMapping("/{jobId}")
+    public Map<String, Object> delete(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId,
+            HttpServletRequest servletRequest
+    ) {
+        authentication.requireAuthorized(token);
+        return service.delete(auth.requireUserId(servletRequest), jobId);
     }
 
     @GetMapping("/{jobId}/output")

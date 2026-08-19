@@ -146,6 +146,27 @@ public class MusicMvRenderJobService {
         return clientView(row);
     }
 
+    public Map<String, Object> delete(String clientId, String jobId) {
+        String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
+        Map<String, Object> row = requireOwnedJob(normalizedClientId, jobId);
+        String status = RowUtils.str(row, "status");
+        if (!("completed".equals(status) || "failed".equals(status)
+                || "canceled".equals(status))) {
+            throw conflict("MV_RENDER_DELETE_ACTIVE",
+                    "Cancel the render before deleting this project");
+        }
+        String outputStorageKey = RowUtils.str(row, "output_storage_key");
+        if (outputStorageKey != null) artifacts.delete(outputStorageKey);
+        repository.deleteOwnedTerminal(jobId, normalizedClientId);
+        if (repository.byId(jobId) != null) {
+            throw conflict("MV_RENDER_DELETE_REJECTED", "Render project could not be deleted");
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("jobId", jobId);
+        result.put("deleted", Boolean.TRUE);
+        return result;
+    }
+
     public Map<String, Object> claim(MusicMvRenderClaimRequest request) {
         String nodeId = requireId(request.getNodeId(), "RENDERER_NODE_ID_INVALID");
         if (repository.rendererNode(nodeId) == null) {

@@ -2,7 +2,9 @@ package com.example.cursorquitterweb.musicmv.controller;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,5 +46,17 @@ class MusicMvProjectDraftControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("MUSIC_MV_PROJECT_NOT_FOUND"))
                 .andExpect(jsonPath("$.retryable").value(false));
+    }
+
+    @Test
+    void deletesProjectForSignedInOwner() throws Exception {
+        when(auth.requireUserId(org.mockito.ArgumentMatchers.any())).thenReturn("usr_project_owner");
+
+        mockMvc.perform(delete("/api/music-mv/v1/projects/mvp_deleted_project"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectId").value("mvp_deleted_project"))
+                .andExpect(jsonPath("$.deleted").value(true));
+
+        verify(projects).delete("usr_project_owner", "mvp_deleted_project");
     }
 }

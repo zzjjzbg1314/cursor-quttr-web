@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -160,6 +161,48 @@ class MusicMvRenderJobServiceTest {
         verify(repository).create(anyString(), eq("website-backend"), eq("req_1"),
                 eq("tpl_1"), eq("tplver_1"), eq(2), anyString(), anyString(),
                 eq("video/mp4"), eq("waiting_for_renderer"));
+    }
+
+    @Test
+    void deletesOwnedCompletedProjectAndItsRenderedOutput() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        Map<String, Object> completed = row("mvr_completed", null);
+        completed.put("client_id", "usr_owner");
+        completed.put("status", "completed");
+        completed.put("output_storage_key", "r2:music-mv-renders/mvr_completed.mp4");
+        when(repository.byId("mvr_completed"))
+                .thenReturn(completed)
+                .thenReturn(null);
+
+        Map<String, Object> deleted = service.delete("usr_owner", "mvr_completed");
+
+        assertEquals(Boolean.TRUE, deleted.get("deleted"));
+        verify(artifacts).delete("r2:music-mv-renders/mvr_completed.mp4");
+        verify(repository).deleteOwnedTerminal("mvr_completed", "usr_owner");
+    }
+
+    @Test
+    void refusesToDeleteActiveRenderProject() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        Map<String, Object> rendering = row("mvr_rendering", null);
+        rendering.put("client_id", "usr_owner");
+        rendering.put("status", "rendering");
+        when(repository.byId("mvr_rendering")).thenReturn(rendering);
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.delete("usr_owner", "mvr_rendering"));
+
+        assertEquals("MV_RENDER_DELETE_ACTIVE", error.getCode());
+        verify(repository, never()).deleteOwnedTerminal(anyString(), anyString());
+        verify(artifacts, never()).delete(anyString());
     }
 
     private MusicMvRenderJobCreateRequest request() {

@@ -164,6 +164,20 @@ class CloudflareTemplateMediaProviderTest {
         server.verify();
     }
 
+    @Test
+    void acceptsEmptySuccessfulDeleteResponse() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(once(), requestTo(
+                        "https://api.cloudflare.test/accounts/account/images/v1/image-1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        provider(restTemplate).deleteAsset("cloudflare_images", "image-1");
+
+        server.verify();
+    }
+
     private CloudflareTemplateMediaProvider provider(RestTemplate restTemplate) {
         return new CloudflareTemplateMediaProvider(new ObjectMapper(), restTemplate,
                 "https://api.cloudflare.test", "account", "images-secret",

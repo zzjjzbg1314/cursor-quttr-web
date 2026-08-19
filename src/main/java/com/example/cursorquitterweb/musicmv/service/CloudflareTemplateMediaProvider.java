@@ -241,7 +241,9 @@ public class CloudflareTemplateMediaProvider {
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE,
                     new HttpEntity<Void>(bearer(token)), String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
+            String body = response.getBody();
+            if (body == null || body.trim().isEmpty()) return;
+            JsonNode root = objectMapper.readTree(body);
             if (!root.path("success").asBoolean(false)) {
                 throw new IllegalStateException("Cloudflare media delete failed: "
                         + root.path("errors"));
