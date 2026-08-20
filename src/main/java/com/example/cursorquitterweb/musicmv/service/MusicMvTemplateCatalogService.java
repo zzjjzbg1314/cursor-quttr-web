@@ -233,11 +233,30 @@ public class MusicMvTemplateCatalogService {
                                                    boolean video,
                                                    TemplateMediaUploadSessionRequest request) {
         requireVersion(templateId, versionId);
-        String expectedRole = video ? "full_mv" : "cover";
-        if (!expectedRole.equals(request.getRole())) {
+        String expectedRole = request.getRole();
+        boolean slotDefault = !video && expectedRole != null
+                && expectedRole.startsWith("slot_default:");
+        if (slotDefault) {
+            String slotKey = expectedRole.substring("slot_default:".length());
+            boolean slotExists = false;
+            for (Map<String, Object> slot : repository.slots(versionId)) {
+                if (slotKey.equals(RowUtils.str(slot, "slot_key"))
+                        && ("image".equals(RowUtils.str(slot, "slot_type"))
+                        || "photo".equals(RowUtils.str(slot, "slot_type")))) {
+                    slotExists = true;
+                    break;
+                }
+            }
+            if (!slotExists) {
+                throw badRequest("TEMPLATE_MEDIA_SLOT_INVALID",
+                        "The template photo role does not match a material slot");
+            }
+        }
+        if (video ? !"full_mv".equals(expectedRole)
+                : !("cover".equals(expectedRole) || slotDefault)) {
             throw badRequest("TEMPLATE_MEDIA_ROLE_INVALID", video
                     ? "Stream upload only accepts role full_mv"
-                    : "Images upload only accepts role cover");
+                    : "Images upload only accepts cover or a template slot photo");
         }
         if (video && (request.getDurationSeconds() == null || request.getFilename() == null)) {
             throw badRequest("TEMPLATE_VIDEO_METADATA_REQUIRED",
@@ -305,12 +324,23 @@ public class MusicMvTemplateCatalogService {
         }
         Map<String, Object> cover = repository.mediaByRole(versionId, "cover");
         Map<String, Object> fullMv = repository.mediaByRole(versionId, "full_mv");
-        if (!ready(cover) || !ready(fullMv)) {
+        List<String> missingDefaults = new ArrayList<String>();
+        for (Map<String, Object> slot : repository.slots(versionId)) {
+            String type = RowUtils.str(slot, "slot_type");
+            if (!"image".equals(type) && !"photo".equals(type)) continue;
+            String slotKey = RowUtils.str(slot, "slot_key");
+            if (!ready(repository.mediaByRole(versionId, "slot_default:" + slotKey))) {
+                missingDefaults.add(slotKey);
+            }
+        }
+        if (!ready(cover) || !ready(fullMv) || !missingDefaults.isEmpty()) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
             details.put("coverStatus", cover == null ? "missing" : RowUtils.str(cover, "status"));
             details.put("fullMvStatus", fullMv == null ? "missing" : RowUtils.str(fullMv, "status"));
+            details.put("missingTemplatePhotoSlots", missingDefaults);
             throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_MEDIA_NOT_READY",
-                    "Cover and full MV must both be ready before publish", true, details);
+                    "Cover, full MV, and every original template photo must be ready before publish",
+                    true, details);
         }
         repository.publish(templateId, versionId);
         return promotionView(templateId, versionId, "published");

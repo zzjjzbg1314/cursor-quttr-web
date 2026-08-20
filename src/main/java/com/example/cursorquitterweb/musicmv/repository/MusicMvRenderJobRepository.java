@@ -60,6 +60,12 @@ public class MusicMvRenderJobRepository {
                 versionId).firstRow();
     }
 
+    public Map<String, Object> slotDefaultMedia(String versionId, String slotKey) {
+        return d1.query("SELECT provider,provider_asset_id,provider_details_json,status "
+                + "FROM template_media WHERE version_id=? AND media_role=? LIMIT 1",
+                versionId, "slot_default:" + slotKey).firstRow();
+    }
+
     public Map<String, Object> byClientRequest(String clientId, String requestId) {
         return d1.query("SELECT " + JOB_COLUMNS + " FROM music_mv_render_jobs "
                         + "WHERE client_id=? AND request_id=? LIMIT 1",

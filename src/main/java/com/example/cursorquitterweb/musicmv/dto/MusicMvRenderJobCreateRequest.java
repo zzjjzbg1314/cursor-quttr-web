@@ -94,9 +94,9 @@ public class MusicMvRenderJobCreateRequest {
         @NotBlank
         @Size(max = 128)
         private String slotKey;
-        @NotNull
         @Valid
         private Asset asset;
+        private Boolean useTemplateDefault = Boolean.FALSE;
         @Valid
         private Crop crop;
 
@@ -104,6 +104,8 @@ public class MusicMvRenderJobCreateRequest {
         public void setSlotKey(String value) { slotKey = value; }
         public Asset getAsset() { return asset; }
         public void setAsset(Asset value) { asset = value; }
+        public Boolean getUseTemplateDefault() { return useTemplateDefault; }
+        public void setUseTemplateDefault(Boolean value) { useTemplateDefault = value; }
         public Crop getCrop() { return crop; }
         public void setCrop(Crop value) { crop = value; }
     }

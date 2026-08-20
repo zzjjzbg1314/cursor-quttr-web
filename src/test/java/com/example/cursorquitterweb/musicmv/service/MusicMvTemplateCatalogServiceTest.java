@@ -6,12 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -151,6 +153,34 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("awaiting_upload", result.get("status"));
         assertFalse((Boolean) result.get("idempotentReplay"));
         verify(mediaProvider).createStreamUpload(anyString(), any());
+    }
+
+    @Test
+    void createsCloudflareImageForADeclaredTemplatePhotoSlot() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> slot = row("slot_key", "photo_01");
+        slot.put("slot_type", "image");
+        when(repository.slots("tplver_1")).thenReturn(Collections.singletonList(slot));
+        when(repository.mediaByRole("tplver_1", "slot_default:photo_01")).thenReturn(null);
+        when(mediaProvider.createImageUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_images", "template-photo", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("slot_default:photo_01");
+        request.setSourceSha256(hash('b'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setWidth(Integer.valueOf(1080));
+        request.setHeight(Integer.valueOf(1920));
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", false, request);
+
+        assertEquals("awaiting_upload", result.get("status"));
+        verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
+                eq("slot_default:photo_01"), anyString(), anyString(), anyString(),
+                anyString(), any(Long.class), any(), any(), any(), anyString());
     }
 
     @Test

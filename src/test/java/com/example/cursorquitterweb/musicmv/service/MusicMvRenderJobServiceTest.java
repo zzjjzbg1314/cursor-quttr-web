@@ -82,6 +82,33 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    void acceptsReadyTemplatePhotoWithoutCreatingAUserAssetReference() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService inputAssets = inputAssets();
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets, new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.getSlotBindings().get(0).setAsset(null);
+        request.getSlotBindings().get(0).setCrop(null);
+        request.getSlotBindings().get(0).setUseTemplateDefault(Boolean.TRUE);
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
+        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(
+                slot("photo_01"), slot("photo_02")));
+        when(repository.slotDefaultMedia("tplver_1", "photo_01"))
+                .thenReturn(row("media_template_photo", null));
+        Map<String, Object> defaultMedia = repository.slotDefaultMedia("tplver_1", "photo_01");
+        defaultMedia.put("status", "ready");
+        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
+
+        assertEquals("rendering", service.create("website-backend", request).get("status"));
+        verify(inputAssets, never()).requireOwnedCloudAsset(eq("website-backend"),
+                eq((MusicMvRenderJobCreateRequest.Asset) null), eq("image"));
+    }
+
+    @Test
     void rejectsCompletionWithoutSingleExactNativeEncode() {
         MusicMvRenderJobService service = new MusicMvRenderJobService(
                 mock(MusicMvRenderJobRepository.class),

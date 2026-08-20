@@ -97,7 +97,8 @@ public class MusicMvRenderJobService {
                 request.getTemplateId(), request.getTemplateVersionId());
         requireRenderableVersion(version, request);
         List<Map<String, Object>> slots = repository.slots(request.getTemplateVersionId());
-        requireSlotBindings(normalizedClientId, slots, request.getSlotBindings());
+        requireSlotBindings(normalizedClientId, request.getTemplateVersionId(), slots,
+                request.getSlotBindings());
 
         String requestJson = json(request);
         requireJsonSize(requestJson, "MV_RENDER_REQUEST_TOO_LARGE");
@@ -399,7 +400,8 @@ public class MusicMvRenderJobService {
         request.setMusic(asset);
     }
 
-    private void requireSlotBindings(String ownerId, List<Map<String, Object>> slots,
+    private void requireSlotBindings(String ownerId, String versionId,
+                                     List<Map<String, Object>> slots,
                                      List<MusicMvRenderJobCreateRequest.SlotBinding> bindings) {
         if (slots == null || slots.isEmpty()) {
             throw conflict("MV_RENDER_TEMPLATE_HAS_NO_SLOTS", "Template has no material slots");
@@ -418,8 +420,22 @@ public class MusicMvRenderJobService {
             if (!actual.add(binding.getSlotKey())) {
                 throw badRequest("MV_RENDER_SLOT_DUPLICATE", "A material slot was provided twice");
             }
-            validateAsset(binding.getAsset(), false);
-            inputAssets.requireOwnedCloudAsset(ownerId, binding.getAsset(), "image");
+            boolean useDefault = Boolean.TRUE.equals(binding.getUseTemplateDefault());
+            if (useDefault == (binding.getAsset() != null)) {
+                throw badRequest("MV_RENDER_SLOT_SOURCE_INVALID",
+                        "Each material slot must use either one project photo or its template photo");
+            }
+            if (useDefault) {
+                Map<String, Object> media = repository.slotDefaultMedia(versionId,
+                        binding.getSlotKey());
+                if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
+                    throw conflict("MV_RENDER_SLOT_DEFAULT_UNAVAILABLE",
+                            "The original template photo is not ready for this slot");
+                }
+            } else {
+                validateAsset(binding.getAsset(), false);
+                inputAssets.requireOwnedCloudAsset(ownerId, binding.getAsset(), "image");
+            }
         }
         if (!expected.equals(actual)) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
@@ -492,9 +508,13 @@ public class MusicMvRenderJobService {
         for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
             Map<String, Object> slot = new LinkedHashMap<String, Object>();
             slot.put("slotKey", binding.getSlotKey());
-            slot.put("sha256", binding.getAsset().getSha256().toLowerCase());
-            slot.put("sizeBytes", binding.getAsset().getSizeBytes());
-            if (binding.getCrop() != null) {
+            boolean useDefault = Boolean.TRUE.equals(binding.getUseTemplateDefault());
+            slot.put("useTemplateDefault", Boolean.valueOf(useDefault));
+            if (!useDefault) {
+                slot.put("sha256", binding.getAsset().getSha256().toLowerCase());
+                slot.put("sizeBytes", binding.getAsset().getSizeBytes());
+            }
+            if (!useDefault && binding.getCrop() != null) {
                 slot.put("cropX", binding.getCrop().getX());
                 slot.put("cropY", binding.getCrop().getY());
                 slot.put("cropZoom", binding.getCrop().getZoom());
@@ -585,6 +605,12 @@ public class MusicMvRenderJobService {
                 Map<String, Object> source = (Map<String, Object>) raw;
                 Map<String, Object> item = new LinkedHashMap<String, Object>();
                 item.put("slotKey", source.get("slotKey"));
+                boolean useDefault = Boolean.TRUE.equals(source.get("useTemplateDefault"));
+                item.put("useTemplateDefault", Boolean.valueOf(useDefault));
+                if (useDefault) {
+                    bindings.add(item);
+                    continue;
+                }
                 item.put("crop", source.get("crop"));
                 Map<String, Object> asset = source.get("asset") instanceof Map
                         ? new LinkedHashMap<String, Object>((Map<String, Object>) source.get("asset"))
