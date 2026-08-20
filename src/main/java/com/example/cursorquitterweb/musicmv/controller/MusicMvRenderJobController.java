@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService;
@@ -93,6 +94,38 @@ public class MusicMvRenderJobController {
     ) {
         authentication.requireAuthorized(token);
         return service.cancel(auth.requireUserId(servletRequest), jobId);
+    }
+
+    @PostMapping("/{jobId}/browser-output/upload-session")
+    public Map<String, Object> browserOutputUploadSession(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId,
+            @Valid @RequestBody BrowserRenderOutputRequest request,
+            HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        return service.createBrowserOutputUpload(auth.requireUserId(servletRequest), jobId, request);
+    }
+
+    @PostMapping("/{jobId}/browser-output/complete")
+    public Map<String, Object> completeBrowserOutput(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId,
+            @Valid @RequestBody BrowserRenderOutputRequest request,
+            HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        return service.completeBrowserOutput(auth.requireUserId(servletRequest), jobId, request);
+    }
+
+    @PostMapping("/{jobId}/browser-output/fail")
+    public Map<String, Object> failBrowserOutput(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId,
+            @RequestBody(required = false) Map<String, Object> request,
+            HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        Object message = request == null ? null : request.get("message");
+        return service.failBrowser(auth.requireUserId(servletRequest), jobId,
+                message == null ? null : String.valueOf(message));
     }
 
     @DeleteMapping("/{jobId}")

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -150,6 +152,29 @@ public class R2StorageService {
         return presignedRequest.url().toString();
     }
 
+    public String presignedPutUrl(String objectKey, String contentType, long contentLength,
+                                  Map<String, String> metadata, Duration expiresIn) {
+        String key = normalizeObjectKey(objectKey);
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType == null ? contentType(key) : contentType)
+                .contentLength(Long.valueOf(contentLength))
+                .metadata(metadata)
+                .build();
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(expiresIn)
+                .putObjectRequest(putObjectRequest)
+                .build();
+        return presigner().presignPutObject(presignRequest).url().toString();
+    }
+
+    public ObjectInfo objectInfo(String objectKey) {
+        HeadObjectResponse response = client().headObject(HeadObjectRequest.builder()
+                .bucket(bucket).key(normalizeObjectKey(objectKey)).build());
+        return new ObjectInfo(response.contentLength(), response.contentType(), response.metadata());
+    }
+
     public String presignedGetUrl(String objectKey, Duration expiresIn) {
         String key = normalizeObjectKey(objectKey);
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -213,6 +238,22 @@ public class R2StorageService {
                 .bucket(bucket)
                 .key(normalizeObjectKey(objectKey))
                 .build());
+    }
+
+    public static final class ObjectInfo {
+        private final long sizeBytes;
+        private final String contentType;
+        private final Map<String, String> metadata;
+
+        ObjectInfo(long sizeBytes, String contentType, Map<String, String> metadata) {
+            this.sizeBytes = sizeBytes;
+            this.contentType = contentType;
+            this.metadata = metadata;
+        }
+
+        public long getSizeBytes() { return sizeBytes; }
+        public String getContentType() { return contentType; }
+        public Map<String, String> getMetadata() { return metadata; }
     }
 
     public String normalizeObjectKey(String objectKey) {

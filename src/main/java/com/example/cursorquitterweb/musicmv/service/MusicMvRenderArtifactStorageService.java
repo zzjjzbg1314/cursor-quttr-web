@@ -9,6 +9,8 @@ import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -74,6 +76,66 @@ public class MusicMvRenderArtifactStorageService {
         }
         return new StoredArtifact(storageKey, contentLength, actual,
                 contentType == null ? "video/mp4" : contentType);
+    }
+
+    public BrowserUploadSession createBrowserUploadSession(String jobId, long contentLength,
+                                                            String contentType, String sha256) {
+        requireBrowserOutput(contentLength, contentType, sha256);
+        if (!r2.isConfigured()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "MV_BROWSER_OUTPUT_STORAGE_UNAVAILABLE",
+                    "Direct browser video upload is temporarily unavailable", true, null);
+        }
+        String objectKey = browserObjectKey(jobId);
+        Map<String, String> metadata = new LinkedHashMap<String, String>();
+        metadata.put("sha256", normalizeSha256(sha256));
+        metadata.put("render-job-id", safeId(jobId));
+        String uploadUrl = r2.presignedPutUrl(objectKey, "video/mp4", contentLength,
+                metadata, Duration.ofMinutes(30));
+        return new BrowserUploadSession(uploadUrl, objectKey, contentLength,
+                normalizeSha256(sha256), "video/mp4");
+    }
+
+    public StoredArtifact verifyBrowserUpload(String jobId, long expectedSize,
+                                               String contentType, String expectedSha256) {
+        requireBrowserOutput(expectedSize, contentType, expectedSha256);
+        String objectKey = browserObjectKey(jobId);
+        R2StorageService.ObjectInfo info;
+        try {
+            info = r2.objectInfo(objectKey);
+        } catch (RuntimeException exception) {
+            throw new ApiException(HttpStatus.CONFLICT, "MV_BROWSER_OUTPUT_NOT_UPLOADED",
+                    "Browser video upload has not completed", true, null);
+        }
+        String storedSha256 = info.getMetadata() == null ? null
+                : info.getMetadata().get("sha256");
+        if (info.getSizeBytes() != expectedSize
+                || !normalizeSha256(expectedSha256).equalsIgnoreCase(storedSha256)
+                || info.getContentType() == null
+                || !info.getContentType().toLowerCase().startsWith("video/mp4")) {
+            deleteQuietly("r2:" + objectKey);
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "MV_BROWSER_OUTPUT_INTEGRITY_MISMATCH",
+                    "Browser video upload does not match the signed artifact metadata");
+        }
+        return new StoredArtifact("r2:" + objectKey, expectedSize,
+                normalizeSha256(expectedSha256), "video/mp4");
+    }
+
+    private void requireBrowserOutput(long contentLength, String contentType, String sha256) {
+        if (contentLength <= 0L || contentLength > maxOutputBytes) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_RENDER_OUTPUT_SIZE_INVALID",
+                    "Rendered MV output size is invalid");
+        }
+        if (contentType == null || !contentType.toLowerCase().startsWith("video/mp4")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_RENDER_OUTPUT_TYPE_INVALID",
+                    "Browser rendering requires MP4 output");
+        }
+        normalizeSha256(sha256);
+    }
+
+    private String browserObjectKey(String jobId) {
+        return "music-mv-renders/" + safeId(jobId) + "/result.mp4";
     }
 
     public boolean exists(String storageKey) {
@@ -180,6 +242,29 @@ public class MusicMvRenderArtifactStorageService {
         }
 
         public String getStorageKey() { return storageKey; }
+        public long getSizeBytes() { return sizeBytes; }
+        public String getSha256() { return sha256; }
+        public String getContentType() { return contentType; }
+    }
+
+    public static final class BrowserUploadSession {
+        private final String uploadUrl;
+        private final String objectKey;
+        private final long sizeBytes;
+        private final String sha256;
+        private final String contentType;
+
+        BrowserUploadSession(String uploadUrl, String objectKey, long sizeBytes,
+                             String sha256, String contentType) {
+            this.uploadUrl = uploadUrl;
+            this.objectKey = objectKey;
+            this.sizeBytes = sizeBytes;
+            this.sha256 = sha256;
+            this.contentType = contentType;
+        }
+
+        public String getUploadUrl() { return uploadUrl; }
+        public String getObjectKey() { return objectKey; }
         public long getSizeBytes() { return sizeBytes; }
         public String getSha256() { return sha256; }
         public String getContentType() { return contentType; }

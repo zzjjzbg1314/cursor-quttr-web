@@ -256,6 +256,26 @@ CREATE TABLE IF NOT EXISTS template_slots (
 CREATE INDEX IF NOT EXISTS idx_template_slots_version
   ON template_slots(version_id, timeline_order, slot_key);
 
+-- Sanitized, browser-executable scene data. This table deliberately contains
+-- no local CapCut paths or source-draft files; the customer website only sees
+-- the published preview plus the exact photo-slot deltas it is allowed to
+-- replace.
+CREATE TABLE IF NOT EXISTS template_browser_scenes (
+  version_id TEXT PRIMARY KEY,
+  template_id TEXT NOT NULL,
+  schema_version TEXT NOT NULL,
+  manifest_sha256 TEXT NOT NULL,
+  status TEXT NOT NULL,
+  scene_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (template_id) REFERENCES templates(template_id),
+  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_browser_scenes_ready
+  ON template_browser_scenes(template_id, status, updated_at);
+
 CREATE TABLE IF NOT EXISTS template_media (
   media_id TEXT PRIMARY KEY,
   template_id TEXT NOT NULL,

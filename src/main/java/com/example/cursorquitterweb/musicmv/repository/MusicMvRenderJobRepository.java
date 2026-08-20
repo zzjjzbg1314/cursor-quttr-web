@@ -34,10 +34,11 @@ public class MusicMvRenderJobRepository {
                         + "v.validation_status, CASE WHEN v.source_availability='available' "
                         + "AND n.status='online' AND n.last_seen_at>=datetime('now','-90 seconds') "
                         + "THEN 'available' ELSE 'unavailable' END AS source_availability, "
-                        + "v.source_node_id, "
+                        + "v.source_node_id, bs.status AS browser_scene_status, "
                         + "v.slot_count, v.cycle_duration_seconds "
                         + "FROM templates t JOIN template_versions v ON v.template_id=t.template_id "
                         + "LEFT JOIN renderer_nodes n ON n.node_id=v.source_node_id "
+                        + "LEFT JOIN template_browser_scenes bs ON bs.version_id=v.version_id "
                         + "WHERE t.template_id=? AND v.version_id=? AND t.deleted_at IS NULL LIMIT 1",
                 templateId, versionId).firstRow();
     }
@@ -46,6 +47,17 @@ public class MusicMvRenderJobRepository {
         return d1.query("SELECT slot_key, slot_type, display_name, is_required, timeline_order "
                         + "FROM template_slots WHERE version_id=? ORDER BY timeline_order, slot_key",
                 versionId).getRows();
+    }
+
+    public Map<String, Object> browserScene(String versionId) {
+        return d1.query("SELECT schema_version,manifest_sha256,status,scene_json "
+                + "FROM template_browser_scenes WHERE version_id=? LIMIT 1", versionId).firstRow();
+    }
+
+    public Map<String, Object> fullMvMedia(String versionId) {
+        return d1.query("SELECT provider,provider_asset_id,provider_details_json,status "
+                + "FROM template_media WHERE version_id=? AND media_role='full_mv' LIMIT 1",
+                versionId).firstRow();
     }
 
     public Map<String, Object> byClientRequest(String clientId, String requestId) {
@@ -72,6 +84,46 @@ public class MusicMvRenderJobRepository {
                 jobId, clientId, requestId, templateId, versionId,
                 initialStage, Integer.valueOf(maxAttempts), requestFingerprint, requestJson,
                 outputContentType);
+    }
+
+    public void createBrowser(String jobId, String clientId, String requestId,
+                              String templateId, String versionId, String requestFingerprint,
+                              String requestJson) {
+        d1.query("INSERT INTO music_mv_render_jobs "
+                        + "(job_id,client_id,request_id,template_id,version_id,status,stage,progress,"
+                        + "priority,attempt_count,max_attempts,request_fingerprint,request_json,"
+                        + "cancel_requested,output_content_type,retryable,created_at,updated_at,started_at) "
+                        + "VALUES (?,?,?,?,?,'rendering','browser_ready',0,0,0,1,?,?,0,'video/mp4',0,"
+                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
+                jobId, clientId, requestId, templateId, versionId,
+                requestFingerprint, requestJson);
+    }
+
+    public Map<String, Object> completeBrowser(String jobId, String clientId,
+                                               String storageKey, String contentType,
+                                               long sizeBytes, String sha256,
+                                               double durationSeconds, String resultJson,
+                                               String evidenceJson) {
+        return d1.query("UPDATE music_mv_render_jobs SET status='completed',stage='completed',"
+                        + "progress=1,output_storage_key=?,output_content_type=?,output_size_bytes=?,"
+                        + "output_sha256=?,output_duration_seconds=?,semantic_integrity='exact',"
+                        + "video_encode_count=1,intermediate_video_count=0,writer_sidecar_count=0,"
+                        + "result_json=?,evidence_json=?,retryable=0,completed_at=CURRENT_TIMESTAMP,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
+                        + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
+                        + "AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
+                storageKey, contentType, Long.valueOf(sizeBytes), sha256,
+                Double.valueOf(durationSeconds), resultJson, evidenceJson, jobId, clientId).firstRow();
+    }
+
+    public Map<String, Object> failBrowser(String jobId, String clientId,
+                                           String errorCode, String errorMessage) {
+        return d1.query("UPDATE music_mv_render_jobs SET status='failed',stage='failed',"
+                        + "error_code=?,error_message=?,retryable=1,completed_at=CURRENT_TIMESTAMP,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
+                        + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
+                        + "RETURNING " + JOB_COLUMNS,
+                errorCode, errorMessage, jobId, clientId).firstRow();
     }
 
     public List<Map<String, Object>> ownedJobs(String clientId, int limit) {
@@ -228,9 +280,9 @@ public class MusicMvRenderJobRepository {
 
     public Map<String, Object> cancel(String jobId, String clientId) {
         return d1.query("UPDATE music_mv_render_jobs SET cancel_requested=1, "
-                        + "status=CASE WHEN status='queued' THEN 'canceled' ELSE status END, "
-                        + "stage=CASE WHEN status='queued' THEN 'canceled' ELSE stage END, "
-                        + "completed_at=CASE WHEN status='queued' THEN CURRENT_TIMESTAMP "
+                        + "status=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN 'canceled' ELSE status END, "
+                        + "stage=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN 'canceled' ELSE stage END, "
+                        + "completed_at=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN CURRENT_TIMESTAMP "
                         + "ELSE completed_at END, updated_at=CURRENT_TIMESTAMP "
                         + "WHERE job_id=? AND client_id=? AND status NOT IN ('completed','failed','canceled') "
                         + "RETURNING " + JOB_COLUMNS,

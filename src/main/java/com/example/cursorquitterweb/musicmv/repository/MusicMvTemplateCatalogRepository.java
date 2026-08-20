@@ -153,6 +153,23 @@ public class MusicMvTemplateCatalogRepository {
                 + "FROM template_slots WHERE version_id=? ORDER BY timeline_order, slot_key", versionId).getRows();
     }
 
+    public Map<String, Object> browserScene(String versionId) {
+        return d1.query("SELECT version_id,template_id,schema_version,manifest_sha256,status,"
+                        + "scene_json,created_at,updated_at FROM template_browser_scenes "
+                        + "WHERE version_id=? LIMIT 1", versionId).firstRow();
+    }
+
+    public void upsertBrowserScene(String templateId, String versionId, String schemaVersion,
+                                   String manifestSha256, String status, String sceneJson) {
+        d1.query("INSERT INTO template_browser_scenes "
+                        + "(version_id,template_id,schema_version,manifest_sha256,status,scene_json,"
+                        + "created_at,updated_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "ON CONFLICT(version_id) DO UPDATE SET schema_version=excluded.schema_version,"
+                        + "manifest_sha256=excluded.manifest_sha256,status=excluded.status,"
+                        + "scene_json=excluded.scene_json,updated_at=CURRENT_TIMESTAMP",
+                versionId, templateId, schemaVersion, manifestSha256, status, sceneJson);
+    }
+
     public List<Map<String, Object>> media(String versionId) {
         return d1.query("SELECT media_id, media_role, provider, provider_asset_id, status, source_sha256, "
                 + "source_size_bytes, width, height, duration_seconds, provider_details_json, "

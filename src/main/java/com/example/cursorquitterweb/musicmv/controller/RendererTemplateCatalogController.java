@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
@@ -55,6 +56,15 @@ public class RendererTemplateCatalogController {
             @Valid @RequestBody TemplateSlotReconcileRequest request) {
         authentication.requireAuthorized(token);
         return service.reconcileSlots(templateId, versionId, request);
+    }
+
+    @PostMapping("/{templateId}/versions/{versionId}/browser-scene")
+    public Map<String, Object> synchronizeBrowserScene(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId,
+            @Valid @RequestBody TemplateBrowserSceneRequest request) {
+        authentication.requireAuthorized(token);
+        return service.synchronizeBrowserScene(templateId, versionId, request);
     }
 
     @PostMapping("/{templateId}/versions/{versionId}/media/images/upload-session")

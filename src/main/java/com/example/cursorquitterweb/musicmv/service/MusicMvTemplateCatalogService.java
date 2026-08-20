@@ -7,12 +7,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMetadataUpdateRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
@@ -116,6 +119,10 @@ public class MusicMvTemplateCatalogService {
             String versionId = RowUtils.str(row, "version_id");
             version.put("slots", slotViews(repository.slots(versionId)));
             version.put("media", mediaViews(repository.media(versionId)));
+            Map<String, Object> browserScene = repository.browserScene(versionId);
+            if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
+                version.put("browserRender", browserSceneView(browserScene, admin));
+            }
             versions.add(version);
         }
         result.put("versions", versions);
@@ -167,6 +174,44 @@ public class MusicMvTemplateCatalogService {
         result.put("versionId", versionId);
         result.put("status", "reconciled");
         result.put("slotCount", Integer.valueOf(request.getSlots().size()));
+        return result;
+    }
+
+    public Map<String, Object> synchronizeBrowserScene(
+            String templateId, String versionId, TemplateBrowserSceneRequest request) {
+        requireVersion(templateId, versionId);
+        Map<String, Object> scene = request.getScene();
+        if (!templateId.equals(String.valueOf(scene.get("templateId")))
+                || !versionId.equals(String.valueOf(scene.get("versionId")))) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_ID_MISMATCH",
+                    "Browser scene does not match the target template version");
+        }
+        if (!request.getSchemaVersion().equals(String.valueOf(scene.get("schemaVersion")))) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_SCHEMA_MISMATCH",
+                    "Browser scene schema does not match its envelope");
+        }
+        requireSanitizedBrowserScene(scene);
+        String sceneJson = json(scene);
+        String actualSha256 = sha256(sceneJson);
+        if (!actualSha256.equalsIgnoreCase(request.getManifestSha256())) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_HASH_MISMATCH",
+                    "Browser scene SHA-256 does not match its content");
+        }
+        Map<String, Object> capability = scene.get("capability") instanceof Map
+                ? (Map<String, Object>) scene.get("capability")
+                : Collections.<String, Object>emptyMap();
+        if (!Boolean.TRUE.equals(capability.get("photoReplacementReady"))) {
+            throw conflict("TEMPLATE_BROWSER_SCENE_NOT_READY",
+                    "Every formal photo slot must be resolved before browser rendering is enabled");
+        }
+        repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
+                actualSha256, "ready", sceneJson);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("templateId", templateId);
+        result.put("versionId", versionId);
+        result.put("status", "ready");
+        result.put("schemaVersion", request.getSchemaVersion());
+        result.put("manifestSha256", actualSha256);
         return result;
     }
 
@@ -564,6 +609,54 @@ public class MusicMvTemplateCatalogService {
     private boolean ready(Map<String, Object> row) { return row != null && "ready".equals(RowUtils.str(row, "status")); }
     private String normalizeLocale(String value) { return value != null && value.toLowerCase().startsWith("en") ? "en" : "zh-CN"; }
     private String blankToNull(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
+
+    private Map<String, Object> browserSceneView(Map<String, Object> row, boolean admin) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("schemaVersion", row.get("schema_version"));
+        result.put("status", row.get("status"));
+        result.put("manifestSha256", row.get("manifest_sha256"));
+        result.put("scene", parseObject(RowUtils.str(row, "scene_json")));
+        if (admin) {
+            result.put("createdAt", row.get("created_at"));
+            result.put("updatedAt", row.get("updated_at"));
+        }
+        return result;
+    }
+
+    private void requireSanitizedBrowserScene(Object value) {
+        if (value instanceof Map) {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                String key = String.valueOf(entry.getKey()).toLowerCase();
+                if (key.equals("path") || key.endsWith("path") || key.contains("localkey")
+                        || key.contains("sourcedraft") || key.equals("materials")) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
+                            "Browser scene contains private source information");
+                }
+                requireSanitizedBrowserScene(entry.getValue());
+            }
+        } else if (value instanceof List) {
+            for (Object item : (List<?>) value) requireSanitizedBrowserScene(item);
+        } else if (value instanceof String) {
+            String text = ((String) value).toLowerCase();
+            if (text.startsWith("file:") || text.contains("/users/")
+                    || text.contains("\\users\\") || text.contains("templateDraft".toLowerCase())) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
+                        "Browser scene contains a local filesystem reference");
+            }
+        }
+    }
+
+    private String sha256(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder result = new StringBuilder(64);
+            for (byte item : digest) result.append(String.format("%02x", item & 0xff));
+            return result.toString();
+        } catch (Exception exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
 
     private List<Object> parseList(String value) {
         if (value == null || value.trim().isEmpty()) return new ArrayList<Object>();

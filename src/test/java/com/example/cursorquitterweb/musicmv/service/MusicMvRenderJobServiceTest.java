@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
@@ -40,11 +41,11 @@ class MusicMvRenderJobServiceTest {
 
         Map<String, Object> created = service.create("website-backend", request);
 
-        assertEquals("queued", created.get("status"));
+        assertEquals("rendering", created.get("status"));
+        assertEquals("browser_ready", created.get("stage"));
         ArgumentCaptor<String> fingerprint = ArgumentCaptor.forClass(String.class);
-        verify(repository).create(anyString(), eq("website-backend"), eq("req_1"),
-                eq("tpl_1"), eq("tplver_1"), eq(2), fingerprint.capture(),
-                anyString(), eq("video/mp4"), eq("queued"));
+        verify(repository).createBrowser(anyString(), eq("website-backend"), eq("req_1"),
+                eq("tpl_1"), eq("tplver_1"), fingerprint.capture(), anyString());
 
         when(repository.byClientRequest("website-backend", "req_1"))
                 .thenReturn(row("mvr_existing", fingerprint.getValue()));
@@ -118,7 +119,7 @@ class MusicMvRenderJobServiceTest {
         when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
         when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
 
-        assertEquals("queued", service.create("website-backend", request).get("status"));
+        assertEquals("rendering", service.create("website-backend", request).get("status"));
     }
 
     @Test
@@ -137,7 +138,7 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
-    void queuesSafelyWhenAssignedRendererIsOffline() {
+    void browserRenderingDoesNotWaitForTheMacRenderer() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
@@ -149,18 +150,54 @@ class MusicMvRenderJobServiceTest {
         when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(offlineVersion);
         when(repository.slots("tplver_1"))
                 .thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
-        when(repository.byId(anyString())).thenAnswer(invocation -> {
-            Map<String, Object> created = row(invocation.getArgument(0), null);
-            created.put("stage", "waiting_for_renderer");
-            return created;
-        });
+        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
 
         Map<String, Object> created = service.create("website-backend", request());
 
-        assertEquals("waiting_for_renderer", created.get("stage"));
-        verify(repository).create(anyString(), eq("website-backend"), eq("req_1"),
-                eq("tpl_1"), eq("tplver_1"), eq(2), anyString(), anyString(),
-                eq("video/mp4"), eq("waiting_for_renderer"));
+        assertEquals("browser_ready", created.get("stage"));
+        verify(repository).createBrowser(anyString(), eq("website-backend"), eq("req_1"),
+                eq("tpl_1"), eq("tplver_1"), anyString(), anyString());
+    }
+
+    @Test
+    void completesBrowserOutputAsExactSingleEncode() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        String sha256 = repeat('e');
+        Map<String, Object> active = row("mvr_browser", null);
+        active.put("client_id", "usr_owner");
+        Map<String, Object> completed = new LinkedHashMap<String, Object>(active);
+        completed.put("status", "completed");
+        completed.put("stage", "completed");
+        completed.put("semantic_integrity", "exact");
+        completed.put("video_encode_count", Integer.valueOf(1));
+        completed.put("intermediate_video_count", Integer.valueOf(0));
+        completed.put("writer_sidecar_count", Integer.valueOf(0));
+        completed.put("result_json", "{\"status\":\"completed\",\"renderMode\":\"browser\"}");
+        when(repository.byId("mvr_browser")).thenReturn(active);
+        when(artifacts.verifyBrowserUpload("mvr_browser", 1234L, "video/mp4", sha256))
+                .thenReturn(new MusicMvRenderArtifactStorageService.StoredArtifact(
+                        "r2:music-mv-renders/mvr_browser/result.mp4", 1234L, sha256, "video/mp4"));
+        when(repository.completeBrowser(eq("mvr_browser"), eq("usr_owner"), anyString(),
+                eq("video/mp4"), eq(1234L), eq(sha256), eq(180.0d), anyString(), anyString()))
+                .thenReturn(completed);
+        BrowserRenderOutputRequest request = new BrowserRenderOutputRequest();
+        request.setSha256(sha256);
+        request.setSizeBytes(Long.valueOf(1234L));
+        request.setContentType("video/mp4");
+        request.setDurationSeconds(Double.valueOf(180.0d));
+
+        Map<String, Object> result = service.completeBrowserOutput(
+                "usr_owner", "mvr_browser", request);
+
+        assertEquals("browser", result.get("renderMode"));
+        assertEquals("exact", result.get("semanticIntegrity"));
+        assertEquals(Integer.valueOf(1), result.get("videoEncodeCount"));
+        assertEquals(Integer.valueOf(0), result.get("intermediateVideoCount"));
+        assertEquals(Integer.valueOf(0), result.get("writerSidecarCount"));
     }
 
     @Test
@@ -256,6 +293,7 @@ class MusicMvRenderJobServiceTest {
         row.put("source_availability", "available");
         row.put("current_version_id", "tplver_1");
         row.put("source_node_id", "mac-music-mv-primary");
+        row.put("browser_scene_status", "ready");
         return row;
     }
 
@@ -281,7 +319,9 @@ class MusicMvRenderJobServiceTest {
     private Map<String, Object> row(String jobId, String fingerprint) {
         Map<String, Object> row = new LinkedHashMap<String, Object>();
         row.put("job_id", jobId);
-        row.put("status", "queued");
+        row.put("status", "rendering");
+        row.put("stage", "browser_ready");
+        row.put("version_id", "tplver_1");
         row.put("request_fingerprint", fingerprint);
         return row;
     }
