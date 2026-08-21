@@ -32,10 +32,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvTemplateCatalogService {
     private static final Set<String> VISIBILITIES;
+    private static final Set<String> FULL_MV_SOURCE_TYPES;
     static {
         Set<String> values = new HashSet<String>();
         values.add("public"); values.add("private"); values.add("unlisted");
         VISIBILITIES = Collections.unmodifiableSet(values);
+
+        Set<String> fullMvSourceTypes = new HashSet<String>();
+        fullMvSourceTypes.add("capcut_official_template_preview");
+        fullMvSourceTypes.add("validated_ai_music_mv_native_output");
+        FULL_MV_SOURCE_TYPES = Collections.unmodifiableSet(fullMvSourceTypes);
     }
 
     private final MusicMvTemplateCatalogRepository repository;
@@ -286,7 +292,7 @@ public class MusicMvTemplateCatalogService {
         Map<String, Object> providerDetails = new LinkedHashMap<String, Object>();
         providerDetails.putAll(session.getProviderDetails());
         if (video && request.getSourceType() != null) {
-            if (!"capcut_official_template_preview".equals(request.getSourceType())) {
+            if (!FULL_MV_SOURCE_TYPES.contains(request.getSourceType())) {
                 throw badRequest("TEMPLATE_MEDIA_SOURCE_TYPE_INVALID",
                         "Unsupported full MV source type");
             }

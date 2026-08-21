@@ -260,6 +260,33 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void acceptsValidatedAiMusicMvNativeOutputAsFullMv() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(null);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "validated-stream", "https://upload.example",
+                        "awaiting_upload", row("playbackUrl", "https://stream.example/manifest/video.m3u8")));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("full_mv");
+        request.setSourceSha256(hash('d'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setDurationSeconds(Double.valueOf(180));
+        request.setFilename("validated-native-output.mp4");
+        request.setSourceType("validated_ai_music_mv_native_output");
+        request.setDisplayLabel("已验收原生 MV");
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+        Map<String, Object> details = (Map<String, Object>) result.get("providerDetails");
+
+        assertEquals("validated_ai_music_mv_native_output", details.get("sourceType"));
+        assertEquals("已验收原生 MV", details.get("displayLabel"));
+    }
+
+    @Test
     void createsCloudflareImageForADeclaredTemplatePhotoSlot() {
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
