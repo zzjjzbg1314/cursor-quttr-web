@@ -230,6 +230,47 @@ public class MusicMvInputAssetStorageService {
         requireMetadataEquals(asset, metadata);
     }
 
+    /** Verifies that a trusted stored asset is still present, owned and readable. */
+    public void requireOwnedAsset(String ownerId,
+                                  MusicMvRenderJobCreateRequest.Asset asset,
+                                  String expectedKind) {
+        AssetCapability capability = parseCapability(asset == null ? null : asset.getUrl());
+        String normalizedOwnerId = normalizeOwnerId(ownerId);
+        String normalizedKind = normalizeKind(expectedKind);
+        if (r2.isConfigured()) {
+            Properties metadata = r2Metadata(normalizedKind, capability.assetId,
+                    capability.accessToken);
+            requireNotExpired(metadata);
+            if (!normalizedOwnerId.equals(metadata.getProperty("ownerId"))) throw notFound();
+            requireMetadataEquals(asset, metadata);
+            if (!r2.exists(r2ObjectKey(normalizedKind, capability.assetId,
+                    capability.accessToken))) throw notFound();
+            return;
+        }
+        Path assetDir = localRoot.resolve(capability.assetId).normalize();
+        requireInside(assetDir);
+        Path metadataPath = assetDir.resolve("asset.properties");
+        if (!Files.isRegularFile(metadataPath)) throw notFound();
+        Properties metadata = new Properties();
+        try (InputStream input = Files.newInputStream(metadataPath)) {
+            metadata.load(input);
+        } catch (IOException exception) {
+            throw notFound();
+        }
+        if (!MessageDigest.isEqual(metadata.getProperty("accessToken", "")
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                capability.accessToken.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+            throw notFound();
+        }
+        requireNotExpired(metadata);
+        if (!normalizedOwnerId.equals(metadata.getProperty("ownerId"))
+                || !normalizedKind.equals(metadata.getProperty("kind"))) throw notFound();
+        requireMetadataEquals(asset, metadata);
+        Path source = assetDir.resolve(metadata.getProperty("sourceFile", "source")).normalize();
+        requireInside(source);
+        if (!Files.isRegularFile(source)) throw notFound();
+    }
+
     /** Removes an uploaded object after ownership has been verified. */
     public void deleteOwnedAsset(String ownerId, StoredInputAsset asset) throws IOException {
         if (asset == null) throw notFound();
@@ -485,7 +526,7 @@ public class MusicMvInputAssetStorageService {
             return new AssetCapability(path.substring(path.lastIndexOf('/') + 1), access.get(0));
         } catch (RuntimeException exception) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MV_INPUT_ASSET_URL_INVALID",
-                    "Photo must be uploaded before creating a video");
+                    "Input asset must be uploaded before creating a video");
         }
     }
 

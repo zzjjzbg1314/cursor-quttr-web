@@ -221,6 +221,8 @@ music-mv:
     default-max-attempts: ${MUSIC_MV_MAX_ATTEMPTS:2}
     max-output-bytes: ${MUSIC_MV_MAX_OUTPUT_BYTES:2147483648}
     local-storage-dir: ${MUSIC_MV_LOCAL_STORAGE_DIR:storage/music-mv-render}
+    # Local debugging keeps browser-rendered MP4 files on this machine. Production must set this to r2.
+    browser-output-storage: ${MUSIC_MV_BROWSER_OUTPUT_STORAGE:local}
   security:
     client-token: ${MUSIC_MV_CLIENT_TOKEN:}
     renderer-token: ${MUSIC_MV_RENDERER_TOKEN:}

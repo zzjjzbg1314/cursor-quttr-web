@@ -21,6 +21,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
+import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService.StoredInputAsset;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
@@ -52,7 +53,14 @@ public class AiMusicCandidateStorageService {
 
     public void materialize(String clientId, Map<String, Object> candidate,
                             String requestBaseUrl) {
-        if (!blank(RowUtils.str(candidate, "storage_sha256"))) return;
+        if (hasStoredAsset(candidate)) {
+            try {
+                storage.requireOwnedAsset(clientId, storedAsset(candidate), "music");
+                return;
+            } catch (ApiException exception) {
+                if (!refreshableStorageFailure(exception.getCode())) throw exception;
+            }
+        }
         String sourceUrl = RowUtils.str(candidate, "provider_audio_url");
         requireSafeProviderUrl(sourceUrl);
         DownloadedAudio audio;
@@ -142,6 +150,30 @@ public class AiMusicCandidateStorageService {
     }
 
     private boolean blank(String value) { return value == null || value.trim().isEmpty(); }
+
+    private boolean hasStoredAsset(Map<String, Object> candidate) {
+        return !blank(RowUtils.str(candidate, "storage_url"))
+                && !blank(RowUtils.str(candidate, "storage_sha256"))
+                && RowUtils.lng(candidate, "storage_size_bytes") != null
+                && !blank(RowUtils.str(candidate, "storage_file_name"))
+                && !blank(RowUtils.str(candidate, "storage_content_type"));
+    }
+
+    private MusicMvRenderJobCreateRequest.Asset storedAsset(Map<String, Object> candidate) {
+        MusicMvRenderJobCreateRequest.Asset asset = new MusicMvRenderJobCreateRequest.Asset();
+        asset.setUrl(RowUtils.str(candidate, "storage_url"));
+        asset.setSha256(RowUtils.str(candidate, "storage_sha256"));
+        asset.setSizeBytes(RowUtils.lng(candidate, "storage_size_bytes"));
+        asset.setFileName(RowUtils.str(candidate, "storage_file_name"));
+        asset.setContentType(RowUtils.str(candidate, "storage_content_type"));
+        return asset;
+    }
+
+    private boolean refreshableStorageFailure(String code) {
+        return "MV_INPUT_ASSET_EXPIRED".equals(code)
+                || "MV_INPUT_ASSET_NOT_FOUND".equals(code)
+                || "MV_INPUT_ASSET_URL_INVALID".equals(code);
+    }
 
     private static RestTemplate downloadClient() {
         RequestConfig config = RequestConfig.custom().setConnectTimeout(15000)

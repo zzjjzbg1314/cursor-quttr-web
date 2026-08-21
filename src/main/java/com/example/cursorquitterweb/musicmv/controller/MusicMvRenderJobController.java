@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderAttemptStartRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvAuthService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobService;
@@ -104,6 +107,34 @@ public class MusicMvRenderJobController {
         return service.createBrowserOutputUpload(auth.requireUserId(servletRequest), jobId, request);
     }
 
+    @PutMapping("/{jobId}/browser-output/local-upload")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uploadBrowserOutputLocal(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @RequestHeader("X-Music-Mv-Attempt-Id") String attemptId,
+            @RequestHeader("X-Music-Mv-Lease-Token") String leaseToken,
+            @RequestHeader("X-Music-Mv-Output-Size") long sizeBytes,
+            @RequestHeader("X-Music-Mv-Output-Sha256") String sha256,
+            @RequestHeader(value = HttpHeaders.CONTENT_TYPE,
+                    defaultValue = "application/octet-stream") String contentType,
+            @PathVariable String jobId,
+            HttpServletRequest servletRequest) throws IOException {
+        authentication.requireAuthorized(token);
+        service.uploadBrowserOutputLocal(auth.requireUserId(servletRequest), jobId,
+                attemptId, leaseToken, sizeBytes, contentType, sha256,
+                servletRequest.getInputStream());
+    }
+
+    @PostMapping("/{jobId}/browser-render/start")
+    public Map<String, Object> startBrowserRender(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId,
+            @Valid @RequestBody BrowserRenderAttemptStartRequest request,
+            HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        return service.startBrowser(auth.requireUserId(servletRequest), jobId, request);
+    }
+
     @PostMapping("/{jobId}/browser-output/complete")
     public Map<String, Object> completeBrowserOutput(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
@@ -118,12 +149,10 @@ public class MusicMvRenderJobController {
     public Map<String, Object> failBrowserOutput(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @PathVariable String jobId,
-            @RequestBody(required = false) Map<String, Object> request,
+            @Valid @RequestBody BrowserRenderFailureRequest request,
             HttpServletRequest servletRequest) {
         authentication.requireAuthorized(token);
-        Object message = request == null ? null : request.get("message");
-        return service.failBrowser(auth.requireUserId(servletRequest), jobId,
-                message == null ? null : String.valueOf(message));
+        return service.failBrowser(auth.requireUserId(servletRequest), jobId, request);
     }
 
     @DeleteMapping("/{jobId}")
@@ -148,6 +177,13 @@ public class MusicMvRenderJobController {
     ) throws IOException {
         authentication.requireAuthorized(token);
         OutputAccess output = service.output(auth.requireUserId(servletRequest), jobId);
+        String temporaryUrl = output.temporaryDownloadUrl(inline);
+        if (temporaryUrl != null) {
+            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+                    .header(HttpHeaders.LOCATION, temporaryUrl)
+                    .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
+                    .build();
+        }
         long resourceLength = output.getSizeBytes() == null ? 0L : output.getSizeBytes().longValue();
         if (resourceLength <= 0L) {
             throw new IOException("Rendered MV size is unavailable");

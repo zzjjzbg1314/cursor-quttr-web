@@ -245,7 +245,8 @@ public class AiMusicJobRepository {
     /** Returns only a candidate that belongs to the authenticated user. */
     public Map<String, Object> ownedCandidate(String userId, String candidateId) {
         return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
-                        + "c.duration_seconds,c.storage_key,c.storage_url,c.storage_sha256,"
+                        + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
+                        + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
                         + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,c.selected "
                         + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                         + "WHERE j.user_id=? AND c.candidate_id=? LIMIT 1",

@@ -56,7 +56,9 @@ MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY=<secret>
 MUSIC_MV_CLOUDFLARE_R2_PUBLIC_BASE_URL=<delivery base url>
 ```
 
-R2 未配置时，模块只把用户渲染成片保存在 `MUSIC_MV_LOCAL_STORAGE_DIR`，不影响模板目录与任务合同测试。
+调试阶段默认把浏览器渲染成片保存在 `MUSIC_MV_LOCAL_STORAGE_DIR`。生产环境设置
+`MUSIC_MV_BROWSER_OUTPUT_STORAGE=r2` 后，浏览器才会把成片直传到独立 R2；已有成片仍按各自
+`output_storage_key` 从原存储位置读取，不会因切换配置而迁移或删除。
 
 ## 新 D1 初始化
 
@@ -133,6 +135,8 @@ SunoAPI 回调边界：
 - KIE 生成资源仅保留有限时间，因此选中候选时会复制到模块自己的 R2；R2 未配置的本地开发环境则进入本地素材存储。
 
 网站使用 `X-Music-Mv-Client-Token` 与 `X-Music-Mv-Client-Id`。
+
+浏览器渲染只在开始时向服务端领取一次尝试凭证，完成后上传成品并提交成功；失败、取消时各提交一次终态。编码进度、切换标签后的暂停/继续全部保存在当前浏览器内，不轮询写入 D1，读取任务也不得产生 D1 更新。
 
 Mac 渲染节点：
 

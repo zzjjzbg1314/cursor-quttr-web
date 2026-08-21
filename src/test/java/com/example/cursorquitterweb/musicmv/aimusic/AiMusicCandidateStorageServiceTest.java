@@ -3,6 +3,8 @@ package com.example.cursorquitterweb.musicmv.aimusic;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.ExpectedCount.once;
@@ -24,6 +26,8 @@ import org.springframework.web.client.RestTemplate;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService;
 import com.example.cursorquitterweb.musicmv.service.R2StorageService;
+import com.example.cursorquitterweb.musicmv.support.ApiException;
+import org.springframework.http.HttpStatus;
 
 class AiMusicCandidateStorageServiceTest {
     @TempDir
@@ -73,5 +77,77 @@ class AiMusicCandidateStorageServiceTest {
                 org.mockito.ArgumentMatchers.matches("[0-9a-f]{64}"),
                 anyLong(), eq("Happy-Day.mp3"), eq("audio/mpeg"));
         server.verify();
+    }
+
+    @Test
+    void replacesAnExpiredStoredSongBeforeRendering() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(once(), requestTo("https://1.1.1.1/refreshed.mp3"))
+                .andRespond(withSuccess("refreshed-audio",
+                        MediaType.parseMediaType("audio/mpeg")));
+        Map<String, Object> candidate = storedCandidate();
+        candidate.put("provider_audio_url", "https://1.1.1.1/refreshed.mp3");
+        doThrow(new ApiException(HttpStatus.GONE, "MV_INPUT_ASSET_EXPIRED", "expired"))
+                .when(storage).requireOwnedAsset(eq("client-1"),
+                        org.mockito.ArgumentMatchers.any(), eq("music"));
+        try {
+            when(storage.store(eq("client-1"), eq("music"), eq("Happy-Day.mp3"),
+                    eq("audio/mpeg"), anyLong(), org.mockito.ArgumentMatchers.any(),
+                    eq("https://backend.test"))).thenReturn(
+                    new MusicMvInputAssetStorageService.StoredInputAsset(
+                            "mva_0123456789abcdef0123456789abcdef", "music",
+                            "https://backend.test/api/music-mv/v1/assets/mva_0123456789abcdef0123456789abcdef?access=fresh",
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                            "Happy-Day.mp3", "audio/mpeg", 15L,
+                            java.time.Instant.now().plusSeconds(3600), "r2"));
+        } catch (Exception exception) {
+            throw new AssertionError(exception);
+        }
+        AiMusicCandidateStorageService service = new AiMusicCandidateStorageService(
+                repository, storage, restTemplate);
+
+        service.materialize("client-1", candidate, "https://backend.test");
+
+        verify(repository).markCandidateStored(eq("song_123"),
+                eq("mva_0123456789abcdef0123456789abcdef"),
+                org.mockito.ArgumentMatchers.contains("/api/music-mv/v1/assets/"),
+                org.mockito.ArgumentMatchers.anyString(), anyLong(),
+                eq("Happy-Day.mp3"), eq("audio/mpeg"));
+        server.verify();
+    }
+
+    @Test
+    void keepsAnAccessibleStoredSongWithoutDownloadingItAgain() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        AiMusicCandidateStorageService service = new AiMusicCandidateStorageService(
+                repository, storage, restTemplate);
+
+        service.materialize("client-1", storedCandidate(), "https://backend.test");
+
+        verify(storage).requireOwnedAsset(eq("client-1"),
+                org.mockito.ArgumentMatchers.any(), eq("music"));
+        verify(repository, never()).markCandidateStored(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(), anyLong(),
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    private Map<String, Object> storedCandidate() {
+        Map<String, Object> candidate = new LinkedHashMap<String, Object>();
+        candidate.put("candidate_id", "song_123");
+        candidate.put("title", "Happy Day");
+        candidate.put("storage_url", "https://backend.test/api/music-mv/v1/assets/"
+                + "mva_0123456789abcdef0123456789abcdef?access=old");
+        candidate.put("storage_sha256",
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        candidate.put("storage_size_bytes", Long.valueOf(14L));
+        candidate.put("storage_file_name", "Happy-Day.mp3");
+        candidate.put("storage_content_type", "audio/mpeg");
+        return candidate;
     }
 }

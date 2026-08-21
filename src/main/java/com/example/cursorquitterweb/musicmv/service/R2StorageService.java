@@ -185,14 +185,22 @@ public class R2StorageService {
     }
 
     public String presignedGetUrl(String objectKey, Duration expiresIn) {
+        return presignedGetUrl(objectKey, null, expiresIn);
+    }
+
+    public String presignedGetUrl(String objectKey, String contentDisposition,
+                                  Duration expiresIn) {
         String key = normalizeObjectKey(objectKey);
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        GetObjectRequest.Builder getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
-                .key(key)
-                .build();
+                .key(key);
+        if (contentDisposition != null && !contentDisposition.trim().isEmpty()) {
+            getObjectRequest.responseContentDisposition(contentDisposition);
+            getObjectRequest.responseContentType("video/mp4");
+        }
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(expiresIn)
-                .getObjectRequest(getObjectRequest)
+                .getObjectRequest(getObjectRequest.build())
                 .build();
         PresignedGetObjectRequest presignedRequest = presigner().presignGetObject(presignRequest);
         return presignedRequest.url().toString();

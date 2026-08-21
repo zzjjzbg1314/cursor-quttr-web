@@ -19,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderAttemptStartRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
@@ -41,7 +43,7 @@ class MusicMvRenderJobServiceTest {
 
         Map<String, Object> created = service.create("website-backend", request);
 
-        assertEquals("rendering", created.get("status"));
+        assertEquals("ready", created.get("status"));
         assertEquals("browser_ready", created.get("stage"));
         ArgumentCaptor<String> fingerprint = ArgumentCaptor.forClass(String.class);
         verify(repository).createBrowser(anyString(), eq("website-backend"), eq("req_1"),
@@ -103,7 +105,7 @@ class MusicMvRenderJobServiceTest {
         defaultMedia.put("status", "ready");
         when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
 
-        assertEquals("rendering", service.create("website-backend", request).get("status"));
+        assertEquals("ready", service.create("website-backend", request).get("status"));
         verify(inputAssets, never()).requireOwnedCloudAsset(eq("website-backend"),
                 eq((MusicMvRenderJobCreateRequest.Asset) null), eq("image"));
     }
@@ -146,7 +148,7 @@ class MusicMvRenderJobServiceTest {
         when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
         when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
 
-        assertEquals("rendering", service.create("website-backend", request).get("status"));
+        assertEquals("ready", service.create("website-backend", request).get("status"));
     }
 
     @Test
@@ -239,6 +241,8 @@ class MusicMvRenderJobServiceTest {
         String sha256 = repeat('e');
         Map<String, Object> active = row("mvr_browser", null);
         active.put("client_id", "usr_owner");
+        active.put("status", "uploading");
+        active.put("stage", "browser_output_uploading");
         Map<String, Object> completed = new LinkedHashMap<String, Object>(active);
         completed.put("status", "completed");
         completed.put("stage", "completed");
@@ -248,13 +252,20 @@ class MusicMvRenderJobServiceTest {
         completed.put("writer_sidecar_count", Integer.valueOf(0));
         completed.put("result_json", "{\"status\":\"completed\",\"renderMode\":\"browser\"}");
         when(repository.byId("mvr_browser")).thenReturn(active);
-        when(artifacts.verifyBrowserUpload("mvr_browser", 1234L, "video/mp4", sha256))
+        when(repository.activeBrowserAttempt("mvr_browser", "usr_owner", "bratt_1",
+                "brlease_1")).thenReturn(active);
+        when(artifacts.verifyBrowserUpload("mvr_browser", "bratt_1", 1234L,
+                "video/mp4", sha256))
                 .thenReturn(new MusicMvRenderArtifactStorageService.StoredArtifact(
-                        "r2:music-mv-renders/mvr_browser/result.mp4", 1234L, sha256, "video/mp4"));
-        when(repository.completeBrowser(eq("mvr_browser"), eq("usr_owner"), anyString(),
-                eq("video/mp4"), eq(1234L), eq(sha256), eq(180.0d), anyString(), anyString()))
+                        "r2:music-mv-renders/mvr_browser/attempts/bratt_1/result.mp4",
+                        1234L, sha256, "video/mp4"));
+        when(repository.completeBrowser(eq("mvr_browser"), eq("usr_owner"),
+                eq("bratt_1"), eq("brlease_1"), anyString(), eq("video/mp4"),
+                eq(1234L), eq(sha256), eq(180.0d), anyString(), anyString()))
                 .thenReturn(completed);
         BrowserRenderOutputRequest request = new BrowserRenderOutputRequest();
+        request.setAttemptId("bratt_1");
+        request.setLeaseToken("brlease_1");
         request.setSha256(sha256);
         request.setSizeBytes(Long.valueOf(1234L));
         request.setContentType("video/mp4");
@@ -268,6 +279,62 @@ class MusicMvRenderJobServiceTest {
         assertEquals(Integer.valueOf(1), result.get("videoEncodeCount"));
         assertEquals(Integer.valueOf(0), result.get("intermediateVideoCount"));
         assertEquals(Integer.valueOf(0), result.get("writerSidecarCount"));
+    }
+
+    @Test
+    void grantsOnlyOneActiveBrowserAttempt() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts,
+                inputAssets(), new ObjectMapper(), true, 2);
+        Map<String, Object> ready = row("mvr_browser", null);
+        ready.put("client_id", "usr_owner");
+        Map<String, Object> active = new LinkedHashMap<String, Object>(ready);
+        active.put("status", "rendering");
+        active.put("stage", "browser_loading_media");
+        when(repository.byId("mvr_browser")).thenReturn(ready);
+        when(repository.startBrowser(eq("mvr_browser"), eq("usr_owner"), anyString(),
+                anyString(), eq(86400))).thenReturn(active).thenReturn(null);
+        BrowserRenderAttemptStartRequest request = new BrowserRenderAttemptStartRequest();
+        request.setSessionId("brsession_1");
+
+        Map<String, Object> first = service.startBrowser("usr_owner", "mvr_browser", request);
+        ApiException second = assertThrows(ApiException.class,
+                () -> service.startBrowser("usr_owner", "mvr_browser", request));
+
+        assertEquals("rendering", ((Map<?, ?>) first.get("job")).get("status"));
+        assertEquals(Boolean.TRUE, String.valueOf(first.get("attemptId")).startsWith("bratt_"));
+        assertEquals("MV_BROWSER_RENDER_ALREADY_ACTIVE", second.getCode());
+        verify(artifacts).clearLocalBrowserOutputs();
+    }
+
+    @Test
+    void interruptionRequiresTheOwningAttemptAndDeletesOnlyItsArtifact() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        Map<String, Object> active = row("mvr_browser", null);
+        active.put("client_id", "usr_owner");
+        active.put("status", "rendering");
+        active.put("stage", "browser_encoding");
+        Map<String, Object> interrupted = new LinkedHashMap<String, Object>(active);
+        interrupted.put("status", "interrupted");
+        interrupted.put("stage", "browser_interrupted");
+        when(repository.byId("mvr_browser")).thenReturn(active);
+        when(repository.failBrowser("mvr_browser", "usr_owner", "bratt_1", "brlease_1",
+                "MV_BROWSER_RENDER_FAILED", "tab hidden")).thenReturn(interrupted);
+        BrowserRenderFailureRequest request = new BrowserRenderFailureRequest();
+        request.setAttemptId("bratt_1");
+        request.setLeaseToken("brlease_1");
+        request.setMessage("tab hidden");
+
+        Map<String, Object> result = service.failBrowser("usr_owner", "mvr_browser", request);
+
+        assertEquals("interrupted", result.get("status"));
+        verify(artifacts).deleteBrowserAttempt("mvr_browser", "bratt_1");
     }
 
     @Test
@@ -389,7 +456,7 @@ class MusicMvRenderJobServiceTest {
     private Map<String, Object> row(String jobId, String fingerprint) {
         Map<String, Object> row = new LinkedHashMap<String, Object>();
         row.put("job_id", jobId);
-        row.put("status", "rendering");
+        row.put("status", "ready");
         row.put("stage", "browser_ready");
         row.put("version_id", "tplver_1");
         row.put("request_fingerprint", fingerprint);

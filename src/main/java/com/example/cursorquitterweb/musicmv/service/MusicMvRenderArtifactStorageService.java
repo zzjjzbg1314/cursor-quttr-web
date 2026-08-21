@@ -9,8 +9,10 @@ import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -28,16 +30,19 @@ public class MusicMvRenderArtifactStorageService {
     private final R2StorageService r2;
     private final Path localRoot;
     private final long maxOutputBytes;
+    private final String browserOutputStorage;
 
     public MusicMvRenderArtifactStorageService(
             R2StorageService r2,
             @Value("${music-mv.render.local-storage-dir:storage/music-mv-render}") String localDir,
-            @Value("${music-mv.render.max-output-bytes:2147483648}") long maxOutputBytes
+            @Value("${music-mv.render.max-output-bytes:2147483648}") long maxOutputBytes,
+            @Value("${music-mv.render.browser-output-storage:local}") String browserOutputStorage
     ) {
         this.r2 = r2;
         this.localRoot = Paths.get(localDir).toAbsolutePath().normalize();
         this.maxOutputBytes = maxOutputBytes <= 0L
                 ? DEFAULT_MAX_OUTPUT_BYTES : maxOutputBytes;
+        this.browserOutputStorage = normalizeBrowserOutputStorage(browserOutputStorage);
     }
 
     public StoredArtifact storeOutput(String jobId, InputStream input, long contentLength,
@@ -78,28 +83,119 @@ public class MusicMvRenderArtifactStorageService {
                 contentType == null ? "video/mp4" : contentType);
     }
 
-    public BrowserUploadSession createBrowserUploadSession(String jobId, long contentLength,
+    public synchronized void clearLocalBrowserOutputs() {
+        if (!usesLocalBrowserOutputStorage()) return;
+        Path outputsRoot = localRoot.resolve("outputs").normalize();
+        requireInside(outputsRoot, localRoot);
+        if (!Files.exists(outputsRoot)) return;
+        try (Stream<Path> paths = Files.walk(outputsRoot)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .filter(path -> !path.equals(outputsRoot))
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException exception) {
+                            throw new LocalOutputCleanupException(exception);
+                        }
+                    });
+        } catch (IOException | LocalOutputCleanupException exception) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "MV_LOCAL_RENDER_OUTPUT_CLEANUP_FAILED",
+                    "Historical local render videos could not be cleared", true, null);
+        }
+    }
+
+    public BrowserUploadSession createBrowserUploadSession(String jobId, String attemptId,
+                                                            long contentLength,
                                                             String contentType, String sha256) {
         requireBrowserOutput(contentLength, contentType, sha256);
+        String objectKey = browserObjectKey(jobId, attemptId);
+        if (usesLocalBrowserOutputStorage()) {
+            String uploadUrl = "/api/music-mv/v1/render-jobs/" + safeId(jobId)
+                    + "/browser-output/local-upload";
+            return new BrowserUploadSession(uploadUrl, objectKey, contentLength,
+                    normalizeSha256(sha256), "video/mp4", true);
+        }
         if (!r2.isConfigured()) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
                     "MV_BROWSER_OUTPUT_STORAGE_UNAVAILABLE",
                     "Direct browser video upload is temporarily unavailable", true, null);
         }
-        String objectKey = browserObjectKey(jobId);
         Map<String, String> metadata = new LinkedHashMap<String, String>();
         metadata.put("sha256", normalizeSha256(sha256));
         metadata.put("render-job-id", safeId(jobId));
         String uploadUrl = r2.presignedPutUrl(objectKey, "video/mp4", contentLength,
                 metadata, Duration.ofMinutes(30));
         return new BrowserUploadSession(uploadUrl, objectKey, contentLength,
-                normalizeSha256(sha256), "video/mp4");
+                normalizeSha256(sha256), "video/mp4", false);
     }
 
-    public StoredArtifact verifyBrowserUpload(String jobId, long expectedSize,
+    public StoredArtifact storeBrowserUpload(String jobId, String attemptId, InputStream input,
+                                              long expectedSize, String contentType,
+                                              String expectedSha256) throws IOException {
+        requireBrowserOutput(expectedSize, contentType, expectedSha256);
+        if (!usesLocalBrowserOutputStorage()) {
+            throw new ApiException(HttpStatus.CONFLICT, "MV_BROWSER_LOCAL_UPLOAD_DISABLED",
+                    "Local browser video upload is disabled");
+        }
+        String storageKey = browserLocalStorageKey(jobId, attemptId);
+        Path target = localPath(storageKey);
+        Path partial = target.resolveSibling("result.mp4.part");
+        Files.createDirectories(target.getParent());
+        MessageDigest digest = sha256Digest();
+        long written = 0L;
+        try (DigestInputStream digestInput = new DigestInputStream(input, digest);
+             java.io.OutputStream output = Files.newOutputStream(partial)) {
+            byte[] buffer = new byte[64 * 1024];
+            while (written <= expectedSize) {
+                int allowed = (int) Math.min(buffer.length, expectedSize + 1L - written);
+                int read = digestInput.read(buffer, 0, allowed);
+                if (read < 0) break;
+                output.write(buffer, 0, read);
+                written += read;
+            }
+        } catch (IOException | RuntimeException exception) {
+            Files.deleteIfExists(partial);
+            throw exception;
+        }
+        String actualSha256 = hex(digest.digest());
+        String expected = normalizeSha256(expectedSha256);
+        if (written != expectedSize || !MessageDigest.isEqual(
+                expected.getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                actualSha256.getBytes(java.nio.charset.StandardCharsets.US_ASCII))) {
+            Files.deleteIfExists(partial);
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "MV_BROWSER_OUTPUT_INTEGRITY_MISMATCH",
+                    "Browser video upload does not match the signed artifact metadata");
+        }
+        try {
+            Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+            Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return new StoredArtifact(storageKey, written, actualSha256, "video/mp4");
+    }
+
+    public StoredArtifact verifyBrowserUpload(String jobId, String attemptId, long expectedSize,
                                                String contentType, String expectedSha256) {
         requireBrowserOutput(expectedSize, contentType, expectedSha256);
-        String objectKey = browserObjectKey(jobId);
+        if (usesLocalBrowserOutputStorage()) {
+            String storageKey = browserLocalStorageKey(jobId, attemptId);
+            try {
+                if (!Files.isRegularFile(localPath(storageKey))
+                        || Files.size(localPath(storageKey)) != expectedSize) {
+                    throw new ApiException(HttpStatus.CONFLICT, "MV_BROWSER_OUTPUT_NOT_UPLOADED",
+                            "Browser video upload has not completed", true, null);
+                }
+            } catch (IOException exception) {
+                throw new ApiException(HttpStatus.CONFLICT, "MV_BROWSER_OUTPUT_NOT_UPLOADED",
+                        "Browser video upload has not completed", true, null);
+            }
+            return new StoredArtifact(storageKey, expectedSize,
+                    normalizeSha256(expectedSha256), "video/mp4");
+        }
+        String objectKey = browserObjectKey(jobId, attemptId);
         R2StorageService.ObjectInfo info;
         try {
             info = r2.objectInfo(objectKey);
@@ -134,8 +230,35 @@ public class MusicMvRenderArtifactStorageService {
         normalizeSha256(sha256);
     }
 
-    private String browserObjectKey(String jobId) {
-        return "music-mv-renders/" + safeId(jobId) + "/result.mp4";
+    public void deleteBrowserAttempt(String jobId, String attemptId) {
+        if (usesLocalBrowserOutputStorage()) {
+            deleteQuietly(browserLocalStorageKey(jobId, attemptId));
+        } else {
+            deleteQuietly("r2:" + browserObjectKey(jobId, attemptId));
+        }
+    }
+
+    private String browserObjectKey(String jobId, String attemptId) {
+        return "music-mv-renders/" + safeId(jobId) + "/attempts/"
+                + safeId(attemptId) + "/result.mp4";
+    }
+
+    private String browserLocalStorageKey(String jobId, String attemptId) {
+        return "local:outputs/" + safeId(jobId) + "/attempts/"
+                + safeId(attemptId) + "/result.mp4";
+    }
+
+    private boolean usesLocalBrowserOutputStorage() {
+        return "local".equals(browserOutputStorage);
+    }
+
+    private String normalizeBrowserOutputStorage(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase();
+        if (!("local".equals(normalized) || "r2".equals(normalized))) {
+            throw new IllegalArgumentException(
+                    "music-mv.render.browser-output-storage must be local or r2");
+        }
+        return normalized;
     }
 
     public boolean exists(String storageKey) {
@@ -156,8 +279,15 @@ public class MusicMvRenderArtifactStorageService {
     }
 
     public String temporaryDownloadUrl(String storageKey) {
+        return temporaryDownloadUrl(storageKey, false);
+    }
+
+    public String temporaryDownloadUrl(String storageKey, boolean inline) {
         if (storageKey != null && storageKey.startsWith("r2:") && r2.isConfigured()) {
-            return r2.presignedGetUrl(storageKey.substring(3), Duration.ofMinutes(15));
+            String disposition = (inline ? "inline" : "attachment")
+                    + "; filename=\"music-mv.mp4\"";
+            return r2.presignedGetUrl(storageKey.substring(3), disposition,
+                    Duration.ofMinutes(15));
         }
         return null;
     }
@@ -216,6 +346,12 @@ public class MusicMvRenderArtifactStorageService {
             else if (storageKey.startsWith("local:")) Files.deleteIfExists(localPath(storageKey));
         } catch (Exception ignored) {
             // A failed integrity check is already surfaced to the caller.
+        }
+    }
+
+    private static final class LocalOutputCleanupException extends RuntimeException {
+        LocalOutputCleanupException(IOException cause) {
+            super(cause);
         }
     }
 
@@ -282,14 +418,16 @@ public class MusicMvRenderArtifactStorageService {
         private final long sizeBytes;
         private final String sha256;
         private final String contentType;
+        private final boolean local;
 
         BrowserUploadSession(String uploadUrl, String objectKey, long sizeBytes,
-                             String sha256, String contentType) {
+                             String sha256, String contentType, boolean local) {
             this.uploadUrl = uploadUrl;
             this.objectKey = objectKey;
             this.sizeBytes = sizeBytes;
             this.sha256 = sha256;
             this.contentType = contentType;
+            this.local = local;
         }
 
         public String getUploadUrl() { return uploadUrl; }
@@ -297,5 +435,6 @@ public class MusicMvRenderArtifactStorageService {
         public long getSizeBytes() { return sizeBytes; }
         public String getSha256() { return sha256; }
         public String getContentType() { return contentType; }
+        public boolean isLocal() { return local; }
     }
 }

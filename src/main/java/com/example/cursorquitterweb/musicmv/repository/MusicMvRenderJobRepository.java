@@ -99,13 +99,39 @@ public class MusicMvRenderJobRepository {
                         + "(job_id,client_id,request_id,template_id,version_id,status,stage,progress,"
                         + "priority,attempt_count,max_attempts,request_fingerprint,request_json,"
                         + "cancel_requested,output_content_type,retryable,created_at,updated_at,started_at) "
-                        + "VALUES (?,?,?,?,?,'rendering','browser_ready',0,0,0,1,?,?,0,'video/mp4',0,"
-                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
+                        + "VALUES (?,?,?,?,?,'ready','browser_ready',0,0,0,5,?,?,0,'video/mp4',0,"
+                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,NULL)",
                 jobId, clientId, requestId, templateId, versionId,
                 requestFingerprint, requestJson);
     }
 
+    public Map<String, Object> startBrowser(String jobId, String clientId, String attemptId,
+                                            String leaseToken, int leaseSeconds) {
+        String leaseModifier = "+" + leaseSeconds + " seconds";
+        return d1.query("UPDATE music_mv_render_jobs SET status='rendering',"
+                        + "stage='browser_loading_media',progress=0.02,attempt_count=attempt_count+1,"
+                        + "native_render_job_id=?,lease_token=?,lease_expires_at=datetime('now',?),"
+                        + "error_code=NULL,error_message=NULL,retryable=0,"
+                        + "started_at=COALESCE(started_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE job_id=? AND client_id=? AND cancel_requested=0 "
+                        + "AND attempt_count<max_attempts "
+                        + "AND (status IN ('ready','interrupted') "
+                        + "OR (status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
+                        + "AND lease_expires_at<CURRENT_TIMESTAMP)) RETURNING " + JOB_COLUMNS,
+                attemptId, leaseToken, leaseModifier, jobId, clientId).firstRow();
+    }
+
+    public Map<String, Object> activeBrowserAttempt(String jobId, String clientId,
+                                                    String attemptId, String leaseToken) {
+        return d1.query("SELECT " + JOB_COLUMNS + " FROM music_mv_render_jobs "
+                        + "WHERE job_id=? AND client_id=? AND native_render_job_id=? "
+                        + "AND lease_token=? AND cancel_requested=0 "
+                        + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' LIMIT 1",
+                jobId, clientId, attemptId, leaseToken).firstRow();
+    }
+
     public Map<String, Object> completeBrowser(String jobId, String clientId,
+                                               String attemptId, String leaseToken,
                                                String storageKey, String contentType,
                                                long sizeBytes, String sha256,
                                                double durationSeconds, String resultJson,
@@ -115,21 +141,32 @@ public class MusicMvRenderJobRepository {
                         + "output_sha256=?,output_duration_seconds=?,semantic_integrity='exact',"
                         + "video_encode_count=1,intermediate_video_count=0,writer_sidecar_count=0,"
                         + "result_json=?,evidence_json=?,retryable=0,completed_at=CURRENT_TIMESTAMP,"
+                        + "lease_token=NULL,lease_expires_at=NULL,"
                         + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
+                        + "AND native_render_job_id=? AND lease_token=? "
                         + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
                         + "AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
                 storageKey, contentType, Long.valueOf(sizeBytes), sha256,
-                Double.valueOf(durationSeconds), resultJson, evidenceJson, jobId, clientId).firstRow();
+                Double.valueOf(durationSeconds), resultJson, evidenceJson, jobId, clientId,
+                attemptId, leaseToken).firstRow();
     }
 
-    public Map<String, Object> failBrowser(String jobId, String clientId,
+    public Map<String, Object> failBrowser(String jobId, String clientId, String attemptId,
+                                           String leaseToken,
                                            String errorCode, String errorMessage) {
-        return d1.query("UPDATE music_mv_render_jobs SET status='failed',stage='failed',"
-                        + "error_code=?,error_message=?,retryable=1,completed_at=CURRENT_TIMESTAMP,"
-                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
+        return d1.query("UPDATE music_mv_render_jobs SET "
+                        + "status=CASE WHEN attempt_count>=max_attempts THEN 'failed' ELSE 'interrupted' END,"
+                        + "stage=CASE WHEN attempt_count>=max_attempts THEN 'failed' ELSE 'browser_interrupted' END,"
+                        + "error_code=CASE WHEN attempt_count>=max_attempts "
+                        + "THEN 'MV_BROWSER_RENDER_ATTEMPTS_EXHAUSTED' ELSE ? END,error_message=?,"
+                        + "retryable=CASE WHEN attempt_count>=max_attempts THEN 0 ELSE 1 END,"
+                        + "completed_at=CASE WHEN attempt_count>=max_attempts "
+                        + "THEN CURRENT_TIMESTAMP ELSE completed_at END,"
+                        + "lease_token=NULL,lease_expires_at=NULL,updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE job_id=? AND client_id=? AND native_render_job_id=? AND lease_token=? "
                         + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
                         + "RETURNING " + JOB_COLUMNS,
-                errorCode, errorMessage, jobId, clientId).firstRow();
+                errorCode, errorMessage, jobId, clientId, attemptId, leaseToken).firstRow();
     }
 
     public List<Map<String, Object>> ownedJobs(String clientId, int limit) {
@@ -286,9 +323,10 @@ public class MusicMvRenderJobRepository {
 
     public Map<String, Object> cancel(String jobId, String clientId) {
         return d1.query("UPDATE music_mv_render_jobs SET cancel_requested=1, "
-                        + "status=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN 'canceled' ELSE status END, "
-                        + "stage=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN 'canceled' ELSE stage END, "
-                        + "completed_at=CASE WHEN status='queued' OR stage LIKE 'browser_%' THEN CURRENT_TIMESTAMP "
+                        + "status=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE status END, "
+                        + "stage=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE stage END, "
+                        + "lease_token=NULL,lease_expires_at=NULL,"
+                        + "completed_at=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN CURRENT_TIMESTAMP "
                         + "ELSE completed_at END, updated_at=CURRENT_TIMESTAMP "
                         + "WHERE job_id=? AND client_id=? AND status NOT IN ('completed','failed','canceled') "
                         + "RETURNING " + JOB_COLUMNS,

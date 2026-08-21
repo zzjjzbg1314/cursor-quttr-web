@@ -28,7 +28,10 @@ import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderFailRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderLeaseRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderAttemptStartRequest;
+import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
+import com.example.cursorquitterweb.musicmv.aimusic.AiMusicCandidateStorageService;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.example.cursorquitterweb.musicmv.support.IdUtils;
@@ -41,9 +44,11 @@ public class MusicMvRenderJobService {
     private static final long MAX_MUSIC_BYTES = 500L * 1024L * 1024L;
     private static final long MAX_IMAGE_BYTES = 50L * 1024L * 1024L;
     private static final int MAX_JSON_BYTES = 256 * 1024;
+    private static final int BROWSER_ATTEMPT_SECONDS = 24 * 60 * 60;
 
     private final MusicMvRenderJobRepository repository;
     private final AiMusicJobRepository aiMusicJobs;
+    private final AiMusicCandidateStorageService candidateStorage;
     private final MusicMvRenderArtifactStorageService artifacts;
     private final MusicMvInputAssetStorageService inputAssets;
     private final CloudflareTemplateMediaProvider templateMedia;
@@ -55,6 +60,7 @@ public class MusicMvRenderJobService {
     public MusicMvRenderJobService(
             MusicMvRenderJobRepository repository,
             AiMusicJobRepository aiMusicJobs,
+            AiMusicCandidateStorageService candidateStorage,
             MusicMvRenderArtifactStorageService artifacts,
             MusicMvInputAssetStorageService inputAssets,
             CloudflareTemplateMediaProvider templateMedia,
@@ -64,6 +70,7 @@ public class MusicMvRenderJobService {
     ) {
         this.repository = repository;
         this.aiMusicJobs = aiMusicJobs;
+        this.candidateStorage = candidateStorage;
         this.artifacts = artifacts;
         this.inputAssets = inputAssets;
         this.templateMedia = templateMedia;
@@ -82,7 +89,21 @@ public class MusicMvRenderJobService {
             boolean allowLoopbackHttp,
             int defaultMaxAttempts
     ) {
-        this(repository, aiMusicJobs, artifacts, inputAssets, null, objectMapper,
+        this(repository, aiMusicJobs, null, artifacts, inputAssets, null, objectMapper,
+                allowLoopbackHttp, defaultMaxAttempts);
+    }
+
+    MusicMvRenderJobService(
+            MusicMvRenderJobRepository repository,
+            AiMusicJobRepository aiMusicJobs,
+            MusicMvRenderArtifactStorageService artifacts,
+            MusicMvInputAssetStorageService inputAssets,
+            CloudflareTemplateMediaProvider templateMedia,
+            ObjectMapper objectMapper,
+            boolean allowLoopbackHttp,
+            int defaultMaxAttempts
+    ) {
+        this(repository, aiMusicJobs, null, artifacts, inputAssets, templateMedia, objectMapper,
                 allowLoopbackHttp, defaultMaxAttempts);
     }
 
@@ -188,35 +209,54 @@ public class MusicMvRenderJobService {
     public Map<String, Object> createBrowserOutputUpload(
             String clientId, String jobId, BrowserRenderOutputRequest request) {
         String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
-        Map<String, Object> row = requireOwnedJob(ownerId, jobId);
-        requireBrowserActive(row);
+        requireOwnedJob(ownerId, jobId);
+        Map<String, Object> active = repository.activeBrowserAttempt(jobId, ownerId,
+                request.getAttemptId(), request.getLeaseToken());
+        if (active == null) throw browserAttemptConflict();
         BrowserUploadSession session = artifacts.createBrowserUploadSession(jobId,
+                request.getAttemptId(),
                 request.getSizeBytes().longValue(), request.getContentType(), request.getSha256());
-        // Keep the job at browser_ready while the browser uploads directly to R2.
-        // If the tab closes or the network drops, the owner can safely render and
-        // upload again instead of being stranded in an unrecoverable uploading state.
-        addEvent(jobId, "browser_output_upload_started", "browser_output_uploading", null,
-                singleton("sizeBytes", request.getSizeBytes()));
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("uploadUrl", session.getUploadUrl());
         result.put("method", "PUT");
         result.put("contentType", session.getContentType());
         Map<String, String> headers = new LinkedHashMap<String, String>();
         headers.put("Content-Type", session.getContentType());
-        headers.put("x-amz-meta-sha256", session.getSha256());
-        headers.put("x-amz-meta-render-job-id", jobId);
+        if (session.isLocal()) {
+            headers.put("X-Music-Mv-Attempt-Id", request.getAttemptId());
+            headers.put("X-Music-Mv-Lease-Token", request.getLeaseToken());
+            headers.put("X-Music-Mv-Output-Size", String.valueOf(session.getSizeBytes()));
+            headers.put("X-Music-Mv-Output-Sha256", session.getSha256());
+        } else {
+            headers.put("x-amz-meta-sha256", session.getSha256());
+            headers.put("x-amz-meta-render-job-id", jobId);
+        }
         result.put("headers", headers);
         result.put("expiresInSeconds", Integer.valueOf(1800));
         return result;
     }
 
+    public void uploadBrowserOutputLocal(String clientId, String jobId, String attemptId,
+                                         String leaseToken, long sizeBytes, String contentType,
+                                         String sha256, InputStream input) throws IOException {
+        String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
+        requireOwnedJob(ownerId, jobId);
+        Map<String, Object> active = repository.activeBrowserAttempt(jobId, ownerId,
+                attemptId, leaseToken);
+        if (active == null) throw browserAttemptConflict();
+        artifacts.storeBrowserUpload(jobId, attemptId, input, sizeBytes, contentType, sha256);
+    }
+
     public Map<String, Object> completeBrowserOutput(
             String clientId, String jobId, BrowserRenderOutputRequest request) {
         String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
-        Map<String, Object> row = requireOwnedJob(ownerId, jobId);
-        requireBrowserActive(row);
+        requireOwnedJob(ownerId, jobId);
+        Map<String, Object> row = repository.activeBrowserAttempt(jobId, ownerId,
+                request.getAttemptId(), request.getLeaseToken());
+        if (row == null) throw browserAttemptConflict();
         MusicMvRenderArtifactStorageService.StoredArtifact stored = artifacts.verifyBrowserUpload(
-                jobId, request.getSizeBytes().longValue(), request.getContentType(), request.getSha256());
+                jobId, request.getAttemptId(), request.getSizeBytes().longValue(),
+                request.getContentType(), request.getSha256());
         Map<String, Object> resultPayload = new LinkedHashMap<String, Object>();
         resultPayload.put("status", "completed");
         resultPayload.put("renderMode", "browser");
@@ -230,6 +270,7 @@ public class MusicMvRenderJobService {
         evidence.put("videoEncodeCount", Integer.valueOf(1));
         evidence.put("materializedIntermediateVideoCount", Integer.valueOf(0));
         Map<String, Object> completed = repository.completeBrowser(jobId, ownerId,
+                request.getAttemptId(), request.getLeaseToken(),
                 stored.getStorageKey(), stored.getContentType(), stored.getSizeBytes(),
                 stored.getSha256(), request.getDurationSeconds().doubleValue(),
                 json(resultPayload), json(evidence));
@@ -242,18 +283,55 @@ public class MusicMvRenderJobService {
         return clientDetailView(completed, ownerId);
     }
 
-    public Map<String, Object> failBrowser(String clientId, String jobId, String message) {
+    public Map<String, Object> startBrowser(String clientId, String jobId,
+                                            BrowserRenderAttemptStartRequest request) {
         String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
-        Map<String, Object> row = requireOwnedJob(ownerId, jobId);
-        requireBrowserActive(row);
-        String safeMessage = message == null || message.trim().isEmpty()
-                ? "Browser video encoding failed" : message.trim();
+        Map<String, Object> job = requireOwnedJob(ownerId, jobId);
+        Map<String, Object> storedRequest = parseObject(RowUtils.str(job, "request_json"));
+        if (storedRequest != null && storedRequest.get("musicCandidateId") != null) {
+            refreshOwnedMusicCandidate(ownerId,
+                    String.valueOf(storedRequest.get("musicCandidateId")));
+        }
+        String attemptId = IdUtils.token("bratt");
+        String leaseToken = IdUtils.token("brlease");
+        Map<String, Object> started = repository.startBrowser(jobId, ownerId, attemptId,
+                leaseToken, BROWSER_ATTEMPT_SECONDS);
+        if (started == null) {
+            throw conflict("MV_BROWSER_RENDER_ALREADY_ACTIVE",
+                    "This video is already rendering in another browser tab");
+        }
+        try {
+            artifacts.clearLocalBrowserOutputs();
+        } catch (RuntimeException exception) {
+            repository.failBrowser(jobId, ownerId, attemptId, leaseToken,
+                    "MV_LOCAL_RENDER_OUTPUT_CLEANUP_FAILED",
+                    "Historical local render videos could not be cleared");
+            throw exception;
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("attemptId", attemptId);
+        result.put("leaseToken", leaseToken);
+        result.put("leaseSeconds", Integer.valueOf(BROWSER_ATTEMPT_SECONDS));
+        result.put("job", clientDetailView(started, ownerId));
+        return result;
+    }
+
+    public Map<String, Object> failBrowser(String clientId, String jobId,
+                                           BrowserRenderFailureRequest request) {
+        String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
+        requireOwnedJob(ownerId, jobId);
+        String safeMessage = request.getMessage() == null || request.getMessage().trim().isEmpty()
+                ? "Browser video encoding failed" : request.getMessage().trim();
         if (safeMessage.length() > 500) safeMessage = safeMessage.substring(0, 500);
         Map<String, Object> failed = repository.failBrowser(jobId, ownerId,
+                request.getAttemptId(), request.getLeaseToken(),
                 "MV_BROWSER_RENDER_FAILED", safeMessage);
-        if (failed == null) throw conflict("MV_BROWSER_RENDER_STATE_CHANGED",
-                "Browser render is no longer active");
-        addEvent(jobId, "failed", "failed", null, singleton("message", safeMessage));
+        if (failed == null) throw browserAttemptConflict();
+        artifacts.deleteBrowserAttempt(jobId, request.getAttemptId());
+        boolean exhausted = "failed".equals(RowUtils.str(failed, "status"));
+        addEvent(jobId, exhausted ? "failed" : "browser_interrupted",
+                exhausted ? "failed" : "browser_interrupted", null,
+                detail("attemptId", request.getAttemptId(), "message", safeMessage));
         return clientView(failed);
     }
 
@@ -376,7 +454,7 @@ public class MusicMvRenderJobService {
     private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request) {
         String candidateId = requireId(request.getMusicCandidateId(),
                 "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
-        Map<String, Object> candidate = aiMusicJobs.ownedCandidate(userId, candidateId);
+        Map<String, Object> candidate = refreshOwnedMusicCandidate(userId, candidateId);
         if (candidate == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "MV_RENDER_MUSIC_CANDIDATE_NOT_FOUND",
                     "The selected AI song was not found");
@@ -398,6 +476,38 @@ public class MusicMvRenderJobService {
         asset.setFileName(fileName);
         asset.setContentType(contentType);
         request.setMusic(asset);
+    }
+
+    private Map<String, Object> refreshOwnedMusicCandidate(String userId, String candidateId) {
+        String normalizedCandidateId = requireId(candidateId,
+                "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
+        Map<String, Object> candidate = aiMusicJobs.ownedCandidate(userId,
+                normalizedCandidateId);
+        if (candidate == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "MV_RENDER_MUSIC_CANDIDATE_NOT_FOUND",
+                    "The selected AI song was not found");
+        }
+        if (candidateStorage != null) {
+            candidateStorage.materialize(userId, candidate,
+                    requestBaseUrl(RowUtils.str(candidate, "storage_url")));
+            candidate = aiMusicJobs.ownedCandidate(userId, normalizedCandidateId);
+            if (candidate == null) {
+                throw new ApiException(HttpStatus.NOT_FOUND,
+                        "MV_RENDER_MUSIC_CANDIDATE_NOT_FOUND",
+                        "The selected AI song was not found");
+            }
+        }
+        return candidate;
+    }
+
+    private String requestBaseUrl(String assetUrl) {
+        try {
+            URI uri = URI.create(assetUrl == null ? "" : assetUrl);
+            if (uri.getScheme() == null || uri.getRawAuthority() == null) return "";
+            return uri.getScheme() + "://" + uri.getRawAuthority();
+        } catch (RuntimeException ignored) {
+            return "";
+        }
     }
 
     private void requireSlotBindings(String ownerId, String versionId,
@@ -550,13 +660,17 @@ public class MusicMvRenderJobService {
     private Map<String, Object> clientDetailView(Map<String, Object> row, String ownerId) {
         Map<String, Object> result = clientView(row);
         String stage = RowUtils.str(row, "stage");
-        if (("rendering".equals(RowUtils.str(row, "status"))
+        if (("ready".equals(RowUtils.str(row, "status"))
+                || "interrupted".equals(RowUtils.str(row, "status"))
+                || "rendering".equals(RowUtils.str(row, "status"))
                 || "uploading".equals(RowUtils.str(row, "status")))
                 && stage != null && stage.startsWith("browser_")
                 && templateMedia != null) {
             result.put("renderMode", "browser");
             result.put("browserRender", browserRenderView(row, ownerId));
-        } else if (("rendering".equals(RowUtils.str(row, "status"))
+        } else if (("ready".equals(RowUtils.str(row, "status"))
+                || "interrupted".equals(RowUtils.str(row, "status"))
+                || "rendering".equals(RowUtils.str(row, "status"))
                 || "uploading".equals(RowUtils.str(row, "status")))
                 && stage != null && stage.startsWith("browser_")) {
             // Focused unit tests use the compatibility constructor without a
@@ -597,6 +711,13 @@ public class MusicMvRenderJobService {
         Map<String, Object> music = request.get("music") instanceof Map
                 ? new LinkedHashMap<String, Object>((Map<String, Object>) request.get("music"))
                 : new LinkedHashMap<String, Object>();
+        if (candidate != null && "stored".equals(RowUtils.str(candidate, "status"))) {
+            music.put("url", RowUtils.str(candidate, "storage_url"));
+            music.put("sha256", RowUtils.str(candidate, "storage_sha256"));
+            music.put("sizeBytes", RowUtils.lng(candidate, "storage_size_bytes"));
+            music.put("fileName", RowUtils.str(candidate, "storage_file_name"));
+            music.put("contentType", RowUtils.str(candidate, "storage_content_type"));
+        }
         music.put("url", browserAssetUrl(music.get("url")));
         music.put("durationSeconds", candidate == null ? null : candidate.get("duration_seconds"));
         List<Map<String, Object>> bindings = new ArrayList<Map<String, Object>>();
@@ -668,14 +789,9 @@ public class MusicMvRenderJobService {
         return url;
     }
 
-    private void requireBrowserActive(Map<String, Object> row) {
-        String stage = RowUtils.str(row, "stage");
-        String status = RowUtils.str(row, "status");
-        if (!("rendering".equals(status) || "uploading".equals(status))
-                || stage == null || !stage.startsWith("browser_")
-                || RowUtils.bool(row, "cancel_requested")) {
-            throw conflict("MV_BROWSER_RENDER_NOT_ACTIVE", "Browser render is not active");
-        }
+    private ApiException browserAttemptConflict() {
+        return conflict("MV_BROWSER_RENDER_STATE_CHANGED",
+                "This browser no longer owns the active render attempt");
     }
 
     private String browserSceneHash(Map<String, Object> row) {
@@ -849,6 +965,14 @@ public class MusicMvRenderJobService {
         return result;
     }
 
+    private Map<String, Object> detail(String firstKey, Object firstValue,
+                                       String secondKey, Object secondValue) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put(firstKey, firstValue);
+        result.put(secondKey, secondValue);
+        return result;
+    }
+
     private Double positiveDouble(Object value) {
         if (value == null) return null;
         try {
@@ -916,6 +1040,9 @@ public class MusicMvRenderJobService {
 
         public java.io.InputStream openStream(long start, long end) throws IOException {
             return artifacts.openStream(storageKey, start, end);
+        }
+        public String temporaryDownloadUrl(boolean inline) {
+            return artifacts.temporaryDownloadUrl(storageKey, inline);
         }
         public Long getSizeBytes() { return sizeBytes; }
         public String getContentType() { return contentType; }
