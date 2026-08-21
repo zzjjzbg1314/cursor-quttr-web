@@ -49,6 +49,13 @@ public class RendererTemplateCatalogController {
         return service.promote(request);
     }
 
+    @PostMapping("/migrate-browser-rendering")
+    public Map<String, Object> migrateBrowserRendering(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token) {
+        authentication.requireAuthorized(token);
+        return service.migrateCurrentTemplatesToBrowserRendering();
+    }
+
     @PostMapping("/{templateId}/versions/{versionId}/slots/reconcile")
     public Map<String, Object> reconcileSlots(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,

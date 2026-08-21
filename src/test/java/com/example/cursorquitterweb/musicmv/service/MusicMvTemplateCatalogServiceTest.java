@@ -15,12 +15,15 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashMap;
 import java.util.Collections;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
@@ -65,6 +68,77 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("TEMPLATE_VALIDATION_NOT_EXACT", error.getCode());
         verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(),
                 anyString(), anyString());
+    }
+
+    @Test
+    void promotesLatestSavedDraftWithoutNativeValidationRender() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setPromotionMode("latest_saved_draft");
+        request.setValidationRenderJobId("draft_1");
+        request.setSemanticIntegrity("browser_ready");
+        request.setVideoEncodeCount(Integer.valueOf(0));
+        request.setRendererVersion("browser-canvas-v1");
+        when(repository.versionByValidationJob("draft_1")).thenReturn(null);
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(4));
+
+        Map<String, Object> result = service.promote(request);
+
+        assertEquals("validated", result.get("status"));
+        verify(repository).promote(eq(request), anyString(), eq(Integer.valueOf(4)),
+                anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void publishesBrowserReadyVersionWithSceneOnly() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        Map<String, Object> version = row("validation_status", "browser_ready");
+        version.put("source_availability", "unavailable");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        when(repository.browserScene("tplver_1")).thenReturn(row("status", "ready"));
+
+        Map<String, Object> result = service.publish("tpl_1", "tplver_1");
+
+        assertEquals("published", result.get("status"));
+        verify(repository).publish("tpl_1", "tplver_1");
+    }
+
+    @Test
+    void rejectsVersionTwoBrowserSceneWhenPhotoAnimationIsNotExecutable() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("photoAnimationReady", Boolean.FALSE);
+        capability.put("photoAnimationContract", "timeline_keyframes_v1");
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v2");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        scene.put("capability", capability);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v2");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_ANIMATION_NOT_READY", error.getCode());
+        verify(repository, never()).upsertBrowserScene(anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void migratesCurrentVersionsInPlaceAndReportsMediaPreserved() {
+        when(repository.migrateCurrentTemplatesToBrowserRendering()).thenReturn(3);
+
+        Map<String, Object> result = service.migrateCurrentTemplatesToBrowserRendering();
+
+        assertEquals(Integer.valueOf(3), result.get("updatedVersionCount"));
+        assertEquals("browser_ready", result.get("validationStatus"));
+        assertEquals("browser-canvas-v1", result.get("rendererVersion"));
+        assertEquals(Boolean.TRUE, result.get("mediaPreserved"));
     }
 
     @Test
@@ -153,6 +227,36 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("awaiting_upload", result.get("status"));
         assertFalse((Boolean) result.get("idempotentReplay"));
         verify(mediaProvider).createStreamUpload(anyString(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void recordsCapCutOfficialPreviewProvenanceOnFullMv() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(null);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "preview-stream", "https://upload.example",
+                        "awaiting_upload", row("playbackUrl", "https://stream.example/manifest/video.m3u8")));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("full_mv");
+        request.setSourceSha256(hash('c'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setDurationSeconds(Double.valueOf(26.633));
+        request.setFilename("official-preview.mp4");
+        request.setSourceType("capcut_official_template_preview");
+        request.setDisplayLabel("CapCut 原始模板预览");
+        request.setOfficialTemplateId("7583099812292218119");
+        request.setOfficialPageUrl("https://www.capcut.com/template-detail/7583099812292218119");
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+        Map<String, Object> details = (Map<String, Object>) result.get("providerDetails");
+
+        assertEquals("capcut_official_template_preview", details.get("sourceType"));
+        assertEquals("CapCut 原始模板预览", details.get("displayLabel"));
+        assertEquals("7583099812292218119", details.get("officialTemplateId"));
     }
 
     @Test
@@ -252,6 +356,27 @@ class MusicMvTemplateCatalogServiceTest {
         verify(repository, never()).deleteTemplate(anyString());
     }
 
+    @Test
+    void forceDeletionSkipsStatusAndReferenceGuards() {
+        when(repository.template("tpl_1")).thenReturn(row("status", "published"));
+        when(repository.projectReferenceCount("tpl_1")).thenReturn(Long.valueOf(3L));
+        when(repository.renderJobReferenceCount("tpl_1")).thenReturn(Long.valueOf(2L));
+        Map<String, Object> preview = row("provider", "cloudflare_stream");
+        preview.put("provider_asset_id", "stream-1");
+        when(repository.mediaForTemplate("tpl_1"))
+                .thenReturn(java.util.Collections.singletonList(preview));
+
+        Map<String, Object> result = service.action("tpl_1", "force-delete-template", null);
+
+        assertEquals(Boolean.TRUE, result.get("deleted"));
+        assertEquals(Boolean.TRUE, result.get("forced"));
+        assertEquals(Long.valueOf(3L), result.get("detachedProjectCount"));
+        assertEquals(Long.valueOf(2L), result.get("deletedRenderJobCount"));
+        verify(mediaProvider).deleteAsset("cloudflare_stream", "stream-1");
+        verify(repository).forceDeleteTemplate("tpl_1");
+        verify(repository, never()).deleteTemplate("tpl_1");
+    }
+
     private TemplateSlotReconcileRequest reconcileRequest() {
         TemplateSlotReconcileRequest request = new TemplateSlotReconcileRequest();
         request.setSourceNodeId("mac-1");
@@ -313,6 +438,14 @@ class MusicMvTemplateCatalogServiceTest {
     private String hash(char value) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < 64; i++) result.append(value);
+        return result.toString();
+    }
+
+    private String sha256(String value) throws Exception {
+        byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(value.getBytes(StandardCharsets.UTF_8));
+        StringBuilder result = new StringBuilder();
+        for (byte item : digest) result.append(String.format("%02x", item & 0xff));
         return result.toString();
     }
 }

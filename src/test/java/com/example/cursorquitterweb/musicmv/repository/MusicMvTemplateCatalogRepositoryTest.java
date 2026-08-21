@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.musicmv.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,27 @@ class MusicMvTemplateCatalogRepositoryTest {
             assertEquals(placeholders(statement.getSql()), statement.getParams().size(),
                     statement.getSql());
         }
+    }
+
+    @Test
+    void forceDeletionDetachesProjectsAndRemovesRenderReferencesBeforeTemplateGraph() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+
+        repository.forceDeleteTemplate("tpl_1");
+
+        StringBuilder sql = new StringBuilder();
+        for (D1Statement statement : client.statements) {
+            assertEquals(placeholders(statement.getSql()), statement.getParams().size(),
+                    statement.getSql());
+            sql.append(statement.getSql()).append('\n');
+        }
+        String batch = sql.toString();
+        assertTrue(batch.contains("DELETE FROM music_mv_render_job_events"));
+        assertTrue(batch.contains("DELETE FROM music_mv_render_jobs WHERE template_id=?"));
+        assertTrue(batch.contains("UPDATE music_mv_projects SET template_id=NULL"));
+        assertTrue(batch.contains("DELETE FROM template_browser_scenes"));
+        assertTrue(batch.contains("DELETE FROM templates WHERE template_id=?"));
     }
 
     private int placeholders(String sql) {

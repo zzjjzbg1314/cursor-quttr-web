@@ -187,6 +187,49 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void publishesAnExplicitOfficialPreviewLoopClock() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        CloudflareTemplateMediaProvider templateMedia = mock(CloudflareTemplateMediaProvider.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(), templateMedia,
+                new ObjectMapper(), true, 2);
+        Map<String, Object> active = row("mvr_browser", null);
+        active.put("client_id", "usr_owner");
+        active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},\"slotBindings\":[]}");
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
+        Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
+        sceneRow.put("status", "ready");
+        sceneRow.put("scene_json", json(scene));
+        Map<String, Object> media = new LinkedHashMap<String, Object>();
+        media.put("status", "ready");
+        media.put("provider", "cloudflare_stream");
+        media.put("provider_asset_id", "stream_1");
+        media.put("duration_seconds", Double.valueOf(26.633d));
+        media.put("provider_details_json",
+                "{\"sourceType\":\"capcut_official_template_preview\"}");
+        when(repository.byId("mvr_browser")).thenReturn(active);
+        when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
+        when(repository.fullMvMedia("tplver_1")).thenReturn(media);
+        when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
+        when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
+        when(templateMedia.resolveDeliveryDetails(eq("cloudflare_stream"), eq("stream_1"),
+                org.mockito.ArgumentMatchers.<Map<String, Object>>any()))
+                .thenReturn(Collections.<String, Object>singletonMap(
+                        "playbackUrl", "https://stream.example/video.m3u8"));
+
+        Map<String, Object> result = service.get("usr_owner", "mvr_browser");
+        Map<String, Object> browserRender = (Map<String, Object>) result.get("browserRender");
+        Map<String, Object> sourceVideo = (Map<String, Object>) browserRender.get("sourceVideo");
+
+        assertEquals(Double.valueOf(26.633d), sourceVideo.get("durationSeconds"));
+        assertEquals(Double.valueOf(26.633d), sourceVideo.get("loopDurationSeconds"));
+        assertEquals(Double.valueOf(0.0d), sourceVideo.get("loopStartSeconds"));
+    }
+
+    @Test
     void completesBrowserOutputAsExactSingleEncode() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
@@ -357,5 +400,13 @@ class MusicMvRenderJobServiceTest {
         char[] chars = new char[64];
         Arrays.fill(chars, value);
         return new String(chars);
+    }
+
+    private String json(Object value) {
+        try {
+            return new ObjectMapper().writeValueAsString(value);
+        } catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }

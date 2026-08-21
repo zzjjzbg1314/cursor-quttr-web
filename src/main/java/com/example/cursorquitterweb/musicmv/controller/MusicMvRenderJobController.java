@@ -1,8 +1,7 @@
 package com.example.cursorquitterweb.musicmv.controller;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.net.URI;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -150,49 +148,42 @@ public class MusicMvRenderJobController {
     ) throws IOException {
         authentication.requireAuthorized(token);
         OutputAccess output = service.output(auth.requireUserId(servletRequest), jobId);
-        if (output.getRedirectUrl() != null) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(output.getRedirectUrl())).build();
+        long resourceLength = output.getSizeBytes() == null ? 0L : output.getSizeBytes().longValue();
+        if (resourceLength <= 0L) {
+            throw new IOException("Rendered MV size is unavailable");
         }
-        Resource resource = output.getResource();
-        ResponseEntity.BodyBuilder response = ResponseEntity.ok()
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"")
-                .contentType(MediaType.parseMediaType(output.getContentType() == null
-                        ? "video/mp4" : output.getContentType()));
-        if (range != null && !range.trim().isEmpty() && resource != null) {
+        long start = 0L;
+        long end = resourceLength - 1L;
+        boolean partial = false;
+        if (range != null && !range.trim().isEmpty()) {
             List<HttpRange> ranges = HttpRange.parseRanges(range);
             if (!ranges.isEmpty()) {
-                long resourceLength = resource.contentLength();
                 HttpRange requested = ranges.get(0);
-                final long start = requested.getRangeStart(resourceLength);
-                final long end = requested.getRangeEnd(resourceLength);
-                final long regionLength = end - start + 1L;
-                servletResponse.setStatus(HttpStatus.PARTIAL_CONTENT.value());
-                servletResponse.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
-                servletResponse.setHeader(HttpHeaders.CONTENT_RANGE,
-                        "bytes " + start + "-" + end + "/" + resourceLength);
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                        (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"");
-                servletResponse.setContentType(output.getContentType() == null
-                        ? "video/mp4" : output.getContentType());
-                servletResponse.setContentLengthLong(regionLength);
-                try (RandomAccessFile file = new RandomAccessFile(resource.getFile(), "r")) {
-                    file.seek(start);
-                    byte[] buffer = new byte[64 * 1024];
-                    long remaining = regionLength;
-                    while (remaining > 0L) {
-                        int read = file.read(buffer, 0, (int) Math.min(buffer.length, remaining));
-                        if (read < 0) break;
-                        servletResponse.getOutputStream().write(buffer, 0, read);
-                        remaining -= read;
-                    }
-                }
-                return null;
+                start = requested.getRangeStart(resourceLength);
+                end = requested.getRangeEnd(resourceLength);
+                partial = true;
             }
         }
-        if (output.getSizeBytes() != null) response.contentLength(output.getSizeBytes().longValue());
-        return response.body(resource);
+        long regionLength = end - start + 1L;
+        servletResponse.setStatus(partial ? HttpStatus.PARTIAL_CONTENT.value() : HttpStatus.OK.value());
+        servletResponse.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
+        if (partial) servletResponse.setHeader(HttpHeaders.CONTENT_RANGE,
+                "bytes " + start + "-" + end + "/" + resourceLength);
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"");
+        servletResponse.setContentType(output.getContentType() == null
+                ? "video/mp4" : output.getContentType());
+        servletResponse.setContentLengthLong(regionLength);
+        try (InputStream input = output.openStream(start, end)) {
+            byte[] buffer = new byte[64 * 1024];
+            long remaining = regionLength;
+            while (remaining > 0L) {
+                int read = input.read(buffer, 0, (int) Math.min(buffer.length, remaining));
+                if (read < 0) break;
+                servletResponse.getOutputStream().write(buffer, 0, read);
+                remaining -= read;
+            }
+        }
+        return null;
     }
 }

@@ -106,6 +106,15 @@ public class R2StorageService {
         }
     }
 
+    public ResponseInputStream<GetObjectResponse> openRange(String objectKey, long start, long end) {
+        String key = normalizeObjectKey(objectKey);
+        GetObjectRequest.Builder request = GetObjectRequest.builder().bucket(bucket).key(key);
+        if (start >= 0L && end >= start) {
+            request.range("bytes=" + start + "-" + end);
+        }
+        return client().getObject(request.build());
+    }
+
     public boolean exists(String objectKey) {
         try {
             client().headObject(HeadObjectRequest.builder()

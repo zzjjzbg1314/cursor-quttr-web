@@ -16,6 +16,7 @@ import javax.validation.constraints.Size;
  * validation result is promoted into the cloud template catalog.
  */
 public class TemplatePromotionRequest {
+    @NotBlank private String promotionMode = "validated_native";
     @NotBlank private String templateId;
     @NotBlank private String slug;
     @NotBlank private String categoryKey;
@@ -49,6 +50,8 @@ public class TemplatePromotionRequest {
     private Object validationEvidence;
     @NotNull @Valid @Size(min = 1, max = 200) private List<Slot> slots = new ArrayList<Slot>();
 
+    public String getPromotionMode() { return promotionMode; }
+    public void setPromotionMode(String value) { promotionMode = value; }
     public String getTemplateId() { return templateId; }
     public void setTemplateId(String value) { templateId = value; }
     public String getSlug() { return slug; }

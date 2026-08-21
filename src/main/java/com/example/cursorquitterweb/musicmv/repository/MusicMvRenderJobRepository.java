@@ -55,7 +55,7 @@ public class MusicMvRenderJobRepository {
     }
 
     public Map<String, Object> fullMvMedia(String versionId) {
-        return d1.query("SELECT provider,provider_asset_id,provider_details_json,status "
+        return d1.query("SELECT provider,provider_asset_id,provider_details_json,status,duration_seconds "
                 + "FROM template_media WHERE version_id=? AND media_role='full_mv' LIMIT 1",
                 versionId).firstRow();
     }

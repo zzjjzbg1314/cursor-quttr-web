@@ -355,9 +355,8 @@ public class MusicMvRenderJobService {
             throw new ApiException(HttpStatus.GONE, "MV_RENDER_OUTPUT_MISSING",
                     "Rendered MV artifact is no longer available");
         }
-        String redirect = artifacts.temporaryDownloadUrl(storageKey);
-        return new OutputAccess(redirect, artifacts.localResource(storageKey),
-                RowUtils.lng(row, "output_size_bytes"), RowUtils.str(row, "output_content_type"));
+        return new OutputAccess(artifacts, storageKey, RowUtils.lng(row, "output_size_bytes"),
+                RowUtils.str(row, "output_content_type"));
     }
 
     private void requireRenderableVersion(Map<String, Object> row,
@@ -366,11 +365,12 @@ public class MusicMvRenderJobService {
                 "MV_RENDER_TEMPLATE_VERSION_NOT_FOUND", "Template version was not found");
         boolean ready = "published".equals(RowUtils.str(row, "template_status"))
                 && "published".equals(RowUtils.str(row, "version_status"))
-                && "exact".equals(RowUtils.str(row, "validation_status"))
+                && ("exact".equals(RowUtils.str(row, "validation_status"))
+                    || "browser_ready".equals(RowUtils.str(row, "validation_status")))
                 && request.getTemplateVersionId().equals(RowUtils.str(row, "current_version_id"))
                 && "ready".equals(RowUtils.str(row, "browser_scene_status"));
         if (!ready) throw conflict("MV_RENDER_TEMPLATE_NOT_RENDERABLE",
-                "Template version is not published, exact, current and browser-render ready");
+                "Template version is not published, current and browser-render ready");
     }
 
     private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request) {
@@ -580,9 +580,11 @@ public class MusicMvRenderJobService {
             throw conflict("MV_BROWSER_BASE_VIDEO_UNAVAILABLE",
                     "The published template preview is not ready for browser rendering");
         }
+        Map<String, Object> providerDetails = parseObject(
+                RowUtils.str(media, "provider_details_json"));
         Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
                 RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
-                parseObject(RowUtils.str(media, "provider_details_json")));
+                providerDetails);
         String playbackUrl = delivery == null ? null : String.valueOf(delivery.get("playbackUrl"));
         if (playbackUrl == null || playbackUrl.trim().isEmpty() || "null".equals(playbackUrl)) {
             throw conflict("MV_BROWSER_BASE_VIDEO_UNAVAILABLE",
@@ -620,10 +622,28 @@ public class MusicMvRenderJobService {
                 bindings.add(item);
             }
         }
+        Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
+        Map<String, Object> sourceVideo = singleton("playbackUrl", playbackUrl);
+        Double sourceDuration = RowUtils.dbl(media, "duration_seconds");
+        putPositive(sourceVideo, "durationSeconds", sourceDuration);
+        Double explicitLoopDuration = positiveDouble(providerDetails == null
+                ? null : providerDetails.get("loopDurationSeconds"));
+        Double sceneDuration = positiveDouble(objectMap(scene.get("canvas")).get("durationSeconds"));
+        String sourceType = providerDetails == null ? null
+                : String.valueOf(providerDetails.get("sourceType"));
+        Double loopDuration = explicitLoopDuration;
+        if (loopDuration == null && sourceType != null
+                && sourceType.contains("official_template_preview")) {
+            loopDuration = sourceDuration;
+        }
+        if (loopDuration == null) loopDuration = sceneDuration;
+        putPositive(sourceVideo, "loopDurationSeconds", loopDuration);
+        sourceVideo.put("loopStartSeconds", Double.valueOf(0.0d));
+
         Map<String, Object> result = new LinkedHashMap<String, Object>();
-        result.put("scene", parseObject(RowUtils.str(sceneRow, "scene_json")));
+        result.put("scene", scene);
         result.put("sceneManifestSha256", sceneRow.get("manifest_sha256"));
-        result.put("sourceVideo", singleton("playbackUrl", playbackUrl));
+        result.put("sourceVideo", sourceVideo);
         result.put("music", music);
         result.put("slotBindings", bindings);
         result.put("outputMimeTypes", java.util.Arrays.asList(
@@ -829,6 +849,29 @@ public class MusicMvRenderJobService {
         return result;
     }
 
+    private Double positiveDouble(Object value) {
+        if (value == null) return null;
+        try {
+            double parsed = value instanceof Number
+                    ? ((Number) value).doubleValue() : Double.parseDouble(String.valueOf(value));
+            return Double.isFinite(parsed) && parsed > 0.0d ? Double.valueOf(parsed) : null;
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private void putPositive(Map<String, Object> target, String key, Double value) {
+        if (value != null && Double.isFinite(value.doubleValue()) && value.doubleValue() > 0.0d) {
+            target.put(key, value);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> objectMap(Object value) {
+        return value instanceof Map
+                ? (Map<String, Object>) value : Collections.<String, Object>emptyMap();
+    }
+
     private String camel(String value) {
         StringBuilder result = new StringBuilder();
         boolean upper = false;
@@ -858,21 +901,22 @@ public class MusicMvRenderJobService {
     }
 
     public static final class OutputAccess {
-        private final String redirectUrl;
-        private final org.springframework.core.io.Resource resource;
+        private final MusicMvRenderArtifactStorageService artifacts;
+        private final String storageKey;
         private final Long sizeBytes;
         private final String contentType;
 
-        OutputAccess(String redirectUrl, org.springframework.core.io.Resource resource,
-                     Long sizeBytes, String contentType) {
-            this.redirectUrl = redirectUrl;
-            this.resource = resource;
+        public OutputAccess(MusicMvRenderArtifactStorageService artifacts, String storageKey,
+                            Long sizeBytes, String contentType) {
+            this.artifacts = artifacts;
+            this.storageKey = storageKey;
             this.sizeBytes = sizeBytes;
             this.contentType = contentType;
         }
 
-        public String getRedirectUrl() { return redirectUrl; }
-        public org.springframework.core.io.Resource getResource() { return resource; }
+        public java.io.InputStream openStream(long start, long end) throws IOException {
+            return artifacts.openStream(storageKey, start, end);
+        }
         public Long getSizeBytes() { return sizeBytes; }
         public String getContentType() { return contentType; }
     }

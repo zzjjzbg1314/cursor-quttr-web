@@ -171,6 +171,35 @@ public class MusicMvRenderArtifactStorageService {
         return new FileSystemResource(path.toFile());
     }
 
+    public InputStream openStream(String storageKey, long start, long end) throws IOException {
+        if (storageKey == null || start < 0L || end < start) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MV_RENDER_OUTPUT_RANGE_INVALID",
+                    "Rendered MV byte range is invalid");
+        }
+        if (storageKey.startsWith("r2:")) {
+            return r2.openRange(storageKey.substring(3), start, end);
+        }
+        if (storageKey.startsWith("local:")) {
+            InputStream input = Files.newInputStream(localPath(storageKey));
+            long remaining = start;
+            try {
+                while (remaining > 0L) {
+                    long skipped = input.skip(remaining);
+                    if (skipped <= 0L) {
+                        if (input.read() < 0) throw new IOException("Rendered MV range starts past EOF");
+                        skipped = 1L;
+                    }
+                    remaining -= skipped;
+                }
+                return input;
+            } catch (IOException exception) {
+                input.close();
+                throw exception;
+            }
+        }
+        throw new IOException("Rendered MV storage key is unsupported");
+    }
+
     public void delete(String storageKey) {
         deleteQuietly(storageKey);
     }

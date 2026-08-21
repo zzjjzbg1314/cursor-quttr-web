@@ -130,7 +130,7 @@ public class MusicMvTemplateCatalogService {
     }
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
-        requireExactValidation(request);
+        requirePromotionEvidence(request);
         requireCategory(request.getCategoryKey());
         requireUniqueSlots(request.getSlots());
         Map<String, Object> existing = repository.versionByValidationJob(request.getValidationRenderJobId());
@@ -203,6 +203,11 @@ public class MusicMvTemplateCatalogService {
         if (!Boolean.TRUE.equals(capability.get("photoReplacementReady"))) {
             throw conflict("TEMPLATE_BROWSER_SCENE_NOT_READY",
                     "Every formal photo slot must be resolved before browser rendering is enabled");
+        }
+        if (capability.get("photoAnimationContract") != null
+                && !Boolean.TRUE.equals(capability.get("photoAnimationReady"))) {
+            throw conflict("TEMPLATE_BROWSER_SCENE_ANIMATION_NOT_READY",
+                    "Every published photo animation must be executable before browser rendering is enabled");
         }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
@@ -278,13 +283,25 @@ public class MusicMvTemplateCatalogService {
         UploadSession session = video
                 ? mediaProvider.createStreamUpload(providerAssetId, request)
                 : mediaProvider.createImageUpload(providerAssetId, request);
+        Map<String, Object> providerDetails = new LinkedHashMap<String, Object>();
+        providerDetails.putAll(session.getProviderDetails());
+        if (video && request.getSourceType() != null) {
+            if (!"capcut_official_template_preview".equals(request.getSourceType())) {
+                throw badRequest("TEMPLATE_MEDIA_SOURCE_TYPE_INVALID",
+                        "Unsupported full MV source type");
+            }
+            providerDetails.put("sourceType", request.getSourceType());
+            providerDetails.put("displayLabel", request.getDisplayLabel());
+            providerDetails.put("officialTemplateId", request.getOfficialTemplateId());
+            providerDetails.put("officialPageUrl", request.getOfficialPageUrl());
+        }
         repository.upsertMedia(mediaId, templateId, versionId, expectedRole,
                 session.getProvider(), session.getProviderAssetId(), session.getStatus(),
                 request.getSourceSha256(), request.getSourceSizeBytes().longValue(),
                 request.getWidth(), request.getHeight(), request.getDurationSeconds(),
-                json(session.getProviderDetails()));
+                json(providerDetails));
         Map<String, Object> result = mediaSessionView(mediaId, session.getUploadUrl(),
-                session.getStatus(), session.getProviderDetails());
+                session.getStatus(), providerDetails);
         result.put("idempotentReplay", Boolean.FALSE);
         return result;
     }
@@ -301,13 +318,16 @@ public class MusicMvTemplateCatalogService {
         } else {
             throw conflict("TEMPLATE_MEDIA_PROVIDER_UNSUPPORTED", "Template media provider is unsupported");
         }
+        Map<String, Object> providerDetails = parseObject(
+                RowUtils.str(media, "provider_details_json"));
+        providerDetails.putAll(state.getProviderDetails());
         if ("ready".equals(state.getStatus())) {
-            repository.markMediaReady(mediaId, json(state.getProviderDetails()));
+            repository.markMediaReady(mediaId, json(providerDetails));
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("mediaId", mediaId);
         result.put("status", state.getStatus());
-        result.put("providerDetails", state.getProviderDetails());
+        result.put("providerDetails", providerDetails);
         return result;
     }
 
@@ -317,10 +337,12 @@ public class MusicMvTemplateCatalogService {
         if (sourceAvailability == null) {
             sourceAvailability = RowUtils.str(version, "source_availability");
         }
-        if (!"exact".equals(RowUtils.str(version, "validation_status"))
-                || !"available".equals(sourceAvailability)) {
+        String validationStatus = RowUtils.str(version, "validation_status");
+        boolean browserReady = "browser_ready".equals(validationStatus);
+        boolean sourceReady = browserReady || "available".equals(sourceAvailability);
+        if ((!browserReady && !"exact".equals(validationStatus)) || !sourceReady) {
             throw conflict("TEMPLATE_VERSION_NOT_PUBLISHABLE",
-                    "Template version must be exact and available on a renderer node");
+                    "Template version must be browser-ready, or exact and available on a renderer node");
         }
         Map<String, Object> cover = repository.mediaByRole(versionId, "cover");
         Map<String, Object> fullMv = repository.mediaByRole(versionId, "full_mv");
@@ -333,13 +355,23 @@ public class MusicMvTemplateCatalogService {
                 missingDefaults.add(slotKey);
             }
         }
-        if (!ready(cover) || !ready(fullMv) || !missingDefaults.isEmpty()) {
+        Map<String, Object> browserScene = repository.browserScene(versionId);
+        boolean browserSceneReady = browserScene != null
+                && "ready".equals(RowUtils.str(browserScene, "status"));
+        boolean mediaReady = browserReady
+                ? browserSceneReady
+                : ready(cover) && ready(fullMv) && missingDefaults.isEmpty();
+        if (!mediaReady) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
             details.put("coverStatus", cover == null ? "missing" : RowUtils.str(cover, "status"));
             details.put("fullMvStatus", fullMv == null ? "missing" : RowUtils.str(fullMv, "status"));
             details.put("missingTemplatePhotoSlots", missingDefaults);
+            details.put("browserSceneStatus", browserScene == null
+                    ? "missing" : RowUtils.str(browserScene, "status"));
             throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_MEDIA_NOT_READY",
-                    "Cover, full MV, and every original template photo must be ready before publish",
+                    browserReady
+                            ? "Browser scene must be ready before publish"
+                            : "Cover, full MV, and every original template photo must be ready before publish",
                     true, details);
         }
         repository.publish(templateId, versionId);
@@ -363,27 +395,31 @@ public class MusicMvTemplateCatalogService {
             return result;
         }
         if ("delete-template".equals(normalized)) {
-            return deleteTemplate(templateId);
+            return deleteTemplate(templateId, false);
+        }
+        if ("force-delete-template".equals(normalized)) {
+            return deleteTemplate(templateId, true);
         }
         throw badRequest("TEMPLATE_ACTION_UNSUPPORTED", "Template action is unsupported in cloud mode");
     }
 
-    private Map<String, Object> deleteTemplate(String templateId) {
+    private Map<String, Object> deleteTemplate(String templateId, boolean force) {
         Map<String, Object> template = repository.template(templateId);
         if (template == null) {
             Map<String, Object> replay = new LinkedHashMap<String, Object>();
             replay.put("templateId", templateId);
             replay.put("deleted", Boolean.TRUE);
+            replay.put("forced", Boolean.valueOf(force));
             replay.put("idempotentReplay", Boolean.TRUE);
             return replay;
         }
-        if (!"offline".equals(RowUtils.str(template, "status"))) {
+        if (!force && !"offline".equals(RowUtils.str(template, "status"))) {
             throw conflict("TEMPLATE_DELETE_REQUIRES_OFFLINE",
                     "Template must be offline before permanent deletion");
         }
         long projectReferences = repository.projectReferenceCount(templateId);
         long renderJobReferences = repository.renderJobReferenceCount(templateId);
-        if (projectReferences > 0L || renderJobReferences > 0L) {
+        if (!force && (projectReferences > 0L || renderJobReferences > 0L)) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
             details.put("projectReferences", Long.valueOf(projectReferences));
             details.put("renderJobReferences", Long.valueOf(renderJobReferences));
@@ -396,12 +432,19 @@ public class MusicMvTemplateCatalogService {
             mediaProvider.deleteAsset(RowUtils.str(item, "provider"),
                     RowUtils.str(item, "provider_asset_id"));
         }
-        repository.deleteTemplate(templateId);
+        if (force) {
+            repository.forceDeleteTemplate(templateId);
+        } else {
+            repository.deleteTemplate(templateId);
+        }
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
         result.put("deleted", Boolean.TRUE);
         result.put("deletedMediaCount", Integer.valueOf(media.size()));
+        result.put("detachedProjectCount", Long.valueOf(force ? projectReferences : 0L));
+        result.put("deletedRenderJobCount", Long.valueOf(force ? renderJobReferences : 0L));
+        result.put("forced", Boolean.valueOf(force));
         result.put("idempotentReplay", Boolean.FALSE);
         return result;
     }
@@ -465,6 +508,8 @@ public class MusicMvTemplateCatalogService {
         copy(result, "durationSeconds", row, "duration_seconds");
         copy(result, "cycleDurationSeconds", row, "cycle_duration_seconds");
         copy(result, "slotCount", row, "slot_count");
+        copy(result, "validationStatus", row, "validation_status");
+        copy(result, "rendererVersion", row, "renderer_version");
         result.put("cover", providerMedia(row, "cover"));
         result.put("preview", providerMedia(row, "preview"));
         return result;
@@ -595,13 +640,33 @@ public class MusicMvTemplateCatalogService {
         return result;
     }
 
-    private void requireExactValidation(TemplatePromotionRequest request) {
+    private void requirePromotionEvidence(TemplatePromotionRequest request) {
+        if ("latest_saved_draft".equals(request.getPromotionMode())) {
+            boolean ready = "browser_ready".equals(request.getSemanticIntegrity())
+                    && request.getVideoEncodeCount().intValue() == 0
+                    && request.getIntermediateVideoCount().intValue() == 0
+                    && request.getMissingResourceCount().intValue() == 0
+                    && "browser-canvas-v1".equals(request.getRendererVersion());
+            if (!ready) throw conflict("TEMPLATE_BROWSER_DRAFT_NOT_READY",
+                    "Latest saved draft promotion requires an immutable browser-ready draft");
+            return;
+        }
         boolean exact = "exact".equals(request.getSemanticIntegrity())
                 && request.getVideoEncodeCount().intValue() == 1
                 && request.getIntermediateVideoCount().intValue() == 0
                 && request.getMissingResourceCount().intValue() == 0;
         if (!exact) throw conflict("TEMPLATE_VALIDATION_NOT_EXACT",
                 "Only exact, single-encode native validation can be promoted");
+    }
+
+    public Map<String, Object> migrateCurrentTemplatesToBrowserRendering() {
+        int updated = repository.migrateCurrentTemplatesToBrowserRendering();
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("updatedVersionCount", Integer.valueOf(updated));
+        result.put("validationStatus", "browser_ready");
+        result.put("rendererVersion", "browser-canvas-v1");
+        result.put("mediaPreserved", Boolean.TRUE);
+        return result;
     }
 
     private void requireUniqueSlots(List<TemplatePromotionRequest.Slot> slots) {

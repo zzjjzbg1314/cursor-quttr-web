@@ -15,6 +15,10 @@ public class TemplateMediaUploadSessionRequest {
     @DecimalMin("0.001") private Double durationSeconds;
     private String filename;
     private Boolean forceReplace;
+    private String sourceType;
+    private String displayLabel;
+    private String officialTemplateId;
+    private String officialPageUrl;
 
     public String getRole() { return role; }
     public void setRole(String value) { role = value; }
@@ -32,4 +36,12 @@ public class TemplateMediaUploadSessionRequest {
     public void setFilename(String value) { filename = value; }
     public Boolean getForceReplace() { return forceReplace; }
     public void setForceReplace(Boolean value) { forceReplace = value; }
+    public String getSourceType() { return sourceType; }
+    public void setSourceType(String value) { sourceType = value; }
+    public String getDisplayLabel() { return displayLabel; }
+    public void setDisplayLabel(String value) { displayLabel = value; }
+    public String getOfficialTemplateId() { return officialTemplateId; }
+    public void setOfficialTemplateId(String value) { officialTemplateId = value; }
+    public String getOfficialPageUrl() { return officialPageUrl; }
+    public void setOfficialPageUrl(String value) { officialPageUrl = value; }
 }

@@ -43,7 +43,7 @@ public class MusicMvTemplateCatalogRepository {
                 .append("COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
                 .append("COALESCE(req.description, en.description, zh.description, '') AS description, ")
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
-                .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, ")
+                .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
                 .append("CASE WHEN v.source_availability='available' AND rn.status='online' ")
                 .append("AND rn.last_seen_at>=datetime('now','-90 seconds') ")
                 .append("THEN 'available' ELSE 'unavailable' END AS source_availability, ")
@@ -60,7 +60,11 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_media cover ON cover.version_id=t.current_version_id ")
                 .append("AND cover.media_role='cover' AND cover.status='ready' ")
                 .append("LEFT JOIN template_media preview ON preview.version_id=t.current_version_id ")
-                .append("AND preview.media_role='full_mv' AND preview.status='ready' ")
+                // A forced resync changes the full-MV row to processing before the
+                // replacement becomes playable. Cloudflare already provides a stable
+                // thumbnail at that point, so keep exposing it as the catalog cover.
+                // Playback readiness is still enforced by the media status elsewhere.
+                .append("AND preview.media_role='full_mv' ")
                 .append("WHERE t.deleted_at IS NULL ");
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
@@ -323,11 +327,21 @@ public class MusicMvTemplateCatalogRepository {
     public void publish(String templateId, String versionId) {
         d1.batch(Arrays.asList(
                 statement("UPDATE template_versions SET status='published',published_at=CURRENT_TIMESTAMP "
-                        + "WHERE template_id=? AND version_id=? AND validation_status='exact' "
-                        + "AND source_availability='available'", templateId, versionId),
+                        + "WHERE template_id=? AND version_id=? "
+                        + "AND (validation_status='browser_ready' OR "
+                        + "(validation_status='exact' AND source_availability='available'))",
+                        templateId, versionId),
                 statement("UPDATE templates SET status='published',current_version_id=?,revision=revision+1,"
                         + "published_at=COALESCE(published_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP "
                         + "WHERE template_id=? AND deleted_at IS NULL", versionId, templateId)));
+    }
+
+    public int migrateCurrentTemplatesToBrowserRendering() {
+        return d1.query("UPDATE template_versions SET validation_status='browser_ready',"
+                + "renderer_version='browser-canvas-v1' WHERE version_id IN ("
+                + "SELECT current_version_id FROM templates WHERE deleted_at IS NULL "
+                + "AND current_version_id IS NOT NULL) AND validation_status<>'browser_ready' "
+                + "RETURNING version_id").getRows().size();
     }
 
     public void setOffline(String templateId) {
@@ -349,6 +363,9 @@ public class MusicMvTemplateCatalogRepository {
                         + "SELECT version_id FROM template_versions WHERE template_id=?) AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
+                statement("DELETE FROM template_browser_scenes WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_translations WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
@@ -357,6 +374,30 @@ public class MusicMvTemplateCatalogRepository {
                         templateId, templateId),
                 statement("DELETE FROM templates WHERE template_id=? AND status='offline'",
                         templateId)));
+    }
+
+    /**
+     * Deletes a template regardless of publication state or active references.
+     * User projects are detached so their own uploads and finished outputs stay intact;
+     * render jobs must be removed because they have database foreign keys to the template.
+     */
+    public void forceDeleteTemplate(String templateId) {
+        d1.batch(Arrays.asList(
+                statement("DELETE FROM music_mv_render_job_events WHERE job_id IN ("
+                        + "SELECT job_id FROM music_mv_render_jobs WHERE template_id=?)", templateId),
+                statement("DELETE FROM music_mv_render_jobs WHERE template_id=?", templateId),
+                statement("UPDATE music_mv_projects SET template_id=NULL,template_version_id=NULL,"
+                        + "current_step=CASE WHEN status='draft' THEN 'template' ELSE current_step END,"
+                        + "revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE template_id=?", templateId),
+                statement("DELETE FROM template_media WHERE template_id=?", templateId),
+                statement("DELETE FROM template_slots WHERE version_id IN ("
+                        + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
+                statement("DELETE FROM template_validation_records WHERE version_id IN ("
+                        + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
+                statement("DELETE FROM template_browser_scenes WHERE template_id=?", templateId),
+                statement("DELETE FROM template_translations WHERE template_id=?", templateId),
+                statement("DELETE FROM template_versions WHERE template_id=?", templateId),
+                statement("DELETE FROM templates WHERE template_id=?", templateId)));
     }
 
     private long count(String sql, String templateId) {
