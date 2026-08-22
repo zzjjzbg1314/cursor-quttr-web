@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
 import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
+import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicJobRepositoryTest {
@@ -75,9 +76,23 @@ class AiMusicJobRepositoryTest {
                 "2026-08-14T10:20:30.000Z", "song_1", Integer.valueOf(25));
     }
 
+    @Test
+    void selectionUpdatesAreSentAsOneDatabaseBatch() {
+        CapturingD1 d1 = new CapturingD1();
+        AiMusicJobRepository repository = new AiMusicJobRepository(d1);
+
+        repository.selectCandidate("aimusic_1", "song_1");
+
+        assertThat(d1.batchStatements).hasSize(3);
+        assertThat(d1.batchStatements.get(0).getSql()).contains("SET selected=0");
+        assertThat(d1.batchStatements.get(1).getSql()).contains("SET selected=1");
+        assertThat(d1.batchStatements.get(2).getSql()).contains("selected_candidate_id");
+    }
+
     private static class CapturingD1 extends D1DatabaseClient {
         private String sql;
         private List<Object> params = new ArrayList<Object>();
+        private List<D1Statement> batchStatements = new ArrayList<D1Statement>();
 
         CapturingD1() {
             super(new ObjectMapper());
@@ -95,6 +110,12 @@ class AiMusicJobRepositoryTest {
             this.sql = sql;
             this.params = params;
             return new D1QueryResult(new ArrayList<Map<String, Object>>(), 0L);
+        }
+
+        @Override
+        public List<D1QueryResult> batch(List<D1Statement> statements) {
+            this.batchStatements = statements;
+            return new ArrayList<D1QueryResult>();
         }
     }
 }

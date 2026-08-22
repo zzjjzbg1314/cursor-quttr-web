@@ -277,6 +277,14 @@ public class MusicMvTemplateCatalogRepository {
                 translation(templateId, "en", nameEn, descriptionEn)));
     }
 
+    /** Adds derived content-quality evidence without changing immutable source media hashes. */
+    public void enrichVisualQuality(String versionId, Double cycleDurationSeconds,
+                                    String sourceProvenanceJson) {
+        d1.query("UPDATE template_versions SET cycle_duration_seconds=?,source_provenance_json=? "
+                        + "WHERE version_id=? AND validation_status='exact'",
+                cycleDurationSeconds, sourceProvenanceJson, versionId);
+    }
+
     public void replaceSlots(String templateId, String versionId,
                              List<TemplatePromotionRequest.Slot> slots) {
         List<D1Statement> statements = new ArrayList<D1Statement>();

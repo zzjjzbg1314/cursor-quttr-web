@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -151,6 +152,31 @@ class AiMusicGenerationServiceTest {
         List<?> items = (List<?>) result.get("items");
         assertThat(items).hasSize(1);
         assertThat(((Map<?, ?>) items.get(0)).get("jobId")).isEqualTo("aimusic_1");
+    }
+
+    @Test
+    void selectingCandidateDoesNotDownloadOrMaterializeAudio() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicCandidateStorageService storage = mock(AiMusicCandidateStorageService.class);
+        Map<String, Object> candidate = new LinkedHashMap<String, Object>();
+        candidate.put("candidate_id", "song_1");
+        candidate.put("job_id", "aimusic_1");
+        candidate.put("job_status", "completed");
+        candidate.put("status", "completed");
+        candidate.put("title", "Fast choice");
+        candidate.put("provider_audio_url", "https://music.example/song.mp3");
+        when(repository.ownedCandidateForSelection("client_1", "aimusic_1", "song_1"))
+                .thenReturn(candidate);
+        AiMusicGenerationService service = new AiMusicGenerationService(repository,
+                new AiMusicProviderRegistry(Collections.<AiMusicProvider>emptyList()),
+                storage, new ObjectMapper(), "sunoapi", "https://app.test");
+
+        Map<String, Object> result = service.select("client_1", "aimusic_1", "song_1");
+
+        assertThat(result.get("selectedCandidateId")).isEqualTo("song_1");
+        assertThat((List<?>) result.get("candidates")).hasSize(1);
+        verify(repository).selectCandidate("aimusic_1", "song_1");
+        verifyNoInteractions(storage);
     }
 
     @Test

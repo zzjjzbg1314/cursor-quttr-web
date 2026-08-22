@@ -1,13 +1,18 @@
 package com.example.cursorquitterweb.musicmv.repository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.dto.RendererHeartbeatRequest;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
+import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
 import com.example.cursorquitterweb.musicmv.service.D1Statement;
 
 @Repository
@@ -49,6 +54,29 @@ public class MusicMvRenderJobRepository {
                 versionId).getRows();
     }
 
+    public RenderContract renderContract(String templateId, String versionId) {
+        List<D1QueryResult> results = d1.batch(Arrays.asList(
+                D1Statement.of("SELECT t.template_id, t.status AS template_status, "
+                                + "t.current_version_id, v.version_id, v.status AS version_status, "
+                                + "v.validation_status, CASE WHEN v.source_availability='available' "
+                                + "AND n.status='online' AND n.last_seen_at>=datetime('now','-90 seconds') "
+                                + "THEN 'available' ELSE 'unavailable' END AS source_availability, "
+                                + "v.source_node_id, bs.status AS browser_scene_status, "
+                                + "v.slot_count, v.cycle_duration_seconds "
+                                + "FROM templates t JOIN template_versions v ON v.template_id=t.template_id "
+                                + "LEFT JOIN renderer_nodes n ON n.node_id=v.source_node_id "
+                                + "LEFT JOIN template_browser_scenes bs ON bs.version_id=v.version_id "
+                                + "WHERE t.template_id=? AND v.version_id=? AND t.deleted_at IS NULL LIMIT 1",
+                        templateId, versionId),
+                D1Statement.of("SELECT slot_key, slot_type, display_name, is_required, timeline_order "
+                                + "FROM template_slots WHERE version_id=? ORDER BY timeline_order, slot_key",
+                        versionId)));
+        Map<String, Object> version = results.isEmpty() ? null : results.get(0).firstRow();
+        List<Map<String, Object>> slots = results.size() < 2
+                ? new ArrayList<Map<String, Object>>() : results.get(1).getRows();
+        return new RenderContract(version, slots);
+    }
+
     public Map<String, Object> browserScene(String versionId) {
         return d1.query("SELECT schema_version,manifest_sha256,status,scene_json "
                 + "FROM template_browser_scenes WHERE version_id=? LIMIT 1", versionId).firstRow();
@@ -64,6 +92,32 @@ public class MusicMvRenderJobRepository {
         return d1.query("SELECT provider,provider_asset_id,provider_details_json,status "
                 + "FROM template_media WHERE version_id=? AND media_role=? LIMIT 1",
                 versionId, "slot_default:" + slotKey).firstRow();
+    }
+
+    public Map<String, Map<String, Object>> slotDefaultMedia(String versionId,
+                                                             Set<String> slotKeys) {
+        Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();
+        if (slotKeys == null || slotKeys.isEmpty()) return result;
+        StringBuilder placeholders = new StringBuilder();
+        List<Object> params = new ArrayList<Object>();
+        params.add(versionId);
+        for (String slotKey : slotKeys) {
+            if (placeholders.length() > 0) placeholders.append(',');
+            placeholders.append('?');
+            params.add("slot_default:" + slotKey);
+        }
+        List<Map<String, Object>> rows = d1.query(
+                "SELECT media_role,provider,provider_asset_id,provider_details_json,status "
+                        + "FROM template_media WHERE version_id=? AND media_role IN ("
+                        + placeholders + ")",
+                params).getRows();
+        for (Map<String, Object> row : rows) {
+            String role = String.valueOf(row.get("media_role"));
+            if (role.startsWith("slot_default:")) {
+                result.put(role.substring("slot_default:".length()), row);
+            }
+        }
+        return result;
     }
 
     public Map<String, Object> byClientRequest(String clientId, String requestId) {
@@ -103,6 +157,57 @@ public class MusicMvRenderJobRepository {
                         + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,NULL)",
                 jobId, clientId, requestId, templateId, versionId,
                 requestFingerprint, requestJson);
+    }
+
+    public void createBrowserPreparing(String jobId, String clientId, String requestId,
+                                       String templateId, String versionId,
+                                       String requestFingerprint, String requestJson,
+                                       String eventId, String eventDetailJson) {
+        d1.batch(Arrays.asList(
+                D1Statement.of("INSERT INTO music_mv_render_jobs "
+                                + "(job_id,client_id,request_id,template_id,version_id,status,stage,progress,"
+                                + "priority,attempt_count,max_attempts,request_fingerprint,request_json,"
+                                + "cancel_requested,output_content_type,retryable,created_at,updated_at,started_at) "
+                                + "VALUES (?,?,?,?,?,'preparing','preparing_queued',0.01,0,0,5,?,?,0,'video/mp4',0,"
+                                + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,NULL)",
+                        jobId, clientId, requestId, templateId, versionId,
+                        requestFingerprint, requestJson),
+                D1Statement.of("INSERT INTO music_mv_render_job_events "
+                                + "(event_id,job_id,event_type,status,node_id,detail_json,created_at) "
+                                + "VALUES (?,?,'created','preparing',NULL,?,CURRENT_TIMESTAMP)",
+                        eventId, jobId, eventDetailJson)));
+    }
+
+    public Map<String, Object> claimBrowserPreparation(String jobId) {
+        return d1.query("UPDATE music_mv_render_jobs SET stage='preparing_music',progress=0.05,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='preparing' "
+                        + "AND stage='preparing_queued' AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
+                jobId).firstRow();
+    }
+
+    public Map<String, Object> updateBrowserPreparation(String jobId, String stage,
+                                                        double progress) {
+        return d1.query("UPDATE music_mv_render_jobs SET stage=?,progress=?,updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE job_id=? AND status='preparing' AND cancel_requested=0 RETURNING "
+                        + JOB_COLUMNS,
+                stage, Double.valueOf(progress), jobId).firstRow();
+    }
+
+    public Map<String, Object> completeBrowserPreparation(String jobId, String requestJson) {
+        return d1.query("UPDATE music_mv_render_jobs SET status='ready',stage='browser_ready',"
+                        + "progress=0,request_json=?,error_code=NULL,error_message=NULL,retryable=0,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='preparing' "
+                        + "AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
+                requestJson, jobId).firstRow();
+    }
+
+    public Map<String, Object> failBrowserPreparation(String jobId, String errorCode,
+                                                      String errorMessage, boolean retryable) {
+        return d1.query("UPDATE music_mv_render_jobs SET status='failed',stage='failed',"
+                        + "error_code=?,error_message=?,retryable=?,completed_at=CURRENT_TIMESTAMP,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='preparing' "
+                        + "RETURNING " + JOB_COLUMNS,
+                errorCode, errorMessage, Integer.valueOf(retryable ? 1 : 0), jobId).firstRow();
     }
 
     public Map<String, Object> startBrowser(String jobId, String clientId, String attemptId,
@@ -323,14 +428,27 @@ public class MusicMvRenderJobRepository {
 
     public Map<String, Object> cancel(String jobId, String clientId) {
         return d1.query("UPDATE music_mv_render_jobs SET cancel_requested=1, "
-                        + "status=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE status END, "
-                        + "stage=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE stage END, "
+                        + "status=CASE WHEN status IN ('preparing','queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE status END, "
+                        + "stage=CASE WHEN status IN ('preparing','queued','ready','interrupted') OR stage LIKE 'browser_%' THEN 'canceled' ELSE stage END, "
                         + "lease_token=NULL,lease_expires_at=NULL,"
-                        + "completed_at=CASE WHEN status IN ('queued','ready','interrupted') OR stage LIKE 'browser_%' THEN CURRENT_TIMESTAMP "
+                        + "completed_at=CASE WHEN status IN ('preparing','queued','ready','interrupted') OR stage LIKE 'browser_%' THEN CURRENT_TIMESTAMP "
                         + "ELSE completed_at END, updated_at=CURRENT_TIMESTAMP "
                         + "WHERE job_id=? AND client_id=? AND status NOT IN ('completed','failed','canceled') "
                         + "RETURNING " + JOB_COLUMNS,
                 jobId, clientId).firstRow();
+    }
+
+    public static final class RenderContract {
+        private final Map<String, Object> version;
+        private final List<Map<String, Object>> slots;
+
+        public RenderContract(Map<String, Object> version, List<Map<String, Object>> slots) {
+            this.version = version;
+            this.slots = slots;
+        }
+
+        public Map<String, Object> getVersion() { return version; }
+        public List<Map<String, Object>> getSlots() { return slots; }
     }
 
     public void deleteOwnedTerminal(String jobId, String clientId) {

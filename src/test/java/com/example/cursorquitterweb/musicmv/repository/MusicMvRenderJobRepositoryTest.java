@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
 import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
+import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvRenderJobRepositoryTest {
@@ -82,6 +84,33 @@ class MusicMvRenderJobRepositoryTest {
         assertEquals(placeholders(d1.sql), d1.params.size());
     }
 
+    @Test
+    void templateDefaultsAreValidatedInOneQuery() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+
+        repository.slotDefaultMedia("tplver_1",
+                new LinkedHashSet<String>(Arrays.asList("photo_01", "photo_02", "photo_03")));
+
+        assertTrue(d1.sql.contains("media_role IN (?,?,?)"));
+        assertEquals(Arrays.asList("tplver_1", "slot_default:photo_01",
+                "slot_default:photo_02", "slot_default:photo_03"), d1.params);
+        assertEquals(placeholders(d1.sql), d1.params.size());
+    }
+
+    @Test
+    void preparingJobAndCreatedEventUseOneBatch() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+
+        repository.createBrowserPreparing("mvr_1", "usr_1", "req_1", "tpl_1",
+                "tplver_1", repeat('a'), "{}", "evt_1", "{}");
+
+        assertEquals(2, d1.statements.size());
+        assertTrue(d1.statements.get(0).getSql().contains("'preparing','preparing_queued'"));
+        assertTrue(d1.statements.get(1).getSql().contains("music_mv_render_job_events"));
+    }
+
     private int placeholders(String sql) {
         int count = 0;
         for (int index = 0; index < sql.length(); index++) {
@@ -99,6 +128,7 @@ class MusicMvRenderJobRepositoryTest {
     private static class CapturingD1 extends D1DatabaseClient {
         private String sql;
         private List<Object> params = new ArrayList<Object>();
+        private List<D1Statement> statements = new ArrayList<D1Statement>();
 
         CapturingD1() {
             super(new ObjectMapper());
@@ -109,6 +139,24 @@ class MusicMvRenderJobRepositoryTest {
             this.sql = sql;
             this.params = Arrays.asList(params);
             return new D1QueryResult(new ArrayList<java.util.Map<String, Object>>(), 0L);
+        }
+
+        @Override
+        public D1QueryResult query(String sql, List<Object> params) {
+            this.sql = sql;
+            this.params = params;
+            return new D1QueryResult(new ArrayList<java.util.Map<String, Object>>(), 0L);
+        }
+
+        @Override
+        public List<D1QueryResult> batch(List<D1Statement> statements) {
+            this.statements = statements;
+            List<D1QueryResult> results = new ArrayList<D1QueryResult>();
+            for (int index = 0; index < statements.size(); index++) {
+                results.add(new D1QueryResult(
+                        new ArrayList<java.util.Map<String, Object>>(), 0L));
+            }
+            return results;
         }
     }
 }

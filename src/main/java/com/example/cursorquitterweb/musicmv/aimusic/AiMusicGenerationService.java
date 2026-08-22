@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -226,25 +227,29 @@ public class AiMusicGenerationService {
         }
     }
 
-    public Map<String, Object> select(String clientId, String jobId, String candidateId,
-                                      String requestBaseUrl) {
-        Map<String, Object> job = requireOwned(repository.owned(
-                requireId(clientId, "AI_MUSIC_CLIENT_ID_INVALID"),
-                requireId(jobId, "AI_MUSIC_JOB_ID_INVALID")));
-        if (!"completed".equals(RowUtils.str(job, "status"))) {
-            throw conflict("AI_MUSIC_CANDIDATES_NOT_READY", "Song candidates are not ready");
-        }
-        Map<String, Object> candidate = repository.candidate(jobId,
-                requireId(candidateId, "AI_MUSIC_CANDIDATE_ID_INVALID"));
+    public Map<String, Object> select(String clientId, String jobId, String candidateId) {
+        String normalizedClientId = requireId(clientId, "AI_MUSIC_CLIENT_ID_INVALID");
+        String normalizedJobId = requireId(jobId, "AI_MUSIC_JOB_ID_INVALID");
+        String normalizedCandidateId = requireId(candidateId,
+                "AI_MUSIC_CANDIDATE_ID_INVALID");
+        Map<String, Object> candidate = repository.ownedCandidateForSelection(
+                normalizedClientId, normalizedJobId, normalizedCandidateId);
         if (candidate == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "AI_MUSIC_CANDIDATE_NOT_FOUND",
                     "Song candidate was not found");
         }
-        candidateStorage.materialize(clientId, candidate, requestBaseUrl);
-        repository.selectCandidate(jobId, candidateId);
-        addEvent(jobId, "candidate_selected", "completed", RowUtils.str(job, "primary_provider_code"),
-                singleton("candidateId", candidateId));
-        return get(clientId, jobId, false);
+        if (!"completed".equals(RowUtils.str(candidate, "job_status"))) {
+            throw conflict("AI_MUSIC_CANDIDATES_NOT_READY", "Song candidates are not ready");
+        }
+        repository.selectCandidate(normalizedJobId, normalizedCandidateId);
+        candidate.put("selected", Integer.valueOf(1));
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("jobId", normalizedJobId);
+        result.put("status", "completed");
+        result.put("stage", "candidate_selected");
+        result.put("selectedCandidateId", normalizedCandidateId);
+        result.put("candidates", candidateViews(Collections.singletonList(candidate)));
+        return result;
     }
 
     /**

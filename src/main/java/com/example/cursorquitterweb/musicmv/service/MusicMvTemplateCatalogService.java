@@ -148,6 +148,10 @@ public class MusicMvTemplateCatalogService {
                     RowUtils.str(existing, "validation_master_sha256"));
             if (!same) throw conflict("TEMPLATE_PROMOTION_IDEMPOTENCY_CONFLICT",
                     "Validation render job is already bound to different template evidence");
+            if (!"latest_saved_draft".equals(request.getPromotionMode())) {
+                repository.enrichVisualQuality(RowUtils.str(existing, "version_id"),
+                        request.getCycleDurationSeconds(), json(promotionProvenance(request)));
+            }
             Map<String, Object> replay = promotionView(request.getTemplateId(),
                     RowUtils.str(existing, "version_id"), RowUtils.str(existing, "status"));
             replay.put("idempotentReplay", Boolean.TRUE);
@@ -155,7 +159,7 @@ public class MusicMvTemplateCatalogService {
         }
         String versionId = IdUtils.token("tplver");
         repository.promote(request, versionId, repository.nextVersionNumber(request.getTemplateId()),
-                json(request.getTags()), jsonOrEmpty(request.getSourceProvenance()),
+                json(request.getTags()), json(promotionProvenance(request)),
                 jsonOrEmpty(request.getValidationEvidence()));
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
@@ -279,8 +283,18 @@ public class MusicMvTemplateCatalogService {
                 RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))
                 && mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),
                 RowUtils.str(existing, "provider_asset_id"))) {
+            Map<String, Object> existingDetails = parseObject(
+                    RowUtils.str(existing, "provider_details_json"));
+            if (video && request.getSourceType() != null) {
+                existingDetails.put("sourceType", request.getSourceType());
+                existingDetails.put("displayLabel", request.getDisplayLabel());
+                existingDetails.put("loopDurationSeconds", request.getLoopDurationSeconds());
+                existingDetails.put("visualQuality", request.getVisualQuality());
+                repository.markMediaReady(RowUtils.str(existing, "media_id"),
+                        json(existingDetails));
+            }
             Map<String, Object> ready = mediaSessionView(RowUtils.str(existing, "media_id"),
-                    null, "ready", parseObject(RowUtils.str(existing, "provider_details_json")));
+                    null, "ready", existingDetails);
             ready.put("idempotentReplay", Boolean.TRUE);
             return ready;
         }
@@ -300,6 +314,8 @@ public class MusicMvTemplateCatalogService {
             providerDetails.put("displayLabel", request.getDisplayLabel());
             providerDetails.put("officialTemplateId", request.getOfficialTemplateId());
             providerDetails.put("officialPageUrl", request.getOfficialPageUrl());
+            providerDetails.put("loopDurationSeconds", request.getLoopDurationSeconds());
+            providerDetails.put("visualQuality", request.getVisualQuality());
         }
         repository.upsertMedia(mediaId, templateId, versionId, expectedRole,
                 session.getProvider(), session.getProviderAssetId(), session.getStatus(),
@@ -345,6 +361,13 @@ public class MusicMvTemplateCatalogService {
         }
         String validationStatus = RowUtils.str(version, "validation_status");
         boolean browserReady = "browser_ready".equals(validationStatus);
+        if (!browserReady) {
+            requireVisualQuality(parseObject(RowUtils.str(version, "source_provenance_json"))
+                            .get("visualQuality"),
+                    RowUtils.dbl(version, "base_duration_seconds"),
+                    RowUtils.dbl(version, "cycle_duration_seconds"),
+                    RowUtils.str(version, "validation_master_sha256"));
+        }
         boolean sourceReady = browserReady || "available".equals(sourceAvailability);
         if ((!browserReady && !"exact".equals(validationStatus)) || !sourceReady) {
             throw conflict("TEMPLATE_VERSION_NOT_PUBLISHABLE",
@@ -663,6 +686,52 @@ public class MusicMvTemplateCatalogService {
                 && request.getMissingResourceCount().intValue() == 0;
         if (!exact) throw conflict("TEMPLATE_VALIDATION_NOT_EXACT",
                 "Only exact, single-encode native validation can be promoted");
+        requireVisualQuality(request.getVisualQuality(), request.getBaseDurationSeconds(),
+                request.getCycleDurationSeconds(), request.getValidationMasterSha256());
+    }
+
+    private Map<String, Object> promotionProvenance(TemplatePromotionRequest request) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        if (request.getSourceProvenance() instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> supplied = (Map<String, Object>) request.getSourceProvenance();
+            result.putAll(supplied);
+        }
+        if (!"latest_saved_draft".equals(request.getPromotionMode())) {
+            result.put("visualQuality", request.getVisualQuality());
+        }
+        return result;
+    }
+
+    private void requireVisualQuality(Object evidence, Number baseDuration,
+                                      Number cycleDuration, String validationSha256) {
+        if (!(evidence instanceof Map)) {
+            throw conflict("TEMPLATE_VISUAL_QUALITY_REQUIRED",
+                    "Template requires black-screen quality evidence before publish");
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> report = (Map<String, Object>) evidence;
+        String status = String.valueOf(report.get("status"));
+        String schema = String.valueOf(report.get("schemaVersion"));
+        String sourceSha256 = String.valueOf(report.get("sourceSha256"));
+        double declaredBase = numeric(report.get("baseDurationSeconds"));
+        double effectiveCycle = numeric(report.get("effectiveCycleDurationSeconds"));
+        double expectedBase = baseDuration == null ? 0.0d : baseDuration.doubleValue();
+        double expectedCycle = cycleDuration == null ? 0.0d : cycleDuration.doubleValue();
+        boolean valid = "template-visual-quality-v1".equals(schema)
+                && ("passed".equals(status) || "adjusted".equals(status))
+                && validationSha256 != null && validationSha256.equalsIgnoreCase(sourceSha256)
+                && Math.abs(declaredBase - expectedBase) <= 0.05d
+                && Math.abs(effectiveCycle - expectedCycle) <= 0.05d
+                && effectiveCycle > 0.0d && effectiveCycle <= declaredBase + 0.05d;
+        if (!valid) throw conflict("TEMPLATE_VISUAL_QUALITY_INVALID",
+                "Template black-screen quality evidence does not match the immutable video");
+    }
+
+    private double numeric(Object value) {
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        try { return Double.parseDouble(String.valueOf(value)); }
+        catch (RuntimeException ignored) { return 0.0d; }
     }
 
     public Map<String, Object> migrateCurrentTemplatesToBrowserRendering() {

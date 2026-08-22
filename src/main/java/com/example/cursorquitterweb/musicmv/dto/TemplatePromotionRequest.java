@@ -48,6 +48,7 @@ public class TemplatePromotionRequest {
     @NotNull @DecimalMin("0.0") private Double validationElapsedSeconds;
     private Object sourceProvenance;
     private Object validationEvidence;
+    private Object visualQuality;
     @NotNull @Valid @Size(min = 1, max = 200) private List<Slot> slots = new ArrayList<Slot>();
 
     public String getPromotionMode() { return promotionMode; }
@@ -114,6 +115,8 @@ public class TemplatePromotionRequest {
     public void setSourceProvenance(Object value) { sourceProvenance = value; }
     public Object getValidationEvidence() { return validationEvidence; }
     public void setValidationEvidence(Object value) { validationEvidence = value; }
+    public Object getVisualQuality() { return visualQuality; }
+    public void setVisualQuality(Object value) { visualQuality = value; }
     public List<Slot> getSlots() { return slots; }
     public void setSlots(List<Slot> value) { slots = value == null ? new ArrayList<Slot>() : value; }
 

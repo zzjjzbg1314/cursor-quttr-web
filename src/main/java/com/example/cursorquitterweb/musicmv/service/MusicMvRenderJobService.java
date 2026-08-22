@@ -17,6 +17,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
@@ -33,6 +34,7 @@ import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.aimusic.AiMusicCandidateStorageService;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
+import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository.RenderContract;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.example.cursorquitterweb.musicmv.support.IdUtils;
 import com.example.cursorquitterweb.musicmv.support.RowUtils;
@@ -110,16 +112,8 @@ public class MusicMvRenderJobService {
     public Map<String, Object> create(String clientId, MusicMvRenderJobCreateRequest request) {
         String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
         requireId(request.getRequestId(), "MV_RENDER_REQUEST_ID_INVALID");
+        requireId(request.getMusicCandidateId(), "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
         validateSettings(request);
-        resolveOwnedMusic(normalizedClientId, request);
-        validateAsset(request.getMusic(), true);
-
-        Map<String, Object> version = repository.renderableVersion(
-                request.getTemplateId(), request.getTemplateVersionId());
-        requireRenderableVersion(version, request);
-        List<Map<String, Object>> slots = repository.slots(request.getTemplateVersionId());
-        requireSlotBindings(normalizedClientId, request.getTemplateVersionId(), slots,
-                request.getSlotBindings());
 
         String requestJson = json(request);
         requireJsonSize(requestJson, "MV_RENDER_REQUEST_TOO_LARGE");
@@ -137,16 +131,60 @@ public class MusicMvRenderJobService {
         }
 
         String jobId = IdUtils.token("mvr");
-        repository.createBrowser(jobId, normalizedClientId, request.getRequestId(),
-                request.getTemplateId(), request.getTemplateVersionId(), fingerprint, requestJson);
         Map<String, Object> createdDetail = new LinkedHashMap<String, Object>();
         createdDetail.put("requestId", request.getRequestId());
         createdDetail.put("renderMode", "browser");
-        addEvent(jobId, "created", "browser_ready", null, createdDetail);
-        Map<String, Object> row = requireJob(repository.byId(jobId));
-        Map<String, Object> view = clientDetailView(row, normalizedClientId);
+        repository.createBrowserPreparing(jobId, normalizedClientId, request.getRequestId(),
+                request.getTemplateId(), request.getTemplateVersionId(), fingerprint, requestJson,
+                IdUtils.token("mvrevt"), json(createdDetail));
+        Map<String, Object> view = new LinkedHashMap<String, Object>();
+        view.put("jobId", jobId);
+        view.put("requestId", request.getRequestId());
+        view.put("templateId", request.getTemplateId());
+        view.put("versionId", request.getTemplateVersionId());
+        view.put("status", "preparing");
+        view.put("stage", "preparing_queued");
+        view.put("progress", Double.valueOf(0.01d));
+        view.put("renderMode", "browser");
         view.put("idempotentReplay", Boolean.FALSE);
         return view;
+    }
+
+    @Async
+    public void prepareBrowserAsync(String clientId, String jobId) {
+        Map<String, Object> claimed = repository.claimBrowserPreparation(jobId);
+        if (claimed == null || claimed.isEmpty()) return;
+        try {
+            MusicMvRenderJobCreateRequest request = objectMapper.convertValue(
+                    parseObject(RowUtils.str(claimed, "request_json")),
+                    MusicMvRenderJobCreateRequest.class);
+            validateSettings(request);
+            resolveOwnedMusic(clientId, request);
+            validateAsset(request.getMusic(), true);
+            if (repository.updateBrowserPreparation(jobId, "preparing_template", 0.55d) == null) {
+                return;
+            }
+
+            RenderContract contract = repository.renderContract(
+                    request.getTemplateId(), request.getTemplateVersionId());
+            requireRenderableVersion(contract.getVersion(), request);
+            requireSlotBindings(clientId, request.getTemplateVersionId(), contract.getSlots(),
+                    request.getSlotBindings());
+            String preparedRequestJson = json(request);
+            requireJsonSize(preparedRequestJson, "MV_RENDER_REQUEST_TOO_LARGE");
+            Map<String, Object> ready = repository.completeBrowserPreparation(
+                    jobId, preparedRequestJson);
+            if (ready != null && !ready.isEmpty()) {
+                addEvent(jobId, "prepared", "browser_ready", null,
+                        Collections.<String, Object>emptyMap());
+            }
+        } catch (ApiException exception) {
+            repository.failBrowserPreparation(jobId, exception.getCode(),
+                    exception.getMessage(), exception.isRetryable());
+        } catch (RuntimeException exception) {
+            repository.failBrowserPreparation(jobId, "MV_RENDER_PREPARATION_FAILED",
+                    "We could not prepare this video project. Please try again.", true);
+        }
     }
 
     public Map<String, Object> get(String clientId, String jobId) {
@@ -526,6 +564,14 @@ public class MusicMvRenderJobService {
             expected.add(RowUtils.str(slot, "slot_key"));
         }
         Set<String> actual = new HashSet<String>();
+        Set<String> defaultSlots = new HashSet<String>();
+        for (MusicMvRenderJobCreateRequest.SlotBinding binding : bindings) {
+            if (Boolean.TRUE.equals(binding.getUseTemplateDefault())) {
+                defaultSlots.add(binding.getSlotKey());
+            }
+        }
+        Map<String, Map<String, Object>> defaultMedia = repository.slotDefaultMedia(
+                versionId, defaultSlots);
         for (MusicMvRenderJobCreateRequest.SlotBinding binding : bindings) {
             if (!actual.add(binding.getSlotKey())) {
                 throw badRequest("MV_RENDER_SLOT_DUPLICATE", "A material slot was provided twice");
@@ -536,8 +582,7 @@ public class MusicMvRenderJobService {
                         "Each material slot must use either one project photo or its template photo");
             }
             if (useDefault) {
-                Map<String, Object> media = repository.slotDefaultMedia(versionId,
-                        binding.getSlotKey());
+                Map<String, Object> media = defaultMedia.get(binding.getSlotKey());
                 if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
                     throw conflict("MV_RENDER_SLOT_DEFAULT_UNAVAILABLE",
                             "The original template photo is not ready for this slot");
@@ -612,8 +657,6 @@ public class MusicMvRenderJobService {
         canonical.put("templateId", request.getTemplateId());
         canonical.put("templateVersionId", request.getTemplateVersionId());
         canonical.put("musicCandidateId", request.getMusicCandidateId());
-        canonical.put("musicSha256", request.getMusic().getSha256().toLowerCase());
-        canonical.put("musicSizeBytes", request.getMusic().getSizeBytes());
         List<Map<String, Object>> slots = new ArrayList<Map<String, Object>>();
         for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
             Map<String, Object> slot = new LinkedHashMap<String, Object>();
@@ -677,6 +720,9 @@ public class MusicMvRenderJobService {
             // Cloudflare provider. Production always uses the injected provider.
             result.put("renderMode", "browser");
         } else if (isCompletedBrowserRender(row)) {
+            result.put("renderMode", "browser");
+        } else if ("preparing".equals(RowUtils.str(row, "status"))
+                && stage != null && stage.startsWith("preparing_")) {
             result.put("renderMode", "browser");
         }
         return result;

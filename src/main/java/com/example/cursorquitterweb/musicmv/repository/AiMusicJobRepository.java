@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.musicmv.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
+import com.example.cursorquitterweb.musicmv.service.D1Statement;
 
 @Repository
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -253,13 +255,29 @@ public class AiMusicJobRepository {
                 userId, candidateId).firstRow();
     }
 
+    /** Reads the selected candidate and its parent job in one ownership-scoped request. */
+    public Map<String, Object> ownedCandidateForSelection(String userId, String jobId,
+                                                           String candidateId) {
+        return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
+                        + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
+                        + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
+                        + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,"
+                        + "c.selected,j.status AS job_status "
+                        + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
+                        + "WHERE j.user_id=? AND j.job_id=? AND c.candidate_id=? LIMIT 1",
+                userId, jobId, candidateId).firstRow();
+    }
+
     public void selectCandidate(String jobId, String candidateId) {
-        d1.query("UPDATE ai_music_candidates SET selected=0,updated_at=CURRENT_TIMESTAMP WHERE job_id=?",
-                jobId);
-        d1.query("UPDATE ai_music_candidates SET selected=1,updated_at=CURRENT_TIMESTAMP "
-                + "WHERE job_id=? AND candidate_id=?", jobId, candidateId);
-        d1.query("UPDATE ai_music_jobs SET selected_candidate_id=?,stage='candidate_selected',"
-                + "updated_at=CURRENT_TIMESTAMP WHERE job_id=?", candidateId, jobId);
+        d1.batch(Arrays.asList(
+                D1Statement.of("UPDATE ai_music_candidates SET selected=0,"
+                                + "updated_at=CURRENT_TIMESTAMP WHERE job_id=?", jobId),
+                D1Statement.of("UPDATE ai_music_candidates SET selected=1,"
+                                + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND candidate_id=?",
+                        jobId, candidateId),
+                D1Statement.of("UPDATE ai_music_jobs SET selected_candidate_id=?,"
+                                + "stage='candidate_selected',updated_at=CURRENT_TIMESTAMP "
+                                + "WHERE job_id=?", candidateId, jobId)));
     }
 
     public void markCandidateStored(String candidateId, String storageKey, String storageUrl,

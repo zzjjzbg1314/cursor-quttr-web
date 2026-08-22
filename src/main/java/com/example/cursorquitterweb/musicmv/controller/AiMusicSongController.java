@@ -94,9 +94,6 @@ public class AiMusicSongController {
     ) {
         authentication.requireAuthorized(token);
         String ownerId = auth.requireUserId(servletRequest);
-        String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
-                .replacePath(servletRequest.getContextPath()).replaceQuery(null)
-                .build().toUriString();
-        return service.select(ownerId, jobId, candidateId, requestBaseUrl);
+        return service.select(ownerId, jobId, candidateId);
     }
 }

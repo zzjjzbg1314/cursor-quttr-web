@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.musicmv.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -25,6 +26,7 @@ import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
+import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository.RenderContract;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
@@ -36,18 +38,14 @@ class MusicMvRenderJobServiceTest {
         MusicMvRenderJobService service = new MusicMvRenderJobService(
                 repository, aiMusicJobs, artifacts, inputAssets(), new ObjectMapper(), true, 2);
         MusicMvRenderJobCreateRequest request = request();
-        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
-        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
-        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
-        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
-
         Map<String, Object> created = service.create("website-backend", request);
 
-        assertEquals("ready", created.get("status"));
-        assertEquals("browser_ready", created.get("stage"));
+        assertEquals("preparing", created.get("status"));
+        assertEquals("preparing_queued", created.get("stage"));
         ArgumentCaptor<String> fingerprint = ArgumentCaptor.forClass(String.class);
-        verify(repository).createBrowser(anyString(), eq("website-backend"), eq("req_1"),
-                eq("tpl_1"), eq("tplver_1"), fingerprint.capture(), anyString());
+        verify(repository).createBrowserPreparing(anyString(), eq("website-backend"), eq("req_1"),
+                eq("tpl_1"), eq("tplver_1"), fingerprint.capture(), anyString(),
+                anyString(), anyString());
 
         when(repository.byClientRequest("website-backend", "req_1"))
                 .thenReturn(row("mvr_existing", fingerprint.getValue()));
@@ -73,14 +71,19 @@ class MusicMvRenderJobServiceTest {
                 aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
                 inputAssets(), new ObjectMapper(), true, 2);
         MusicMvRenderJobCreateRequest request = request();
-        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
         request.setSlotBindings(Collections.singletonList(request.getSlotBindings().get(0)));
-        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
-        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
 
-        ApiException exception = assertThrows(ApiException.class,
-                () -> service.create("website-backend", request));
-        assertEquals("MV_RENDER_SLOT_BINDINGS_INCOMPLETE", exception.getCode());
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).failBrowserPreparation("mvr_1",
+                "MV_RENDER_SLOT_BINDINGS_INCOMPLETE", "Every template material slot must have exactly one image", false);
     }
 
     @Test
@@ -96,16 +99,21 @@ class MusicMvRenderJobServiceTest {
         request.getSlotBindings().get(0).setCrop(null);
         request.getSlotBindings().get(0).setUseTemplateDefault(Boolean.TRUE);
         when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
-        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
-        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(
-                slot("photo_01"), slot("photo_02")));
-        when(repository.slotDefaultMedia("tplver_1", "photo_01"))
-                .thenReturn(row("media_template_photo", null));
-        Map<String, Object> defaultMedia = repository.slotDefaultMedia("tplver_1", "photo_01");
-        defaultMedia.put("status", "ready");
-        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
+        when(repository.claimBrowserPreparation("mvr_1")).thenReturn(preparingRow("mvr_1", request));
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        Map<String, Object> media = row("media_template_photo", null);
+        media.put("status", "ready");
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet())).thenReturn(
+                Collections.singletonMap("photo_01", media));
+        when(repository.completeBrowserPreparation(eq("mvr_1"), anyString()))
+                .thenReturn(row("mvr_1", null));
 
-        assertEquals("ready", service.create("website-backend", request).get("status"));
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).completeBrowserPreparation(eq("mvr_1"), anyString());
         verify(inputAssets, never()).requireOwnedCloudAsset(eq("website-backend"),
                 eq((MusicMvRenderJobCreateRequest.Asset) null), eq("image"));
     }
@@ -144,26 +152,39 @@ class MusicMvRenderJobServiceTest {
         for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
             binding.getAsset().setUrl(capabilityUrl);
         }
-        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(version());
-        when(repository.slots("tplver_1")).thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
-        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
+        when(repository.claimBrowserPreparation("mvr_1")).thenReturn(preparingRow("mvr_1", request));
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.<String, Map<String, Object>>emptyMap());
+        when(repository.completeBrowserPreparation(eq("mvr_1"), anyString()))
+                .thenReturn(row("mvr_1", null));
 
-        assertEquals("ready", service.create("website-backend", request).get("status"));
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).completeBrowserPreparation(eq("mvr_1"), anyString());
     }
 
     @Test
     void rejectsUnprotectedLocalInputWhenGeneralLoopbackIsDisabled() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(
-                mock(MusicMvRenderJobRepository.class),
+                repository,
                 aiMusicJobs,
                 mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
                 new ObjectMapper(), false, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
         when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
 
-        ApiException exception = assertThrows(ApiException.class,
-                () -> service.create("website-backend", request()));
-        assertEquals("MV_RENDER_ASSET_URL_BLOCKED", exception.getCode());
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).failBrowserPreparation("mvr_1", "MV_RENDER_ASSET_URL_BLOCKED",
+                "Input assets require HTTPS; loopback HTTP is only available in local development", false);
     }
 
     @Test
@@ -176,16 +197,21 @@ class MusicMvRenderJobServiceTest {
         Map<String, Object> offlineVersion = version();
         offlineVersion.put("source_availability", "unavailable");
         when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
-        when(repository.renderableVersion("tpl_1", "tplver_1")).thenReturn(offlineVersion);
-        when(repository.slots("tplver_1"))
-                .thenReturn(Arrays.asList(slot("photo_01"), slot("photo_02")));
-        when(repository.byId(anyString())).thenAnswer(invocation -> row(invocation.getArgument(0), null));
+        MusicMvRenderJobCreateRequest request = request();
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(offlineVersion, Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.<String, Map<String, Object>>emptyMap());
+        when(repository.completeBrowserPreparation(eq("mvr_1"), anyString()))
+                .thenReturn(row("mvr_1", null));
 
-        Map<String, Object> created = service.create("website-backend", request());
+        service.prepareBrowserAsync("website-backend", "mvr_1");
 
-        assertEquals("browser_ready", created.get("stage"));
-        verify(repository).createBrowser(anyString(), eq("website-backend"), eq("req_1"),
-                eq("tpl_1"), eq("tplver_1"), anyString(), anyString());
+        verify(repository).completeBrowserPreparation(eq("mvr_1"), anyString());
     }
 
     @Test
@@ -460,6 +486,16 @@ class MusicMvRenderJobServiceTest {
         row.put("stage", "browser_ready");
         row.put("version_id", "tplver_1");
         row.put("request_fingerprint", fingerprint);
+        return row;
+    }
+
+    private Map<String, Object> preparingRow(String jobId,
+                                             MusicMvRenderJobCreateRequest request) {
+        Map<String, Object> row = row(jobId, null);
+        row.put("client_id", "website-backend");
+        row.put("status", "preparing");
+        row.put("stage", "preparing_music");
+        row.put("request_json", json(request));
         return row;
     }
 

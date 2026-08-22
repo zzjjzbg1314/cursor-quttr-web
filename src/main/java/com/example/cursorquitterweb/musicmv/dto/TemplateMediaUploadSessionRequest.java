@@ -19,6 +19,8 @@ public class TemplateMediaUploadSessionRequest {
     private String displayLabel;
     private String officialTemplateId;
     private String officialPageUrl;
+    @DecimalMin("0.001") private Double loopDurationSeconds;
+    private Object visualQuality;
 
     public String getRole() { return role; }
     public void setRole(String value) { role = value; }
@@ -44,4 +46,8 @@ public class TemplateMediaUploadSessionRequest {
     public void setOfficialTemplateId(String value) { officialTemplateId = value; }
     public String getOfficialPageUrl() { return officialPageUrl; }
     public void setOfficialPageUrl(String value) { officialPageUrl = value; }
+    public Double getLoopDurationSeconds() { return loopDurationSeconds; }
+    public void setLoopDurationSeconds(Double value) { loopDurationSeconds = value; }
+    public Object getVisualQuality() { return visualQuality; }
+    public void setVisualQuality(Object value) { visualQuality = value; }
 }

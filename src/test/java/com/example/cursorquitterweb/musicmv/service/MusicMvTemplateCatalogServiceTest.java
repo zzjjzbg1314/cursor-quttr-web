@@ -60,12 +60,41 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void enrichesAnIdempotentNativeVersionWithDerivedQualityEvidence() {
+        TemplatePromotionRequest request = validPromotion();
+        Map<String, Object> existing = row("version_id", "tplver_existing");
+        existing.put("template_id", "tpl_1");
+        existing.put("draft_snapshot_sha256", hash('b'));
+        existing.put("validation_master_sha256", hash('a'));
+        existing.put("status", "published");
+        when(repository.versionByValidationJob("native_1")).thenReturn(existing);
+
+        Map<String, Object> result = service.promote(request);
+
+        assertEquals(Boolean.TRUE, result.get("idempotentReplay"));
+        verify(repository).enrichVisualQuality(eq("tplver_existing"), eq(Double.valueOf(13)),
+                anyString());
+    }
+
+    @Test
     void rejectsValidationThatUsedMoreThanOneVideoEncode() {
         TemplatePromotionRequest request = validPromotion();
         request.setVideoEncodeCount(Integer.valueOf(2));
 
         ApiException error = assertThrows(ApiException.class, () -> service.promote(request));
         assertEquals("TEMPLATE_VALIDATION_NOT_EXACT", error.getCode());
+        verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(),
+                anyString(), anyString());
+    }
+
+    @Test
+    void rejectsNativePromotionWithoutBoundVisualQualityEvidence() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setVisualQuality(null);
+
+        ApiException error = assertThrows(ApiException.class, () -> service.promote(request));
+
+        assertEquals("TEMPLATE_VISUAL_QUALITY_REQUIRED", error.getCode());
         verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(),
                 anyString(), anyString());
     }
@@ -146,6 +175,10 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> template = row("template_id", "tpl_1");
         Map<String, Object> version = row("validation_status", "exact");
         version.put("source_availability", "available");
+        version.put("base_duration_seconds", Double.valueOf(13));
+        version.put("cycle_duration_seconds", Double.valueOf(13));
+        version.put("validation_master_sha256", hash('a'));
+        version.put("source_provenance_json", qualityProvenanceJson(13.0d, 13.0d));
         when(repository.template("tpl_1")).thenReturn(template);
         when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
         when(repository.mediaByRole("tplver_1", "cover")).thenReturn(row("status", "ready"));
@@ -447,6 +480,7 @@ class MusicMvTemplateCatalogServiceTest {
         request.setExternalResourceReadCount(Integer.valueOf(0));
         request.setMissingResourceCount(Integer.valueOf(0));
         request.setValidationElapsedSeconds(Double.valueOf(12));
+        request.setVisualQuality(visualQuality(13.0d, 13.0d));
         TemplatePromotionRequest.Slot slot = new TemplatePromotionRequest.Slot();
         slot.setSlotKey("photo_1");
         slot.setSlotType("image");
@@ -456,6 +490,26 @@ class MusicMvTemplateCatalogServiceTest {
         slot.setRepeatPolicy("cycle");
         request.getSlots().add(slot);
         return request;
+    }
+
+    private Map<String, Object> visualQuality(double base, double cycle) {
+        Map<String, Object> quality = new LinkedHashMap<String, Object>();
+        quality.put("schemaVersion", "template-visual-quality-v1");
+        quality.put("status", cycle < base ? "adjusted" : "passed");
+        quality.put("sourceSha256", hash('a'));
+        quality.put("baseDurationSeconds", Double.valueOf(base));
+        quality.put("effectiveCycleDurationSeconds", Double.valueOf(cycle));
+        return quality;
+    }
+
+    private String qualityProvenanceJson(double base, double cycle) {
+        try {
+            Map<String, Object> provenance = new LinkedHashMap<String, Object>();
+            provenance.put("visualQuality", visualQuality(base, cycle));
+            return new ObjectMapper().writeValueAsString(provenance);
+        } catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
     private Map<String, Object> row(String key, Object value) {
