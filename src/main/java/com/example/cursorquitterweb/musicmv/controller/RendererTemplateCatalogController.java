@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.CapCutTemplateExistenceRequest;
+import com.example.cursorquitterweb.musicmv.dto.CapCutTemplateIdentityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
@@ -47,6 +49,23 @@ public class RendererTemplateCatalogController {
             @Valid @RequestBody TemplatePromotionRequest request) {
         authentication.requireAuthorized(token);
         return service.promote(request);
+    }
+
+    @PostMapping("/capcut-template-existence")
+    public Map<String, Object> capCutTemplateExistence(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @Valid @RequestBody CapCutTemplateExistenceRequest request) {
+        authentication.requireAuthorized(token);
+        return service.capCutTemplateExistence(request.getCapcutTemplateIds());
+    }
+
+    @PostMapping("/{templateId}/capcut-template-identity")
+    public Map<String, Object> bindCapCutTemplateIdentity(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId,
+            @Valid @RequestBody CapCutTemplateIdentityRequest request) {
+        authentication.requireAuthorized(token);
+        return service.bindCapCutTemplateIdentity(templateId, request.getCapcutTemplateId());
     }
 
     @PostMapping("/migrate-browser-rendering")

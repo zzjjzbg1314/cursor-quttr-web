@@ -60,6 +60,23 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void rejectsDifferentTemplateForExistingCapCutIdentity() {
+        Map<String, Object> existing = new LinkedHashMap<String, Object>();
+        existing.put("template_id", "tpl_existing");
+        existing.put("capcut_template_id", "7362454015088561426");
+        when(repository.templatesByCapCutTemplateIds(
+                Collections.singletonList("7362454015088561426")))
+                .thenReturn(Collections.singletonList(existing));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.promote(validPromotion()));
+
+        assertEquals("CAPCUT_TEMPLATE_ALREADY_EXISTS", error.getCode());
+        verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(),
+                anyString(), anyString());
+    }
+
+    @Test
     void enrichesAnIdempotentNativeVersionWithDerivedQualityEvidence() {
         TemplatePromotionRequest request = validPromotion();
         Map<String, Object> existing = row("version_id", "tplver_existing");
@@ -455,6 +472,7 @@ class MusicMvTemplateCatalogServiceTest {
     private TemplatePromotionRequest validPromotion() {
         TemplatePromotionRequest request = new TemplatePromotionRequest();
         request.setTemplateId("tpl_1");
+        request.setCapcutTemplateId("7362454015088561426");
         request.setSlug("birthday-one");
         request.setCategoryKey("birthday");
         request.setNameZh("生日");

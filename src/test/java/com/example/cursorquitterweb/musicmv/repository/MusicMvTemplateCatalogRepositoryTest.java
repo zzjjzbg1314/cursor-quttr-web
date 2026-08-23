@@ -59,6 +59,7 @@ class MusicMvTemplateCatalogRepositoryTest {
     private TemplatePromotionRequest validPromotion() {
         TemplatePromotionRequest request = new TemplatePromotionRequest();
         request.setTemplateId("tpl_1"); request.setSlug("one"); request.setCategoryKey("birthday");
+        request.setCapcutTemplateId("7362454015088561426");
         request.setNameZh("一"); request.setNameEn("One");
         request.setWidth(1080); request.setHeight(1920); request.setFps(30d);
         request.setDurationSeconds(180d); request.setBaseDurationSeconds(13d); request.setCycleDurationSeconds(13d);

@@ -139,6 +139,14 @@ public class MusicMvTemplateCatalogService {
         requirePromotionEvidence(request);
         requireCategory(request.getCategoryKey());
         requireUniqueSlots(request.getSlots());
+        List<Map<String, Object>> identities = repository.templatesByCapCutTemplateIds(
+                Collections.singletonList(request.getCapcutTemplateId()));
+        if (identities != null && !identities.isEmpty() && !request.getTemplateId().equals(
+                RowUtils.str(identities.get(0), "template_id"))) {
+            throw conflict("CAPCUT_TEMPLATE_ALREADY_EXISTS",
+                    "This CapCut template is already bound to template "
+                            + RowUtils.str(identities.get(0), "template_id"));
+        }
         Map<String, Object> existing = repository.versionByValidationJob(request.getValidationRenderJobId());
         if (existing != null) {
             boolean same = request.getTemplateId().equals(RowUtils.str(existing, "template_id"))
@@ -163,6 +171,49 @@ public class MusicMvTemplateCatalogService {
                 jsonOrEmpty(request.getValidationEvidence()));
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
+        return result;
+    }
+
+    public Map<String, Object> capCutTemplateExistence(List<String> requestedIds) {
+        List<String> ids = new ArrayList<String>();
+        Set<String> seen = new HashSet<String>();
+        for (String raw : requestedIds) {
+            String value = blankToNull(raw);
+            if (value == null || !value.matches("^[0-9]{8,24}$")) {
+                throw badRequest("CAPCUT_TEMPLATE_ID_INVALID", "CapCut template ID is invalid");
+            }
+            if (seen.add(value)) ids.add(value);
+        }
+        Map<String, Map<String, Object>> existing = new LinkedHashMap<String, Map<String, Object>>();
+        for (Map<String, Object> row : repository.templatesByCapCutTemplateIds(ids)) {
+            Map<String, Object> item = new LinkedHashMap<String, Object>();
+            copy(item, "templateId", row, "template_id");
+            copy(item, "status", row, "status");
+            copy(item, "currentVersionId", row, "current_version_id");
+            existing.put(RowUtils.str(row, "capcut_template_id"), item);
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("existing", existing);
+        return result;
+    }
+
+    public Map<String, Object> bindCapCutTemplateIdentity(
+            String templateId, String capcutTemplateId
+    ) {
+        requireTemplate(templateId);
+        List<Map<String, Object>> existing = repository.templatesByCapCutTemplateIds(
+                Collections.singletonList(capcutTemplateId));
+        if (existing != null && !existing.isEmpty()
+                && !templateId.equals(RowUtils.str(existing.get(0), "template_id"))) {
+            throw conflict("CAPCUT_TEMPLATE_ALREADY_EXISTS",
+                    "This CapCut template is already bound to template "
+                            + RowUtils.str(existing.get(0), "template_id"));
+        }
+        repository.bindCapCutTemplateIdentity(templateId, capcutTemplateId);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("templateId", templateId);
+        result.put("capcutTemplateId", capcutTemplateId);
+        result.put("status", "bound");
         return result;
     }
 
@@ -522,6 +573,7 @@ public class MusicMvTemplateCatalogService {
     private Map<String, Object> summary(Map<String, Object> row) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
+        copy(result, "capcutTemplateId", row, "capcut_template_id");
         copy(result, "slug", row, "slug");
         copy(result, "name", row, "display_name");
         copy(result, "description", row, "description");
@@ -547,6 +599,7 @@ public class MusicMvTemplateCatalogService {
     private Map<String, Object> templateView(Map<String, Object> row) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
+        copy(result, "capcutTemplateId", row, "capcut_template_id");
         copy(result, "slug", row, "slug");
         copy(result, "defaultLocale", row, "default_locale");
         copy(result, "categoryKey", row, "category_key");

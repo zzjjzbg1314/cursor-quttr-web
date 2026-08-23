@@ -18,6 +18,7 @@ import javax.validation.constraints.Size;
 public class TemplatePromotionRequest {
     @NotBlank private String promotionMode = "validated_native";
     @NotBlank private String templateId;
+    @NotBlank @Pattern(regexp = "^[0-9]{8,24}$") private String capcutTemplateId;
     @NotBlank private String slug;
     @NotBlank private String categoryKey;
     @NotNull private List<String> tags = new ArrayList<String>();
@@ -55,6 +56,8 @@ public class TemplatePromotionRequest {
     public void setPromotionMode(String value) { promotionMode = value; }
     public String getTemplateId() { return templateId; }
     public void setTemplateId(String value) { templateId = value; }
+    public String getCapcutTemplateId() { return capcutTemplateId; }
+    public void setCapcutTemplateId(String value) { capcutTemplateId = value; }
     public String getSlug() { return slug; }
     public void setSlug(String value) { slug = value; }
     public String getCategoryKey() { return categoryKey; }

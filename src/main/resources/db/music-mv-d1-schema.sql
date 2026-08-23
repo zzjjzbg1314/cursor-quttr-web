@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS template_categories (
 
 CREATE TABLE IF NOT EXISTS templates (
   template_id TEXT PRIMARY KEY,
+  capcut_template_id TEXT,
   slug TEXT NOT NULL,
   default_locale TEXT NOT NULL DEFAULT 'zh-CN',
   category_key TEXT NOT NULL,
@@ -171,6 +172,8 @@ CREATE TABLE IF NOT EXISTS templates (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uk_templates_slug ON templates(slug);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_templates_capcut_template_id
+  ON templates(capcut_template_id) WHERE capcut_template_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_templates_catalog
   ON templates(status, visibility, category_key, sort_order, updated_at);
 

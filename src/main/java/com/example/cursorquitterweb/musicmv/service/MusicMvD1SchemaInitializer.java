@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 6;
+    static final int SCHEMA_VERSION = 7;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -84,6 +84,7 @@ public class MusicMvD1SchemaInitializer {
         existingOwnedTables.retainAll(KNOWN_TABLES);
 
         reconcileAiMusicOwnership(existingTables);
+        reconcileCapCutTemplateIdentity(existingTables);
         int batches = applyStatements(source.statements);
         d1.query("INSERT INTO music_mv_schema_metadata "
                         + "(schema_key,schema_version,schema_sha256,applied_at,updated_at) "
@@ -167,6 +168,14 @@ public class MusicMvD1SchemaInitializer {
         }
         d1.query("UPDATE ai_music_jobs SET user_id=client_id "
                 + "WHERE user_id IS NULL AND client_id LIKE 'usr\\_%' ESCAPE '\\'");
+    }
+
+    private void reconcileCapCutTemplateIdentity(Set<String> existingTables) {
+        if (!existingTables.contains("templates")) return;
+        for (Map<String, Object> row : d1.query("PRAGMA table_info(templates)").getRows()) {
+            if ("capcut_template_id".equals(RowUtils.str(row, "name"))) return;
+        }
+        d1.query("ALTER TABLE templates ADD COLUMN capcut_template_id TEXT");
     }
 
     private Map<String, Object> verify(String expectedSha256) {

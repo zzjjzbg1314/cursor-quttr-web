@@ -37,7 +37,7 @@ public class MusicMvTemplateCatalogRepository {
                                                 int limit, int offset) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT t.template_id, t.slug, t.category_key, t.tags_json, t.status, ")
+        sql.append("SELECT t.template_id, t.capcut_template_id, t.slug, t.category_key, t.tags_json, t.status, ")
                 .append("t.visibility, t.current_version_id, t.sort_order, t.revision, ")
                 .append("t.created_at, t.updated_at, t.published_at, ")
                 .append("COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
@@ -103,10 +103,30 @@ public class MusicMvTemplateCatalogRepository {
     }
 
     public Map<String, Object> template(String templateId) {
-        return d1.query("SELECT template_id, slug, default_locale, category_key, tags_json, status, "
+        return d1.query("SELECT template_id, capcut_template_id, slug, default_locale, category_key, tags_json, status, "
                 + "visibility, current_version_id, sort_order, revision, created_at, updated_at, "
                 + "published_at FROM templates WHERE template_id=? AND deleted_at IS NULL LIMIT 1",
                 templateId).firstRow();
+    }
+
+    public List<Map<String, Object>> templatesByCapCutTemplateIds(List<String> templateIds) {
+        if (templateIds == null || templateIds.isEmpty()) return new ArrayList<Map<String, Object>>();
+        StringBuilder placeholders = new StringBuilder();
+        List<Object> params = new ArrayList<Object>();
+        for (String templateId : templateIds) {
+            if (placeholders.length() > 0) placeholders.append(',');
+            placeholders.append('?');
+            params.add(templateId);
+        }
+        return d1.query("SELECT template_id,capcut_template_id,status,current_version_id "
+                + "FROM templates WHERE deleted_at IS NULL AND capcut_template_id IN ("
+                + placeholders + ")", params).getRows();
+    }
+
+    public void bindCapCutTemplateIdentity(String templateId, String capcutTemplateId) {
+        d1.query("UPDATE templates SET capcut_template_id=?,revision=revision+1,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE template_id=? AND deleted_at IS NULL",
+                capcutTemplateId, templateId);
     }
 
     public List<Map<String, Object>> translations(String templateId) {
@@ -218,11 +238,13 @@ public class MusicMvTemplateCatalogRepository {
                 request.getSourceNodeId(), request.getSourceNodeId(), request.getNativeRuntimeVersion(),
                 request.getNativeRuntimeSha256()));
         statements.add(statement("INSERT INTO templates "
-                + "(template_id,slug,default_locale,category_key,tags_json,status,visibility,sort_order,revision,created_at,updated_at) "
-                + "VALUES (?,?,'zh-CN',?,?,'draft','public',0,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                + "(template_id,capcut_template_id,slug,default_locale,category_key,tags_json,status,visibility,sort_order,revision,created_at,updated_at) "
+                + "VALUES (?,?,?,'zh-CN',?,?,'draft','public',0,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
                 + "ON CONFLICT(template_id) DO UPDATE SET slug=excluded.slug,category_key=excluded.category_key,"
-                + "tags_json=excluded.tags_json,revision=templates.revision+1,updated_at=CURRENT_TIMESTAMP",
-                request.getTemplateId(), request.getSlug(), request.getCategoryKey(), tagsJson));
+                + "capcut_template_id=excluded.capcut_template_id,tags_json=excluded.tags_json,"
+                + "revision=templates.revision+1,updated_at=CURRENT_TIMESTAMP",
+                request.getTemplateId(), request.getCapcutTemplateId(), request.getSlug(),
+                request.getCategoryKey(), tagsJson));
         statements.add(translation(request.getTemplateId(), "zh-CN", request.getNameZh(), request.getDescriptionZh()));
         statements.add(translation(request.getTemplateId(), "en", request.getNameEn(), request.getDescriptionEn()));
         statements.add(statement("INSERT INTO template_versions "

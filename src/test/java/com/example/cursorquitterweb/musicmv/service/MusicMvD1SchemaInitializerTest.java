@@ -30,7 +30,7 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(6);
+        assertThat(result.get("schemaVersion")).isEqualTo(7);
         assertThat(result.get("categoryCount")).isEqualTo(12L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
@@ -115,6 +115,11 @@ class MusicMvD1SchemaInitializerTest {
                 column.put("name", "user_id");
                 return rows(Arrays.asList(column));
             }
+            if (sql.startsWith("PRAGMA table_info(templates)")) {
+                Map<String, Object> column = new LinkedHashMap<String, Object>();
+                column.put("name", "capcut_template_id");
+                return rows(Arrays.asList(column));
+            }
             if (sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
@@ -123,7 +128,7 @@ class MusicMvD1SchemaInitializerTest {
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(6));
+                metadata.put("schema_version", Integer.valueOf(7));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }
