@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class CloudflareTemplateMediaProvider {
+    private static final int READ_ATTEMPTS = 3;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
     private final String apiBaseUrl;
@@ -260,7 +262,7 @@ public class CloudflareTemplateMediaProvider {
 
     private JsonNode jsonExchange(String url, HttpMethod method, HttpEntity<?> entity) {
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, method, entity, String.class);
+            ResponseEntity<String> response = exchangeWithTransientRetry(url, method, entity);
             JsonNode root = objectMapper.readTree(response.getBody());
             if (!root.path("success").asBoolean(false)) {
                 throw new IllegalStateException("Cloudflare media request failed: " + root.path("errors"));
@@ -273,6 +275,27 @@ public class CloudflareTemplateMediaProvider {
         } catch (Exception exception) {
             throw new IllegalStateException("Parse Cloudflare media response failed", exception);
         }
+    }
+
+    private ResponseEntity<String> exchangeWithTransientRetry(
+            String url, HttpMethod method, HttpEntity<?> entity) {
+        int attempts = HttpMethod.GET.equals(method) ? READ_ATTEMPTS : 1;
+        ResourceAccessException lastFailure = null;
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                return restTemplate.exchange(url, method, entity, String.class);
+            } catch (ResourceAccessException exception) {
+                lastFailure = exception;
+                if (attempt >= attempts) throw exception;
+                try {
+                    Thread.sleep(200L * attempt);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw exception;
+                }
+            }
+        }
+        throw lastFailure;
     }
 
     private IllegalStateException providerFailure(String message, HttpStatusCodeException exception) {

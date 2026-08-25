@@ -2,6 +2,13 @@ package com.example.cursorquitterweb.musicmv.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -14,8 +21,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import java.net.URI;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedHashMap;
@@ -124,6 +134,22 @@ class CloudflareTemplateMediaProviderTest {
         assertEquals("ready", state.getStatus());
         assertEquals(Boolean.FALSE, state.getProviderDetails().get("draft"));
         server.verify();
+    }
+
+    @Test
+    void retriesTransientCloudflareReadFailure() {
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        String response = "{\"success\":true,\"result\":{\"id\":\"img-1\",\"draft\":false}}";
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET),
+                any(HttpEntity.class), eq(String.class)))
+                .thenThrow(new ResourceAccessException("temporary TLS handshake failure"))
+                .thenReturn(ResponseEntity.ok(response));
+
+        MediaState state = provider(restTemplate).imageState("img-1");
+
+        assertEquals("ready", state.getStatus());
+        verify(restTemplate, times(2)).exchange(anyString(), eq(HttpMethod.GET),
+                any(HttpEntity.class), eq(String.class));
     }
 
     @Test
