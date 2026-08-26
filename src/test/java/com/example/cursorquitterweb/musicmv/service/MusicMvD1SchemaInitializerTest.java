@@ -30,13 +30,15 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(7);
+        assertThat(result.get("schemaVersion")).isEqualTo(8);
         assertThat(result.get("categoryCount")).isEqualTo(12L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "CREATE TABLE IF NOT EXISTS music_mv_schema_metadata"));
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "INSERT OR IGNORE INTO template_categories"));
+        assertThat(d1.queries).anyMatch(statement -> statement.contains(
+                "UPDATE templates SET category_key='school-life'"));
         assertThat(d1.metadataSha256).hasSize(64);
     }
 
@@ -82,6 +84,7 @@ class MusicMvD1SchemaInitializerTest {
         private final String databaseId;
         private final List<String> initialTables;
         private final List<String> statements = new ArrayList<String>();
+        private final List<String> queries = new ArrayList<String>();
         private boolean applied;
         private String metadataSha256;
 
@@ -103,6 +106,7 @@ class MusicMvD1SchemaInitializerTest {
 
         @Override
         public D1QueryResult query(String sql, Object... params) {
+            queries.add(sql);
             if (sql.contains("sqlite_master")) {
                 return rows(tableRows(applied ? knownTables() : initialTables));
             }
@@ -123,12 +127,17 @@ class MusicMvD1SchemaInitializerTest {
             if (sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
+            if (sql.startsWith("UPDATE template_categories SET name_zh='校园生活'")
+                    || sql.startsWith("UPDATE templates SET category_key='school-life'")
+                    || sql.startsWith("DELETE FROM template_categories WHERE category_key='graduation'")) {
+                return rows(Collections.<Map<String, Object>>emptyList());
+            }
             if (sql.contains("COUNT(*) AS category_count")) {
                 return row("category_count", Long.valueOf(applied ? 12L : 0L));
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(7));
+                metadata.put("schema_version", Integer.valueOf(8));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }

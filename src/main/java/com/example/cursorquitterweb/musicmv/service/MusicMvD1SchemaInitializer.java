@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 7;
+    static final int SCHEMA_VERSION = 8;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -86,6 +86,7 @@ public class MusicMvD1SchemaInitializer {
         reconcileAiMusicOwnership(existingTables);
         reconcileCapCutTemplateIdentity(existingTables);
         int batches = applyStatements(source.statements);
+        reconcileSchoolLifeCategory(existingTables());
         d1.query("INSERT INTO music_mv_schema_metadata "
                         + "(schema_key,schema_version,schema_sha256,applied_at,updated_at) "
                         + "VALUES (?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
@@ -176,6 +177,18 @@ public class MusicMvD1SchemaInitializer {
             if ("capcut_template_id".equals(RowUtils.str(row, "name"))) return;
         }
         d1.query("ALTER TABLE templates ADD COLUMN capcut_template_id TEXT");
+    }
+
+    private void reconcileSchoolLifeCategory(Set<String> existingTables) {
+        if (!existingTables.contains("template_categories")) return;
+        d1.query("UPDATE template_categories SET name_zh='校园生活',name_en='School Life',"
+                + "sort_order=70,enabled=1,updated_at=CURRENT_TIMESTAMP "
+                + "WHERE category_key='school-life'");
+        if (existingTables.contains("templates")) {
+            d1.query("UPDATE templates SET category_key='school-life',updated_at=CURRENT_TIMESTAMP "
+                    + "WHERE category_key='graduation'");
+        }
+        d1.query("DELETE FROM template_categories WHERE category_key='graduation'");
     }
 
     private Map<String, Object> verify(String expectedSha256) {

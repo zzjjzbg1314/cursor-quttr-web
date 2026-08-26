@@ -510,7 +510,7 @@ VALUES
   ('love', '恋爱告白', 'Love', 40, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('friendship', '友情纪念', 'Friendship', 50, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('wedding-anniversary', '婚礼与纪念日', 'Wedding & Anniversary', 60, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('graduation', '毕业青春', 'Graduation', 70, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('school-life', '校园生活', 'School Life', 70, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('inspiration', '励志成长', 'Inspiration', 80, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('healing', '情绪疗愈', 'Healing', 90, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('breakup', '失恋告别', 'Breakup & Farewell', 100, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
