@@ -20,8 +20,6 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
         MusicMvRenderJobController.class,
         MusicMvInputAssetController.class,
         MusicMvProjectDraftController.class,
-        RendererMusicMvRenderJobController.class,
-        RendererNodeController.class,
         MusicMvTemplateCatalogController.class,
         RendererTemplateCatalogController.class,
         MusicMvD1SchemaController.class,

@@ -17,19 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvRenderJobRepositoryTest {
     @Test
-    void claimRequiresFreshHeartbeatAndBindsEveryPlaceholder() {
-        CapturingD1 d1 = new CapturingD1();
-        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
-
-        repository.claim("mac-node", "lease-token", 120);
-
-        assertTrue(d1.sql.contains("last_seen_at>=datetime('now','-90 seconds')"));
-        assertEquals(placeholders(d1.sql), d1.params.size());
-        assertEquals(Arrays.asList("mac-node", "lease-token", "+120 seconds",
-                "mac-node", "mac-node"), d1.params);
-    }
-
-    @Test
     void browserStartUsesAnAtomicExpiringLease() {
         CapturingD1 d1 = new CapturingD1();
         MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);

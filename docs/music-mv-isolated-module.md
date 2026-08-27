@@ -1,6 +1,6 @@
 # AI 音乐 MV 独立后端模块
 
-本模块负责网站模板目录、Cloudflare Images/Stream 媒体、发布状态，以及网站后端与 Mac 原生渲染节点之间的音乐 MV 任务合同。它不会复用、修改或迁移 `cursor-quttr-web` 已有的生产业务表。
+本模块负责网站模板目录、Cloudflare Images/Stream 媒体、发布状态，以及浏览器音乐 MV 渲染任务合同。Mac 只负责模板研究与同步，不领取用户渲染任务。它不会复用、修改或迁移 `cursor-quttr-web` 已有的生产业务表。
 
 ## 隔离边界
 
@@ -8,7 +8,7 @@
 - 独立 D1：只读取 `MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID`，禁止填写现网 `cloudflare.d1.database-id`。
 - 独立 R2：最终用户成片使用 `MUSIC_MV_CLOUDFLARE_R2_*`，不复用现网 bucket。
 - 独立媒体：模板封面进入 Cloudflare Images，完整模板 MV 进入 Cloudflare Stream。
-- 独立鉴权：网站调用使用 `MUSIC_MV_CLIENT_TOKEN`；Mac 渲染任务使用 `MUSIC_MV_RENDERER_TOKEN`；Mac 模板晋升使用 `MUSIC_MV_TEMPLATE_SYNC_TOKEN`。
+- 独立鉴权：网站调用使用 `MUSIC_MV_CLIENT_TOKEN`；Mac 模板同步使用 `MUSIC_MV_TEMPLATE_SYNC_TOKEN`。
 - 独立路径：外部 `/api/music-mv/v1/**`；内部 `/internal/music-mv/v1/**`。
 - 独立代码包：`com.example.cursorquitterweb.musicmv`。
 
@@ -21,7 +21,6 @@ MUSIC_MV_CLOUDFLARE_ACCOUNT_ID=<Cloudflare account id>
 MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID=<new independent D1 database id>
 MUSIC_MV_CLOUDFLARE_D1_API_TOKEN=<token limited to the new D1>
 MUSIC_MV_CLIENT_TOKEN=<website-to-module secret>
-MUSIC_MV_RENDERER_TOKEN=<Mac-renderer-to-module secret>
 MUSIC_MV_TEMPLATE_SYNC_TOKEN=<Mac-template-sync-to-module secret>
 
 MUSIC_MV_CLOUDFLARE_IMAGES_ACCOUNT_ID=<Cloudflare account id>
@@ -138,16 +137,7 @@ SunoAPI 回调边界：
 
 浏览器渲染只在开始时向服务端领取一次尝试凭证，完成后上传成品并提交成功；失败、取消时各提交一次终态。编码进度、切换标签后的暂停/继续全部保存在当前浏览器内，不轮询写入 D1，读取任务也不得产生 D1 更新。
 
-Mac 渲染节点：
-
-- `POST /internal/music-mv/v1/render-jobs/claim`
-- `POST /internal/music-mv/v1/render-jobs/{jobId}/lease`
-- `PUT /internal/music-mv/v1/render-jobs/{jobId}/output`
-- `POST /internal/music-mv/v1/render-jobs/{jobId}/complete`
-- `POST /internal/music-mv/v1/render-jobs/{jobId}/fail`
-- `POST /internal/music-mv/v1/renderer/heartbeat`
-
-Mac 渲染使用 `X-Music-Mv-Renderer-Token`。
+Mac 拉取任务、心跳、续租和成片回传接口已经下线。用户成片只走浏览器渲染尝试与浏览器成片上传接口，模板可用性不再依赖 Mac 在线心跳。
 
 Mac 模板同步节点：
 

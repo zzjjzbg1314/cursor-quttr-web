@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,6 +52,18 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertTrue(batch.contains("DELETE FROM templates WHERE template_id=?"));
     }
 
+    @Test
+    void catalogAvailabilityDoesNotDependOnAWorkerHeartbeat() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+
+        repository.templates("en", "published", "public", null, null, 24, 0);
+
+        assertTrue(client.sql.contains("v.source_availability AS source_availability"));
+        assertFalse(client.sql.contains("renderer_nodes"));
+        assertFalse(client.sql.contains("last_seen_at"));
+    }
+
     private int placeholders(String sql) {
         int count = 0;
         for (int index = 0; index < sql.length(); index++) if (sql.charAt(index) == '?') count++;
@@ -83,8 +97,20 @@ class MusicMvTemplateCatalogRepositoryTest {
     }
 
     private static class CapturingD1 extends D1DatabaseClient {
+        private String sql;
+        private List<Object> params = new ArrayList<Object>();
         private List<D1Statement> statements = new ArrayList<D1Statement>();
         CapturingD1() { super(new ObjectMapper()); }
+        @Override public D1QueryResult query(String sql, Object... params) {
+            this.sql = sql;
+            this.params = Arrays.asList(params);
+            return new D1QueryResult(new ArrayList<Map<String, Object>>(), 0L);
+        }
+        @Override public D1QueryResult query(String sql, List<Object> params) {
+            this.sql = sql;
+            this.params = params;
+            return new D1QueryResult(new ArrayList<Map<String, Object>>(), 0L);
+        }
         @Override public List<D1QueryResult> batch(List<D1Statement> values) {
             statements = values;
             return new ArrayList<D1QueryResult>();

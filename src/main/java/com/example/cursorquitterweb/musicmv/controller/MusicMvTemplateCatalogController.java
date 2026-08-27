@@ -18,7 +18,6 @@ import com.example.cursorquitterweb.musicmv.dto.TemplateMetadataUpdateRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateActionRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthenticationService;
 import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
-import com.example.cursorquitterweb.musicmv.service.RendererNodeService;
 
 /** Server-to-server template catalog for the independent website backend. */
 @RestController
@@ -27,14 +26,11 @@ import com.example.cursorquitterweb.musicmv.service.RendererNodeService;
 public class MusicMvTemplateCatalogController {
     private final MusicMvRenderClientAuthenticationService authentication;
     private final MusicMvTemplateCatalogService service;
-    private final RendererNodeService rendererNodeService;
 
     public MusicMvTemplateCatalogController(MusicMvRenderClientAuthenticationService authentication,
-                                            MusicMvTemplateCatalogService service,
-                                            RendererNodeService rendererNodeService) {
+                                            MusicMvTemplateCatalogService service) {
         this.authentication = authentication;
         this.service = service;
-        this.rendererNodeService = rendererNodeService;
     }
 
     @GetMapping("/template-categories")
@@ -105,10 +101,4 @@ public class MusicMvTemplateCatalogController {
         return service.action(templateId, action, request == null ? null : request.getVersionId());
     }
 
-    @GetMapping("/admin/renderer-nodes")
-    public Map<String, Object> rendererNodes(
-            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token) {
-        authentication.requireAuthorized(token);
-        return rendererNodeService.nodes();
-    }
 }

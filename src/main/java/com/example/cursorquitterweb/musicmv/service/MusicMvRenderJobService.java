@@ -23,11 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderClaimRequest;
-import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
-import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderFailRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
-import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderLeaseRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderAttemptStartRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
@@ -371,94 +367,6 @@ public class MusicMvRenderJobService {
                 exhausted ? "failed" : "browser_interrupted", null,
                 detail("attemptId", request.getAttemptId(), "message", safeMessage));
         return clientView(failed);
-    }
-
-    public Map<String, Object> claim(MusicMvRenderClaimRequest request) {
-        String nodeId = requireId(request.getNodeId(), "RENDERER_NODE_ID_INVALID");
-        if (repository.rendererNode(nodeId) == null) {
-            throw new ApiException(HttpStatus.CONFLICT, "RENDERER_NODE_NOT_REGISTERED",
-                    "Renderer node must send heartbeat before claiming jobs", true, null);
-        }
-        String leaseToken = IdUtils.token("lease");
-        Map<String, Object> row = repository.claim(nodeId, leaseToken,
-                request.getLeaseSeconds().intValue());
-        if (row == null) {
-            Map<String, Object> empty = new LinkedHashMap<String, Object>();
-            empty.put("job", null);
-            return empty;
-        }
-        addEvent(RowUtils.str(row, "job_id"), "claimed", "leased", nodeId,
-                singleton("attempt", RowUtils.integer(row, "attempt_count")));
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
-        result.put("job", rendererView(row));
-        return result;
-    }
-
-    public Map<String, Object> renew(String jobId, MusicMvRenderLeaseRequest request) {
-        requireId(jobId, "MV_RENDER_JOB_ID_INVALID");
-        String stage = normalizeStage(request.getStage());
-        Map<String, Object> row = repository.renew(jobId, request.getNodeId(),
-                request.getLeaseToken(), request.getLeaseSeconds().intValue(), stage,
-                request.getProgress().doubleValue());
-        if (row == null) throw leaseLost();
-        return rendererView(row);
-    }
-
-    public Map<String, Object> uploadOutput(String jobId, String nodeId, String leaseToken,
-                                             String expectedSha256, String contentType,
-                                             long contentLength, InputStream input) throws IOException {
-        Map<String, Object> lease = requireLease(jobId, nodeId, leaseToken);
-        if (RowUtils.bool(lease, "cancel_requested")) throw leaseLost();
-        if (contentType == null || !contentType.toLowerCase().startsWith("video/mp4")) {
-            throw badRequest("MV_RENDER_OUTPUT_TYPE_INVALID", "Rendered output must be video/mp4");
-        }
-        MusicMvRenderArtifactStorageService.StoredArtifact stored = artifacts.storeOutput(
-                jobId, input, contentLength, "video/mp4", expectedSha256);
-        Map<String, Object> row = repository.markOutputUploaded(jobId, nodeId, leaseToken,
-                stored.getStorageKey(), stored.getContentType(), stored.getSizeBytes(),
-                stored.getSha256());
-        if (row == null) {
-            artifacts.delete(stored.getStorageKey());
-            throw leaseLost();
-        }
-        addEvent(jobId, "output_uploaded", "uploading", nodeId,
-                singleton("sizeBytes", Long.valueOf(stored.getSizeBytes())));
-        return rendererView(row);
-    }
-
-    public Map<String, Object> complete(String jobId, MusicMvRenderCompleteRequest request) {
-        requireExactEvidence(request);
-        Map<String, Object> row = requireLease(jobId, request.getNodeId(), request.getLeaseToken());
-        requireUploadedOutput(row, request);
-        String evidenceJson = json(request.getEvidence());
-        requireJsonSize(evidenceJson, "MV_RENDER_EVIDENCE_TOO_LARGE");
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
-        result.put("status", "completed");
-        result.put("outputDownloadPath", outputPath(jobId));
-        result.put("semanticIntegrity", request.getSemanticIntegrity());
-        String resultJson = json(result);
-        row = repository.complete(jobId, request.getNodeId(), request.getLeaseToken(),
-                request.getOutputDurationSeconds().doubleValue(), request.getSemanticIntegrity(),
-                request.getVideoEncodeCount().intValue(),
-                request.getIntermediateVideoCount().intValue(),
-                request.getWriterSidecarCount().intValue(), request.getNativeTaskId(),
-                request.getNativeRenderJobId(), resultJson, evidenceJson);
-        if (row == null) throw leaseLost();
-        addEvent(jobId, "completed", "completed", request.getNodeId(), result);
-        return rendererView(row);
-    }
-
-    public Map<String, Object> fail(String jobId, MusicMvRenderFailRequest request) {
-        Map<String, Object> row = repository.fail(jobId, request.getNodeId(),
-                request.getLeaseToken(), request.getErrorCode(), request.getErrorMessage(),
-                request.isRetryable());
-        if (row == null) throw leaseLost();
-        Map<String, Object> detail = new LinkedHashMap<String, Object>();
-        detail.put("errorCode", request.getErrorCode());
-        detail.put("retryable", Boolean.valueOf(request.isRetryable()));
-        addEvent(jobId, "failed_attempt", RowUtils.str(row, "status"),
-                request.getNodeId(), detail);
-        return rendererView(row);
     }
 
     public OutputAccess output(String clientId, String jobId) throws IOException {
@@ -855,16 +763,6 @@ public class MusicMvRenderJobService {
         if (value != null) target.put(key, value);
     }
 
-    private Map<String, Object> rendererView(Map<String, Object> row) {
-        Map<String, Object> result = commonView(row);
-        result.put("leaseToken", RowUtils.str(row, "lease_token"));
-        result.put("leaseExpiresAt", RowUtils.str(row, "lease_expires_at"));
-        result.put("request", parseObject(RowUtils.str(row, "request_json")));
-        result.put("outputUploadPath", "/internal/music-mv/v1/render-jobs/"
-                + RowUtils.str(row, "job_id") + "/output");
-        return result;
-    }
-
     private Map<String, Object> commonView(Map<String, Object> row) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         String[] keys = new String[] {"job_id", "request_id", "template_id", "version_id", "status",
@@ -903,37 +801,6 @@ public class MusicMvRenderJobService {
         return row;
     }
 
-    private Map<String, Object> requireLease(String jobId, String nodeId, String leaseToken) {
-        Map<String, Object> row = repository.lease(requireId(jobId, "MV_RENDER_JOB_ID_INVALID"),
-                requireId(nodeId, "RENDERER_NODE_ID_INVALID"), leaseToken);
-        if (row == null) throw leaseLost();
-        return row;
-    }
-
-    private void requireUploadedOutput(Map<String, Object> row,
-                                       MusicMvRenderCompleteRequest request) {
-        String storageKey = RowUtils.str(row, "output_storage_key");
-        Long size = RowUtils.lng(row, "output_size_bytes");
-        String hash = RowUtils.str(row, "output_sha256");
-        if (storageKey == null || size == null || hash == null || !artifacts.exists(storageKey)
-                || artifacts.size(storageKey) != request.getOutputSizeBytes().longValue()
-                || size.longValue() != request.getOutputSizeBytes().longValue()
-                || !hash.equalsIgnoreCase(request.getOutputSha256())) {
-            throw conflict("MV_RENDER_OUTPUT_EVIDENCE_MISMATCH",
-                    "Completion evidence does not match the uploaded MP4");
-        }
-    }
-
-    private void requireExactEvidence(MusicMvRenderCompleteRequest request) {
-        if (!"exact".equals(request.getSemanticIntegrity())
-                || request.getVideoEncodeCount().intValue() != 1
-                || request.getIntermediateVideoCount().intValue() != 0
-                || request.getWriterSidecarCount().intValue() != 0) {
-            throw conflict("MV_RENDER_NATIVE_EVIDENCE_NOT_EXACT",
-                    "Completion requires exact semantics, one encode and no intermediate or Writer residue");
-        }
-    }
-
     private void addEvent(String jobId, String type, String status, String nodeId,
                           Map<String, Object> detail) {
         repository.addEvent(IdUtils.token("mve"), jobId, type, status, nodeId, json(detail));
@@ -949,14 +816,6 @@ public class MusicMvRenderJobService {
         String result = value == null ? "" : value.trim();
         if (!result.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,127}")) {
             throw badRequest(code, "Identifier is invalid");
-        }
-        return result;
-    }
-
-    private String normalizeStage(String value) {
-        String result = value == null ? "" : value.trim().toLowerCase();
-        if (!result.matches("[a-z][a-z0-9_-]{0,63}")) {
-            throw badRequest("MV_RENDER_STAGE_INVALID", "Render stage is invalid");
         }
         return result;
     }
@@ -1055,11 +914,6 @@ public class MusicMvRenderJobService {
 
     private String outputPath(String jobId) {
         return "/api/music-mv/v1/render-jobs/" + jobId + "/output";
-    }
-
-    private ApiException leaseLost() {
-        return new ApiException(HttpStatus.CONFLICT, "MV_RENDER_LEASE_LOST",
-                "Render lease is invalid, canceled or no longer owned by this node", true, null);
     }
 
     private ApiException badRequest(String code, String message) {

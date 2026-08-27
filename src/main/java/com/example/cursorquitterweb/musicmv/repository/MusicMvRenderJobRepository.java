@@ -10,7 +10,6 @@ import java.util.Set;
 import org.springframework.stereotype.Repository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import com.example.cursorquitterweb.musicmv.dto.RendererHeartbeatRequest;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
 import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
 import com.example.cursorquitterweb.musicmv.service.D1Statement;
@@ -300,130 +299,6 @@ public class MusicMvRenderJobRepository {
             result.append(alias).append('.').append(column).append(" AS ").append(column);
         }
         return result.toString();
-    }
-
-    public Map<String, Object> rendererNode(String nodeId) {
-        return d1.query("SELECT node_id, status, last_seen_at FROM renderer_nodes "
-                + "WHERE node_id=? LIMIT 1", nodeId).firstRow();
-    }
-
-    public List<Map<String, Object>> rendererNodes() {
-        return d1.query("SELECT node_id,name,status,runtime_version,runtime_sha256,last_seen_at,"
-                + "last_error,created_at,updated_at,CASE WHEN last_seen_at IS NULL THEN NULL ELSE "
-                + "MAX(0,CAST(strftime('%s','now') AS INTEGER)-"
-                + "CAST(strftime('%s',last_seen_at) AS INTEGER)) END AS heartbeat_age_seconds "
-                + "FROM renderer_nodes ORDER BY name,node_id").getRows();
-    }
-
-    public void heartbeat(RendererHeartbeatRequest request) {
-        d1.query("INSERT INTO renderer_nodes "
-                        + "(node_id, name, status, runtime_version, runtime_sha256, last_seen_at, "
-                        + "last_error, created_at, updated_at) "
-                        + "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) "
-                        + "ON CONFLICT(node_id) DO UPDATE SET name=excluded.name, "
-                        + "status=excluded.status, runtime_version=excluded.runtime_version, "
-                        + "runtime_sha256=excluded.runtime_sha256, last_seen_at=CURRENT_TIMESTAMP, "
-                        + "last_error=excluded.last_error, updated_at=CURRENT_TIMESTAMP",
-                request.getNodeId(), request.getName(), request.getStatus(),
-                request.getRuntimeVersion(), request.getRuntimeSha256(), request.getLastError());
-    }
-
-    public Map<String, Object> claim(String nodeId, String leaseToken, int leaseSeconds) {
-        String leaseModifier = "+" + leaseSeconds + " seconds";
-        return d1.query("UPDATE music_mv_render_jobs SET status='leased', stage='leased', "
-                        + "claimed_node_id=?, lease_token=?, lease_expires_at=datetime('now', ?), "
-                        + "attempt_count=attempt_count+1, progress=0, "
-                        + "started_at=COALESCE(started_at, CURRENT_TIMESTAMP), "
-                        + "updated_at=CURRENT_TIMESTAMP, error_code=NULL, error_message=NULL "
-                        + "WHERE job_id=(SELECT j.job_id FROM music_mv_render_jobs j "
-                        + "JOIN template_versions v ON v.version_id=j.version_id "
-                        + "JOIN renderer_nodes n ON n.node_id=v.source_node_id "
-                        + "WHERE v.source_node_id=? AND v.source_availability='available' "
-                        + "AND n.node_id=? AND n.status='online' "
-                        + "AND n.last_seen_at>=datetime('now','-90 seconds') "
-                        + "AND v.status='published' AND v.validation_status='exact' "
-                        + "AND j.cancel_requested=0 AND j.attempt_count<j.max_attempts "
-                        + "AND (j.status='queued' OR (j.status IN ('leased','rendering','uploading') "
-                        + "AND j.lease_expires_at<CURRENT_TIMESTAMP)) "
-                        + "ORDER BY j.priority DESC, j.created_at, j.job_id LIMIT 1) "
-                        + "AND cancel_requested=0 AND attempt_count<max_attempts "
-                        + "RETURNING " + JOB_COLUMNS,
-                nodeId, leaseToken, leaseModifier, nodeId, nodeId).firstRow();
-    }
-
-    public Map<String, Object> renew(String jobId, String nodeId, String leaseToken,
-                                     int leaseSeconds, String stage, double progress) {
-        String leaseModifier = "+" + leaseSeconds + " seconds";
-        return d1.query("UPDATE music_mv_render_jobs SET status='rendering', stage=?, progress=?, "
-                        + "lease_expires_at=datetime('now', ?), updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND claimed_node_id=? AND lease_token=? "
-                        + "AND cancel_requested=0 "
-                        + "AND status IN ('leased','rendering','uploading') "
-                        + "RETURNING " + JOB_COLUMNS,
-                stage, Double.valueOf(progress), leaseModifier,
-                jobId, nodeId, leaseToken).firstRow();
-    }
-
-    public Map<String, Object> lease(String jobId, String nodeId, String leaseToken) {
-        return d1.query("SELECT " + JOB_COLUMNS + " FROM music_mv_render_jobs "
-                        + "WHERE job_id=? AND claimed_node_id=? AND lease_token=? "
-                        + "AND status IN ('leased','rendering','uploading') LIMIT 1",
-                jobId, nodeId, leaseToken).firstRow();
-    }
-
-    public Map<String, Object> markOutputUploaded(String jobId, String nodeId, String leaseToken,
-                                                   String storageKey, String contentType,
-                                                   long sizeBytes, String sha256) {
-        return d1.query("UPDATE music_mv_render_jobs SET status='uploading', stage='output_uploaded', "
-                        + "progress=0.98, output_storage_key=?, output_content_type=?, "
-                        + "output_size_bytes=?, output_sha256=?, updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND claimed_node_id=? AND lease_token=? "
-                        + "AND cancel_requested=0 AND status IN ('leased','rendering','uploading') "
-                        + "RETURNING " + JOB_COLUMNS,
-                storageKey, contentType, Long.valueOf(sizeBytes), sha256,
-                jobId, nodeId, leaseToken).firstRow();
-    }
-
-    public Map<String, Object> complete(String jobId, String nodeId, String leaseToken,
-                                         double durationSeconds, String semanticIntegrity,
-                                         int videoEncodeCount, int intermediateVideoCount,
-                                         int writerSidecarCount, String nativeTaskId,
-                                         String nativeRenderJobId, String resultJson,
-                                         String evidenceJson) {
-        return d1.query("UPDATE music_mv_render_jobs SET status='completed', stage='completed', "
-                        + "progress=1, output_duration_seconds=?, semantic_integrity=?, "
-                        + "video_encode_count=?, intermediate_video_count=?, writer_sidecar_count=?, "
-                        + "native_task_id=?, native_render_job_id=?, result_json=?, evidence_json=?, "
-                        + "lease_token=NULL, lease_expires_at=NULL, retryable=0, "
-                        + "completed_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND claimed_node_id=? AND lease_token=? "
-                        + "AND status='uploading' AND cancel_requested=0 "
-                        + "AND output_storage_key IS NOT NULL RETURNING " + JOB_COLUMNS,
-                Double.valueOf(durationSeconds), semanticIntegrity,
-                Integer.valueOf(videoEncodeCount), Integer.valueOf(intermediateVideoCount),
-                Integer.valueOf(writerSidecarCount), nativeTaskId, nativeRenderJobId,
-                resultJson, evidenceJson, jobId, nodeId, leaseToken).firstRow();
-    }
-
-    public Map<String, Object> fail(String jobId, String nodeId, String leaseToken,
-                                     String errorCode, String errorMessage, boolean retryable) {
-        return d1.query("UPDATE music_mv_render_jobs SET "
-                        + "status=CASE WHEN ?=1 AND attempt_count<max_attempts "
-                        + "THEN 'queued' ELSE 'failed' END, "
-                        + "stage=CASE WHEN ?=1 AND attempt_count<max_attempts "
-                        + "THEN 'retry_wait' ELSE 'failed' END, "
-                        + "progress=CASE WHEN ?=1 AND attempt_count<max_attempts THEN 0 ELSE progress END, "
-                        + "error_code=?, error_message=?, retryable=?, lease_token=NULL, "
-                        + "lease_expires_at=NULL, claimed_node_id=CASE WHEN ?=1 "
-                        + "AND attempt_count<max_attempts THEN NULL ELSE claimed_node_id END, "
-                        + "completed_at=CASE WHEN ?=1 AND attempt_count<max_attempts "
-                        + "THEN NULL ELSE CURRENT_TIMESTAMP END, updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND claimed_node_id=? AND lease_token=? "
-                        + "AND status IN ('leased','rendering','uploading') RETURNING " + JOB_COLUMNS,
-                Integer.valueOf(retryable ? 1 : 0), Integer.valueOf(retryable ? 1 : 0),
-                Integer.valueOf(retryable ? 1 : 0), errorCode, errorMessage,
-                Integer.valueOf(retryable ? 1 : 0), Integer.valueOf(retryable ? 1 : 0),
-                Integer.valueOf(retryable ? 1 : 0), jobId, nodeId, leaseToken).firstRow();
     }
 
     public Map<String, Object> cancel(String jobId, String clientId) {

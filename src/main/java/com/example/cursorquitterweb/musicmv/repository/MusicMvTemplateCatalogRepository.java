@@ -44,9 +44,7 @@ public class MusicMvTemplateCatalogRepository {
                 .append("COALESCE(req.description, en.description, zh.description, '') AS description, ")
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
                 .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
-                .append("CASE WHEN v.source_availability='available' AND rn.status='online' ")
-                .append("AND rn.last_seen_at>=datetime('now','-90 seconds') ")
-                .append("THEN 'available' ELSE 'unavailable' END AS source_availability, ")
+                .append("v.source_availability AS source_availability, ")
                 .append("cover.provider AS cover_provider, cover.provider_asset_id AS cover_asset_id, ")
                 .append("cover.provider_details_json AS cover_provider_details_json, ")
                 .append("preview.provider AS preview_provider, preview.provider_asset_id AS preview_asset_id, ")
@@ -56,7 +54,6 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_translations en ON en.template_id=t.template_id AND en.locale='en' ")
                 .append("LEFT JOIN template_translations zh ON zh.template_id=t.template_id AND zh.locale='zh-CN' ")
                 .append("LEFT JOIN template_versions v ON v.version_id=t.current_version_id ")
-                .append("LEFT JOIN renderer_nodes rn ON rn.node_id=v.source_node_id ")
                 .append("LEFT JOIN template_media cover ON cover.version_id=t.current_version_id ")
                 .append("AND cover.media_role='cover' AND cover.status='ready' ")
                 .append("LEFT JOIN template_media preview ON preview.version_id=t.current_version_id ")
@@ -140,19 +137,15 @@ public class MusicMvTemplateCatalogRepository {
                 + "v.validation_render_job_id, v.validation_master_sha256, v.draft_snapshot_sha256, "
                 + "v.timeline_evidence_sha256, v.native_runtime_version, v.native_runtime_sha256, "
                 + "v.renderer_version, v.source_node_id, v.source_local_key, v.source_availability, "
-                + "CASE WHEN v.source_availability='available' AND rn.status='online' "
-                + "AND rn.last_seen_at>=datetime('now','-90 seconds') "
-                + "THEN 'available' ELSE 'unavailable' END AS effective_source_availability, "
+                + "v.source_availability AS effective_source_availability, "
                 + "v.last_source_verified_at, v.source_provenance_json, v.created_at, v.published_at "
-                + "FROM template_versions v LEFT JOIN renderer_nodes rn ON rn.node_id=v.source_node_id "
+                + "FROM template_versions v "
                 + "WHERE v.template_id=? ORDER BY v.version_number DESC", templateId).getRows();
     }
 
     public Map<String, Object> version(String templateId, String versionId) {
-        return d1.query("SELECT v.*,CASE WHEN v.source_availability='available' AND rn.status='online' "
-                        + "AND rn.last_seen_at>=datetime('now','-90 seconds') "
-                        + "THEN 'available' ELSE 'unavailable' END AS effective_source_availability "
-                        + "FROM template_versions v LEFT JOIN renderer_nodes rn ON rn.node_id=v.source_node_id "
+        return d1.query("SELECT v.*,v.source_availability AS effective_source_availability "
+                        + "FROM template_versions v "
                         + "WHERE v.template_id=? AND v.version_id=? LIMIT 1",
                 templateId, versionId).firstRow();
     }

@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderOutputRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderAttemptStartRequest;
 import com.example.cursorquitterweb.musicmv.dto.BrowserRenderFailureRequest;
-import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderCompleteRequest;
 import com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest;
 import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepository;
@@ -116,24 +115,6 @@ class MusicMvRenderJobServiceTest {
         verify(repository).completeBrowserPreparation(eq("mvr_1"), anyString());
         verify(inputAssets, never()).requireOwnedCloudAsset(eq("website-backend"),
                 eq((MusicMvRenderJobCreateRequest.Asset) null), eq("image"));
-    }
-
-    @Test
-    void rejectsCompletionWithoutSingleExactNativeEncode() {
-        MusicMvRenderJobService service = new MusicMvRenderJobService(
-                mock(MusicMvRenderJobRepository.class),
-                mock(AiMusicJobRepository.class),
-                mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
-                new ObjectMapper(), false, 2);
-        MusicMvRenderCompleteRequest request = new MusicMvRenderCompleteRequest();
-        request.setSemanticIntegrity("degraded");
-        request.setVideoEncodeCount(Integer.valueOf(1));
-        request.setIntermediateVideoCount(Integer.valueOf(0));
-        request.setWriterSidecarCount(Integer.valueOf(0));
-
-        ApiException exception = assertThrows(ApiException.class,
-                () -> service.complete("mvr_1", request));
-        assertEquals("MV_RENDER_NATIVE_EVIDENCE_NOT_EXACT", exception.getCode());
     }
 
     @Test

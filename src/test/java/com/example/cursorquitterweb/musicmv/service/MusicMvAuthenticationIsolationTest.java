@@ -19,27 +19,21 @@ class MusicMvAuthenticationIsolationTest {
     }
 
     @Test
-    void clientAndRendererCredentialsAreIndependent() {
+    void clientAndTemplateSyncCredentialsAreIndependent() {
         MusicMvRenderClientAuthenticationService client =
                 new MusicMvRenderClientAuthenticationService("client-only");
-        RendererAuthenticationService renderer =
-                new RendererAuthenticationService("renderer-only");
         TemplateSyncAuthenticationService templateSync =
                 new TemplateSyncAuthenticationService("template-sync-only");
 
         assertDoesNotThrow(() -> client.requireAuthorized("client-only"));
-        assertDoesNotThrow(() -> renderer.requireAuthorized("renderer-only"));
         assertDoesNotThrow(() -> templateSync.requireAuthorized("template-sync-only"));
 
-        ApiException clientRejectsRenderer = assertThrows(ApiException.class,
-                () -> client.requireAuthorized("renderer-only"));
-        ApiException rendererRejectsClient = assertThrows(ApiException.class,
-                () -> renderer.requireAuthorized("client-only"));
-        ApiException syncRejectsRenderer = assertThrows(ApiException.class,
-                () -> templateSync.requireAuthorized("renderer-only"));
-        assertEquals("INVALID_MV_RENDER_CLIENT_TOKEN", clientRejectsRenderer.getCode());
-        assertEquals("INVALID_RENDERER_TOKEN", rendererRejectsClient.getCode());
-        assertEquals("INVALID_TEMPLATE_SYNC_TOKEN", syncRejectsRenderer.getCode());
+        ApiException clientRejectsSync = assertThrows(ApiException.class,
+                () -> client.requireAuthorized("template-sync-only"));
+        ApiException syncRejectsClient = assertThrows(ApiException.class,
+                () -> templateSync.requireAuthorized("client-only"));
+        assertEquals("INVALID_MV_RENDER_CLIENT_TOKEN", clientRejectsSync.getCode());
+        assertEquals("INVALID_TEMPLATE_SYNC_TOKEN", syncRejectsClient.getCode());
     }
 
     @Test
