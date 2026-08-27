@@ -144,6 +144,10 @@ CREATE INDEX IF NOT EXISTS idx_music_mv_project_assets_asset
 -- through website-backend APIs.
 CREATE TABLE IF NOT EXISTS template_categories (
   category_key TEXT PRIMARY KEY,
+  parent_key TEXT,
+  level INTEGER NOT NULL DEFAULT 2,
+  slug_path TEXT NOT NULL DEFAULT '',
+  is_selectable INTEGER NOT NULL DEFAULT 1,
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
   sort_order INTEGER NOT NULL,
@@ -151,6 +155,9 @@ CREATE TABLE IF NOT EXISTS template_categories (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_template_categories_tree
+  ON template_categories(parent_key, enabled, sort_order);
 
 CREATE TABLE IF NOT EXISTS templates (
   template_id TEXT PRIMARY KEY,
@@ -186,6 +193,91 @@ CREATE TABLE IF NOT EXISTS template_translations (
   seo_description TEXT,
   PRIMARY KEY (template_id, locale),
   FOREIGN KEY (template_id) REFERENCES templates(template_id)
+);
+
+-- Raw CapCut metadata is retained as source evidence. These values are never
+-- rewritten into a second, internal keyword vocabulary.
+CREATE TABLE IF NOT EXISTS template_source_metadata (
+  template_id TEXT PRIMARY KEY,
+  source_title TEXT NOT NULL DEFAULT '',
+  source_description TEXT NOT NULL DEFAULT '',
+  source_category TEXT NOT NULL DEFAULT '',
+  source_search_keyword TEXT NOT NULL DEFAULT '',
+  source_hashtags_json TEXT NOT NULL DEFAULT '[]',
+  source_url TEXT NOT NULL DEFAULT '',
+  classifier_version TEXT NOT NULL DEFAULT 'source-rules-v1',
+  classification_locked INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (template_id) REFERENCES templates(template_id)
+);
+
+-- A template has one primary public category and may appear in additional
+-- public categories. The legacy templates.category_key mirrors the primary
+-- relation for rolling compatibility with older render/admin clients.
+CREATE TABLE IF NOT EXISTS template_category_items (
+  template_id TEXT NOT NULL,
+  category_key TEXT NOT NULL,
+  is_primary INTEGER NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT 'automatic',
+  confidence REAL NOT NULL DEFAULT 0,
+  evidence_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (template_id, category_key),
+  FOREIGN KEY (template_id) REFERENCES templates(template_id),
+  FOREIGN KEY (category_key) REFERENCES template_categories(category_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_category_items_catalog
+  ON template_category_items(category_key, is_primary, confidence, template_id);
+
+-- Keyword landing pages are many-to-many editorial indexes. A template keeps
+-- one leaf category, while collections let the same format appear in several
+-- user-intent pages without duplicating the template or its render assets.
+CREATE TABLE IF NOT EXISTS template_collections (
+  collection_key TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  parent_category_key TEXT NOT NULL,
+  keyword TEXT NOT NULL,
+  name_zh TEXT NOT NULL,
+  name_en TEXT NOT NULL,
+  description_zh TEXT NOT NULL DEFAULT '',
+  description_en TEXT NOT NULL DEFAULT '',
+  seo_title TEXT,
+  seo_description TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (parent_category_key) REFERENCES template_categories(category_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_collections_catalog
+  ON template_collections(parent_category_key, enabled, sort_order);
+
+CREATE TABLE IF NOT EXISTS template_collection_items (
+  collection_key TEXT NOT NULL,
+  template_id TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT 'manual',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (collection_key, template_id),
+  FOREIGN KEY (collection_key) REFERENCES template_collections(collection_key),
+  FOREIGN KEY (template_id) REFERENCES templates(template_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_collection_items_template
+  ON template_collection_items(template_id, collection_key);
+
+CREATE TABLE IF NOT EXISTS template_collection_relations (
+  collection_key TEXT NOT NULL,
+  related_collection_key TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (collection_key, related_collection_key),
+  FOREIGN KEY (collection_key) REFERENCES template_collections(collection_key),
+  FOREIGN KEY (related_collection_key) REFERENCES template_collections(collection_key)
 );
 
 CREATE TABLE IF NOT EXISTS renderer_nodes (
@@ -502,17 +594,57 @@ CREATE INDEX IF NOT EXISTS idx_template_validation_version
   ON template_validation_records(version_id, validated_at DESC);
 
 INSERT OR IGNORE INTO template_categories
-  (category_key, name_zh, name_en, sort_order, enabled, created_at, updated_at)
+  (category_key, parent_key, level, slug_path, is_selectable, name_zh, name_en,
+   sort_order, enabled, created_at, updated_at)
 VALUES
-  ('birthday', '生日祝福', 'Birthday', 10, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('family', '亲情家庭', 'Family', 20, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('baby-growth', '宝宝成长', 'Baby & Growth', 30, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('love', '恋爱告白', 'Love', 40, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('friendship', '友情纪念', 'Friendship', 50, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('wedding-anniversary', '婚礼与纪念日', 'Wedding & Anniversary', 60, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('school-life', '校园生活', 'School Life', 70, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('inspiration', '励志成长', 'Inspiration', 80, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('healing', '情绪疗愈', 'Healing', 90, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('breakup', '失恋告别', 'Breakup & Farewell', 100, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('party-festival', '派对节日', 'Party & Festival', 110, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('gaming-anime', '游戏与二次元', 'Gaming & Anime', 120, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('celebrations', NULL, 1, 'celebrations', 0, '庆祝与里程碑', 'Celebrations', 10, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('birthday', 'celebrations', 2, 'celebrations/birthday', 1, '生日', 'Birthday', 11, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('wedding', 'celebrations', 2, 'celebrations/wedding', 1, '婚礼', 'Wedding', 12, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('anniversary', 'celebrations', 2, 'celebrations/anniversary', 1, '纪念日', 'Anniversary', 13, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('graduation', 'celebrations', 2, 'celebrations/graduation', 1, '毕业', 'Graduation', 14, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('holidays-parties', 'celebrations', 2, 'celebrations/holidays-parties', 1, '节日与派对', 'Holidays & Parties', 15, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('relationships', NULL, 1, 'relationships', 0, '人物与关系', 'People & Relationships', 20, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('family', 'relationships', 2, 'relationships/family', 1, '家庭', 'Family', 21, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('baby-kids', 'relationships', 2, 'relationships/baby-kids', 1, '宝宝与孩子', 'Baby & Kids', 22, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('couples', 'relationships', 2, 'relationships/couples', 1, '情侣', 'Couples', 23, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('friendship', 'relationships', 2, 'relationships/friendship', 1, '友情', 'Friendship', 24, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('life-stories', NULL, 1, 'life-stories', 0, '生活与故事', 'Life & Stories', 30, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('daily-life', 'life-stories', 2, 'life-stories/daily-life', 1, '日常生活', 'Daily Life', 31, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('travel', 'life-stories', 2, 'life-stories/travel', 1, '旅行', 'Travel', 32, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('school-life', 'life-stories', 2, 'life-stories/school-life', 1, '校园生活', 'School Life', 33, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('growing-up', 'life-stories', 2, 'life-stories/growing-up', 1, '成长记录', 'Growing Up', 34, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('recap', 'life-stories', 2, 'life-stories/recap', 1, '回顾与总结', 'Recap', 35, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('hobbies-interests', 'life-stories', 2, 'life-stories/hobbies-interests', 1, '兴趣爱好', 'Hobbies & Interests', 36, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('emotions-messages', NULL, 1, 'emotions-messages', 0, '情感与表达', 'Emotions & Messages', 40, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('motivation', 'emotions-messages', 2, 'emotions-messages/motivation', 1, '励志', 'Motivation', 41, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('healing', 'emotions-messages', 2, 'emotions-messages/healing', 1, '疗愈', 'Healing', 42, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('love-thanks', 'emotions-messages', 2, 'emotions-messages/love-thanks', 1, '爱与感谢', 'Love & Thanks', 43, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('farewell-breakup', 'emotions-messages', 2, 'emotions-messages/farewell-breakup', 1, '告别与释怀', 'Farewell & Moving On', 44, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('memorial', 'emotions-messages', 2, 'emotions-messages/memorial', 1, '纪念与缅怀', 'Memorial', 45, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT OR IGNORE INTO template_collections
+  (collection_key, slug, parent_category_key, keyword, name_zh, name_en,
+   description_zh, description_en, seo_title, seo_description, sort_order,
+   enabled, created_at, updated_at)
+VALUES
+  ('family-birthday', 'family-birthday', 'birthday', 'family birthday', '家人生日', 'Family Birthday', '适合家人共同回忆的生日视频模板。', 'Birthday video templates for shared family memories.', 'Family birthday video templates', 'Create a family birthday song and video with personal photos.', 10, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('birthday-for-mom', 'birthday-for-mom', 'birthday', 'birthday mom', '妈妈生日', 'Birthday for Mom', '给妈妈创作生日歌并制作照片音乐视频。', 'Create a birthday song and photo music video for Mom.', 'Birthday video templates for Mom', 'Create an original birthday song and photo video for Mom.', 20, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('birthday-for-dad', 'birthday-for-dad', 'birthday', 'birthday dad', '爸爸生日', 'Birthday for Dad', '给爸爸创作生日歌并制作照片音乐视频。', 'Create a birthday song and photo music video for Dad.', 'Birthday video templates for Dad', 'Create an original birthday song and photo video for Dad.', 30, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('baby-first-year', 'baby-first-year', 'baby-kids', 'baby first year', '宝宝第一年', 'Baby First Year', '用歌曲和照片记录宝宝第一年的成长。', 'Turn a baby''s first year into a song-led photo story.', 'Baby first year video templates', 'Create a baby first-year song and photo music video.', 40, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('family-year-in-review', 'family-year-in-review', 'recap', 'family year recap', '家庭年度回顾', 'Family Year in Review', '用原创歌曲和家庭照片回顾这一年。', 'Review a family year with an original song and real photos.', 'Family year-in-review templates', 'Create a family year-in-review song and photo video.', 50, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('wedding-story', 'wedding-story', 'wedding', 'wedding story', '婚礼故事', 'Wedding Story', '从相遇到婚礼，用歌曲和照片讲完整故事。', 'Tell the story from meeting to wedding with song and photos.', 'Wedding story video templates', 'Create an original wedding song and photo music video.', 60, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('graduation-memories', 'graduation-memories', 'graduation', 'graduation memories', '毕业回忆', 'Graduation Memories', '把校园、同学和毕业时刻做成完整音乐视频。', 'Turn school and graduation memories into a complete music video.', 'Graduation memory video templates', 'Create a graduation song and photo music video.', 70, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('friendship-memories', 'friendship-memories', 'friendship', 'friendship memories', '友情回忆', 'Friendship Memories', '用共同经历、旅行和照片制作友情音乐视频。', 'Create a friendship music video from shared memories and trips.', 'Friendship memory video templates', 'Create an original friendship song and photo music video.', 80, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT OR IGNORE INTO template_collection_relations
+  (collection_key, related_collection_key, sort_order)
+VALUES
+  ('family-birthday', 'birthday-for-mom', 10),
+  ('family-birthday', 'birthday-for-dad', 20),
+  ('birthday-for-mom', 'family-birthday', 10),
+  ('birthday-for-dad', 'family-birthday', 10),
+  ('baby-first-year', 'family-year-in-review', 10),
+  ('family-year-in-review', 'baby-first-year', 10),
+  ('wedding-story', 'friendship-memories', 10),
+  ('graduation-memories', 'friendship-memories', 10),
+  ('friendship-memories', 'graduation-memories', 10);

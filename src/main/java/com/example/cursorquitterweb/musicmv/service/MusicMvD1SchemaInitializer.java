@@ -36,7 +36,8 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 8;
+    static final int SCHEMA_VERSION = 10;
+    static final long ENABLED_CATEGORY_COUNT = 24L;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -53,6 +54,11 @@ public class MusicMvD1SchemaInitializer {
                     "template_categories",
                     "templates",
                     "template_translations",
+                    "template_source_metadata",
+                    "template_category_items",
+                    "template_collections",
+                    "template_collection_items",
+                    "template_collection_relations",
                     "renderer_nodes",
                     "template_versions",
                     "template_slots",
@@ -85,8 +91,11 @@ public class MusicMvD1SchemaInitializer {
 
         reconcileAiMusicOwnership(existingTables);
         reconcileCapCutTemplateIdentity(existingTables);
+        reconcileTemplateTaxonomyColumns(existingTables);
         int batches = applyStatements(source.statements);
-        reconcileSchoolLifeCategory(existingTables());
+        Set<String> reconciledTables = existingTables();
+        reconcileTemplateTaxonomyData(reconciledTables);
+        backfillTemplateCategoryItems(reconciledTables);
         d1.query("INSERT INTO music_mv_schema_metadata "
                         + "(schema_key,schema_version,schema_sha256,applied_at,updated_at) "
                         + "VALUES (?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
@@ -179,16 +188,118 @@ public class MusicMvD1SchemaInitializer {
         d1.query("ALTER TABLE templates ADD COLUMN capcut_template_id TEXT");
     }
 
-    private void reconcileSchoolLifeCategory(Set<String> existingTables) {
+    private void reconcileTemplateTaxonomyColumns(Set<String> existingTables) {
         if (!existingTables.contains("template_categories")) return;
-        d1.query("UPDATE template_categories SET name_zh='校园生活',name_en='School Life',"
-                + "sort_order=70,enabled=1,updated_at=CURRENT_TIMESTAMP "
-                + "WHERE category_key='school-life'");
-        if (existingTables.contains("templates")) {
-            d1.query("UPDATE templates SET category_key='school-life',updated_at=CURRENT_TIMESTAMP "
-                    + "WHERE category_key='graduation'");
+        Set<String> columns = new LinkedHashSet<String>();
+        for (Map<String, Object> row : d1.query("PRAGMA table_info(template_categories)").getRows()) {
+            columns.add(RowUtils.str(row, "name"));
         }
-        d1.query("DELETE FROM template_categories WHERE category_key='graduation'");
+        if (!columns.contains("parent_key")) {
+            d1.query("ALTER TABLE template_categories ADD COLUMN parent_key TEXT");
+        }
+        if (!columns.contains("level")) {
+            d1.query("ALTER TABLE template_categories ADD COLUMN level INTEGER NOT NULL DEFAULT 2");
+        }
+        if (!columns.contains("slug_path")) {
+            d1.query("ALTER TABLE template_categories ADD COLUMN slug_path TEXT NOT NULL DEFAULT ''");
+        }
+        if (!columns.contains("is_selectable")) {
+            d1.query("ALTER TABLE template_categories ADD COLUMN is_selectable INTEGER NOT NULL DEFAULT 1");
+        }
+    }
+
+    private void reconcileTemplateTaxonomyData(Set<String> existingTables) {
+        if (!existingTables.contains("template_categories")) return;
+        if (existingTables.contains("templates")) {
+            String[][] migrations = new String[][] {
+                    {"baby-growth", "baby-kids"},
+                    {"love", "couples"},
+                    {"wedding-anniversary", "anniversary"},
+                    {"inspiration", "motivation"},
+                    {"breakup", "farewell-breakup"},
+                    {"party-festival", "holidays-parties"},
+                    {"gaming-anime", "hobbies-interests"}
+            };
+            for (String[] migration : migrations) {
+                d1.query("UPDATE templates SET category_key=?,updated_at=CURRENT_TIMESTAMP "
+                                + "WHERE category_key=?",
+                        migration[1], migration[0]);
+            }
+        }
+        String[][] reused = new String[][] {
+                {"birthday", "celebrations", "celebrations/birthday", "生日", "Birthday", "11"},
+                {"family", "relationships", "relationships/family", "家庭", "Family", "21"},
+                {"friendship", "relationships", "relationships/friendship", "友情", "Friendship", "24"},
+                {"school-life", "life-stories", "life-stories/school-life", "校园生活", "School Life", "33"},
+                {"healing", "emotions-messages", "emotions-messages/healing", "疗愈", "Healing", "42"}
+        };
+        for (String[] category : reused) {
+            d1.query("UPDATE template_categories SET parent_key=?,level=2,slug_path=?,"
+                            + "is_selectable=1,name_zh=?,name_en=?,sort_order=?,enabled=1,"
+                            + "updated_at=CURRENT_TIMESTAMP WHERE category_key=?",
+                    category[1], category[2], category[3], category[4],
+                    Integer.valueOf(category[5]), category[0]);
+        }
+        d1.query("UPDATE template_categories SET enabled=0,is_selectable=0,updated_at=CURRENT_TIMESTAMP "
+                + "WHERE category_key IN ('baby-growth','love','wedding-anniversary','inspiration',"
+                + "'breakup','party-festival','gaming-anime')");
+        // Collection tables remain dormant for backward compatibility. New
+        // catalog code uses template_category_items instead.
+    }
+
+    private void backfillTemplateCategoryItems(Set<String> existingTables) {
+        if (!existingTables.contains("templates")
+                || !existingTables.contains("template_category_items")) return;
+        d1.query("INSERT OR IGNORE INTO template_category_items "
+                        + "(template_id,category_key,is_primary,source,confidence,evidence_json,created_at,updated_at) "
+                        + "SELECT template_id,category_key,1,'legacy',1.0,'[{\"field\":\"legacyCategory\"}]',"
+                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM templates WHERE deleted_at IS NULL");
+        if (existingTables.contains("template_source_metadata")) {
+            d1.query("INSERT OR IGNORE INTO template_source_metadata "
+                            + "(template_id,source_title,source_description,source_category,source_search_keyword,"
+                            + "source_hashtags_json,source_url,classifier_version,classification_locked,created_at,updated_at) "
+                            + "SELECT template_id,'','','','', '[]',CASE WHEN capcut_template_id IS NULL THEN '' "
+                            + "ELSE 'https://www.capcut.com/template-detail/' || capcut_template_id END,"
+                            + "'source-rules-v1',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM templates "
+                            + "WHERE deleted_at IS NULL");
+        }
+    }
+
+    private void backfillCollectionMembership(Set<String> existingTables) {
+        if (!existingTables.contains("templates")
+                || !existingTables.contains("template_collection_items")) return;
+        d1.query("DELETE FROM template_collection_items WHERE source='taxonomy-backfill'");
+        String[][] rules = new String[][] {
+                // The category itself is enough evidence for these broad,
+                // category-backed discovery collections. More specific
+                // collections still require an explicit keyword match.
+                {"family-birthday", "birthday"},
+                {"birthday-for-mom", "birthday", "%mom%", "%mother%", "%妈妈%", "%母亲%"},
+                {"birthday-for-dad", "birthday", "%dad%", "%father%", "%爸爸%", "%父亲%"},
+                {"baby-first-year", "baby-kids", "%first year%", "%第一年%"},
+                {"family-year-in-review", "recap", "%family%", "%家庭%"},
+                {"wedding-story", "wedding"},
+                {"graduation-memories", "graduation"},
+                {"friendship-memories", "friendship"}
+        };
+        for (String[] rule : rules) {
+            StringBuilder condition = new StringBuilder();
+            List<Object> params = new ArrayList<Object>();
+            params.add(rule[0]);
+            params.add(rule[1]);
+            for (int index = 2; index < rule.length; index++) {
+                if (condition.length() > 0) condition.append(" OR ");
+                condition.append("lower(t.tags_json) LIKE ?");
+                params.add(rule[index].toLowerCase());
+            }
+            if (condition.length() == 0) condition.append("1=1");
+            d1.query("INSERT OR IGNORE INTO template_collection_items "
+                            + "(collection_key,template_id,sort_order,source,created_at,updated_at) "
+                            + "SELECT ?,t.template_id,0,'taxonomy-backfill',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP "
+                            + "FROM templates t WHERE t.deleted_at IS NULL AND t.category_key=? AND ("
+                            + condition + ")",
+                    params.toArray(new Object[params.size()]));
+        }
     }
 
     private Map<String, Object> verify(String expectedSha256) {
@@ -206,7 +317,7 @@ public class MusicMvD1SchemaInitializer {
                 SCHEMA_KEY).firstRow();
         long schemaVersion = number(metadata, "schema_version");
         String schemaSha256 = metadata == null ? null : RowUtils.str(metadata, "schema_sha256");
-        if (categoryCount != 12L || schemaVersion != SCHEMA_VERSION
+        if (categoryCount != ENABLED_CATEGORY_COUNT || schemaVersion != SCHEMA_VERSION
                 || !expectedSha256.equals(schemaSha256)) {
             throw verificationFailed("Schema metadata or category seed verification failed",
                     Collections.<String>emptySet());

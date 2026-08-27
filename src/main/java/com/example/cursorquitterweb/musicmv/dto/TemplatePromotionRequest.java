@@ -21,6 +21,17 @@ public class TemplatePromotionRequest {
     @NotBlank @Pattern(regexp = "^[0-9]{8,24}$") private String capcutTemplateId;
     @NotBlank private String slug;
     @NotBlank private String categoryKey;
+    private List<String> categoryKeys = new ArrayList<String>();
+    private String sourceTitle = "";
+    private String sourceDescription = "";
+    private String sourceCategory = "";
+    private String sourceSearchKeyword = "";
+    private List<String> sourceHashtags = new ArrayList<String>();
+    private String sourceUrl = "";
+    private Boolean classificationLocked = Boolean.FALSE;
+    private List<String> keywords = new ArrayList<String>();
+    private List<String> collectionKeys = new ArrayList<String>();
+    /** @deprecated Use keywords. Kept for rolling compatibility with older render nodes. */
     @NotNull private List<String> tags = new ArrayList<String>();
     @NotBlank private String nameZh;
     @NotBlank private String nameEn;
@@ -62,6 +73,26 @@ public class TemplatePromotionRequest {
     public void setSlug(String value) { slug = value; }
     public String getCategoryKey() { return categoryKey; }
     public void setCategoryKey(String value) { categoryKey = value; }
+    public List<String> getCategoryKeys() { return categoryKeys; }
+    public void setCategoryKeys(List<String> value) { categoryKeys = value == null ? new ArrayList<String>() : value; }
+    public String getSourceTitle() { return sourceTitle; }
+    public void setSourceTitle(String value) { sourceTitle = value; }
+    public String getSourceDescription() { return sourceDescription; }
+    public void setSourceDescription(String value) { sourceDescription = value; }
+    public String getSourceCategory() { return sourceCategory; }
+    public void setSourceCategory(String value) { sourceCategory = value; }
+    public String getSourceSearchKeyword() { return sourceSearchKeyword; }
+    public void setSourceSearchKeyword(String value) { sourceSearchKeyword = value; }
+    public List<String> getSourceHashtags() { return sourceHashtags; }
+    public void setSourceHashtags(List<String> value) { sourceHashtags = value == null ? new ArrayList<String>() : value; }
+    public String getSourceUrl() { return sourceUrl; }
+    public void setSourceUrl(String value) { sourceUrl = value; }
+    public Boolean getClassificationLocked() { return classificationLocked; }
+    public void setClassificationLocked(Boolean value) { classificationLocked = value == null ? Boolean.FALSE : value; }
+    public List<String> getKeywords() { return keywords; }
+    public void setKeywords(List<String> value) { keywords = value == null ? new ArrayList<String>() : value; }
+    public List<String> getCollectionKeys() { return collectionKeys; }
+    public void setCollectionKeys(List<String> value) { collectionKeys = value == null ? new ArrayList<String>() : value; }
     public List<String> getTags() { return tags; }
     public void setTags(List<String> value) { tags = value == null ? new ArrayList<String>() : value; }
     public String getNameZh() { return nameZh; }

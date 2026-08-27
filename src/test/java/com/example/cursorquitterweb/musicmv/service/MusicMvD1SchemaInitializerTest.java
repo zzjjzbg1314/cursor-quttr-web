@@ -30,15 +30,17 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(8);
-        assertThat(result.get("categoryCount")).isEqualTo(12L);
+        assertThat(result.get("schemaVersion")).isEqualTo(10);
+        assertThat(result.get("categoryCount")).isEqualTo(24L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "CREATE TABLE IF NOT EXISTS music_mv_schema_metadata"));
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "INSERT OR IGNORE INTO template_categories"));
         assertThat(d1.queries).anyMatch(statement -> statement.contains(
-                "UPDATE templates SET category_key='school-life'"));
+                "UPDATE templates SET category_key=?"));
+        assertThat(d1.queries).anyMatch(statement -> statement.contains(
+                "INSERT OR IGNORE INTO template_category_items"));
         assertThat(d1.metadataSha256).hasSize(64);
     }
 
@@ -124,20 +126,33 @@ class MusicMvD1SchemaInitializerTest {
                 column.put("name", "capcut_template_id");
                 return rows(Arrays.asList(column));
             }
+            if (sql.startsWith("PRAGMA table_info(template_categories)")) {
+                List<Map<String, Object>> columns = new ArrayList<Map<String, Object>>();
+                for (String name : Arrays.asList("parent_key", "level", "slug_path", "is_selectable")) {
+                    Map<String, Object> column = new LinkedHashMap<String, Object>();
+                    column.put("name", name);
+                    columns.add(column);
+                }
+                return rows(columns);
+            }
             if (sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
-            if (sql.startsWith("UPDATE template_categories SET name_zh='校园生活'")
-                    || sql.startsWith("UPDATE templates SET category_key='school-life'")
-                    || sql.startsWith("DELETE FROM template_categories WHERE category_key='graduation'")) {
+            if (sql.startsWith("UPDATE templates SET category_key=?")
+                    || sql.startsWith("UPDATE template_categories SET parent_key=?")
+                    || sql.startsWith("UPDATE template_categories SET enabled=0")
+                    || sql.startsWith("DELETE FROM template_collection_items")
+                    || sql.startsWith("INSERT OR IGNORE INTO template_collection_items")
+                    || sql.startsWith("INSERT OR IGNORE INTO template_category_items")
+                    || sql.startsWith("INSERT OR IGNORE INTO template_source_metadata")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
             if (sql.contains("COUNT(*) AS category_count")) {
-                return row("category_count", Long.valueOf(applied ? 12L : 0L));
+                return row("category_count", Long.valueOf(applied ? 24L : 0L));
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(8));
+                metadata.put("schema_version", Integer.valueOf(10));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }
@@ -159,6 +174,8 @@ class MusicMvD1SchemaInitializerTest {
                     "music_mv_users", "music_mv_user_identities", "music_mv_user_sessions",
                     "music_mv_user_assets", "music_mv_projects", "music_mv_project_assets",
                     "template_translations", "renderer_nodes", "template_versions",
+                    "template_source_metadata", "template_category_items",
+                    "template_collections", "template_collection_items", "template_collection_relations",
                     "template_slots", "template_browser_scenes", "template_media", "music_mv_render_jobs",
                     "music_mv_render_job_events", "template_validation_records",
                     "ai_music_jobs", "ai_music_provider_attempts", "ai_music_candidates",

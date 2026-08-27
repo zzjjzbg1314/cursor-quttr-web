@@ -47,10 +47,16 @@ public class MusicMvTemplateCatalogController {
             @RequestParam(value = "locale", required = false) String locale,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "q", required = false) String keyword,
+            @RequestParam(value = "minSlots", required = false) Integer minSlots,
+            @RequestParam(value = "maxSlots", required = false) Integer maxSlots,
+            @RequestParam(value = "minDuration", required = false) Double minDuration,
+            @RequestParam(value = "maxDuration", required = false) Double maxDuration,
+            @RequestParam(value = "aspectRatio", required = false) String aspectRatio,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         authentication.requireAuthorized(token);
-        return service.list(locale, category, keyword, page, pageSize, false, null);
+        return service.list(locale, category, null, keyword, minSlots, maxSlots,
+                minDuration, maxDuration, aspectRatio, page, pageSize, false, null);
     }
 
     @GetMapping("/templates/{templateId}")
@@ -59,6 +65,16 @@ public class MusicMvTemplateCatalogController {
             @PathVariable String templateId) {
         authentication.requireAuthorized(token);
         return service.detail(templateId, false);
+    }
+
+    @GetMapping("/templates/{templateId}/similar")
+    public Map<String, Object> similar(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String templateId,
+            @RequestParam(value = "locale", required = false) String locale,
+            @RequestParam(value = "limit", required = false) Integer limit) {
+        authentication.requireAuthorized(token);
+        return service.similar(templateId, locale, limit);
     }
 
     @GetMapping("/admin/templates")
@@ -71,7 +87,8 @@ public class MusicMvTemplateCatalogController {
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         authentication.requireAuthorized(token);
-        return service.list(locale, category, keyword, page, pageSize, true, status);
+        return service.list(locale, category, null, keyword, null, null,
+                null, null, null, page, pageSize, true, status);
     }
 
     @GetMapping("/admin/templates/{templateId}")

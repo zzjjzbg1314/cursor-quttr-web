@@ -23,23 +23,86 @@ public class MusicMvTemplateCatalogRepository {
     }
 
     public List<Map<String, Object>> categories() {
-        return d1.query("SELECT category_key, name_zh, name_en, sort_order "
+        return d1.query("SELECT category_key,parent_key,level,slug_path,is_selectable,"
+                + "name_zh,name_en,sort_order "
                 + "FROM template_categories WHERE enabled=1 ORDER BY sort_order, category_key").getRows();
     }
 
     public Map<String, Object> category(String categoryKey) {
-        return d1.query("SELECT category_key, enabled FROM template_categories "
-                + "WHERE category_key=? LIMIT 1", categoryKey).firstRow();
+        return d1.query("SELECT category_key,parent_key,level,slug_path,is_selectable,enabled "
+                + "FROM template_categories WHERE category_key=? LIMIT 1", categoryKey).firstRow();
+    }
+
+    public List<Map<String, Object>> collections(String parentCategoryKey) {
+        if (parentCategoryKey == null) {
+            return d1.query("SELECT * FROM template_collections WHERE enabled=1 "
+                    + "ORDER BY sort_order,collection_key").getRows();
+        }
+        return d1.query("SELECT * FROM template_collections WHERE enabled=1 "
+                        + "AND parent_category_key=? ORDER BY sort_order,collection_key",
+                parentCategoryKey).getRows();
+    }
+
+    public Map<String, Object> collectionBySlug(String slug) {
+        return d1.query("SELECT * FROM template_collections WHERE enabled=1 AND slug=? LIMIT 1",
+                slug).firstRow();
+    }
+
+    public Map<String, Object> collection(String collectionKey) {
+        return d1.query("SELECT collection_key,slug,parent_category_key,enabled "
+                        + "FROM template_collections WHERE collection_key=? LIMIT 1",
+                collectionKey).firstRow();
+    }
+
+    public List<Map<String, Object>> relatedCollections(String collectionKey) {
+        return d1.query("SELECT c.* FROM template_collection_relations r "
+                        + "JOIN template_collections c ON c.collection_key=r.related_collection_key "
+                        + "WHERE r.collection_key=? AND c.enabled=1 "
+                        + "ORDER BY r.sort_order,c.sort_order,c.collection_key",
+                collectionKey).getRows();
+    }
+
+    public List<Map<String, Object>> templateCollections(String templateId) {
+        return d1.query("SELECT c.collection_key,c.slug,c.parent_category_key,c.keyword,"
+                        + "c.name_zh,c.name_en,c.description_zh,c.description_en,c.seo_title,"
+                        + "c.seo_description,c.sort_order FROM template_collection_items i "
+                        + "JOIN template_collections c ON c.collection_key=i.collection_key "
+                        + "WHERE i.template_id=? AND c.enabled=1 "
+                        + "ORDER BY i.sort_order DESC,c.sort_order,c.collection_key",
+                templateId).getRows();
+    }
+
+    public List<Map<String, Object>> templateCategories(String templateId) {
+        return d1.query("SELECT i.category_key,i.is_primary,i.source,i.confidence,i.evidence_json,"
+                        + "c.name_zh,c.name_en FROM template_category_items i "
+                        + "JOIN template_categories c ON c.category_key=i.category_key "
+                        + "WHERE i.template_id=? AND c.enabled=1 "
+                        + "ORDER BY i.is_primary DESC,i.confidence DESC,c.sort_order,c.category_key",
+                templateId).getRows();
+    }
+
+    public Map<String, Object> templateSourceMetadata(String templateId) {
+        return d1.query("SELECT * FROM template_source_metadata WHERE template_id=? LIMIT 1",
+                templateId).firstRow();
     }
 
     public List<Map<String, Object>> templates(String locale, String status, String visibility,
-                                                String categoryKey, String keyword,
+                                                String categoryKey, String collectionKey,
+                                                String keyword, Integer minSlots, Integer maxSlots,
+                                                Double minDuration, Double maxDuration,
+                                                String aspectRatio,
                                                 int limit, int offset) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT t.template_id, t.capcut_template_id, t.slug, t.category_key, t.tags_json, t.status, ")
                 .append("t.visibility, t.current_version_id, t.sort_order, t.revision, ")
                 .append("t.created_at, t.updated_at, t.published_at, ")
+                .append("COALESCE((SELECT json_group_array(category_key) FROM (")
+                .append("SELECT i.category_key FROM template_category_items i ")
+                .append("JOIN template_categories c ON c.category_key=i.category_key ")
+                .append("WHERE i.template_id=t.template_id AND c.enabled=1 ")
+                .append("ORDER BY i.is_primary DESC,i.confidence DESC,c.sort_order,c.category_key)), '[]') ")
+                .append("AS category_keys_json, ")
                 .append("COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
                 .append("COALESCE(req.description, en.description, zh.description, '') AS description, ")
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
@@ -66,13 +129,31 @@ public class MusicMvTemplateCatalogRepository {
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
-        if (categoryKey != null) { sql.append("AND t.category_key=? "); params.add(categoryKey); }
+        if (categoryKey != null) {
+            sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
+                    + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("
+                    + "SELECT 1 FROM template_category_items ti JOIN template_categories tc "
+                    + "ON tc.category_key=ti.category_key WHERE ti.template_id=t.template_id "
+                    + "AND tc.parent_key=?)) ");
+            params.add(categoryKey); params.add(categoryKey);
+        }
+        if (collectionKey != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM template_collection_items ci "
+                    + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
+            params.add(collectionKey);
+        }
         if (keyword != null) {
             sql.append("AND (lower(t.slug) LIKE ? OR lower(COALESCE(req.name,en.name,zh.name,'')) LIKE ? ")
-                    .append("OR lower(t.tags_json) LIKE ?) ");
+                    .append("OR lower(COALESCE(req.description,en.description,zh.description,'')) LIKE ? ")
+                    .append("OR EXISTS (SELECT 1 FROM template_source_metadata sm WHERE sm.template_id=t.template_id ")
+                    .append("AND (lower(sm.source_title) LIKE ? OR lower(sm.source_description) LIKE ? ")
+                    .append("OR lower(sm.source_category) LIKE ? OR lower(sm.source_search_keyword) LIKE ? ")
+                    .append("OR lower(sm.source_hashtags_json) LIKE ?))) ");
             String like = "%" + keyword.toLowerCase() + "%";
-            params.add(like); params.add(like); params.add(like);
+            params.add(like); params.add(like); params.add(like); params.add(like);
+            params.add(like); params.add(like); params.add(like); params.add(like);
         }
+        appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
         sql.append("ORDER BY t.sort_order DESC, t.published_at DESC, t.updated_at DESC ")
                 .append("LIMIT ? OFFSET ?");
         params.add(Integer.valueOf(limit));
@@ -80,23 +161,69 @@ public class MusicMvTemplateCatalogRepository {
         return d1.query(sql.toString(), params).getRows();
     }
 
-    public long templateCount(String status, String visibility, String categoryKey, String keyword) {
+    public long templateCount(String status, String visibility, String categoryKey,
+                              String collectionKey, String keyword, Integer minSlots,
+                              Integer maxSlots, Double minDuration, Double maxDuration,
+                              String aspectRatio) {
         List<Object> params = new ArrayList<Object>();
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM templates t WHERE t.deleted_at IS NULL ");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM templates t "
+                + "LEFT JOIN template_versions v ON v.version_id=t.current_version_id "
+                + "WHERE t.deleted_at IS NULL ");
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
-        if (categoryKey != null) { sql.append("AND t.category_key=? "); params.add(categoryKey); }
+        if (categoryKey != null) {
+            sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
+                    + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("
+                    + "SELECT 1 FROM template_category_items ti JOIN template_categories tc "
+                    + "ON tc.category_key=ti.category_key WHERE ti.template_id=t.template_id "
+                    + "AND tc.parent_key=?)) ");
+            params.add(categoryKey); params.add(categoryKey);
+        }
+        if (collectionKey != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM template_collection_items ci "
+                    + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
+            params.add(collectionKey);
+        }
         if (keyword != null) {
-            sql.append("AND (lower(t.slug) LIKE ? OR lower(t.tags_json) LIKE ? OR EXISTS (")
+            sql.append("AND (lower(t.slug) LIKE ? OR EXISTS (")
                     .append("SELECT 1 FROM template_translations x WHERE x.template_id=t.template_id ")
-                    .append("AND lower(x.name) LIKE ?)) ");
+                    .append("AND lower(x.name) LIKE ?) OR EXISTS (SELECT 1 FROM template_source_metadata sm ")
+                    .append("WHERE sm.template_id=t.template_id AND (lower(sm.source_title) LIKE ? ")
+                    .append("OR lower(sm.source_description) LIKE ? OR lower(sm.source_category) LIKE ? ")
+                    .append("OR lower(sm.source_search_keyword) LIKE ? OR lower(sm.source_hashtags_json) LIKE ?))) ");
             String like = "%" + keyword.toLowerCase() + "%";
+            params.add(like); params.add(like); params.add(like); params.add(like);
             params.add(like); params.add(like); params.add(like);
         }
+        appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
         Map<String, Object> row = d1.query(sql.toString(), params).firstRow();
         Object value = row == null ? null : row.get("total");
         return value instanceof Number ? ((Number) value).longValue()
                 : value == null ? 0L : Long.parseLong(String.valueOf(value));
+    }
+
+    private void appendTechnicalFilters(StringBuilder sql, List<Object> params,
+                                        Integer minSlots, Integer maxSlots,
+                                        Double minDuration, Double maxDuration,
+                                        String aspectRatio) {
+        if (minSlots != null) { sql.append("AND v.slot_count>=? "); params.add(minSlots); }
+        if (maxSlots != null) { sql.append("AND v.slot_count<=? "); params.add(maxSlots); }
+        if (minDuration != null) { sql.append("AND v.duration_seconds>=? "); params.add(minDuration); }
+        if (maxDuration != null) { sql.append("AND v.duration_seconds<=? "); params.add(maxDuration); }
+        if (aspectRatio != null) {
+            String[] parts = aspectRatio.split(":", -1);
+            if (parts.length == 2) {
+                try {
+                    int width = Integer.parseInt(parts[0]);
+                    int height = Integer.parseInt(parts[1]);
+                    sql.append("AND v.width*?=v.height*? ");
+                    params.add(Integer.valueOf(height));
+                    params.add(Integer.valueOf(width));
+                } catch (NumberFormatException ignored) {
+                    // The service rejects malformed ratios before the repository is called.
+                }
+            }
+        }
     }
 
     public Map<String, Object> template(String templateId) {
@@ -292,6 +419,57 @@ public class MusicMvTemplateCatalogRepository {
                 translation(templateId, "en", nameEn, descriptionEn)));
     }
 
+    public void replaceTemplateCollections(String templateId, List<String> collectionKeys,
+                                           String source) {
+        List<D1Statement> statements = new ArrayList<D1Statement>();
+        statements.add(statement("DELETE FROM template_collection_items WHERE template_id=?",
+                templateId));
+        int order = collectionKeys.size();
+        for (String collectionKey : collectionKeys) {
+            statements.add(statement("INSERT INTO template_collection_items "
+                            + "(collection_key,template_id,sort_order,source,created_at,updated_at) "
+                            + "VALUES (?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
+                    collectionKey, templateId, Integer.valueOf(order--), source));
+        }
+        d1.batch(statements);
+    }
+
+    public void replaceTemplateCategories(String templateId, String primaryCategoryKey,
+                                           List<Map<String, Object>> categories) {
+        List<D1Statement> statements = new ArrayList<D1Statement>();
+        statements.add(statement("DELETE FROM template_category_items WHERE template_id=?", templateId));
+        for (Map<String, Object> category : categories) {
+            String key = String.valueOf(category.get("categoryKey"));
+            boolean primary = primaryCategoryKey.equals(key);
+            statements.add(statement("INSERT INTO template_category_items "
+                            + "(template_id,category_key,is_primary,source,confidence,evidence_json,created_at,updated_at) "
+                            + "VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
+                    templateId, key, Integer.valueOf(primary ? 1 : 0), category.get("source"),
+                    category.get("confidence"), category.get("evidenceJson")));
+        }
+        statements.add(statement("UPDATE templates SET category_key=?,revision=revision+1,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE template_id=? AND deleted_at IS NULL",
+                primaryCategoryKey, templateId));
+        d1.batch(statements);
+    }
+
+    public void upsertTemplateSourceMetadata(String templateId, String sourceTitle,
+                                              String sourceDescription, String sourceCategory,
+                                              String sourceSearchKeyword, String sourceHashtagsJson,
+                                              String sourceUrl, boolean classificationLocked) {
+        d1.query("INSERT INTO template_source_metadata "
+                        + "(template_id,source_title,source_description,source_category,source_search_keyword,"
+                        + "source_hashtags_json,source_url,classifier_version,classification_locked,created_at,updated_at) "
+                        + "VALUES (?,?,?,?,?,?,?,'source-rules-v1',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "ON CONFLICT(template_id) DO UPDATE SET source_title=excluded.source_title,"
+                        + "source_description=excluded.source_description,source_category=excluded.source_category,"
+                        + "source_search_keyword=excluded.source_search_keyword,"
+                        + "source_hashtags_json=excluded.source_hashtags_json,source_url=excluded.source_url,"
+                        + "classification_locked=excluded.classification_locked,updated_at=CURRENT_TIMESTAMP",
+                templateId, sourceTitle, sourceDescription, sourceCategory, sourceSearchKeyword,
+                sourceHashtagsJson, sourceUrl, Integer.valueOf(classificationLocked ? 1 : 0));
+    }
+
     /** Adds derived content-quality evidence without changing immutable source media hashes. */
     public void enrichVisualQuality(String versionId, Double cycleDurationSeconds,
                                     String sourceProvenanceJson) {
@@ -389,6 +567,9 @@ public class MusicMvTemplateCatalogRepository {
                 statement("DELETE FROM template_browser_scenes WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
+                statement("DELETE FROM template_collection_items WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_translations WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
@@ -418,6 +599,9 @@ public class MusicMvTemplateCatalogRepository {
                 statement("DELETE FROM template_validation_records WHERE version_id IN ("
                         + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
                 statement("DELETE FROM template_browser_scenes WHERE template_id=?", templateId),
+                statement("DELETE FROM template_collection_items WHERE template_id=?", templateId),
+                statement("DELETE FROM template_category_items WHERE template_id=?", templateId),
+                statement("DELETE FROM template_source_metadata WHERE template_id=?", templateId),
                 statement("DELETE FROM template_translations WHERE template_id=?", templateId),
                 statement("DELETE FROM template_versions WHERE template_id=?", templateId),
                 statement("DELETE FROM templates WHERE template_id=?", templateId)));
@@ -437,6 +621,7 @@ public class MusicMvTemplateCatalogRepository {
                 + "(SELECT schema_sha256 FROM music_mv_schema_metadata WHERE schema_key='core') "
                 + "AS schema_sha256, "
                 + "(SELECT COUNT(*) FROM template_categories WHERE enabled=1) AS category_count, "
+                + "(SELECT COUNT(*) FROM template_collections WHERE enabled=1) AS collection_count, "
                 + "(SELECT COUNT(*) FROM templates WHERE deleted_at IS NULL) AS template_count, "
                 + "(SELECT COUNT(*) FROM template_versions) AS version_count, "
                 + "(SELECT COUNT(*) FROM template_slots) AS slot_count, "

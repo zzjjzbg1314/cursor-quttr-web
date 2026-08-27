@@ -43,6 +43,8 @@ class MusicMvTemplateCatalogServiceTest {
                 new ObjectMapper());
         Map<String, Object> category = new LinkedHashMap<String, Object>();
         category.put("enabled", Integer.valueOf(1));
+        category.put("level", Integer.valueOf(2));
+        category.put("is_selectable", Integer.valueOf(1));
         when(repository.category("birthday")).thenReturn(category);
     }
 

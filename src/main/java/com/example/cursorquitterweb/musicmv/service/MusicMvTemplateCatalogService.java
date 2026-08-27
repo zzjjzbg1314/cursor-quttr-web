@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,33 +62,90 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> categories(String locale) {
         boolean english = normalizeLocale(locale).startsWith("en");
-        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> flatItems = new ArrayList<Map<String, Object>>();
+        Map<String, Map<String, Object>> byKey = new LinkedHashMap<String, Map<String, Object>>();
         for (Map<String, Object> row : repository.categories()) {
             Map<String, Object> item = new LinkedHashMap<String, Object>();
             item.put("key", RowUtils.str(row, "category_key"));
+            item.put("parentKey", RowUtils.str(row, "parent_key"));
+            item.put("level", RowUtils.integer(row, "level"));
+            item.put("slugPath", RowUtils.str(row, "slug_path"));
+            item.put("selectable", Boolean.valueOf(RowUtils.bool(row, "is_selectable")));
             item.put("name", RowUtils.str(row, english ? "name_en" : "name_zh"));
             item.put("nameZh", RowUtils.str(row, "name_zh"));
             item.put("nameEn", RowUtils.str(row, "name_en"));
             item.put("sortOrder", RowUtils.integer(row, "sort_order"));
-            items.add(item);
+            item.put("children", new ArrayList<Map<String, Object>>());
+            flatItems.add(item);
+            byKey.put(String.valueOf(item.get("key")), item);
+        }
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> item : flatItems) {
+            String parentKey = item.get("parentKey") == null ? null : String.valueOf(item.get("parentKey"));
+            Map<String, Object> parent = parentKey == null ? null : byKey.get(parentKey);
+            if (parent == null) items.add(item);
+            else {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> children = (List<Map<String, Object>>) parent.get("children");
+                children.add(item);
+            }
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("items", items);
+        result.put("flatItems", flatItems);
+        result.put("filters", technicalFilters());
+        return result;
+    }
+
+    public Map<String, Object> collections(String locale, String parentCategoryKey) {
+        String parent = blankToNull(parentCategoryKey);
+        if (parent != null) requireCategory(parent);
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : repository.collections(parent)) {
+            items.add(collectionView(row, locale));
         }
         return singleton("items", items);
     }
 
-    public Map<String, Object> list(String locale, String categoryKey, String keyword,
+    public Map<String, Object> collection(String slug, String locale) {
+        Map<String, Object> row = repository.collectionBySlug(slug);
+        if (row == null) throw notFound("TEMPLATE_COLLECTION_NOT_FOUND", "Template collection was not found");
+        Map<String, Object> result = collectionView(row, locale);
+        List<Map<String, Object>> related = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> item : repository.relatedCollections(RowUtils.str(row, "collection_key"))) {
+            related.add(collectionView(item, locale));
+        }
+        result.put("related", related);
+        return result;
+    }
+
+    public Map<String, Object> list(String locale, String categoryKey, String collectionSlug,
+                                    String keyword, Integer minSlots, Integer maxSlots,
+                                    Double minDuration, Double maxDuration, String aspectRatio,
                                     Integer page, Integer pageSize, boolean admin,
                                     String requestedStatus) {
         String category = blankToNull(categoryKey);
         if (category != null) requireCategory(category);
+        String collectionKey = null;
+        String collection = blankToNull(collectionSlug);
+        if (collection != null) {
+            Map<String, Object> found = repository.collectionBySlug(collection);
+            if (found == null) throw notFound("TEMPLATE_COLLECTION_NOT_FOUND", "Template collection was not found");
+            collectionKey = RowUtils.str(found, "collection_key");
+        }
         String query = blankToNull(keyword);
+        String ratio = normalizeAspectRatio(aspectRatio);
         int normalizedPage = page == null ? 1 : Math.max(1, page.intValue());
         int normalizedSize = pageSize == null ? 24 : Math.max(1, Math.min(100, pageSize.intValue()));
         String status = admin ? blankToNull(requestedStatus) : "published";
         String visibility = admin ? null : "public";
-        long total = repository.templateCount(status, visibility, category, query);
+        long total = repository.templateCount(status, visibility, category, collectionKey, query,
+                minSlots, maxSlots, minDuration, maxDuration, ratio);
         List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> row : repository.templates(normalizeLocale(locale), status,
-                visibility, category, query, normalizedSize, (normalizedPage - 1) * normalizedSize)) {
+                visibility, category, collectionKey, query, minSlots, maxSlots,
+                minDuration, maxDuration, ratio, normalizedSize,
+                (normalizedPage - 1) * normalizedSize)) {
             items.add(summary(row));
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
@@ -96,7 +154,22 @@ public class MusicMvTemplateCatalogService {
         result.put("pageSize", Integer.valueOf(normalizedSize));
         result.put("total", Long.valueOf(total));
         result.put("hasMore", Boolean.valueOf((long) normalizedPage * normalizedSize < total));
+        result.put("filters", technicalFilters());
         return result;
+    }
+
+    public Map<String, Object> similar(String templateId, String locale, Integer limit) {
+        Map<String, Object> template = requireTemplate(templateId);
+        int size = limit == null ? 6 : Math.max(1, Math.min(24, limit.intValue()));
+        List<Map<String, Object>> candidates = repository.templates(normalizeLocale(locale),
+                "published", "public", RowUtils.str(template, "category_key"), null, null,
+                null, null, null, null, null, size + 1, 0);
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : candidates) {
+            if (!templateId.equals(RowUtils.str(row, "template_id"))) items.add(summary(row));
+            if (items.size() >= size) break;
+        }
+        return singleton("items", items);
     }
 
     public Map<String, Object> detail(String templateId, boolean admin) {
@@ -105,7 +178,7 @@ public class MusicMvTemplateCatalogService {
                 || !"public".equals(RowUtils.str(template, "visibility")))) {
             throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         }
-        Map<String, Object> result = templateView(template);
+        Map<String, Object> result = templateView(template, admin);
         List<Map<String, Object>> translations = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> row : repository.translations(templateId)) {
             Map<String, Object> item = new LinkedHashMap<String, Object>();
@@ -137,7 +210,13 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
         requirePromotionEvidence(request);
-        requireCategory(request.getCategoryKey());
+        requireLeafCategory(request.getCategoryKey());
+        List<String> sourceHashtags = rawHashtags(request.getSourceHashtags());
+        List<Map<String, Object>> categoryAssignments = categoryAssignments(
+                request.getCategoryKey(), request.getCategoryKeys(), request.getSourceTitle(),
+                request.getSourceDescription(), request.getSourceCategory(),
+                request.getSourceSearchKeyword(), sourceHashtags,
+                Boolean.TRUE.equals(request.getClassificationLocked()));
         requireUniqueSlots(request.getSlots());
         List<Map<String, Object>> identities = repository.templatesByCapCutTemplateIds(
                 Collections.singletonList(request.getCapcutTemplateId()));
@@ -167,8 +246,14 @@ public class MusicMvTemplateCatalogService {
         }
         String versionId = IdUtils.token("tplver");
         repository.promote(request, versionId, repository.nextVersionNumber(request.getTemplateId()),
-                json(request.getTags()), json(promotionProvenance(request)),
+                json(sourceHashtags), json(promotionProvenance(request)),
                 jsonOrEmpty(request.getValidationEvidence()));
+        repository.upsertTemplateSourceMetadata(request.getTemplateId(), safe(request.getSourceTitle()),
+                safe(request.getSourceDescription()), safe(request.getSourceCategory()),
+                safe(request.getSourceSearchKeyword()), json(sourceHashtags), safe(request.getSourceUrl()),
+                Boolean.TRUE.equals(request.getClassificationLocked()));
+        repository.replaceTemplateCategories(request.getTemplateId(), request.getCategoryKey(),
+                categoryAssignments);
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
         return result;
@@ -283,15 +368,35 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> updateMetadata(String templateId, TemplateMetadataUpdateRequest request) {
         requireTemplate(templateId);
-        requireCategory(request.getCategoryKey());
+        requireLeafCategory(request.getCategoryKey());
+        Map<String, Object> source = repository.templateSourceMetadata(templateId);
+        List<String> sourceHashtags = parseStringList(source == null ? null
+                : RowUtils.str(source, "source_hashtags_json"));
+        List<Map<String, Object>> categoryAssignments = categoryAssignments(
+                request.getCategoryKey(), request.getCategoryKeys(),
+                source == null ? "" : RowUtils.str(source, "source_title"),
+                source == null ? "" : RowUtils.str(source, "source_description"),
+                source == null ? "" : RowUtils.str(source, "source_category"),
+                source == null ? "" : RowUtils.str(source, "source_search_keyword"),
+                sourceHashtags, Boolean.TRUE.equals(request.getClassificationLocked()));
         String visibility = blankToNull(request.getVisibility());
         if (visibility == null || !VISIBILITIES.contains(visibility)) {
             throw badRequest("TEMPLATE_VISIBILITY_INVALID", "Template visibility is invalid");
         }
-        repository.updateMetadata(templateId, request.getCategoryKey(), json(request.getTags()),
+        repository.updateMetadata(templateId, request.getCategoryKey(), json(sourceHashtags),
                 request.getNameZh(), request.getDescriptionZh(), request.getNameEn(),
                 request.getDescriptionEn(), visibility,
                 request.getSortOrder() == null ? 0 : request.getSortOrder().intValue());
+        repository.replaceTemplateCategories(templateId, request.getCategoryKey(), categoryAssignments);
+        if (source != null) {
+            repository.upsertTemplateSourceMetadata(templateId,
+                    safe(RowUtils.str(source, "source_title")),
+                    safe(RowUtils.str(source, "source_description")),
+                    safe(RowUtils.str(source, "source_category")),
+                    safe(RowUtils.str(source, "source_search_keyword")), json(sourceHashtags),
+                    safe(RowUtils.str(source, "source_url")),
+                    Boolean.TRUE.equals(request.getClassificationLocked()));
+        }
         return detail(templateId, true);
     }
 
@@ -554,7 +659,7 @@ public class MusicMvTemplateCatalogService {
                         : Long.parseLong(String.valueOf(schemaVersionValue));
                 String schemaSha256 = String.valueOf(counts.get("schemaSha256"));
                 d1Reachable = true;
-                schemaReady = categoryCount == 12L
+                schemaReady = categoryCount == MusicMvD1SchemaInitializer.ENABLED_CATEGORY_COUNT
                         && schemaVersion == MusicMvD1SchemaInitializer.SCHEMA_VERSION
                         && schemaSha256.matches("[0-9a-f]{64}");
             } catch (RuntimeException exception) {
@@ -578,7 +683,11 @@ public class MusicMvTemplateCatalogService {
         copy(result, "name", row, "display_name");
         copy(result, "description", row, "description");
         copy(result, "categoryKey", row, "category_key");
-        result.put("tags", parseList(RowUtils.str(row, "tags_json")));
+        List<String> categoryKeys = parseStringList(RowUtils.str(row, "category_keys_json"));
+        if (categoryKeys.isEmpty() && RowUtils.str(row, "category_key") != null) {
+            categoryKeys.add(RowUtils.str(row, "category_key"));
+        }
+        result.put("categoryKeys", categoryKeys);
         copy(result, "status", row, "status");
         copy(result, "visibility", row, "visibility");
         copy(result, "currentVersionId", row, "current_version_id");
@@ -596,14 +705,18 @@ public class MusicMvTemplateCatalogService {
         return result;
     }
 
-    private Map<String, Object> templateView(Map<String, Object> row) {
+    private Map<String, Object> templateView(Map<String, Object> row, boolean admin) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
         copy(result, "capcutTemplateId", row, "capcut_template_id");
         copy(result, "slug", row, "slug");
         copy(result, "defaultLocale", row, "default_locale");
         copy(result, "categoryKey", row, "category_key");
-        result.put("tags", parseList(RowUtils.str(row, "tags_json")));
+        String templateId = RowUtils.str(row, "template_id");
+        List<Map<String, Object>> categories = categoryViews(templateId);
+        result.put("categoryKeys", categoryKeys(categories));
+        result.put("categoryAssignments", categories);
+        if (admin) result.put("sourceMetadata", sourceMetadataView(templateId));
         copy(result, "status", row, "status");
         copy(result, "visibility", row, "visibility");
         copy(result, "currentVersionId", row, "current_version_id");
@@ -809,10 +922,307 @@ public class MusicMvTemplateCatalogService {
         }
     }
 
+    private Map<String, Object> technicalFilters() {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        List<Map<String, Object>> aspectRatios = new ArrayList<Map<String, Object>>();
+        aspectRatios.add(filterOption("9:16", "Portrait 9:16", "竖屏 9:16"));
+        aspectRatios.add(filterOption("1:1", "Square 1:1", "方形 1:1"));
+        aspectRatios.add(filterOption("16:9", "Landscape 16:9", "横屏 16:9"));
+        result.put("aspectRatios", aspectRatios);
+        result.put("slotCount", filterRange(0, 100));
+        result.put("durationSeconds", filterRange(0, 900));
+        return result;
+    }
+
+    private Map<String, Object> filterOption(String value, String nameEn, String nameZh) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("value", value); result.put("nameEn", nameEn); result.put("nameZh", nameZh);
+        return result;
+    }
+
+    private Map<String, Object> filterRange(int min, int max) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("min", Integer.valueOf(min)); result.put("max", Integer.valueOf(max));
+        return result;
+    }
+
+    private String normalizeAspectRatio(String value) {
+        String ratio = blankToNull(value);
+        if (ratio == null) return null;
+        if (!"9:16".equals(ratio) && !"1:1".equals(ratio) && !"16:9".equals(ratio)) {
+            throw badRequest("TEMPLATE_ASPECT_RATIO_INVALID", "Template aspect ratio is invalid");
+        }
+        return ratio;
+    }
+
+    private List<String> rawHashtags(List<String> values) {
+        LinkedHashSet<String> unique = new LinkedHashSet<String>();
+        if (values != null) {
+            for (String raw : values) {
+                String value = blankToNull(raw);
+                if (value != null && value.length() <= 120) unique.add(value);
+            }
+        }
+        if (unique.size() > 80) {
+            throw badRequest("TEMPLATE_SOURCE_HASHTAGS_TOO_MANY",
+                    "CapCut source hashtags exceed the supported evidence limit");
+        }
+        return new ArrayList<String>(unique);
+    }
+
+    private List<Map<String, Object>> categoryAssignments(
+            String primary, List<String> selected, String title, String description,
+            String sourceCategory, String searchKeyword, List<String> hashtags,
+            boolean locked) {
+        LinkedHashSet<String> keys = new LinkedHashSet<String>();
+        keys.add(primary);
+        if (selected != null) {
+            for (String raw : selected) {
+                String key = blankToNull(raw);
+                if (key != null) keys.add(key);
+            }
+        }
+        for (String key : keys) requireLeafCategory(key);
+
+        Map<String, Map<String, Object>> automatic = locked
+                ? Collections.<String, Map<String, Object>>emptyMap()
+                : classifySource(title, description, sourceCategory, searchKeyword, hashtags);
+        keys.addAll(automatic.keySet());
+        if (keys.size() > 8) {
+            throw badRequest("TEMPLATE_CATEGORIES_TOO_MANY",
+                    "A template can appear in at most 8 public categories");
+        }
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (String key : keys) {
+            Map<String, Object> item = automatic.get(key);
+            if (item == null) {
+                item = new LinkedHashMap<String, Object>();
+                item.put("categoryKey", key);
+                item.put("source", "manual");
+                item.put("confidence", Double.valueOf(1.0));
+                List<Map<String, Object>> evidence = new ArrayList<Map<String, Object>>();
+                Map<String, Object> fact = new LinkedHashMap<String, Object>();
+                fact.put("field", key.equals(primary) ? "primaryCategory" : "selectedCategory");
+                fact.put("value", key);
+                evidence.add(fact);
+                item.put("evidenceJson", json(evidence));
+            }
+            result.add(item);
+        }
+        return result;
+    }
+
+    private Map<String, Map<String, Object>> classifySource(
+            String title, String description, String sourceCategory,
+            String searchKeyword, List<String> hashtags) {
+        String hashtagText = hashtags == null ? "" : joinLower(hashtags);
+        String[][] rules = new String[][] {
+                {"birthday", "birthday", "生日", "bday"},
+                {"wedding", "wedding", "bride", "groom", "婚礼", "结婚"},
+                {"anniversary", "anniversary", "纪念日", "周年"},
+                {"graduation", "graduation", "graduate", "毕业"},
+                {"holidays-parties", "christmas", "holiday", "party", "festival", "节日", "派对"},
+                {"family", "family", "mom", "mother", "dad", "father", "家庭", "妈妈", "爸爸"},
+                {"baby-kids", "baby", "kids", "child", "宝宝", "孩子", "儿童"},
+                {"couples", "couple", "relationship", "boyfriend", "girlfriend", "情侣", "恋爱"},
+                {"friendship", "friendship", "friends", "bestfriend", "友情", "朋友", "闺蜜"},
+                {"daily-life", "daily", "vlog", "dayinmylife", "日常", "生活"},
+                {"travel", "travel", "trip", "vacation", "journey", "旅行", "旅游"},
+                {"school-life", "school", "campus", "classmate", "校园", "同学"},
+                {"growing-up", "growth", "growing", "成长"},
+                {"recap", "recap", "review", "memories", "回顾", "总结"},
+                {"hobbies-interests", "sports", "gaming", "anime", "hobby", "运动", "游戏", "兴趣"},
+                {"motivation", "motivation", "inspiration", "励志", "鼓励"},
+                {"healing", "healing", "comfort", "疗愈", "治愈"},
+                {"love-thanks", "grateful", "thank", "love", "感谢", "感恩", "爱"},
+                {"farewell-breakup", "farewell", "goodbye", "breakup", "告别", "分手"},
+                {"memorial", "memorial", "tribute", "remembering", "缅怀", "追思"}
+        };
+        Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();
+        for (String[] rule : rules) {
+            String key = rule[0];
+            String[] terms = new String[rule.length - 1];
+            System.arraycopy(rule, 1, terms, 0, terms.length);
+            List<Map<String, Object>> evidence = new ArrayList<Map<String, Object>>();
+            double confidence = 0.0;
+            confidence = Math.max(confidence, evidence(evidence, "sourceCategory", sourceCategory, 1.0, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceHashtags", hashtagText, 0.9, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceTitle", title, 0.8, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceDescription", description, 0.65, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceSearchKeyword", searchKeyword, 0.55, terms));
+            if (confidence >= 0.75) {
+                Map<String, Object> item = new LinkedHashMap<String, Object>();
+                item.put("categoryKey", key);
+                item.put("source", "automatic");
+                item.put("confidence", Double.valueOf(confidence));
+                item.put("evidenceJson", json(evidence));
+                result.put(key, item);
+            }
+        }
+        return result;
+    }
+
+    private double evidence(List<Map<String, Object>> facts, String field, String value,
+                            double weight, String[] terms) {
+        String text = safe(value).toLowerCase(java.util.Locale.ROOT);
+        if (text.isEmpty()) return 0.0;
+        for (String term : terms) {
+            if (text.contains(term.toLowerCase(java.util.Locale.ROOT))) {
+                Map<String, Object> fact = new LinkedHashMap<String, Object>();
+                fact.put("field", field);
+                fact.put("matched", term);
+                fact.put("weight", Double.valueOf(weight));
+                facts.add(fact);
+                return weight;
+            }
+        }
+        return 0.0;
+    }
+
+    private String joinLower(List<String> values) {
+        StringBuilder result = new StringBuilder();
+        for (String value : values) result.append(' ').append(safe(value));
+        return result.toString().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private List<Map<String, Object>> categoryViews(String templateId) {
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : repository.templateCategories(templateId)) {
+            Map<String, Object> item = new LinkedHashMap<String, Object>();
+            copy(item, "categoryKey", row, "category_key");
+            item.put("primary", Boolean.valueOf(RowUtils.bool(row, "is_primary")));
+            copy(item, "source", row, "source");
+            copy(item, "confidence", row, "confidence");
+            item.put("evidence", parseList(RowUtils.str(row, "evidence_json")));
+            copy(item, "nameZh", row, "name_zh");
+            copy(item, "nameEn", row, "name_en");
+            result.add(item);
+        }
+        return result;
+    }
+
+    private List<String> categoryKeys(String templateId) {
+        return categoryKeys(categoryViews(templateId));
+    }
+
+    private List<String> categoryKeys(List<Map<String, Object>> categories) {
+        List<String> result = new ArrayList<String>();
+        for (Map<String, Object> category : categories) {
+            result.add(String.valueOf(category.get("categoryKey")));
+        }
+        return result;
+    }
+
+    private Map<String, Object> sourceMetadataView(String templateId) {
+        Map<String, Object> row = repository.templateSourceMetadata(templateId);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        if (row == null) return result;
+        copy(result, "sourceTitle", row, "source_title");
+        copy(result, "sourceDescription", row, "source_description");
+        copy(result, "sourceCategory", row, "source_category");
+        copy(result, "sourceSearchKeyword", row, "source_search_keyword");
+        result.put("sourceHashtags", parseList(RowUtils.str(row, "source_hashtags_json")));
+        copy(result, "sourceUrl", row, "source_url");
+        copy(result, "classifierVersion", row, "classifier_version");
+        result.put("classificationLocked", Boolean.valueOf(RowUtils.bool(row, "classification_locked")));
+        return result;
+    }
+
+    private List<String> parseStringList(String value) {
+        List<String> result = new ArrayList<String>();
+        for (Object item : parseList(value)) {
+            String text = blankToNull(String.valueOf(item));
+            if (text != null) result.add(text);
+        }
+        return result;
+    }
+
+    private String safe(String value) { return value == null ? "" : value; }
+
+    private List<String> normalizedKeywords(List<String> preferred, List<String> legacy) {
+        List<String> source = preferred != null && !preferred.isEmpty() ? preferred : legacy;
+        LinkedHashSet<String> unique = new LinkedHashSet<String>();
+        if (source != null) {
+            for (String raw : source) {
+                String value = blankToNull(raw);
+                if (value == null) continue;
+                if (value.length() > 40) {
+                    throw badRequest("TEMPLATE_KEYWORD_TOO_LONG", "A template keyword is too long");
+                }
+                unique.add(value);
+            }
+        }
+        if (unique.size() > 30) {
+            throw badRequest("TEMPLATE_KEYWORDS_TOO_MANY", "A template can have at most 30 keywords");
+        }
+        return new ArrayList<String>(unique);
+    }
+
+    private List<String> requireCollectionKeys(List<String> values) {
+        LinkedHashSet<String> unique = new LinkedHashSet<String>();
+        if (values != null) {
+            for (String raw : values) {
+                String value = blankToNull(raw);
+                if (value == null || !unique.add(value)) continue;
+                Map<String, Object> collection = repository.collection(value);
+                if (collection == null || !RowUtils.bool(collection, "enabled")) {
+                    throw badRequest("TEMPLATE_COLLECTION_INVALID", "Template collection is not enabled");
+                }
+            }
+        }
+        if (unique.size() > 12) {
+            throw badRequest("TEMPLATE_COLLECTIONS_TOO_MANY", "A template can appear in at most 12 collections");
+        }
+        return new ArrayList<String>(unique);
+    }
+
+    private List<String> collectionKeys(String templateId) {
+        List<String> result = new ArrayList<String>();
+        for (Map<String, Object> row : repository.templateCollections(templateId)) {
+            result.add(RowUtils.str(row, "collection_key"));
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> collectionViews(List<Map<String, Object>> rows, String locale) {
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : rows) result.add(collectionView(row, locale));
+        return result;
+    }
+
+    private Map<String, Object> collectionView(Map<String, Object> row, String locale) {
+        boolean english = normalizeLocale(locale).startsWith("en");
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        copy(result, "key", row, "collection_key");
+        copy(result, "slug", row, "slug");
+        copy(result, "parentCategoryKey", row, "parent_category_key");
+        copy(result, "keyword", row, "keyword");
+        result.put("name", RowUtils.str(row, english ? "name_en" : "name_zh"));
+        copy(result, "nameZh", row, "name_zh");
+        copy(result, "nameEn", row, "name_en");
+        result.put("description", RowUtils.str(row,
+                english ? "description_en" : "description_zh"));
+        copy(result, "descriptionZh", row, "description_zh");
+        copy(result, "descriptionEn", row, "description_en");
+        copy(result, "seoTitle", row, "seo_title");
+        copy(result, "seoDescription", row, "seo_description");
+        copy(result, "sortOrder", row, "sort_order");
+        return result;
+    }
+
     private void requireCategory(String categoryKey) {
         Map<String, Object> category = repository.category(categoryKey);
         if (category == null || !RowUtils.bool(category, "enabled")) {
             throw badRequest("TEMPLATE_CATEGORY_INVALID", "Template category is not enabled");
+        }
+    }
+
+    private void requireLeafCategory(String categoryKey) {
+        requireCategory(categoryKey);
+        Map<String, Object> category = repository.category(categoryKey);
+        if (!RowUtils.bool(category, "is_selectable")) {
+            throw badRequest("TEMPLATE_CATEGORY_NOT_SELECTABLE",
+                    "A template must belong to one selectable leaf category");
         }
     }
 

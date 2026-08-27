@@ -57,7 +57,8 @@ class MusicMvTemplateCatalogRepositoryTest {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
 
-        repository.templates("en", "published", "public", null, null, 24, 0);
+        repository.templates("en", "published", "public", null, null, null,
+                null, null, null, null, null, 24, 0);
 
         assertTrue(client.sql.contains("v.source_availability AS source_availability"));
         assertFalse(client.sql.contains("renderer_nodes"));
