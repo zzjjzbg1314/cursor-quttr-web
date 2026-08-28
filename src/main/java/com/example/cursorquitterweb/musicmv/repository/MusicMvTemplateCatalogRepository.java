@@ -460,7 +460,7 @@ public class MusicMvTemplateCatalogRepository {
         d1.query("INSERT INTO template_source_metadata "
                         + "(template_id,source_title,source_description,source_category,source_search_keyword,"
                         + "source_hashtags_json,source_url,classifier_version,classification_locked,created_at,updated_at) "
-                        + "VALUES (?,?,?,?,?,?,?,'source-rules-v1',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "VALUES (?,?,?,?,?,?,?,'source-rules-v2',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
                         + "ON CONFLICT(template_id) DO UPDATE SET source_title=excluded.source_title,"
                         + "source_description=excluded.source_description,source_category=excluded.source_category,"
                         + "source_search_keyword=excluded.source_search_keyword,"

@@ -217,6 +217,8 @@ public class MusicMvTemplateCatalogService {
                 request.getSourceDescription(), request.getSourceCategory(),
                 request.getSourceSearchKeyword(), sourceHashtags,
                 Boolean.TRUE.equals(request.getClassificationLocked()));
+        String primaryCategory = resolvedPrimaryCategory(request.getCategoryKey(),
+                categoryAssignments, Boolean.TRUE.equals(request.getClassificationLocked()));
         requireUniqueSlots(request.getSlots());
         List<Map<String, Object>> identities = repository.templatesByCapCutTemplateIds(
                 Collections.singletonList(request.getCapcutTemplateId()));
@@ -252,7 +254,7 @@ public class MusicMvTemplateCatalogService {
                 safe(request.getSourceDescription()), safe(request.getSourceCategory()),
                 safe(request.getSourceSearchKeyword()), json(sourceHashtags), safe(request.getSourceUrl()),
                 Boolean.TRUE.equals(request.getClassificationLocked()));
-        repository.replaceTemplateCategories(request.getTemplateId(), request.getCategoryKey(),
+        repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory,
                 categoryAssignments);
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
@@ -379,15 +381,17 @@ public class MusicMvTemplateCatalogService {
                 source == null ? "" : RowUtils.str(source, "source_category"),
                 source == null ? "" : RowUtils.str(source, "source_search_keyword"),
                 sourceHashtags, Boolean.TRUE.equals(request.getClassificationLocked()));
+        String primaryCategory = resolvedPrimaryCategory(request.getCategoryKey(),
+                categoryAssignments, Boolean.TRUE.equals(request.getClassificationLocked()));
         String visibility = blankToNull(request.getVisibility());
         if (visibility == null || !VISIBILITIES.contains(visibility)) {
             throw badRequest("TEMPLATE_VISIBILITY_INVALID", "Template visibility is invalid");
         }
-        repository.updateMetadata(templateId, request.getCategoryKey(), json(sourceHashtags),
+        repository.updateMetadata(templateId, primaryCategory, json(sourceHashtags),
                 request.getNameZh(), request.getDescriptionZh(), request.getNameEn(),
                 request.getDescriptionEn(), visibility,
                 request.getSortOrder() == null ? 0 : request.getSortOrder().intValue());
-        repository.replaceTemplateCategories(templateId, request.getCategoryKey(), categoryAssignments);
+        repository.replaceTemplateCategories(templateId, primaryCategory, categoryAssignments);
         if (source != null) {
             repository.upsertTemplateSourceMetadata(templateId,
                     safe(RowUtils.str(source, "source_title")),
@@ -974,20 +978,22 @@ public class MusicMvTemplateCatalogService {
             String primary, List<String> selected, String title, String description,
             String sourceCategory, String searchKeyword, List<String> hashtags,
             boolean locked) {
-        LinkedHashSet<String> keys = new LinkedHashSet<String>();
-        keys.add(primary);
-        if (selected != null) {
-            for (String raw : selected) {
-                String key = blankToNull(raw);
-                if (key != null) keys.add(key);
-            }
-        }
-        for (String key : keys) requireLeafCategory(key);
-
         Map<String, Map<String, Object>> automatic = locked
                 ? Collections.<String, Map<String, Object>>emptyMap()
                 : classifySource(title, description, sourceCategory, searchKeyword, hashtags);
+        boolean hasAutomaticPrimary = !automatic.isEmpty();
+        LinkedHashSet<String> keys = new LinkedHashSet<String>();
+        if (!hasAutomaticPrimary) keys.add(primary);
         keys.addAll(automatic.keySet());
+        if (selected != null) {
+            for (String raw : selected) {
+                String key = blankToNull(raw);
+                if (key != null && (locked || !hasAutomaticPrimary || !key.equals(primary))) {
+                    keys.add(key);
+                }
+            }
+        }
+        for (String key : keys) requireLeafCategory(key);
         if (keys.size() > 8) {
             throw badRequest("TEMPLATE_CATEGORIES_TOO_MANY",
                     "A template can appear in at most 8 public categories");
@@ -1012,31 +1018,79 @@ public class MusicMvTemplateCatalogService {
         return result;
     }
 
+    private String resolvedPrimaryCategory(
+            String fallback,
+            List<Map<String, Object>> assignments,
+            boolean locked
+    ) {
+        if (locked) return fallback;
+        String primary = null;
+        double confidence = -1.0d;
+        for (Map<String, Object> assignment : assignments) {
+            if (!"automatic".equals(String.valueOf(assignment.get("source")))) continue;
+            Object rawConfidence = assignment.get("confidence");
+            double candidateConfidence = rawConfidence instanceof Number
+                    ? ((Number) rawConfidence).doubleValue() : 0.0d;
+            if (primary == null || candidateConfidence > confidence) {
+                primary = String.valueOf(assignment.get("categoryKey"));
+                confidence = candidateConfidence;
+            }
+        }
+        return primary == null ? fallback : primary;
+    }
+
     private Map<String, Map<String, Object>> classifySource(
             String title, String description, String sourceCategory,
             String searchKeyword, List<String> hashtags) {
         String hashtagText = hashtags == null ? "" : joinLower(hashtags);
         String[][] rules = new String[][] {
-                {"birthday", "birthday", "生日", "bday"},
+                {"birthday", "birthday", "birth day", "bday", "happybirthday",
+                        "cumpleaños", "cumpleanos", "生日"},
                 {"wedding", "wedding", "bride", "groom", "婚礼", "结婚"},
                 {"anniversary", "anniversary", "纪念日", "周年"},
                 {"graduation", "graduation", "graduate", "毕业"},
-                {"holidays-parties", "christmas", "holiday", "party", "festival", "节日", "派对"},
-                {"family", "family", "mom", "mother", "dad", "father", "家庭", "妈妈", "爸爸"},
-                {"baby-kids", "baby", "kids", "child", "宝宝", "孩子", "儿童"},
+                {"holidays-parties", "christmas", "holiday", "party", "festival",
+                        "mother's day", "mothers day", "mothersday", "father's day",
+                        "fathers day", "fathersday", "thanksgiving", "母亲节", "父亲节",
+                        "节日", "派对"},
+                {"family", "family", "familia", "família", "mom", "mommy", "mama",
+                        "mum", "mother", "dad", "daddy", "papa", "father", "parent",
+                        "grandparent", "grandma", "grandpa", "daughter", "brother", "sister",
+                        "son", "sons", "sibling", "cousin", "aunt", "uncle", "niece",
+                        "nephew", "bestmom", "bestdad", "momlife", "dadlife", "家庭",
+                        "家人", "亲情", "妈妈", "母亲",
+                        "爸爸", "父亲", "爷爷", "奶奶", "外公", "外婆", "女儿",
+                        "儿子", "兄弟", "姐妹"},
+                {"baby-kids", "baby", "babies", "kid", "kids", "child", "children",
+                        "newborn", "toddler", "infant", "baby girl", "baby boy", "宝宝",
+                        "婴儿", "孩子", "儿童", "幼儿"},
                 {"couples", "couple", "relationship", "boyfriend", "girlfriend", "情侣", "恋爱"},
                 {"friendship", "friendship", "friends", "bestfriend", "友情", "朋友", "闺蜜"},
-                {"daily-life", "daily", "vlog", "dayinmylife", "日常", "生活"},
-                {"travel", "travel", "trip", "vacation", "journey", "旅行", "旅游"},
+                {"daily-life", "daily", "vlog", "dayinmylife", "day in my life",
+                        "family time", "familytime", "home life", "weekend", "日常", "生活"},
+                {"travel", "travel", "trip", "vacation", "family vacation", "roadtrip",
+                        "road trip", "journey", "旅行", "旅游", "度假"},
                 {"school-life", "school", "campus", "classmate", "校园", "同学"},
-                {"growing-up", "growth", "growing", "成长"},
-                {"recap", "recap", "review", "memories", "回顾", "总结"},
+                {"growing-up", "growth", "growing", "growing up", "growup", "milestone",
+                        "first year", "firstyear", "1st year", "month old", "monthold",
+                        "months old", "monthsold", "childhood", "first steps", "first smile",
+                        "baby growth", "babygrowth", "mêsversário",
+                        "mesversario", "成长", "月龄", "满月", "百天", "周岁"},
+                {"recap", "recap", "review", "year in review", "memory", "memories",
+                        "family memories", "photo dump", "photodump", "album", "montage",
+                        "回顾", "总结", "回忆", "相册"},
                 {"hobbies-interests", "sports", "gaming", "anime", "hobby", "运动", "游戏", "兴趣"},
                 {"motivation", "motivation", "inspiration", "励志", "鼓励"},
                 {"healing", "healing", "comfort", "疗愈", "治愈"},
-                {"love-thanks", "grateful", "thank", "love", "感谢", "感恩", "爱"},
+                {"love-thanks", "grateful", "gratitude", "thank", "appreciate", "love",
+                        "love you", "best mom", "bestmom", "best mum", "best dad", "bestdad",
+                        "ilovemom", "ilovedad", "mother's day",
+                        "mothers day", "mothersday", "father's day", "fathers day", "fathersday",
+                        "感谢", "感恩", "爱", "最好的妈妈", "最好的爸爸"},
                 {"farewell-breakup", "farewell", "goodbye", "breakup", "告别", "分手"},
-                {"memorial", "memorial", "tribute", "remembering", "缅怀", "追思"}
+                {"memorial", "memorial", "remembering", "remembrance", "deceased",
+                        "in memory of", "in heaven", "heavenly", "rest in peace", "passed away",
+                        "缅怀", "追思", "怀念", "已故", "逝世"}
         };
         Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();
         for (String[] rule : rules) {
@@ -1067,7 +1121,7 @@ public class MusicMvTemplateCatalogService {
         String text = safe(value).toLowerCase(java.util.Locale.ROOT);
         if (text.isEmpty()) return 0.0;
         for (String term : terms) {
-            if (text.contains(term.toLowerCase(java.util.Locale.ROOT))) {
+            if (containsClassificationTerm(text, term)) {
                 Map<String, Object> fact = new LinkedHashMap<String, Object>();
                 fact.put("field", field);
                 fact.put("matched", term);
@@ -1077,6 +1131,24 @@ public class MusicMvTemplateCatalogService {
             }
         }
         return 0.0;
+    }
+
+    /** Avoids short-token collisions such as "mom" inside "moments". */
+    private boolean containsClassificationTerm(String text, String rawTerm) {
+        String term = safe(rawTerm).toLowerCase(java.util.Locale.ROOT);
+        if (term.isEmpty()) return false;
+        if (!term.matches("^[a-z0-9]{1,3}$")) return text.contains(term);
+        int offset = 0;
+        while (offset <= text.length() - term.length()) {
+            int index = text.indexOf(term, offset);
+            if (index < 0) return false;
+            int end = index + term.length();
+            boolean leftBoundary = index == 0 || !Character.isLetterOrDigit(text.charAt(index - 1));
+            boolean rightBoundary = end == text.length() || !Character.isLetterOrDigit(text.charAt(end));
+            if (leftBoundary && rightBoundary) return true;
+            offset = index + 1;
+        }
+        return false;
     }
 
     private String joinLower(List<String> values) {

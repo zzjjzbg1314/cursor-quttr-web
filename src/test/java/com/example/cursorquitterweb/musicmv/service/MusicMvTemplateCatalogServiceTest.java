@@ -3,6 +3,7 @@ package com.example.cursorquitterweb.musicmv.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -13,13 +14,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
@@ -41,11 +47,94 @@ class MusicMvTemplateCatalogServiceTest {
         service = new MusicMvTemplateCatalogService(repository,
                 mediaProvider, mock(D1DatabaseClient.class),
                 new ObjectMapper());
+        when(repository.versionByValidationJob(anyString())).thenReturn(null);
         Map<String, Object> category = new LinkedHashMap<String, Object>();
         category.put("enabled", Integer.valueOf(1));
         category.put("level", Integer.valueOf(2));
         category.put("is_selectable", Integer.valueOf(1));
-        when(repository.category("birthday")).thenReturn(category);
+        for (String key : Arrays.asList("birthday", "wedding", "anniversary", "graduation",
+                "holidays-parties", "family", "baby-kids", "couples", "friendship",
+                "daily-life", "travel", "school-life", "growing-up", "recap",
+                "hobbies-interests", "motivation", "healing", "love-thanks",
+                "farewell-breakup", "memorial")) {
+            when(repository.category(key)).thenReturn(category);
+        }
+    }
+
+    @Test
+    void classifiesMothersDayFamilyTemplateIntoFamilyHolidayAndThanks() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("family");
+        request.setSourceCategory("Family");
+        request.setSourceTitle("Happy Mother's Day");
+        request.setSourceHashtags(Arrays.asList("mothersday", "bestmom"));
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("family");
+        assertEquals(new HashSet<String>(Arrays.asList(
+                "family", "holidays-parties", "love-thanks")), keys);
+    }
+
+    @Test
+    void classifiesBabyMilestoneFamilyTemplateIntoBabyGrowthAndRecap() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("family");
+        request.setSourceCategory("Family");
+        request.setSourceTitle("Baby first year photo dump");
+        request.setSourceHashtags(Arrays.asList("baby", "firstyear", "photodump"));
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("family");
+        assertTrue(keys.containsAll(Arrays.asList(
+                "family", "baby-kids", "growing-up", "recap")));
+        assertEquals(Integer.valueOf(4), Integer.valueOf(keys.size()));
+    }
+
+    @Test
+    void usesOriginalCapCutClassificationAsPrimaryAndBatchCategoryOnlyAsFallback() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("birthday");
+        request.setSourceTitle("Family Moments");
+        request.setSourceCategory("Family");
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("family");
+        assertEquals(Collections.singleton("family"), keys);
+    }
+
+    @Test
+    void keepsManuallyLockedPrimaryEvenWhenCapCutMetadataMatchesAnotherCategory() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("birthday");
+        request.setSourceTitle("Family Moments");
+        request.setSourceCategory("Family");
+        request.setClassificationLocked(Boolean.TRUE);
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("birthday");
+        assertEquals(Collections.singleton("birthday"), keys);
+    }
+
+    @Test
+    void doesNotTreatMomentsAsTheShortFamilyKeywordMom() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("recap");
+        request.setSourceTitle("Summer moments");
+        request.setSourceHashtags(Collections.singletonList("moments"));
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("recap");
+        assertFalse(keys.contains("family"));
     }
 
     @Test
@@ -469,6 +558,17 @@ class MusicMvTemplateCatalogServiceTest {
         slot.setRepeatPolicy("cycle");
         request.getSlots().add(slot);
         return request;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Set<String> capturedCategoryKeys(String primary) {
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(repository).replaceTemplateCategories(eq("tpl_1"), eq(primary), captor.capture());
+        Set<String> result = new HashSet<String>();
+        for (Object raw : captor.getValue()) {
+            result.add(String.valueOf(((Map<String, Object>) raw).get("categoryKey")));
+        }
+        return result;
     }
 
     private TemplatePromotionRequest validPromotion() {
