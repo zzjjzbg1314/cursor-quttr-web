@@ -65,6 +65,20 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertFalse(client.sql.contains("last_seen_at"));
     }
 
+    @Test
+    void templateDetailUsesOneEightStatementBatch() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+
+        repository.templateDetail("tpl_1");
+
+        assertEquals(8, client.statements.size());
+        for (D1Statement statement : client.statements) {
+            assertEquals(1, placeholders(statement.getSql()));
+            assertEquals(Arrays.<Object>asList("tpl_1"), statement.getParams());
+        }
+    }
+
     private int placeholders(String sql) {
         int count = 0;
         for (int index = 0; index < sql.length(); index++) if (sql.charAt(index) == '?') count++;
@@ -114,7 +128,11 @@ class MusicMvTemplateCatalogRepositoryTest {
         }
         @Override public List<D1QueryResult> batch(List<D1Statement> values) {
             statements = values;
-            return new ArrayList<D1QueryResult>();
+            List<D1QueryResult> results = new ArrayList<D1QueryResult>();
+            for (int index = 0; index < values.size(); index++) {
+                results.add(new D1QueryResult(new ArrayList<Map<String, Object>>(), 0L));
+            }
+            return results;
         }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
+import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
 import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.example.cursorquitterweb.musicmv.support.IdUtils;
 
@@ -231,6 +232,111 @@ public class MusicMvTemplateCatalogRepository {
                 + "visibility, current_version_id, sort_order, revision, created_at, updated_at, "
                 + "published_at FROM templates WHERE template_id=? AND deleted_at IS NULL LIMIT 1",
                 templateId).firstRow();
+    }
+
+    /**
+     * Loads the complete template graph in one Cloudflare D1 batch request.
+     *
+     * The statements remain independent reads, but D1 executes them through a
+     * single HTTP round trip. This avoids the former 5 + (3 * versionCount)
+     * sequence of remote requests on the template detail path.
+     */
+    public TemplateDetailRows templateDetail(String templateId) {
+        List<D1QueryResult> results = d1.batch(Arrays.asList(
+                D1Statement.of("SELECT template_id, capcut_template_id, slug, default_locale, "
+                                + "category_key, tags_json, status, visibility, current_version_id, "
+                                + "sort_order, revision, created_at, updated_at, published_at "
+                                + "FROM templates WHERE template_id=? AND deleted_at IS NULL LIMIT 1",
+                        templateId),
+                D1Statement.of("SELECT i.category_key,i.is_primary,i.source,i.confidence,i.evidence_json,"
+                                + "c.name_zh,c.name_en FROM template_category_items i "
+                                + "JOIN template_categories c ON c.category_key=i.category_key "
+                                + "WHERE i.template_id=? AND c.enabled=1 "
+                                + "ORDER BY i.is_primary DESC,i.confidence DESC,c.sort_order,c.category_key",
+                        templateId),
+                D1Statement.of("SELECT * FROM template_source_metadata WHERE template_id=? LIMIT 1",
+                        templateId),
+                D1Statement.of("SELECT locale, name, description, seo_title, seo_description "
+                                + "FROM template_translations WHERE template_id=? ORDER BY locale",
+                        templateId),
+                D1Statement.of("SELECT v.version_id, v.version_number, v.status, v.width, v.height, v.fps, "
+                                + "v.duration_seconds, v.base_duration_seconds, v.cycle_duration_seconds, "
+                                + "v.slot_count, v.validation_status, v.validation_render_job_id, "
+                                + "v.validation_master_sha256, v.draft_snapshot_sha256, "
+                                + "v.timeline_evidence_sha256, v.native_runtime_version, "
+                                + "v.native_runtime_sha256, v.renderer_version, v.source_node_id, "
+                                + "v.source_local_key, v.source_availability, "
+                                + "v.source_availability AS effective_source_availability, "
+                                + "v.last_source_verified_at, v.source_provenance_json, "
+                                + "v.created_at, v.published_at FROM template_versions v "
+                                + "WHERE v.template_id=? ORDER BY v.version_number DESC",
+                        templateId),
+                D1Statement.of("SELECT s.version_id,s.slot_id,s.slot_key,s.slot_type,s.display_name,"
+                                + "s.timeline_order,s.aspect_ratio,s.crop_policy,s.repeat_policy,"
+                                + "s.is_required,s.material_id,s.material_group FROM template_slots s "
+                                + "JOIN template_versions v ON v.version_id=s.version_id "
+                                + "WHERE v.template_id=? ORDER BY s.version_id,s.timeline_order,s.slot_key",
+                        templateId),
+                D1Statement.of("SELECT m.version_id,m.media_id,m.media_role,m.provider,"
+                                + "m.provider_asset_id,m.status,m.source_sha256,m.source_size_bytes,"
+                                + "m.width,m.height,m.duration_seconds,m.provider_details_json,"
+                                + "m.error_message,m.created_at,m.updated_at,m.ready_at "
+                                + "FROM template_media m JOIN template_versions v ON v.version_id=m.version_id "
+                                + "WHERE v.template_id=? ORDER BY m.version_id,m.media_role",
+                        templateId),
+                D1Statement.of("SELECT s.version_id,s.template_id,s.schema_version,s.manifest_sha256,"
+                                + "s.status,s.scene_json,s.created_at,s.updated_at "
+                                + "FROM template_browser_scenes s JOIN template_versions v "
+                                + "ON v.version_id=s.version_id WHERE v.template_id=? "
+                                + "ORDER BY s.version_id",
+                        templateId)
+        ));
+        if (results.size() != 8) {
+            throw new IllegalStateException("Template detail D1 batch returned " + results.size()
+                    + " result sets; expected 8");
+        }
+        return new TemplateDetailRows(
+                results.get(0).firstRow(), results.get(1).getRows(), results.get(2).firstRow(),
+                results.get(3).getRows(), results.get(4).getRows(), results.get(5).getRows(),
+                results.get(6).getRows(), results.get(7).getRows());
+    }
+
+    public static final class TemplateDetailRows {
+        private final Map<String, Object> template;
+        private final List<Map<String, Object>> categories;
+        private final Map<String, Object> sourceMetadata;
+        private final List<Map<String, Object>> translations;
+        private final List<Map<String, Object>> versions;
+        private final List<Map<String, Object>> slots;
+        private final List<Map<String, Object>> media;
+        private final List<Map<String, Object>> browserScenes;
+
+        public TemplateDetailRows(Map<String, Object> template,
+                                  List<Map<String, Object>> categories,
+                                  Map<String, Object> sourceMetadata,
+                                  List<Map<String, Object>> translations,
+                                  List<Map<String, Object>> versions,
+                                  List<Map<String, Object>> slots,
+                                  List<Map<String, Object>> media,
+                                  List<Map<String, Object>> browserScenes) {
+            this.template = template;
+            this.categories = categories;
+            this.sourceMetadata = sourceMetadata;
+            this.translations = translations;
+            this.versions = versions;
+            this.slots = slots;
+            this.media = media;
+            this.browserScenes = browserScenes;
+        }
+
+        public Map<String, Object> getTemplate() { return template; }
+        public List<Map<String, Object>> getCategories() { return categories; }
+        public Map<String, Object> getSourceMetadata() { return sourceMetadata; }
+        public List<Map<String, Object>> getTranslations() { return translations; }
+        public List<Map<String, Object>> getVersions() { return versions; }
+        public List<Map<String, Object>> getSlots() { return slots; }
+        public List<Map<String, Object>> getMedia() { return media; }
+        public List<Map<String, Object>> getBrowserScenes() { return browserScenes; }
     }
 
     public List<Map<String, Object>> templatesByCapCutTemplateIds(List<String> templateIds) {

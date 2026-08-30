@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Duration;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
@@ -21,6 +22,7 @@ import com.example.cursorquitterweb.musicmv.dto.TemplateMetadataUpdateRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
+import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository.TemplateDetailRows;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.MediaState;
 import com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProvider.UploadSession;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
@@ -28,6 +30,8 @@ import com.example.cursorquitterweb.musicmv.support.IdUtils;
 import com.example.cursorquitterweb.musicmv.support.RowUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -49,6 +53,10 @@ public class MusicMvTemplateCatalogService {
     private final CloudflareTemplateMediaProvider mediaProvider;
     private final D1DatabaseClient d1;
     private final ObjectMapper objectMapper;
+    private final Cache<String, Map<String, Object>> publicDetailCache = Caffeine.newBuilder()
+            .maximumSize(500)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .build();
 
     public MusicMvTemplateCatalogService(MusicMvTemplateCatalogRepository repository,
                                          CloudflareTemplateMediaProvider mediaProvider,
@@ -173,14 +181,22 @@ public class MusicMvTemplateCatalogService {
     }
 
     public Map<String, Object> detail(String templateId, boolean admin) {
-        Map<String, Object> template = requireTemplate(templateId);
+        if (admin) return loadDetail(templateId, true);
+        return publicDetailCache.get(templateId, key -> loadDetail(key, false));
+    }
+
+    private Map<String, Object> loadDetail(String templateId, boolean admin) {
+        TemplateDetailRows rows = repository.templateDetail(templateId);
+        Map<String, Object> template = rows.getTemplate();
+        if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         if (!admin && (!"published".equals(RowUtils.str(template, "status"))
                 || !"public".equals(RowUtils.str(template, "visibility")))) {
             throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         }
-        Map<String, Object> result = templateView(template, admin);
+        Map<String, Object> result = templateView(template, admin,
+                rows.getCategories(), rows.getSourceMetadata());
         List<Map<String, Object>> translations = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.translations(templateId)) {
+        for (Map<String, Object> row : rows.getTranslations()) {
             Map<String, Object> item = new LinkedHashMap<String, Object>();
             copy(item, "locale", row, "locale");
             copy(item, "name", row, "name");
@@ -191,14 +207,20 @@ public class MusicMvTemplateCatalogService {
         }
         result.put("translations", translations);
         String currentVersionId = RowUtils.str(template, "current_version_id");
+        Map<String, List<Map<String, Object>>> slotsByVersion = groupByVersion(rows.getSlots());
+        Map<String, List<Map<String, Object>>> mediaByVersion = groupByVersion(rows.getMedia());
+        Map<String, Map<String, Object>> scenesByVersion = new LinkedHashMap<String, Map<String, Object>>();
+        for (Map<String, Object> scene : rows.getBrowserScenes()) {
+            scenesByVersion.put(RowUtils.str(scene, "version_id"), scene);
+        }
         List<Map<String, Object>> versions = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.versions(templateId)) {
+        for (Map<String, Object> row : rows.getVersions()) {
             if (!admin && !String.valueOf(currentVersionId).equals(RowUtils.str(row, "version_id"))) continue;
             Map<String, Object> version = versionView(row, admin);
             String versionId = RowUtils.str(row, "version_id");
-            version.put("slots", slotViews(repository.slots(versionId)));
-            version.put("media", mediaViews(repository.media(versionId)));
-            Map<String, Object> browserScene = repository.browserScene(versionId);
+            version.put("slots", slotViews(orEmpty(slotsByVersion.get(versionId))));
+            version.put("media", mediaViews(orEmpty(mediaByVersion.get(versionId))));
+            Map<String, Object> browserScene = scenesByVersion.get(versionId);
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
                 version.put("browserRender", browserSceneView(browserScene, admin));
             }
@@ -206,6 +228,29 @@ public class MusicMvTemplateCatalogService {
         }
         result.put("versions", versions);
         return result;
+    }
+
+    private Map<String, List<Map<String, Object>>> groupByVersion(List<Map<String, Object>> rows) {
+        Map<String, List<Map<String, Object>>> grouped =
+                new LinkedHashMap<String, List<Map<String, Object>>>();
+        for (Map<String, Object> row : rows) {
+            String versionId = RowUtils.str(row, "version_id");
+            List<Map<String, Object>> values = grouped.get(versionId);
+            if (values == null) {
+                values = new ArrayList<Map<String, Object>>();
+                grouped.put(versionId, values);
+            }
+            values.add(row);
+        }
+        return grouped;
+    }
+
+    private List<Map<String, Object>> orEmpty(List<Map<String, Object>> rows) {
+        return rows == null ? Collections.<Map<String, Object>>emptyList() : rows;
+    }
+
+    private void invalidateDetail(String templateId) {
+        if (templateId != null) publicDetailCache.invalidate(templateId);
     }
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
@@ -241,6 +286,7 @@ public class MusicMvTemplateCatalogService {
                 repository.enrichVisualQuality(RowUtils.str(existing, "version_id"),
                         request.getCycleDurationSeconds(), json(promotionProvenance(request)));
             }
+            invalidateDetail(request.getTemplateId());
             Map<String, Object> replay = promotionView(request.getTemplateId(),
                     RowUtils.str(existing, "version_id"), RowUtils.str(existing, "status"));
             replay.put("idempotentReplay", Boolean.TRUE);
@@ -256,6 +302,7 @@ public class MusicMvTemplateCatalogService {
                 Boolean.TRUE.equals(request.getClassificationLocked()));
         repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory,
                 categoryAssignments);
+        invalidateDetail(request.getTemplateId());
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
         return result;
@@ -297,6 +344,7 @@ public class MusicMvTemplateCatalogService {
                             + RowUtils.str(existing.get(0), "template_id"));
         }
         repository.bindCapCutTemplateIdentity(templateId, capcutTemplateId);
+        invalidateDetail(templateId);
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
         result.put("capcutTemplateId", capcutTemplateId);
@@ -316,6 +364,7 @@ public class MusicMvTemplateCatalogService {
         }
         requireUniqueSlots(request.getSlots());
         repository.replaceSlots(templateId, versionId, request.getSlots());
+        invalidateDetail(templateId);
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
@@ -359,6 +408,7 @@ public class MusicMvTemplateCatalogService {
         }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
+        invalidateDetail(templateId);
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
         result.put("versionId", versionId);
@@ -401,6 +451,7 @@ public class MusicMvTemplateCatalogService {
                     safe(RowUtils.str(source, "source_url")),
                     Boolean.TRUE.equals(request.getClassificationLocked()));
         }
+        invalidateDetail(templateId);
         return detail(templateId, true);
     }
 
@@ -452,6 +503,7 @@ public class MusicMvTemplateCatalogService {
                 existingDetails.put("visualQuality", request.getVisualQuality());
                 repository.markMediaReady(RowUtils.str(existing, "media_id"),
                         json(existingDetails));
+                invalidateDetail(templateId);
             }
             Map<String, Object> ready = mediaSessionView(RowUtils.str(existing, "media_id"),
                     null, "ready", existingDetails);
@@ -482,6 +534,7 @@ public class MusicMvTemplateCatalogService {
                 request.getSourceSha256(), request.getSourceSizeBytes().longValue(),
                 request.getWidth(), request.getHeight(), request.getDurationSeconds(),
                 json(providerDetails));
+        invalidateDetail(templateId);
         Map<String, Object> result = mediaSessionView(mediaId, session.getUploadUrl(),
                 session.getStatus(), providerDetails);
         result.put("idempotentReplay", Boolean.FALSE);
@@ -505,6 +558,7 @@ public class MusicMvTemplateCatalogService {
         providerDetails.putAll(state.getProviderDetails());
         if ("ready".equals(state.getStatus())) {
             repository.markMediaReady(mediaId, json(providerDetails));
+            invalidateDetail(templateId);
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("mediaId", mediaId);
@@ -564,6 +618,7 @@ public class MusicMvTemplateCatalogService {
                     true, details);
         }
         repository.publish(templateId, versionId);
+        invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
     }
 
@@ -578,6 +633,7 @@ public class MusicMvTemplateCatalogService {
         if ("unpublish".equals(normalized)) {
             requireTemplate(templateId);
             repository.setOffline(templateId);
+            invalidateDetail(templateId);
             Map<String, Object> result = new LinkedHashMap<String, Object>();
             result.put("templateId", templateId);
             result.put("status", "offline");
@@ -626,6 +682,7 @@ public class MusicMvTemplateCatalogService {
         } else {
             repository.deleteTemplate(templateId);
         }
+        invalidateDetail(templateId);
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
@@ -710,17 +767,24 @@ public class MusicMvTemplateCatalogService {
     }
 
     private Map<String, Object> templateView(Map<String, Object> row, boolean admin) {
+        String templateId = RowUtils.str(row, "template_id");
+        return templateView(row, admin, categoryViews(templateId),
+                admin ? repository.templateSourceMetadata(templateId) : null);
+    }
+
+    private Map<String, Object> templateView(Map<String, Object> row, boolean admin,
+                                             List<Map<String, Object>> categoryRows,
+                                             Map<String, Object> sourceMetadata) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
         copy(result, "capcutTemplateId", row, "capcut_template_id");
         copy(result, "slug", row, "slug");
         copy(result, "defaultLocale", row, "default_locale");
         copy(result, "categoryKey", row, "category_key");
-        String templateId = RowUtils.str(row, "template_id");
-        List<Map<String, Object>> categories = categoryViews(templateId);
+        List<Map<String, Object>> categories = categoryViews(categoryRows);
         result.put("categoryKeys", categoryKeys(categories));
         result.put("categoryAssignments", categories);
-        if (admin) result.put("sourceMetadata", sourceMetadataView(templateId));
+        if (admin) result.put("sourceMetadata", sourceMetadataView(sourceMetadata));
         copy(result, "status", row, "status");
         copy(result, "visibility", row, "visibility");
         copy(result, "currentVersionId", row, "current_version_id");
@@ -906,6 +970,7 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> migrateCurrentTemplatesToBrowserRendering() {
         int updated = repository.migrateCurrentTemplatesToBrowserRendering();
+        publicDetailCache.invalidateAll();
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("updatedVersionCount", Integer.valueOf(updated));
         result.put("validationStatus", "browser_ready");
@@ -1158,8 +1223,12 @@ public class MusicMvTemplateCatalogService {
     }
 
     private List<Map<String, Object>> categoryViews(String templateId) {
+        return categoryViews(repository.templateCategories(templateId));
+    }
+
+    private List<Map<String, Object>> categoryViews(List<Map<String, Object>> rows) {
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.templateCategories(templateId)) {
+        for (Map<String, Object> row : rows) {
             Map<String, Object> item = new LinkedHashMap<String, Object>();
             copy(item, "categoryKey", row, "category_key");
             item.put("primary", Boolean.valueOf(RowUtils.bool(row, "is_primary")));
@@ -1186,7 +1255,10 @@ public class MusicMvTemplateCatalogService {
     }
 
     private Map<String, Object> sourceMetadataView(String templateId) {
-        Map<String, Object> row = repository.templateSourceMetadata(templateId);
+        return sourceMetadataView(repository.templateSourceMetadata(templateId));
+    }
+
+    private Map<String, Object> sourceMetadataView(Map<String, Object> row) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         if (row == null) return result;
         copy(result, "sourceTitle", row, "source_title");

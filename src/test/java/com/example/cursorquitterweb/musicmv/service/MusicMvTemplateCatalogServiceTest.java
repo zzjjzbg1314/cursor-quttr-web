@@ -32,6 +32,7 @@ import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionReques
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
+import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository.TemplateDetailRows;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -223,6 +224,31 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("validated", result.get("status"));
         verify(repository).promote(eq(request), anyString(), eq(Integer.valueOf(4)),
                 anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void cachesPublicTemplateDetailAfterSingleBatchLoad() {
+        Map<String, Object> template = row("template_id", "tpl_1");
+        template.put("status", "published");
+        template.put("visibility", "public");
+        template.put("current_version_id", "tplver_1");
+        template.put("revision", Integer.valueOf(3));
+        Map<String, Object> version = row("version_id", "tplver_1");
+        TemplateDetailRows rows = new TemplateDetailRows(template,
+                Collections.<Map<String, Object>>emptyList(), null,
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.singletonList(version),
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.<Map<String, Object>>emptyList());
+        when(repository.templateDetail("tpl_1")).thenReturn(rows);
+
+        Map<String, Object> first = service.detail("tpl_1", false);
+        Map<String, Object> second = service.detail("tpl_1", false);
+
+        assertEquals("tplver_1", first.get("currentVersionId"));
+        assertTrue(first == second);
+        verify(repository).templateDetail("tpl_1");
     }
 
     @Test

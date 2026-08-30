@@ -5,6 +5,9 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,11 +63,25 @@ public class MusicMvTemplateCatalogController {
     }
 
     @GetMapping("/templates/{templateId}")
-    public Map<String, Object> template(
+    public ResponseEntity<Map<String, Object>> template(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch,
             @PathVariable String templateId) {
         authentication.requireAuthorized(token);
-        return service.detail(templateId, false);
+        Map<String, Object> detail = service.detail(templateId, false);
+        String etag = "\"" + templateId + "-" + String.valueOf(detail.get("currentVersionId"))
+                + "-" + String.valueOf(detail.get("revision")) + "\"";
+        String cacheControl = "public, max-age=60, stale-while-revalidate=300";
+        if (ifNoneMatch != null && ifNoneMatch.contains(etag)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, etag)
+                    .header(HttpHeaders.CACHE_CONTROL, cacheControl)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, etag)
+                .header(HttpHeaders.CACHE_CONTROL, cacheControl)
+                .body(detail);
     }
 
     @GetMapping("/templates/{templateId}/similar")
