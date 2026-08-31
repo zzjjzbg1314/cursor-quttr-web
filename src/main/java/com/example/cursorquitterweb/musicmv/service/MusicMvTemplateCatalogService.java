@@ -1152,6 +1152,12 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> publish(String templateId, String versionId) {
         Map<String, Object> version = requireVersion(templateId, versionId);
+        Map<String, Object> runtimePackage = repository.runtimePackage(versionId);
+        if (runtimePackage != null && !runtimePackage.isEmpty()
+                && !"ready".equals(RowUtils.str(runtimePackage, "status"))) {
+            throw conflict("TEMPLATE_RUNTIME_PACKAGE_NOT_READY",
+                    "Template runtime package must pass integrity verification before publish");
+        }
         String sourceAvailability = RowUtils.str(version, "effective_source_availability");
         if (sourceAvailability == null) {
             sourceAvailability = RowUtils.str(version, "source_availability");

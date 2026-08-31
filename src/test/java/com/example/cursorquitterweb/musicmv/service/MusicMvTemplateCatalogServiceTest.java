@@ -276,6 +276,21 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void refusesPublishWhileRuntimePackageIntegrityCheckIsPending() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("validation_status", "browser_ready"));
+        when(repository.runtimePackage("tplver_1"))
+                .thenReturn(row("status", "awaiting_upload"));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.publish("tpl_1", "tplver_1"));
+
+        assertEquals("TEMPLATE_RUNTIME_PACKAGE_NOT_READY", error.getCode());
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
     void rejectsVersionTwoBrowserSceneWhenPhotoAnimationIsNotExecutable() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))

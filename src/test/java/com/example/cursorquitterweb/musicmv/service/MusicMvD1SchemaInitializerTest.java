@@ -30,7 +30,7 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(10);
+        assertThat(result.get("schemaVersion")).isEqualTo(11);
         assertThat(result.get("categoryCount")).isEqualTo(24L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
@@ -152,7 +152,7 @@ class MusicMvD1SchemaInitializerTest {
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(10));
+                metadata.put("schema_version", Integer.valueOf(11));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }
@@ -177,7 +177,8 @@ class MusicMvD1SchemaInitializerTest {
                     "template_source_metadata", "template_category_items",
                     "template_collections", "template_collection_items", "template_collection_relations",
                     "template_slots", "template_browser_scenes",
-                    "template_browser_parity_validations", "template_media", "music_mv_render_jobs",
+                    "template_browser_parity_validations", "template_media", "template_runtime_packages",
+                    "music_mv_render_jobs",
                     "music_mv_render_job_events", "template_validation_records",
                     "ai_music_jobs", "ai_music_provider_attempts", "ai_music_candidates",
                     "ai_music_job_events");

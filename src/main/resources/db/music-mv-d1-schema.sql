@@ -431,6 +431,28 @@ CREATE TABLE IF NOT EXISTS template_media (
 CREATE INDEX IF NOT EXISTS idx_template_media_lookup
   ON template_media(template_id, version_id, media_role, status);
 
+-- 私有且不可变的渲染运行包，不会下发给客户浏览器。
+-- 受信任的渲染节点通过短时下载地址获取对象。
+CREATE TABLE IF NOT EXISTS template_runtime_packages (
+  version_id TEXT PRIMARY KEY,
+  template_id TEXT NOT NULL,
+  object_key TEXT NOT NULL,
+  source_sha256 TEXT NOT NULL,
+  source_size_bytes INTEGER NOT NULL,
+  content_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  ready_at TEXT,
+  UNIQUE (object_key),
+  FOREIGN KEY (template_id) REFERENCES templates(template_id),
+  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_runtime_packages_ready
+  ON template_runtime_packages(template_id, status, updated_at);
+
 -- Provider-neutral AI songwriting tasks. Provider-specific identifiers and
 -- payloads are kept in attempts so the product contract never depends on KIE.
 CREATE TABLE IF NOT EXISTS ai_music_jobs (

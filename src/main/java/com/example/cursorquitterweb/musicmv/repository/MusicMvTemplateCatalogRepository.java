@@ -498,6 +498,44 @@ public class MusicMvTemplateCatalogRepository {
                 + "AND media_id=? LIMIT 1", templateId, versionId, mediaId).firstRow();
     }
 
+    public Map<String, Object> runtimePackage(String versionId) {
+        return d1.query("SELECT * FROM template_runtime_packages WHERE version_id=? LIMIT 1",
+                versionId).firstRow();
+    }
+
+    public void upsertRuntimePackage(
+            String templateId,
+            String versionId,
+            String objectKey,
+            String sha256,
+            long sizeBytes,
+            String contentType,
+            String status
+    ) {
+        d1.query("INSERT INTO template_runtime_packages "
+                        + "(version_id,template_id,object_key,source_sha256,source_size_bytes,"
+                        + "content_type,status,created_at,updated_at) "
+                        + "VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "ON CONFLICT(version_id) DO UPDATE SET object_key=excluded.object_key,"
+                        + "source_sha256=excluded.source_sha256,source_size_bytes=excluded.source_size_bytes,"
+                        + "content_type=excluded.content_type,status=excluded.status,error_message=NULL,"
+                        + "ready_at=NULL,updated_at=CURRENT_TIMESTAMP",
+                versionId, templateId, objectKey, sha256.toLowerCase(), Long.valueOf(sizeBytes),
+                contentType, status);
+    }
+
+    public void markRuntimePackageReady(String versionId) {
+        d1.query("UPDATE template_runtime_packages SET status='ready',error_message=NULL,"
+                        + "ready_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE version_id=?",
+                versionId);
+    }
+
+    public void markRuntimePackageFailed(String versionId, String message) {
+        d1.query("UPDATE template_runtime_packages SET status='failed',error_message=?,"
+                        + "ready_at=NULL,updated_at=CURRENT_TIMESTAMP WHERE version_id=?",
+                message, versionId);
+    }
+
     public void promote(TemplatePromotionRequest request, String versionId, int versionNumber,
                         String tagsJson, String sourceProvenanceJson, String evidenceJson) {
         List<D1Statement> statements = new ArrayList<D1Statement>();
@@ -704,6 +742,9 @@ public class MusicMvTemplateCatalogRepository {
     /** Deletes the complete catalog graph after the service has removed provider assets. */
     public void deleteTemplate(String templateId) {
         d1.batch(Arrays.asList(
+                statement("DELETE FROM template_runtime_packages WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_media WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
@@ -747,6 +788,7 @@ public class MusicMvTemplateCatalogRepository {
                 statement("UPDATE music_mv_projects SET template_id=NULL,template_version_id=NULL,"
                         + "current_step=CASE WHEN status='draft' THEN 'template' ELSE current_step END,"
                         + "revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE template_id=?", templateId),
+                statement("DELETE FROM template_runtime_packages WHERE template_id=?", templateId),
                 statement("DELETE FROM template_media WHERE template_id=?", templateId),
                 statement("DELETE FROM template_slots WHERE version_id IN ("
                         + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
