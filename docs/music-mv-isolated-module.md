@@ -147,9 +147,12 @@ Mac 模板同步节点：
 - `POST /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/media/images/upload-session`
 - `POST /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/media/videos/upload-session`
 - `POST /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/media/{mediaId}/complete`
+- `GET /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/browser-parity`
+- `POST /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/browser-parity`
 - `POST /internal/music-mv/v1/templates/{templateId}/versions/{versionId}/publish`
 
 同步使用 `X-Music-Mv-Template-Sync-Token`。Images/Stream API token 永远只保存在网站后端，Mac 只收到一次性上传地址。
+带浏览器场景的版本还必须上传 `browser_parity_reference` 官方预览，并提交与当前场景哈希、参考视频哈希和浏览器引擎版本完全匹配的 SSIM / MAE 通过报告；任一内容变化都会使旧报告失效并重新阻断发布。
 
 Mac 端只使用以下新配置，不再读取历史 `PQ_CLOUD_TEMPLATE_*`：
 

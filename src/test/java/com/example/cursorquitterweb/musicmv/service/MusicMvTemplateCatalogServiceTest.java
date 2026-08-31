@@ -252,12 +252,22 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
-    void publishesBrowserReadyVersionWithSceneOnly() {
+    void publishesBrowserReadyVersionAfterMatchingVisualParity() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("validation_status", "browser_ready");
         version.put("source_availability", "unavailable");
         when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
-        when(repository.browserScene("tplver_1")).thenReturn(row("status", "ready"));
+        Map<String, Object> scene = row("status", "ready");
+        scene.put("manifest_sha256", hash('c'));
+        when(repository.browserScene("tplver_1")).thenReturn(scene);
+        Map<String, Object> reference = row("status", "ready");
+        reference.put("source_sha256", hash('d'));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(reference);
+        Map<String, Object> parity = row("status", "passed");
+        parity.put("scene_manifest_sha256", hash('c'));
+        parity.put("reference_sha256", hash('d'));
+        when(repository.browserParity("tplver_1")).thenReturn(parity);
 
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
 

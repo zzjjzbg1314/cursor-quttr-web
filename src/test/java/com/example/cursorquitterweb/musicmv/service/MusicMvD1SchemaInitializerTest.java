@@ -176,7 +176,8 @@ class MusicMvD1SchemaInitializerTest {
                     "template_translations", "renderer_nodes", "template_versions",
                     "template_source_metadata", "template_category_items",
                     "template_collections", "template_collection_items", "template_collection_relations",
-                    "template_slots", "template_browser_scenes", "template_media", "music_mv_render_jobs",
+                    "template_slots", "template_browser_scenes",
+                    "template_browser_parity_validations", "template_media", "music_mv_render_jobs",
                     "music_mv_render_job_events", "template_validation_records",
                     "ai_music_jobs", "ai_music_provider_attempts", "ai_music_candidates",
                     "ai_music_job_events");

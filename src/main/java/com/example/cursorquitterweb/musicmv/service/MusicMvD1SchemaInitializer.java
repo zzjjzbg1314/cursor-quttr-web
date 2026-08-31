@@ -63,6 +63,7 @@ public class MusicMvD1SchemaInitializer {
                     "template_versions",
                     "template_slots",
                     "template_browser_scenes",
+                    "template_browser_parity_validations",
                     "template_media",
                     "ai_music_jobs",
                     "ai_music_provider_attempts",

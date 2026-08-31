@@ -371,6 +371,39 @@ CREATE TABLE IF NOT EXISTS template_browser_scenes (
 CREATE INDEX IF NOT EXISTS idx_template_browser_scenes_ready
   ON template_browser_scenes(template_id, status, updated_at);
 
+-- Browser parity is versioned by the immutable scene, the official reference
+-- video and the browser renderer. A scene can only be published after one of
+-- these exact tuples has passed the visual comparison gate.
+CREATE TABLE IF NOT EXISTS template_browser_parity_validations (
+  validation_id TEXT PRIMARY KEY,
+  template_id TEXT NOT NULL,
+  version_id TEXT NOT NULL,
+  scene_manifest_sha256 TEXT NOT NULL,
+  reference_sha256 TEXT NOT NULL,
+  renderer_version TEXT NOT NULL,
+  status TEXT NOT NULL,
+  sample_count INTEGER,
+  ssim_threshold REAL,
+  mae_threshold REAL,
+  average_ssim REAL,
+  min_ssim REAL,
+  average_mae REAL,
+  max_mae REAL,
+  reference_duration_seconds REAL,
+  output_duration_seconds REAL,
+  output_sha256 TEXT,
+  report_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  UNIQUE (version_id, scene_manifest_sha256, reference_sha256, renderer_version),
+  FOREIGN KEY (template_id) REFERENCES templates(template_id),
+  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_browser_parity_gate
+  ON template_browser_parity_validations(version_id, status, updated_at);
+
 CREATE TABLE IF NOT EXISTS template_media (
   media_id TEXT PRIMARY KEY,
   template_id TEXT NOT NULL,

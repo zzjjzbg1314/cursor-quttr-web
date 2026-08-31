@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserParityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMetadataUpdateRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
@@ -1196,9 +1197,141 @@ public class MusicMvTemplateCatalogService {
                             : "Cover, full MV, and every original template photo must be ready before publish",
                     true, details);
         }
+        if (browserSceneReady) {
+            Map<String, Object> reference = repository.mediaByRole(
+                    versionId, "browser_parity_reference");
+            Map<String, Object> parity = repository.browserParity(versionId);
+            boolean parityPassed = ready(reference) && parity != null
+                    && "passed".equals(RowUtils.str(parity, "status"))
+                    && RowUtils.str(browserScene, "manifest_sha256").equalsIgnoreCase(
+                    RowUtils.str(parity, "scene_manifest_sha256"))
+                    && RowUtils.str(reference, "source_sha256").equalsIgnoreCase(
+                    RowUtils.str(parity, "reference_sha256"));
+            if (!parityPassed) {
+                Map<String, Object> details = new LinkedHashMap<String, Object>();
+                details.put("sceneManifestSha256", RowUtils.str(
+                        browserScene, "manifest_sha256"));
+                details.put("referenceStatus", reference == null ? "missing"
+                        : RowUtils.str(reference, "status"));
+                details.put("parityStatus", parity == null ? "missing"
+                        : RowUtils.str(parity, "status"));
+                throw new ApiException(HttpStatus.CONFLICT,
+                        "TEMPLATE_BROWSER_PARITY_REQUIRED",
+                        "Browser scene must pass the official-preview visual parity gate before publish",
+                        true, details);
+            }
+        }
         repository.publish(templateId, versionId);
         invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
+    }
+
+    public Map<String, Object> browserParity(String templateId, String versionId) {
+        requireVersion(templateId, versionId);
+        Map<String, Object> parity = repository.browserParity(versionId);
+        return parity == null ? Collections.<String, Object>emptyMap()
+                : browserParityView(parity);
+    }
+
+    public Map<String, Object> synchronizeBrowserParity(
+            String templateId, String versionId, TemplateBrowserParityRequest request) {
+        requireVersion(templateId, versionId);
+        Map<String, Object> scene = repository.browserScene(versionId);
+        Map<String, Object> reference = repository.mediaByRole(
+                versionId, "browser_parity_reference");
+        String sceneHash = normalizedSha256(request.getSceneManifestSha256(),
+                "TEMPLATE_BROWSER_PARITY_SCENE_HASH_INVALID");
+        String referenceHash = normalizedSha256(request.getReferenceSha256(),
+                "TEMPLATE_BROWSER_PARITY_REFERENCE_HASH_INVALID");
+        if (scene == null || !sceneHash.equalsIgnoreCase(
+                RowUtils.str(scene, "manifest_sha256"))) {
+            throw conflict("TEMPLATE_BROWSER_PARITY_SCENE_CHANGED",
+                    "Browser scene changed before the parity result was submitted");
+        }
+        if (!ready(reference) || !referenceHash.equalsIgnoreCase(
+                RowUtils.str(reference, "source_sha256"))) {
+            throw conflict("TEMPLATE_BROWSER_PARITY_REFERENCE_CHANGED",
+                    "Official preview changed before the parity result was submitted");
+        }
+        String status = blankToNull(request.getStatus());
+        if (!("pending".equals(status) || "passed".equals(status)
+                || "failed".equals(status))) {
+            throw badRequest("TEMPLATE_BROWSER_PARITY_STATUS_INVALID",
+                    "Browser parity status must be pending, passed, or failed");
+        }
+        String rendererVersion = blankToNull(request.getRendererVersion());
+        if (rendererVersion == null || rendererVersion.length() > 120) {
+            throw badRequest("TEMPLATE_BROWSER_PARITY_RENDERER_INVALID",
+                    "Browser parity renderer version is invalid");
+        }
+        if (!"pending".equals(status)) requireBrowserParityMetrics(request, status);
+        Map<String, Object> existing = repository.matchingBrowserParity(
+                versionId, sceneHash, referenceHash, rendererVersion);
+        String validationId = existing == null
+                ? IdUtils.token("bpar") : RowUtils.str(existing, "validation_id");
+        repository.upsertBrowserParity(validationId, templateId, versionId,
+                sceneHash, referenceHash, rendererVersion, status,
+                request.getSampleCount(), request.getSsimThreshold(), request.getMaeThreshold(),
+                request.getAverageSsim(), request.getMinSsim(), request.getAverageMae(),
+                request.getMaxMae(), request.getReferenceDurationSeconds(),
+                request.getOutputDurationSeconds(), request.getOutputSha256() == null ? null
+                        : normalizedSha256(request.getOutputSha256(),
+                        "TEMPLATE_BROWSER_PARITY_OUTPUT_HASH_INVALID"),
+                json(request.getReport()));
+        invalidateDetail(templateId);
+        return browserParityView(repository.matchingBrowserParity(
+                versionId, sceneHash, referenceHash, rendererVersion));
+    }
+
+    private void requireBrowserParityMetrics(TemplateBrowserParityRequest request,
+                                             String status) {
+        if (request.getSampleCount() == null || request.getSampleCount().intValue() < 3
+                || request.getSsimThreshold() == null || request.getMaeThreshold() == null
+                || request.getMinSsim() == null || request.getMaxMae() == null
+                || request.getReferenceDurationSeconds() == null
+                || request.getOutputDurationSeconds() == null
+                || request.getOutputSha256() == null) {
+            throw badRequest("TEMPLATE_BROWSER_PARITY_METRICS_REQUIRED",
+                    "Completed browser parity requires sampled metrics and output evidence");
+        }
+        boolean metricsPassed = request.getMinSsim().doubleValue()
+                >= request.getSsimThreshold().doubleValue()
+                && request.getMaxMae().doubleValue() <= request.getMaeThreshold().doubleValue()
+                && Math.abs(request.getReferenceDurationSeconds().doubleValue()
+                - request.getOutputDurationSeconds().doubleValue()) <= 0.12d;
+        if ("passed".equals(status) != metricsPassed) {
+            throw badRequest("TEMPLATE_BROWSER_PARITY_RESULT_INVALID",
+                    "Browser parity status does not match its metrics");
+        }
+    }
+
+    private String normalizedSha256(String value, String code) {
+        String normalized = blankToNull(value);
+        if (normalized == null || !normalized.matches("(?i)[a-f0-9]{64}")) {
+            throw badRequest(code, "SHA-256 evidence is invalid");
+        }
+        return normalized.toLowerCase();
+    }
+
+    private Map<String, Object> browserParityView(Map<String, Object> row) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        if (row == null) return result;
+        String[][] fields = new String[][] {
+                {"validationId","validation_id"},{"templateId","template_id"},
+                {"versionId","version_id"},{"sceneManifestSha256","scene_manifest_sha256"},
+                {"referenceSha256","reference_sha256"},{"rendererVersion","renderer_version"},
+                {"status","status"},{"sampleCount","sample_count"},
+                {"ssimThreshold","ssim_threshold"},{"maeThreshold","mae_threshold"},
+                {"averageSsim","average_ssim"},{"minSsim","min_ssim"},
+                {"averageMae","average_mae"},{"maxMae","max_mae"},
+                {"referenceDurationSeconds","reference_duration_seconds"},
+                {"outputDurationSeconds","output_duration_seconds"},
+                {"outputSha256","output_sha256"},{"createdAt","created_at"},
+                {"updatedAt","updated_at"},{"completedAt","completed_at"}
+        };
+        for (String[] field : fields) result.put(field[0], row.get(field[1]));
+        result.put("report", parseObject(RowUtils.str(row, "report_json")));
+        return result;
     }
 
     public Map<String, Object> action(String templateId, String action, String versionId) {

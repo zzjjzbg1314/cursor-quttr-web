@@ -17,6 +17,7 @@ import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionReques
 import com.example.cursorquitterweb.musicmv.dto.CapCutTemplateExistenceRequest;
 import com.example.cursorquitterweb.musicmv.dto.CapCutTemplateIdentityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserParityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
@@ -91,6 +92,23 @@ public class RendererTemplateCatalogController {
             @Valid @RequestBody TemplateBrowserSceneRequest request) {
         authentication.requireAuthorized(token);
         return service.synchronizeBrowserScene(templateId, versionId, request);
+    }
+
+    @GetMapping("/{templateId}/versions/{versionId}/browser-parity")
+    public Map<String, Object> browserParity(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId) {
+        authentication.requireAuthorized(token);
+        return service.browserParity(templateId, versionId);
+    }
+
+    @PostMapping("/{templateId}/versions/{versionId}/browser-parity")
+    public Map<String, Object> synchronizeBrowserParity(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId,
+            @Valid @RequestBody TemplateBrowserParityRequest request) {
+        authentication.requireAuthorized(token);
+        return service.synchronizeBrowserParity(templateId, versionId, request);
     }
 
     @PostMapping("/{templateId}/versions/{versionId}/media/images/upload-session")

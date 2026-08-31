@@ -420,6 +420,51 @@ public class MusicMvTemplateCatalogRepository {
                 versionId, templateId, schemaVersion, manifestSha256, status, sceneJson);
     }
 
+    public Map<String, Object> browserParity(String versionId) {
+        return d1.query("SELECT * FROM template_browser_parity_validations "
+                        + "WHERE version_id=? ORDER BY updated_at DESC LIMIT 1", versionId)
+                .firstRow();
+    }
+
+    public Map<String, Object> matchingBrowserParity(String versionId, String sceneManifest,
+                                                     String referenceSha256,
+                                                     String rendererVersion) {
+        return d1.query("SELECT * FROM template_browser_parity_validations WHERE version_id=? "
+                        + "AND scene_manifest_sha256=? AND reference_sha256=? "
+                        + "AND renderer_version=? LIMIT 1",
+                versionId, sceneManifest, referenceSha256, rendererVersion).firstRow();
+    }
+
+    public void upsertBrowserParity(String validationId, String templateId, String versionId,
+                                    String sceneManifest, String referenceSha256,
+                                    String rendererVersion, String status, Integer sampleCount,
+                                    Double ssimThreshold, Double maeThreshold,
+                                    Double averageSsim, Double minSsim, Double averageMae,
+                                    Double maxMae, Double referenceDuration,
+                                    Double outputDuration, String outputSha256,
+                                    String reportJson) {
+        d1.query("INSERT INTO template_browser_parity_validations "
+                        + "(validation_id,template_id,version_id,scene_manifest_sha256,reference_sha256,"
+                        + "renderer_version,status,sample_count,ssim_threshold,mae_threshold,average_ssim,"
+                        + "min_ssim,average_mae,max_mae,reference_duration_seconds,output_duration_seconds,"
+                        + "output_sha256,report_json,created_at,updated_at,completed_at) "
+                        + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,"
+                        + "CASE WHEN ? IN ('passed','failed') THEN CURRENT_TIMESTAMP ELSE NULL END) "
+                        + "ON CONFLICT(version_id,scene_manifest_sha256,reference_sha256,renderer_version) "
+                        + "DO UPDATE SET status=excluded.status,sample_count=excluded.sample_count,"
+                        + "ssim_threshold=excluded.ssim_threshold,mae_threshold=excluded.mae_threshold,"
+                        + "average_ssim=excluded.average_ssim,min_ssim=excluded.min_ssim,"
+                        + "average_mae=excluded.average_mae,max_mae=excluded.max_mae,"
+                        + "reference_duration_seconds=excluded.reference_duration_seconds,"
+                        + "output_duration_seconds=excluded.output_duration_seconds,"
+                        + "output_sha256=excluded.output_sha256,report_json=excluded.report_json,"
+                        + "updated_at=CURRENT_TIMESTAMP,completed_at=excluded.completed_at",
+                validationId, templateId, versionId, sceneManifest, referenceSha256,
+                rendererVersion, status, sampleCount, ssimThreshold, maeThreshold, averageSsim,
+                minSsim, averageMae, maxMae, referenceDuration, outputDuration, outputSha256,
+                reportJson, status);
+    }
+
     public List<Map<String, Object>> media(String versionId) {
         return d1.query("SELECT media_id, media_role, provider, provider_asset_id, status, source_sha256, "
                 + "source_size_bytes, width, height, duration_seconds, provider_details_json, "
@@ -670,6 +715,9 @@ public class MusicMvTemplateCatalogRepository {
                         + "SELECT version_id FROM template_versions WHERE template_id=?) AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
+                statement("DELETE FROM template_browser_parity_validations WHERE template_id=? "
+                        + "AND EXISTS (SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_browser_scenes WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
@@ -704,6 +752,7 @@ public class MusicMvTemplateCatalogRepository {
                         + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
                 statement("DELETE FROM template_validation_records WHERE version_id IN ("
                         + "SELECT version_id FROM template_versions WHERE template_id=?)", templateId),
+                statement("DELETE FROM template_browser_parity_validations WHERE template_id=?", templateId),
                 statement("DELETE FROM template_browser_scenes WHERE template_id=?", templateId),
                 statement("DELETE FROM template_collection_items WHERE template_id=?", templateId),
                 statement("DELETE FROM template_category_items WHERE template_id=?", templateId),
