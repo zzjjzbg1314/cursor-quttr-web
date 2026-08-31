@@ -293,7 +293,7 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
-    void acceptsVersionFourSceneGraphWithSlotBoundPhotoLayers() throws Exception {
+    void acceptsVersionFiveSceneGraphWithVerifiedEffectInventory() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
@@ -307,7 +307,7 @@ class MusicMvTemplateCatalogServiceTest {
         capability.put("executionCapabilities", Collections.singletonList(
                 executionCapability("photo_layers", 2, 2, "exact", false)));
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
-        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("schemaVersion", "browser-template-scene-v5");
         scene.put("templateId", "tpl_1");
         scene.put("versionId", "tplver_1");
         scene.put("capability", capability);
@@ -380,8 +380,33 @@ class MusicMvTemplateCatalogServiceTest {
         lutEffect.put("fidelity", "semantic_approximation");
         lutEffect.put("resourceKeys", row("background", "lut_123"));
         scene.put("postEffects", Collections.singletonList(lutEffect));
+        Map<String, Object> capabilityReport = row(
+                "schemaVersion", "browser-scene-capability-report-v1");
+        capabilityReport.put("effectRegistryContract", "browser_effect_registry_v1");
+        capabilityReport.put("features", capability.get("executionCapabilities"));
+        capabilityReport.put("effectImplementations", java.util.Arrays.asList(
+                effectImplementation("animation", "scale_up_approximation",
+                        "timeline_animation_v1", "semantic_approximation"),
+                effectImplementation("transition", "soft_fade",
+                        "timeline_transition_v1", "exact"),
+                effectImplementation("layer_effect", "shake_approximation",
+                        "canvas_layer_effect_v1", "semantic_approximation"),
+                effectImplementation("mask", "rectangle",
+                        "canvas_mask_v1", "exact"),
+                effectImplementation("text_template", "expanded_text_template",
+                        "text_template_expansion_v1", "semantic_approximation"),
+                effectImplementation("post_effect", "dual_lut_filter_approximation",
+                        "canvas_post_effect_v1", "semantic_approximation")));
+        Map<String, Object> reportSummary = row("declaredItemCount", Integer.valueOf(2));
+        reportSummary.put("executableItemCount", Integer.valueOf(2));
+        reportSummary.put("exactFeatureCount", Integer.valueOf(1));
+        reportSummary.put("approximateFeatureCount", Integer.valueOf(0));
+        reportSummary.put("unsupportedFeatureCount", Integer.valueOf(0));
+        reportSummary.put("effectImplementationCount", Integer.valueOf(6));
+        capabilityReport.put("summary", reportSummary);
+        scene.put("capabilityReport", capabilityReport);
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
-        request.setSchemaVersion("browser-template-scene-v4");
+        request.setSchemaVersion("browser-template-scene-v5");
         request.setScene(scene);
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
 
@@ -390,7 +415,55 @@ class MusicMvTemplateCatalogServiceTest {
 
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
-                eq("browser-template-scene-v4"), anyString(), eq("ready"), anyString());
+                eq("browser-template-scene-v5"), anyString(), eq("ready"), anyString());
+    }
+
+    @Test
+    void rejectsVersionFiveCapabilityReportThatInventsAnEffect() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("photo_layers", 1, 1, "exact", false)));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v5");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        Map<String, Object> layer = row("layerId", "segment-1");
+        layer.put("type", "photo");
+        layer.put("slotKey", "photo_01");
+        scene.put("layers", Collections.singletonList(layer));
+        Map<String, Object> report = row(
+                "schemaVersion", "browser-scene-capability-report-v1");
+        report.put("effectRegistryContract", "browser_effect_registry_v1");
+        report.put("features", capability.get("executionCapabilities"));
+        report.put("effectImplementations", Collections.singletonList(
+                effectImplementation("animation", "fade_in",
+                        "timeline_animation_v1", "exact")));
+        Map<String, Object> summary = row("declaredItemCount", Integer.valueOf(1));
+        summary.put("executableItemCount", Integer.valueOf(1));
+        summary.put("exactFeatureCount", Integer.valueOf(1));
+        summary.put("approximateFeatureCount", Integer.valueOf(0));
+        summary.put("unsupportedFeatureCount", Integer.valueOf(0));
+        summary.put("effectImplementationCount", Integer.valueOf(1));
+        report.put("summary", summary);
+        scene.put("capabilityReport", report);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v5");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_EFFECT_INVENTORY_INVALID", error.getCode());
     }
 
     @Test
@@ -1103,6 +1176,18 @@ class MusicMvTemplateCatalogServiceTest {
         result.put("executableCount", Integer.valueOf(executable));
         result.put("fidelity", fidelity);
         result.put("blocksExport", Boolean.valueOf(blocksExport));
+        return result;
+    }
+
+    private Map<String, Object> effectImplementation(
+            String kind, String implementationKey, String renderer, String fidelity) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("kind", kind);
+        result.put("implementationKey", implementationKey);
+        result.put("renderer", renderer);
+        result.put("usageCount", Integer.valueOf(1));
+        result.put("fidelity", fidelity);
+        result.put("blocksExport", Boolean.valueOf("unsupported".equals(fidelity)));
         return result;
     }
 

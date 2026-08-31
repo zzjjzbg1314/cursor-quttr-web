@@ -407,9 +407,13 @@ public class MusicMvTemplateCatalogService {
             throw conflict("TEMPLATE_BROWSER_SCENE_ANIMATION_NOT_READY",
                     "Every published photo animation must be executable before browser rendering is enabled");
         }
-        if ("browser-template-scene-v4".equals(request.getSchemaVersion())) {
+        if ("browser-template-scene-v4".equals(request.getSchemaVersion())
+                || "browser-template-scene-v5".equals(request.getSchemaVersion())) {
             requireValidBrowserSceneGraph(scene);
             requireValidBrowserExecutionCapabilities(capability);
+        }
+        if ("browser-template-scene-v5".equals(request.getSchemaVersion())) {
+            requireValidBrowserCapabilityReport(scene, capability);
         }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
@@ -781,6 +785,184 @@ public class MusicMvTemplateCatalogService {
             throw badRequest("TEMPLATE_BROWSER_EXECUTION_STATUS_INVALID",
                     "Browser export readiness does not match its declared blocking features");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireValidBrowserCapabilityReport(
+            Map<String, Object> scene, Map<String, Object> capability) {
+        Object rawReport = scene.get("capabilityReport");
+        if (!(rawReport instanceof Map)) {
+            throw badRequest("TEMPLATE_BROWSER_CAPABILITY_REPORT_REQUIRED",
+                    "Browser scene v5 requires a capability report");
+        }
+        Map<String, Object> report = (Map<String, Object>) rawReport;
+        if (!"browser-scene-capability-report-v1".equals(report.get("schemaVersion"))
+                || !"browser_effect_registry_v1".equals(report.get("effectRegistryContract"))
+                || !java.util.Objects.equals(
+                        capability.get("executionCapabilities"), report.get("features"))) {
+            throw badRequest("TEMPLATE_BROWSER_CAPABILITY_REPORT_INVALID",
+                    "Browser capability report does not match its scene contract");
+        }
+        Object rawImplementations = report.get("effectImplementations");
+        if (!(rawImplementations instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_EFFECT_INVENTORY_REQUIRED",
+                    "Browser capability report requires an effect implementation inventory");
+        }
+        requireValidBrowserCapabilitySummary(
+                report.get("summary"), report.get("features"),
+                ((List<?>) rawImplementations).size());
+        Map<String, Integer> actual = browserSceneEffectInventory(scene);
+        Map<String, String> renderers = new LinkedHashMap<String, String>();
+        renderers.put("animation", "timeline_animation_v1");
+        renderers.put("transition", "timeline_transition_v1");
+        renderers.put("layer_effect", "canvas_layer_effect_v1");
+        renderers.put("post_effect", "canvas_post_effect_v1");
+        renderers.put("mask", "canvas_mask_v1");
+        renderers.put("blend_mode", "canvas_composite_v1");
+        renderers.put("text_template", "text_template_expansion_v1");
+        Set<String> declaredKeys = new HashSet<String>();
+        for (Object raw : (List<?>) rawImplementations) {
+            if (!(raw instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_EFFECT_INVENTORY_INVALID",
+                        "Every browser effect implementation must be an object");
+            }
+            Map<String, Object> item = (Map<String, Object>) raw;
+            String kind = blankToNull(item.get("kind") == null
+                    ? null : String.valueOf(item.get("kind")));
+            String implementationKey = blankToNull(item.get("implementationKey") == null
+                    ? null : String.valueOf(item.get("implementationKey")));
+            String fidelity = blankToNull(item.get("fidelity") == null
+                    ? null : String.valueOf(item.get("fidelity")));
+            String renderer = blankToNull(item.get("renderer") == null
+                    ? null : String.valueOf(item.get("renderer")));
+            int usageCount = item.get("usageCount") instanceof Number
+                    ? ((Number) item.get("usageCount")).intValue() : -1;
+            String key = effectInventoryKey(kind, implementationKey, fidelity);
+            boolean expectedBlock = "unsupported".equals(fidelity);
+            if (kind == null || implementationKey == null
+                    || !("exact".equals(fidelity)
+                            || "semantic_approximation".equals(fidelity)
+                            || "unsupported".equals(fidelity))
+                    || !renderers.containsKey(kind) || !renderers.get(kind).equals(renderer)
+                    || usageCount <= 0 || !declaredKeys.add(key)
+                    || !Boolean.valueOf(expectedBlock).equals(item.get("blocksExport"))
+                    || !Integer.valueOf(usageCount).equals(actual.remove(key))) {
+                throw badRequest("TEMPLATE_BROWSER_EFFECT_INVENTORY_INVALID",
+                        "Browser effect inventory does not match the published scene graph");
+            }
+        }
+        if (!actual.isEmpty()) {
+            throw badRequest("TEMPLATE_BROWSER_EFFECT_INVENTORY_INCOMPLETE",
+                    "Browser effect inventory omits implementations used by the scene graph");
+        }
+    }
+
+    private void requireValidBrowserCapabilitySummary(
+            Object rawSummary, Object rawFeatures, int implementationCount) {
+        if (!(rawSummary instanceof Map) || !(rawFeatures instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_CAPABILITY_SUMMARY_INVALID",
+                    "Browser capability report requires a derived summary");
+        }
+        int declaredItems = 0;
+        int executableItems = 0;
+        int exactFeatures = 0;
+        int approximateFeatures = 0;
+        int unsupportedFeatures = 0;
+        for (Object raw : (List<?>) rawFeatures) {
+            if (!(raw instanceof Map)) continue;
+            Map<?, ?> feature = (Map<?, ?>) raw;
+            declaredItems += feature.get("declaredCount") instanceof Number
+                    ? ((Number) feature.get("declaredCount")).intValue() : 0;
+            executableItems += feature.get("executableCount") instanceof Number
+                    ? ((Number) feature.get("executableCount")).intValue() : 0;
+            String fidelity = String.valueOf(feature.get("fidelity"));
+            if ("exact".equals(fidelity)) exactFeatures++;
+            else if ("semantic_approximation".equals(fidelity)) approximateFeatures++;
+            else if ("unsupported".equals(fidelity)) unsupportedFeatures++;
+        }
+        Map<?, ?> summary = (Map<?, ?>) rawSummary;
+        if (!Integer.valueOf(declaredItems).equals(summary.get("declaredItemCount"))
+                || !Integer.valueOf(executableItems).equals(summary.get("executableItemCount"))
+                || !Integer.valueOf(exactFeatures).equals(summary.get("exactFeatureCount"))
+                || !Integer.valueOf(approximateFeatures).equals(
+                        summary.get("approximateFeatureCount"))
+                || !Integer.valueOf(unsupportedFeatures).equals(
+                        summary.get("unsupportedFeatureCount"))
+                || !Integer.valueOf(implementationCount).equals(
+                        summary.get("effectImplementationCount"))) {
+            throw badRequest("TEMPLATE_BROWSER_CAPABILITY_SUMMARY_INVALID",
+                    "Browser capability summary does not match its feature inventory");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Integer> browserSceneEffectInventory(Map<String, Object> scene) {
+        Map<String, Integer> result = new LinkedHashMap<String, Integer>();
+        Object rawLayers = scene.get("layers");
+        if (rawLayers instanceof List) {
+            for (Object rawLayer : (List<?>) rawLayers) {
+                if (!(rawLayer instanceof Map)) continue;
+                Map<String, Object> layer = (Map<String, Object>) rawLayer;
+                addTimedEffects(result, "animation", layer.get("animations"));
+                Object rawTransition = layer.get("transitionIn");
+                if (rawTransition instanceof Map) {
+                    addEffectInventoryItem(result, "transition", (Map<?, ?>) rawTransition);
+                }
+                addTimedEffects(result, "layer_effect", layer.get("effects"));
+                Object rawMask = layer.get("mask");
+                if (rawMask instanceof Map) {
+                    Map<?, ?> mask = (Map<?, ?>) rawMask;
+                    String type = String.valueOf(mask.get("type"));
+                    double feather = mask.get("feather") instanceof Number
+                            ? ((Number) mask.get("feather")).doubleValue() : 0.0d;
+                    String fidelity = "unsupported".equals(type) ? "unsupported"
+                            : ("heart".equals(type) || "linear".equals(type)
+                                    || "mirror".equals(type) || Math.abs(feather) > 0.000001d)
+                                    ? "semantic_approximation" : "exact";
+                    incrementEffectInventory(result, "mask", type, fidelity);
+                }
+                if (layer.get("blendMode") != null) {
+                    incrementEffectInventory(result, "blend_mode",
+                            String.valueOf(layer.get("blendMode")), "exact");
+                }
+                if (layer.get("templateResourceId") != null) {
+                    incrementEffectInventory(result, "text_template", "expanded_text_template",
+                            layer.get("fidelity") == null ? "semantic_approximation"
+                                    : String.valueOf(layer.get("fidelity")));
+                }
+            }
+        }
+        addTimedEffects(result, "post_effect", scene.get("postEffects"));
+        return result;
+    }
+
+    private void addTimedEffects(
+            Map<String, Integer> result, String kind, Object rawEffects) {
+        if (!(rawEffects instanceof List)) return;
+        for (Object raw : (List<?>) rawEffects) {
+            if (raw instanceof Map) addEffectInventoryItem(result, kind, (Map<?, ?>) raw);
+        }
+    }
+
+    private void addEffectInventoryItem(
+            Map<String, Integer> result, String kind, Map<?, ?> item) {
+        String implementationKey = item.get("preset") == null
+                ? "unsupported" : String.valueOf(item.get("preset"));
+        String fidelity = item.get("fidelity") == null
+                ? ("unsupported".equals(implementationKey) ? "unsupported" : "exact")
+                : String.valueOf(item.get("fidelity"));
+        incrementEffectInventory(result, kind, implementationKey, fidelity);
+    }
+
+    private void incrementEffectInventory(
+            Map<String, Integer> result, String kind, String implementationKey, String fidelity) {
+        String key = effectInventoryKey(kind, implementationKey, fidelity);
+        result.put(key, Integer.valueOf(result.containsKey(key) ? result.get(key) + 1 : 1));
+    }
+
+    private String effectInventoryKey(String kind, String implementationKey, String fidelity) {
+        return String.valueOf(kind) + "\u0000" + String.valueOf(implementationKey)
+                + "\u0000" + String.valueOf(fidelity);
     }
 
     public Map<String, Object> updateMetadata(String templateId, TemplateMetadataUpdateRequest request) {
