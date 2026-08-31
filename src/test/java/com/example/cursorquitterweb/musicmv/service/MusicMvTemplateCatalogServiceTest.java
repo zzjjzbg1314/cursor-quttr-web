@@ -316,7 +316,11 @@ class MusicMvTemplateCatalogServiceTest {
         resource.put("kind", "font");
         resource.put("role", "browser_resource:font_123");
         resource.put("inlineData", "data:font/ttf;base64,AAECAw==");
-        scene.put("resources", Collections.singletonList(resource));
+        Map<String, Object> lutResource = row("resourceKey", "lut_123");
+        lutResource.put("kind", "lut_2d_png");
+        lutResource.put("role", "browser_resource:lut_123");
+        lutResource.put("inlineData", null);
+        scene.put("resources", java.util.Arrays.asList(resource, lutResource));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");

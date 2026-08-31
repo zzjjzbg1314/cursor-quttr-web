@@ -1534,7 +1534,10 @@ public class MusicMvTemplateCatalogService {
                             "Browser scene contains private source information");
                 }
                 if ("inlinedata".equals(key)) {
-                    requireSafeInlineBrowserResource(entry.getValue());
+                    if (entry.getValue() != null
+                            && !String.valueOf(entry.getValue()).trim().isEmpty()) {
+                        requireSafeInlineBrowserResource(entry.getValue());
+                    }
                     continue;
                 }
                 requireSanitizedBrowserScene(entry.getValue());
