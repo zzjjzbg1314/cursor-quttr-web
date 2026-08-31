@@ -642,21 +642,9 @@ public class MusicMvRenderJobService {
             throw conflict("MV_BROWSER_SCENE_UNAVAILABLE",
                     "This template is not ready for browser rendering");
         }
-        Map<String, Object> media = repository.fullMvMedia(RowUtils.str(row, "version_id"));
-        if (media == null || !"ready".equals(RowUtils.str(media, "status"))
-                || templateMedia == null) {
-            throw conflict("MV_BROWSER_BASE_VIDEO_UNAVAILABLE",
-                    "The published template preview is not ready for browser rendering");
-        }
-        Map<String, Object> providerDetails = parseObject(
-                RowUtils.str(media, "provider_details_json"));
-        Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
-                RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
-                providerDetails);
-        String playbackUrl = delivery == null ? null : String.valueOf(delivery.get("playbackUrl"));
-        if (playbackUrl == null || playbackUrl.trim().isEmpty() || "null".equals(playbackUrl)) {
-            throw conflict("MV_BROWSER_BASE_VIDEO_UNAVAILABLE",
-                    "The published template preview has no browser playback URL");
+        if (templateMedia == null) {
+            throw conflict("MV_BROWSER_ASSET_PROVIDER_UNAVAILABLE",
+                    "The browser scene asset provider is unavailable");
         }
         Map<String, Object> request = parseObject(RowUtils.str(row, "request_json"));
         String candidateId = request.get("musicCandidateId") == null ? null
@@ -685,6 +673,8 @@ public class MusicMvRenderJobService {
                 boolean useDefault = Boolean.TRUE.equals(source.get("useTemplateDefault"));
                 item.put("useTemplateDefault", Boolean.valueOf(useDefault));
                 if (useDefault) {
+                    item.put("asset", templateSlotAsset(RowUtils.str(row, "version_id"),
+                            String.valueOf(source.get("slotKey"))));
                     bindings.add(item);
                     continue;
                 }
@@ -698,33 +688,36 @@ public class MusicMvRenderJobService {
             }
         }
         Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
-        Map<String, Object> sourceVideo = singleton("playbackUrl", playbackUrl);
-        Double sourceDuration = RowUtils.dbl(media, "duration_seconds");
-        putPositive(sourceVideo, "durationSeconds", sourceDuration);
-        Double explicitLoopDuration = positiveDouble(providerDetails == null
-                ? null : providerDetails.get("loopDurationSeconds"));
-        Double sceneDuration = positiveDouble(objectMap(scene.get("canvas")).get("durationSeconds"));
-        String sourceType = providerDetails == null ? null
-                : String.valueOf(providerDetails.get("sourceType"));
-        Double loopDuration = explicitLoopDuration;
-        if (loopDuration == null && sourceType != null
-                && sourceType.contains("official_template_preview")) {
-            loopDuration = sourceDuration;
-        }
-        if (loopDuration == null) loopDuration = sceneDuration;
-        putPositive(sourceVideo, "loopDurationSeconds", loopDuration);
-        sourceVideo.put("loopStartSeconds", Double.valueOf(0.0d));
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("scene", scene);
         result.put("sceneManifestSha256", sceneRow.get("manifest_sha256"));
-        result.put("sourceVideo", sourceVideo);
         result.put("music", music);
         result.put("slotBindings", bindings);
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
         return result;
+    }
+
+    private Map<String, Object> templateSlotAsset(String versionId, String slotKey) {
+        Map<String, Object> media = repository.slotDefaultMedia(versionId, slotKey);
+        if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
+            throw conflict("MV_BROWSER_DEFAULT_ASSET_UNAVAILABLE",
+                    "A default template photo is unavailable for browser rendering");
+        }
+        Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
+                RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
+                parseObject(RowUtils.str(media, "provider_details_json")));
+        String url = delivery == null ? null : RowUtils.str(delivery, "deliveryUrl");
+        if (url == null) {
+            throw conflict("MV_BROWSER_DEFAULT_ASSET_UNAVAILABLE",
+                    "A default template photo has no browser delivery URL");
+        }
+        Map<String, Object> asset = new LinkedHashMap<String, Object>();
+        asset.put("kind", "image");
+        asset.put("url", browserAssetUrl(url));
+        return asset;
     }
 
     private String browserAssetUrl(Object value) {

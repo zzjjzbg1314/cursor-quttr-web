@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -197,7 +198,7 @@ class MusicMvRenderJobServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void publishesAnExplicitOfficialPreviewLoopClock() {
+    void publishesDefaultTemplatePhotosWithoutUsingAFlattenedVideo() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         CloudflareTemplateMediaProvider templateMedia = mock(CloudflareTemplateMediaProvider.class);
@@ -206,7 +207,8 @@ class MusicMvRenderJobServiceTest {
                 new ObjectMapper(), true, 2);
         Map<String, Object> active = row("mvr_browser", null);
         active.put("client_id", "usr_owner");
-        active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},\"slotBindings\":[]}");
+        active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},"
+                + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}]}");
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
         Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
@@ -214,28 +216,26 @@ class MusicMvRenderJobServiceTest {
         sceneRow.put("scene_json", json(scene));
         Map<String, Object> media = new LinkedHashMap<String, Object>();
         media.put("status", "ready");
-        media.put("provider", "cloudflare_stream");
-        media.put("provider_asset_id", "stream_1");
-        media.put("duration_seconds", Double.valueOf(26.633d));
-        media.put("provider_details_json",
-                "{\"sourceType\":\"capcut_official_template_preview\"}");
+        media.put("provider", "cloudflare_images");
+        media.put("provider_asset_id", "image_1");
+        media.put("provider_details_json", "{}");
         when(repository.byId("mvr_browser")).thenReturn(active);
         when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
-        when(repository.fullMvMedia("tplver_1")).thenReturn(media);
+        when(repository.slotDefaultMedia("tplver_1", "photo_01")).thenReturn(media);
         when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
         when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
-        when(templateMedia.resolveDeliveryDetails(eq("cloudflare_stream"), eq("stream_1"),
+        when(templateMedia.resolveDeliveryDetails(eq("cloudflare_images"), eq("image_1"),
                 org.mockito.ArgumentMatchers.<Map<String, Object>>any()))
                 .thenReturn(Collections.<String, Object>singletonMap(
-                        "playbackUrl", "https://stream.example/video.m3u8"));
+                        "deliveryUrl", "https://images.example/photo.jpg"));
 
         Map<String, Object> result = service.get("usr_owner", "mvr_browser");
         Map<String, Object> browserRender = (Map<String, Object>) result.get("browserRender");
-        Map<String, Object> sourceVideo = (Map<String, Object>) browserRender.get("sourceVideo");
-
-        assertEquals(Double.valueOf(26.633d), sourceVideo.get("durationSeconds"));
-        assertEquals(Double.valueOf(26.633d), sourceVideo.get("loopDurationSeconds"));
-        assertEquals(Double.valueOf(0.0d), sourceVideo.get("loopStartSeconds"));
+        List<Map<String, Object>> bindings =
+                (List<Map<String, Object>>) browserRender.get("slotBindings");
+        Map<String, Object> asset = (Map<String, Object>) bindings.get(0).get("asset");
+        assertEquals("https://images.example/photo.jpg", asset.get("url"));
+        assertEquals(null, browserRender.get("sourceVideo"));
     }
 
     @Test
