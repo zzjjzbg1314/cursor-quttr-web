@@ -979,6 +979,40 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void createsCloudflareStreamForOfficialBrowserParityReference() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(null);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "parity-reference", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_parity_reference");
+        request.setSourceSha256(hash('p'));
+        request.setSourceSizeBytes(Long.valueOf(1000));
+        request.setWidth(Integer.valueOf(1080));
+        request.setHeight(Integer.valueOf(1920));
+        request.setDurationSeconds(Double.valueOf(33.433d));
+        request.setFilename("official-preview.mp4");
+        request.setSourceType("capcut_official_template_preview");
+        request.setDisplayLabel("CapCut 官方模板预览");
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+        Map<String, Object> details = (Map<String, Object>) result.get("providerDetails");
+
+        assertEquals("awaiting_upload", result.get("status"));
+        assertEquals("capcut_official_template_preview", details.get("sourceType"));
+        verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
+                eq("browser_parity_reference"), eq("cloudflare_stream"),
+                anyString(), anyString(), anyString(), any(Long.class), any(), any(), any(),
+                anyString());
+    }
+
+    @Test
     void rejectsBrowserResourceThatIsNotDeclaredByTheScene() {
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));

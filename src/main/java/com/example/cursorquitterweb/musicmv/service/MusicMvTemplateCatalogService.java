@@ -1012,6 +1012,8 @@ public class MusicMvTemplateCatalogService {
                 && expectedRole.startsWith("slot_default:");
         boolean browserResource = expectedRole != null
                 && expectedRole.startsWith("browser_resource:");
+        boolean browserParityReference = video
+                && "browser_parity_reference".equals(expectedRole);
         if (slotDefault) {
             String slotKey = expectedRole.substring("slot_default:".length());
             boolean slotExists = false;
@@ -1033,10 +1035,11 @@ public class MusicMvTemplateCatalogService {
             throw badRequest("TEMPLATE_MEDIA_BROWSER_RESOURCE_INVALID",
                     "The browser resource role is not declared by the template scene");
         }
-        if (video ? !("full_mv".equals(expectedRole) || browserResource)
+        if (video ? !("full_mv".equals(expectedRole) || browserResource
+                || browserParityReference)
                 : !("cover".equals(expectedRole) || slotDefault || browserResource)) {
             throw badRequest("TEMPLATE_MEDIA_ROLE_INVALID", video
-                    ? "Stream upload only accepts a full MV or declared browser video resource"
+                    ? "Stream upload only accepts a full MV, official parity reference, or declared browser video resource"
                     : "Images upload only accepts cover, a template slot photo, or a declared browser resource");
         }
         if (video && (request.getDurationSeconds() == null || request.getFilename() == null)) {
