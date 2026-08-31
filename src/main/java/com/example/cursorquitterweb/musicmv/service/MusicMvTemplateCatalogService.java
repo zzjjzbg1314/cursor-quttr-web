@@ -449,7 +449,10 @@ public class MusicMvTemplateCatalogService {
                         ? null : String.valueOf(resource.get("resourceKey")));
                 String kind = blankToNull(resource.get("kind") == null
                         ? null : String.valueOf(resource.get("kind")));
-                if (resourceKey != null && kind != null) resourceKinds.put(resourceKey, kind);
+                if (resourceKey != null && kind != null) {
+                    resourceKinds.put(resourceKey, kind);
+                    if ("font".equals(kind)) requireValidBrowserFontResource(resource);
+                }
             }
         }
         Set<String> layerIds = new HashSet<String>();
@@ -483,8 +486,60 @@ public class MusicMvTemplateCatalogService {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
                             "Image, sticker, and video layers must reference a matching resource");
                 }
+            } else if ("text".equals(type)) {
+                requireValidBrowserTextFonts(layer, resourceKinds);
             }
             requireValidBrowserLayerMask(layer);
+        }
+    }
+
+    private void requireValidBrowserFontResource(Map<?, ?> resource) {
+        String family = blankToNull(resource.get("fontFamily") == null
+                ? null : String.valueOf(resource.get("fontFamily")));
+        String inlineData = blankToNull(resource.get("inlineData") == null
+                ? null : String.valueOf(resource.get("inlineData")));
+        if (family == null || inlineData == null || !inlineData.startsWith("data:font/")) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_FONT_RESOURCE_INVALID",
+                    "Inline browser fonts require a family and a font data URL");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireValidBrowserTextFonts(
+            Map<String, Object> layer,
+            Map<String, String> resourceKinds) {
+        Object rawStyle = layer.get("style");
+        if (rawStyle instanceof Map) {
+            requireBrowserFontReference((Map<String, Object>) rawStyle, resourceKinds);
+        }
+        Object rawRuns = layer.get("runs");
+        if (!(rawRuns instanceof List)) return;
+        for (Object rawRun : (List<?>) rawRuns) {
+            if (!(rawRun instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_TEXT_RUN_INVALID",
+                        "Browser text runs must be objects");
+            }
+            Map<String, Object> run = (Map<String, Object>) rawRun;
+            requireBrowserFontReference(run, resourceKinds);
+            Object start = run.get("start");
+            Object end = run.get("end");
+            if (!(start instanceof Number) || !(end instanceof Number)
+                    || ((Number) start).longValue() < 0L
+                    || ((Number) end).longValue() < ((Number) start).longValue()) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_TEXT_RUN_INVALID",
+                        "Browser text runs require ordered UTF-16 ranges");
+            }
+        }
+    }
+
+    private void requireBrowserFontReference(
+            Map<String, Object> source,
+            Map<String, String> resourceKinds) {
+        String resourceKey = blankToNull(source.get("fontResourceKey") == null
+                ? null : String.valueOf(source.get("fontResourceKey")));
+        if (resourceKey != null && !"font".equals(resourceKinds.get(resourceKey))) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_FONT_REFERENCE_INVALID",
+                    "Browser text fonts must reference declared font resources");
         }
     }
 

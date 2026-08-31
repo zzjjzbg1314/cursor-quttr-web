@@ -315,6 +315,7 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> resource = row("resourceKey", "font_123");
         resource.put("kind", "font");
         resource.put("role", "browser_resource:font_123");
+        resource.put("fontFamily", "storyai-font-123");
         resource.put("inlineData", "data:font/ttf;base64,AAECAw==");
         Map<String, Object> lutResource = row("resourceKey", "lut_123");
         lutResource.put("kind", "lut_2d_png");
@@ -349,8 +350,14 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> videoLayer = row("layerId", "video-segment-1");
         videoLayer.put("type", "video");
         videoLayer.put("resourceKey", "video_123");
+        Map<String, Object> textLayer = row("layerId", "text-segment-1");
+        textLayer.put("type", "text");
+        Map<String, Object> textRun = row("start", 0);
+        textRun.put("end", 5);
+        textRun.put("fontResourceKey", "font_123");
+        textLayer.put("runs", Collections.singletonList(textRun));
         scene.put("layers", java.util.Arrays.asList(
-                layer, fixedLayer, stickerLayer, videoLayer));
+                layer, fixedLayer, stickerLayer, videoLayer, textLayer));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
         request.setScene(scene);
@@ -429,6 +436,44 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
 
         assertEquals("TEMPLATE_BROWSER_SCENE_MASK_INVALID", error.getCode());
+    }
+
+    @Test
+    void rejectsVersionFourTextRunWithUnknownFontResource() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("font_resources", 1, 1, "exact", false)));
+        scene.put("capability", capability);
+        scene.put("slots", Collections.emptyList());
+        scene.put("resources", Collections.emptyList());
+        Map<String, Object> run = row("start", Integer.valueOf(0));
+        run.put("end", Integer.valueOf(4));
+        run.put("fontResourceKey", "font_missing");
+        Map<String, Object> layer = row("layerId", "text-1");
+        layer.put("type", "text");
+        layer.put("text", "Test");
+        layer.put("runs", Collections.singletonList(run));
+        scene.put("layers", Collections.singletonList(layer));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_FONT_REFERENCE_INVALID", error.getCode());
     }
 
     @Test
