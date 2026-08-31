@@ -341,6 +341,18 @@ class MusicMvTemplateCatalogServiceTest {
         mask.put("roundCorner", 0.1d);
         mask.put("invert", Boolean.FALSE);
         layer.put("mask", mask);
+        Map<String, Object> animation = row("preset", "scale_up_approximation");
+        animation.put("durationSeconds", Double.valueOf(0.4d));
+        animation.put("fidelity", "semantic_approximation");
+        layer.put("animations", Collections.singletonList(animation));
+        Map<String, Object> transition = row("preset", "soft_fade");
+        transition.put("durationSeconds", Double.valueOf(0.3d));
+        transition.put("fidelity", "exact");
+        layer.put("transitionIn", transition);
+        Map<String, Object> layerEffect = row("preset", "shake_approximation");
+        layerEffect.put("intensity", Double.valueOf(0.05d));
+        layerEffect.put("fidelity", "semantic_approximation");
+        layer.put("effects", Collections.singletonList(layerEffect));
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
         fixedLayer.put("resourceKey", "static_photo_123");

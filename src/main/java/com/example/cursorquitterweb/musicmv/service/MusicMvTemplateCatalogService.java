@@ -489,7 +489,91 @@ public class MusicMvTemplateCatalogService {
             } else if ("text".equals(type)) {
                 requireValidBrowserTextFonts(layer, resourceKinds);
             }
+            requireValidBrowserLayerAnimations(layer);
+            requireValidBrowserLayerTransition(layer);
+            requireValidBrowserLayerEffects(layer);
             requireValidBrowserLayerMask(layer);
+        }
+    }
+
+    private void requireValidBrowserLayerAnimations(Map<String, Object> layer) {
+        Object rawAnimations = layer.get("animations");
+        if (rawAnimations == null) return;
+        if (!(rawAnimations instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID",
+                    "Browser scene animations must be a list");
+        }
+        Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
+                "noop", "fade_in", "fade_out", "text_reveal", "keyframe_transform",
+                "jitter_approximation", "scale_down_approximation",
+                "scale_up_approximation", "blur_in_approximation",
+                "fade_approximation", "translate_approximation",
+                "generic_transform_approximation", "unsupported"));
+        for (Object raw : (List<?>) rawAnimations) {
+            requireValidBrowserTimedPreset(raw, allowed,
+                    "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
+        }
+    }
+
+    private void requireValidBrowserLayerTransition(Map<String, Object> layer) {
+        Object rawTransition = layer.get("transitionIn");
+        if (rawTransition == null) return;
+        Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
+                "soft_fade", "white_flash_approximation", "wipe_approximation",
+                "blur_crossfade_approximation", "push_slide_approximation",
+                "scale_zoom_approximation", "unsupported"));
+        requireValidBrowserTimedPreset(rawTransition, allowed,
+                "TEMPLATE_BROWSER_SCENE_TRANSITION_INVALID", true);
+    }
+
+    private void requireValidBrowserLayerEffects(Map<String, Object> layer) {
+        Object rawEffects = layer.get("effects");
+        if (rawEffects == null) return;
+        if (!(rawEffects instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_INVALID",
+                    "Browser scene layer effects must be a list");
+        }
+        Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
+                "shake_approximation", "noise_approximation", "unsupported"));
+        for (Object raw : (List<?>) rawEffects) {
+            requireValidBrowserTimedPreset(raw, allowed,
+                    "TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_INVALID", false);
+            Map<?, ?> effect = (Map<?, ?>) raw;
+            for (String field : java.util.Arrays.asList(
+                    "intensity", "speed", "distortion", "sharpen")) {
+                Object value = effect.get(field);
+                if (value != null && (!(value instanceof Number)
+                        || !Double.isFinite(((Number) value).doubleValue()))) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_INVALID",
+                            "Browser scene layer effect parameters must be finite numbers");
+                }
+            }
+        }
+    }
+
+    private void requireValidBrowserTimedPreset(
+            Object raw,
+            Set<String> allowedPresets,
+            String errorCode,
+            boolean requireDuration) {
+        if (!(raw instanceof Map)) {
+            throw badRequest(errorCode, "Browser scene presets must be objects");
+        }
+        Map<?, ?> value = (Map<?, ?>) raw;
+        String preset = blankToNull(value.get("preset") == null
+                ? null : String.valueOf(value.get("preset")));
+        Object duration = value.get("durationSeconds");
+        String fidelity = blankToNull(value.get("fidelity") == null
+                ? null : String.valueOf(value.get("fidelity")));
+        Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
+                "exact", "semantic_approximation", "unsupported"));
+        if (preset == null || !allowedPresets.contains(preset)
+                || (requireDuration && (!(duration instanceof Number)
+                        || !Double.isFinite(((Number) duration).doubleValue())
+                        || ((Number) duration).doubleValue() < 0.0d))
+                || (fidelity != null && !allowedFidelity.contains(fidelity))) {
+            throw badRequest(errorCode,
+                    "Browser scene preset, duration, or fidelity is invalid");
         }
     }
 
