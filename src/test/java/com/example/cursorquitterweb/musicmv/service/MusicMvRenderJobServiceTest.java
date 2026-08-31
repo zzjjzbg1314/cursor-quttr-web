@@ -215,7 +215,12 @@ class MusicMvRenderJobServiceTest {
         resource.put("resourceKey", "lut_background");
         resource.put("kind", "lut_2d_png");
         resource.put("role", "browser_resource:lut_background");
-        scene.put("resources", Collections.singletonList(resource));
+        Map<String, Object> fontResource = new LinkedHashMap<String, Object>();
+        fontResource.put("resourceKey", "font_123");
+        fontResource.put("kind", "font");
+        fontResource.put("role", "browser_resource:font_123");
+        fontResource.put("inlineData", "data:font/ttf;base64,AAECAw==");
+        scene.put("resources", Arrays.asList(resource, fontResource));
         Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
         sceneRow.put("status", "ready");
         sceneRow.put("scene_json", json(scene));
@@ -247,6 +252,10 @@ class MusicMvRenderJobServiceTest {
         Map<String, Object> resourceAsset =
                 (Map<String, Object>) resources.get(0).get("asset");
         assertEquals("https://images.example/photo.jpg", resourceAsset.get("url"));
+        Map<String, Object> fontAsset =
+                (Map<String, Object>) resources.get(1).get("asset");
+        assertEquals("font", fontAsset.get("kind"));
+        assertEquals("data:font/ttf;base64,AAECAw==", fontAsset.get("url"));
         assertEquals(null, browserRender.get("sourceVideo"));
     }
 

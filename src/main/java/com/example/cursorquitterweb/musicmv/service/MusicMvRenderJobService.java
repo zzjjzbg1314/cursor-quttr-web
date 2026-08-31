@@ -721,6 +721,19 @@ public class MusicMvRenderJobService {
                 throw conflict("MV_BROWSER_RESOURCE_INVALID",
                         "The browser scene contains an invalid resource binding");
             }
+            String inlineData = descriptor.get("inlineData") == null ? null
+                    : String.valueOf(descriptor.get("inlineData"));
+            if (inlineData != null && !inlineData.trim().isEmpty()) {
+                Map<String, Object> item = new LinkedHashMap<String, Object>();
+                item.put("resourceKey", resourceKey);
+                item.put("kind", descriptor.get("kind"));
+                Map<String, Object> asset = new LinkedHashMap<String, Object>();
+                asset.put("kind", descriptor.get("kind"));
+                asset.put("url", inlineData);
+                item.put("asset", asset);
+                resolved.add(item);
+                continue;
+            }
             Map<String, Object> media = repository.mediaByRole(versionId, role);
             if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
                 throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",

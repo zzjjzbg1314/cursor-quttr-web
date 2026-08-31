@@ -307,6 +307,11 @@ class MusicMvTemplateCatalogServiceTest {
         scene.put("versionId", "tplver_1");
         scene.put("capability", capability);
         scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        Map<String, Object> resource = row("resourceKey", "font_123");
+        resource.put("kind", "font");
+        resource.put("role", "browser_resource:font_123");
+        resource.put("inlineData", "data:font/ttf;base64,AAECAw==");
+        scene.put("resources", Collections.singletonList(resource));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");

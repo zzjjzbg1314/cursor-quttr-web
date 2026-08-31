@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.musicmv.service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1481,6 +1482,10 @@ public class MusicMvTemplateCatalogService {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
                             "Browser scene contains private source information");
                 }
+                if ("inlinedata".equals(key)) {
+                    requireSafeInlineBrowserResource(entry.getValue());
+                    continue;
+                }
                 requireSanitizedBrowserScene(entry.getValue());
             }
         } else if (value instanceof List) {
@@ -1492,6 +1497,26 @@ public class MusicMvTemplateCatalogService {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
                         "Browser scene contains a local filesystem reference");
             }
+        }
+    }
+
+    private void requireSafeInlineBrowserResource(Object value) {
+        String text = value == null ? "" : String.valueOf(value);
+        int comma = text.indexOf(',');
+        String header = comma < 0 ? "" : text.substring(0, comma).toLowerCase();
+        if (!(header.equals("data:font/ttf;base64")
+                || header.equals("data:font/otf;base64")
+                || header.equals("data:font/woff;base64")
+                || header.equals("data:font/woff2;base64"))
+                || text.length() > 8 * 1024 * 1024) {
+            throw badRequest("TEMPLATE_BROWSER_RESOURCE_INLINE_INVALID",
+                    "Inline browser resources only accept bounded font data");
+        }
+        try {
+            Base64.getDecoder().decode(text.substring(comma + 1));
+        } catch (IllegalArgumentException exception) {
+            throw badRequest("TEMPLATE_BROWSER_RESOURCE_INLINE_INVALID",
+                    "Inline browser resource is not valid base64 data");
         }
     }
 
