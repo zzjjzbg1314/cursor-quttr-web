@@ -334,6 +334,12 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");
+        Map<String, Object> mask = row("type", "rectangle");
+        mask.put("width", 0.8d);
+        mask.put("height", 0.6d);
+        mask.put("roundCorner", 0.1d);
+        mask.put("invert", Boolean.FALSE);
+        layer.put("mask", mask);
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
         fixedLayer.put("resourceKey", "static_photo_123");
@@ -389,6 +395,40 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
 
         assertEquals("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID", error.getCode());
+    }
+
+    @Test
+    void rejectsVersionFourLayerWithUnknownMaskShape() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("masks", 1, 1, "exact", false)));
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        Map<String, Object> layer = row("layerId", "segment-1");
+        layer.put("type", "photo");
+        layer.put("slotKey", "photo_01");
+        layer.put("mask", row("type", "custom-proprietary-shape"));
+        scene.put("layers", Collections.singletonList(layer));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_MASK_INVALID", error.getCode());
     }
 
     @Test

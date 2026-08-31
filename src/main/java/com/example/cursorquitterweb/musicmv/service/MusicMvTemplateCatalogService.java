@@ -484,6 +484,39 @@ public class MusicMvTemplateCatalogService {
                             "Image, sticker, and video layers must reference a matching resource");
                 }
             }
+            requireValidBrowserLayerMask(layer);
+        }
+    }
+
+    private void requireValidBrowserLayerMask(Map<String, Object> layer) {
+        Object rawMask = layer.get("mask");
+        if (rawMask == null) return;
+        if (!(rawMask instanceof Map)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                    "Browser scene masks must be objects");
+        }
+        Map<?, ?> mask = (Map<?, ?>) rawMask;
+        String type = blankToNull(mask.get("type") == null
+                ? null : String.valueOf(mask.get("type")));
+        Set<String> supportedTypes = new HashSet<String>(java.util.Arrays.asList(
+                "ellipse", "rectangle", "heart", "linear", "mirror", "unsupported"));
+        if (type == null || !supportedTypes.contains(type)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                    "Browser scene masks must declare a recognized shape");
+        }
+        for (String field : java.util.Arrays.asList(
+                "centerX", "centerY", "width", "height", "rotation", "feather",
+                "expansion", "roundCorner")) {
+            Object value = mask.get(field);
+            if (value != null && (!(value instanceof Number)
+                    || !Double.isFinite(((Number) value).doubleValue()))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                        "Browser scene mask geometry must contain finite numbers");
+            }
+        }
+        if (mask.get("invert") != null && !(mask.get("invert") instanceof Boolean)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                    "Browser scene mask inversion must be boolean");
         }
     }
 
