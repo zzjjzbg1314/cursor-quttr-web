@@ -474,12 +474,12 @@ public class MusicMvTemplateCatalogService {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID",
                             "Photo layers must reference a declared template slot");
                 }
-            } else if ("static_image".equals(type)) {
+            } else if ("static_image".equals(type) || "sticker".equals(type)) {
                 String resourceKey = blankToNull(layer.get("resourceKey") == null
                         ? null : String.valueOf(layer.get("resourceKey")));
                 if (resourceKey == null || !"image".equals(resourceKinds.get(resourceKey))) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
-                            "Static image layers must reference a declared image resource");
+                            "Static image and sticker layers must reference a declared image resource");
                 }
             }
         }

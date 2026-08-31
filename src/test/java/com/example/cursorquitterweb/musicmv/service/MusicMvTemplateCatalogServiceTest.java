@@ -323,14 +323,21 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> imageResource = row("resourceKey", "static_photo_123");
         imageResource.put("kind", "image");
         imageResource.put("role", "browser_resource:static_photo_123");
-        scene.put("resources", java.util.Arrays.asList(resource, lutResource, imageResource));
+        Map<String, Object> stickerResource = row("resourceKey", "sticker_123");
+        stickerResource.put("kind", "image");
+        stickerResource.put("role", "browser_resource:sticker_123");
+        scene.put("resources", java.util.Arrays.asList(
+                resource, lutResource, imageResource, stickerResource));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
         fixedLayer.put("resourceKey", "static_photo_123");
-        scene.put("layers", java.util.Arrays.asList(layer, fixedLayer));
+        Map<String, Object> stickerLayer = row("layerId", "sticker-segment-1");
+        stickerLayer.put("type", "sticker");
+        stickerLayer.put("resourceKey", "sticker_123");
+        scene.put("layers", java.util.Arrays.asList(layer, fixedLayer, stickerLayer));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
         request.setScene(scene);
@@ -399,6 +406,40 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> layer = row("layerId", "fixed-segment-1");
         layer.put("type", "static_image");
         layer.put("resourceKey", "missing-image");
+        scene.put("layers", Collections.singletonList(layer));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID", error.getCode());
+    }
+
+    @Test
+    void rejectsVersionFourStickerLayerWithoutImageResource() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("sticker_layers", 1, 1, "exact", false)));
+        scene.put("capability", capability);
+        scene.put("slots", Collections.emptyList());
+        scene.put("resources", Collections.emptyList());
+        Map<String, Object> layer = row("layerId", "sticker-segment-1");
+        layer.put("type", "sticker");
+        layer.put("resourceKey", "missing-sticker");
         scene.put("layers", Collections.singletonList(layer));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
