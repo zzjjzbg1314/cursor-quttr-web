@@ -202,10 +202,13 @@ class MusicMvRenderJobServiceTest {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
         CloudflareTemplateMediaProvider templateMedia = mock(CloudflareTemplateMediaProvider.class);
+        TemplateRuntimePackageService runtimePackages = mock(TemplateRuntimePackageService.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
                 mock(MusicMvRenderArtifactStorageService.class), inputAssets(), templateMedia,
+                runtimePackages,
                 new ObjectMapper(), true, 2);
         Map<String, Object> active = row("mvr_browser", null);
+        active.put("template_id", "tpl_1");
         active.put("client_id", "usr_owner");
         active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},"
                 + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}]}");
@@ -256,6 +259,16 @@ class MusicMvRenderJobServiceTest {
                 org.mockito.ArgumentMatchers.<Map<String, Object>>any()))
                 .thenReturn(Collections.<String, Object>singletonMap(
                         "playbackUrl", "https://stream.example/video.m3u8"));
+        Map<String, Object> runtimePackage = new LinkedHashMap<String, Object>();
+        runtimePackage.put("templateId", "tpl_1");
+        runtimePackage.put("versionId", "tplver_1");
+        runtimePackage.put("status", "ready");
+        runtimePackage.put("downloadUrl", "https://r2.example/runtime.zip");
+        runtimePackage.put("sourceSha256", "abc123");
+        runtimePackage.put("sourceSizeBytes", Long.valueOf(1234L));
+        runtimePackage.put("objectKey", "private/runtime.zip");
+        when(runtimePackages.downloadSession("tpl_1", "tplver_1"))
+                .thenReturn(runtimePackage);
 
         Map<String, Object> result = service.get("usr_owner", "mvr_browser");
         Map<String, Object> browserRender = (Map<String, Object>) result.get("browserRender");
@@ -276,6 +289,10 @@ class MusicMvRenderJobServiceTest {
                 (Map<String, Object>) resources.get(2).get("asset");
         assertEquals("video", videoAsset.get("kind"));
         assertEquals("https://stream.example/video.m3u8", videoAsset.get("url"));
+        Map<String, Object> issuedRuntimePackage =
+                (Map<String, Object>) browserRender.get("runtimePackage");
+        assertEquals("https://r2.example/runtime.zip", issuedRuntimePackage.get("downloadUrl"));
+        assertEquals(null, issuedRuntimePackage.get("objectKey"));
         assertEquals(null, browserRender.get("sourceVideo"));
     }
 

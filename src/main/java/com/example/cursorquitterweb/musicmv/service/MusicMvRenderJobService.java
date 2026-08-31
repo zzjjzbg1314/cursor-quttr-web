@@ -50,6 +50,7 @@ public class MusicMvRenderJobService {
     private final MusicMvRenderArtifactStorageService artifacts;
     private final MusicMvInputAssetStorageService inputAssets;
     private final CloudflareTemplateMediaProvider templateMedia;
+    private final TemplateRuntimePackageService runtimePackages;
     private final ObjectMapper objectMapper;
     private final boolean allowLoopbackHttp;
     private final int defaultMaxAttempts;
@@ -62,6 +63,7 @@ public class MusicMvRenderJobService {
             MusicMvRenderArtifactStorageService artifacts,
             MusicMvInputAssetStorageService inputAssets,
             CloudflareTemplateMediaProvider templateMedia,
+            TemplateRuntimePackageService runtimePackages,
             ObjectMapper objectMapper,
             @Value("${music-mv.render.allow-loopback-http:false}") boolean allowLoopbackHttp,
             @Value("${music-mv.render.default-max-attempts:2}") int defaultMaxAttempts
@@ -72,6 +74,7 @@ public class MusicMvRenderJobService {
         this.artifacts = artifacts;
         this.inputAssets = inputAssets;
         this.templateMedia = templateMedia;
+        this.runtimePackages = runtimePackages;
         this.objectMapper = objectMapper;
         this.allowLoopbackHttp = allowLoopbackHttp;
         this.defaultMaxAttempts = Math.max(1, Math.min(5, defaultMaxAttempts));
@@ -87,7 +90,7 @@ public class MusicMvRenderJobService {
             boolean allowLoopbackHttp,
             int defaultMaxAttempts
     ) {
-        this(repository, aiMusicJobs, null, artifacts, inputAssets, null, objectMapper,
+        this(repository, aiMusicJobs, null, artifacts, inputAssets, null, null, objectMapper,
                 allowLoopbackHttp, defaultMaxAttempts);
     }
 
@@ -101,8 +104,23 @@ public class MusicMvRenderJobService {
             boolean allowLoopbackHttp,
             int defaultMaxAttempts
     ) {
-        this(repository, aiMusicJobs, null, artifacts, inputAssets, templateMedia, objectMapper,
+        this(repository, aiMusicJobs, null, artifacts, inputAssets, templateMedia, null, objectMapper,
                 allowLoopbackHttp, defaultMaxAttempts);
+    }
+
+    MusicMvRenderJobService(
+            MusicMvRenderJobRepository repository,
+            AiMusicJobRepository aiMusicJobs,
+            MusicMvRenderArtifactStorageService artifacts,
+            MusicMvInputAssetStorageService inputAssets,
+            CloudflareTemplateMediaProvider templateMedia,
+            TemplateRuntimePackageService runtimePackages,
+            ObjectMapper objectMapper,
+            boolean allowLoopbackHttp,
+            int defaultMaxAttempts
+    ) {
+        this(repository, aiMusicJobs, null, artifacts, inputAssets, templateMedia,
+                runtimePackages, objectMapper, allowLoopbackHttp, defaultMaxAttempts);
     }
 
     public Map<String, Object> create(String clientId, MusicMvRenderJobCreateRequest request) {
@@ -698,6 +716,14 @@ public class MusicMvRenderJobService {
         result.put("music", music);
         result.put("slotBindings", bindings);
         result.put("resources", resources);
+        if (runtimePackages != null) {
+            Map<String, Object> runtimePackage = new LinkedHashMap<String, Object>(
+                    runtimePackages.downloadSession(RowUtils.str(row, "template_id"),
+                            RowUtils.str(row, "version_id")));
+            runtimePackage.remove("objectKey");
+            runtimePackage.remove("errorMessage");
+            result.put("runtimePackage", runtimePackage);
+        }
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
