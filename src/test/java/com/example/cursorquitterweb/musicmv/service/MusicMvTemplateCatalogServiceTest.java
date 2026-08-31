@@ -364,6 +364,8 @@ class MusicMvTemplateCatalogServiceTest {
         videoLayer.put("resourceKey", "video_123");
         Map<String, Object> textLayer = row("layerId", "text-segment-1");
         textLayer.put("type", "text");
+        textLayer.put("fidelity", "semantic_approximation");
+        textLayer.put("templateResourceId", "text-template-123");
         Map<String, Object> textRun = row("start", 0);
         textRun.put("end", 5);
         textRun.put("fontResourceKey", "font_123");

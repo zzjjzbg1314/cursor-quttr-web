@@ -488,6 +488,7 @@ public class MusicMvTemplateCatalogService {
                 }
             } else if ("text".equals(type)) {
                 requireValidBrowserTextFonts(layer, resourceKinds);
+                requireValidBrowserTextLayerFidelity(layer);
             }
             requireValidBrowserLayerAnimations(layer);
             requireValidBrowserLayerTransition(layer);
@@ -569,6 +570,22 @@ public class MusicMvTemplateCatalogService {
         for (Object raw : (List<?>) rawAnimations) {
             requireValidBrowserTimedPreset(raw, allowed,
                     "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
+        }
+    }
+
+    private void requireValidBrowserTextLayerFidelity(Map<String, Object> layer) {
+        String fidelity = blankToNull(layer.get("fidelity") == null
+                ? null : String.valueOf(layer.get("fidelity")));
+        String templateResourceId = blankToNull(layer.get("templateResourceId") == null
+                ? null : String.valueOf(layer.get("templateResourceId")));
+        if (fidelity != null && !"exact".equals(fidelity)
+                && !"semantic_approximation".equals(fidelity)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_TEXT_FIDELITY_INVALID",
+                    "Browser text fidelity must be exact or semantic approximation");
+        }
+        if (templateResourceId != null && !"semantic_approximation".equals(fidelity)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_TEXT_FIDELITY_INVALID",
+                    "Expanded CapCut text templates must declare semantic approximation");
         }
     }
 
