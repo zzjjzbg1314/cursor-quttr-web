@@ -305,7 +305,7 @@ class MusicMvTemplateCatalogServiceTest {
         capability.put("browserExportReady", Boolean.TRUE);
         capability.put("blockingFeatures", Collections.emptyList());
         capability.put("executionCapabilities", Collections.singletonList(
-                executionCapability("photo_layers", 1, 1, "exact", false)));
+                executionCapability("photo_layers", 2, 2, "exact", false)));
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("schemaVersion", "browser-template-scene-v4");
         scene.put("templateId", "tpl_1");
@@ -320,11 +320,17 @@ class MusicMvTemplateCatalogServiceTest {
         lutResource.put("kind", "lut_2d_png");
         lutResource.put("role", "browser_resource:lut_123");
         lutResource.put("inlineData", null);
-        scene.put("resources", java.util.Arrays.asList(resource, lutResource));
+        Map<String, Object> imageResource = row("resourceKey", "static_photo_123");
+        imageResource.put("kind", "image");
+        imageResource.put("role", "browser_resource:static_photo_123");
+        scene.put("resources", java.util.Arrays.asList(resource, lutResource, imageResource));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");
-        scene.put("layers", Collections.singletonList(layer));
+        Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
+        fixedLayer.put("type", "static_image");
+        fixedLayer.put("resourceKey", "static_photo_123");
+        scene.put("layers", java.util.Arrays.asList(layer, fixedLayer));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
         request.setScene(scene);
@@ -369,6 +375,40 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
 
         assertEquals("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID", error.getCode());
+    }
+
+    @Test
+    void rejectsVersionFourStaticImageLayerWithoutImageResource() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("photo_layers", 1, 1, "exact", false)));
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        scene.put("resources", Collections.emptyList());
+        Map<String, Object> layer = row("layerId", "fixed-segment-1");
+        layer.put("type", "static_image");
+        layer.put("resourceKey", "missing-image");
+        scene.put("layers", Collections.singletonList(layer));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID", error.getCode());
     }
 
     @Test

@@ -439,6 +439,19 @@ public class MusicMvTemplateCatalogService {
                 if (slotKey != null) slotKeys.add(String.valueOf(slotKey));
             }
         }
+        Map<String, String> resourceKinds = new LinkedHashMap<String, String>();
+        Object rawResources = scene.get("resources");
+        if (rawResources instanceof List) {
+            for (Object rawResource : (List<?>) rawResources) {
+                if (!(rawResource instanceof Map)) continue;
+                Map<?, ?> resource = (Map<?, ?>) rawResource;
+                String resourceKey = blankToNull(resource.get("resourceKey") == null
+                        ? null : String.valueOf(resource.get("resourceKey")));
+                String kind = blankToNull(resource.get("kind") == null
+                        ? null : String.valueOf(resource.get("kind")));
+                if (resourceKey != null && kind != null) resourceKinds.put(resourceKey, kind);
+            }
+        }
         Set<String> layerIds = new HashSet<String>();
         for (Object rawLayer : (List<?>) rawLayers) {
             if (!(rawLayer instanceof Map)) {
@@ -460,6 +473,13 @@ public class MusicMvTemplateCatalogService {
                 if (slotKey == null || !slotKeys.contains(slotKey)) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID",
                             "Photo layers must reference a declared template slot");
+                }
+            } else if ("static_image".equals(type)) {
+                String resourceKey = blankToNull(layer.get("resourceKey") == null
+                        ? null : String.valueOf(layer.get("resourceKey")));
+                if (resourceKey == null || !"image".equals(resourceKinds.get(resourceKey))) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
+                            "Static image layers must reference a declared image resource");
                 }
             }
         }
