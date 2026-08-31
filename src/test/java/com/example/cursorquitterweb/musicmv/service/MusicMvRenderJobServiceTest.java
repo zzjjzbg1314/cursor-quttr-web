@@ -221,7 +221,11 @@ class MusicMvRenderJobServiceTest {
         fontResource.put("kind", "font");
         fontResource.put("role", "browser_resource:font_123");
         fontResource.put("inlineData", "data:font/ttf;base64,AAECAw==");
-        scene.put("resources", Arrays.asList(resource, fontResource));
+        Map<String, Object> videoResource = new LinkedHashMap<String, Object>();
+        videoResource.put("resourceKey", "video_background");
+        videoResource.put("kind", "video");
+        videoResource.put("role", "browser_resource:video_background");
+        scene.put("resources", Arrays.asList(resource, fontResource, videoResource));
         Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
         sceneRow.put("status", "ready");
         sceneRow.put("scene_json", json(scene));
@@ -230,17 +234,28 @@ class MusicMvRenderJobServiceTest {
         media.put("provider", "cloudflare_images");
         media.put("provider_asset_id", "image_1");
         media.put("provider_details_json", "{}");
+        Map<String, Object> videoMedia = new LinkedHashMap<String, Object>();
+        videoMedia.put("status", "ready");
+        videoMedia.put("provider", "cloudflare_stream");
+        videoMedia.put("provider_asset_id", "video_1");
+        videoMedia.put("provider_details_json", "{}");
         when(repository.byId("mvr_browser")).thenReturn(active);
         when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
         when(repository.slotDefaultMedia("tplver_1", "photo_01")).thenReturn(media);
         when(repository.mediaByRole("tplver_1", "browser_resource:lut_background"))
                 .thenReturn(media);
+        when(repository.mediaByRole("tplver_1", "browser_resource:video_background"))
+                .thenReturn(videoMedia);
         when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
         when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
         when(templateMedia.resolveDeliveryDetails(eq("cloudflare_images"), eq("image_1"),
                 org.mockito.ArgumentMatchers.<Map<String, Object>>any()))
                 .thenReturn(Collections.<String, Object>singletonMap(
                         "deliveryUrl", "https://images.example/photo.jpg"));
+        when(templateMedia.resolveDeliveryDetails(eq("cloudflare_stream"), eq("video_1"),
+                org.mockito.ArgumentMatchers.<Map<String, Object>>any()))
+                .thenReturn(Collections.<String, Object>singletonMap(
+                        "playbackUrl", "https://stream.example/video.m3u8"));
 
         Map<String, Object> result = service.get("usr_owner", "mvr_browser");
         Map<String, Object> browserRender = (Map<String, Object>) result.get("browserRender");
@@ -257,6 +272,10 @@ class MusicMvRenderJobServiceTest {
                 (Map<String, Object>) resources.get(1).get("asset");
         assertEquals("font", fontAsset.get("kind"));
         assertEquals("data:font/ttf;base64,AAECAw==", fontAsset.get("url"));
+        Map<String, Object> videoAsset =
+                (Map<String, Object>) resources.get(2).get("asset");
+        assertEquals("video", videoAsset.get("kind"));
+        assertEquals("https://stream.example/video.m3u8", videoAsset.get("url"));
         assertEquals(null, browserRender.get("sourceVideo"));
     }
 

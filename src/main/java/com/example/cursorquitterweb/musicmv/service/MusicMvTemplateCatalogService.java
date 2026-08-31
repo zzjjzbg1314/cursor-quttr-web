@@ -474,12 +474,14 @@ public class MusicMvTemplateCatalogService {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID",
                             "Photo layers must reference a declared template slot");
                 }
-            } else if ("static_image".equals(type) || "sticker".equals(type)) {
+            } else if ("static_image".equals(type) || "sticker".equals(type)
+                    || "video".equals(type)) {
                 String resourceKey = blankToNull(layer.get("resourceKey") == null
                         ? null : String.valueOf(layer.get("resourceKey")));
-                if (resourceKey == null || !"image".equals(resourceKinds.get(resourceKey))) {
+                String requiredKind = "video".equals(type) ? "video" : "image";
+                if (resourceKey == null || !requiredKind.equals(resourceKinds.get(resourceKey))) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
-                            "Static image and sticker layers must reference a declared image resource");
+                            "Image, sticker, and video layers must reference a matching resource");
                 }
             }
         }
@@ -579,7 +581,7 @@ public class MusicMvTemplateCatalogService {
         String expectedRole = request.getRole();
         boolean slotDefault = !video && expectedRole != null
                 && expectedRole.startsWith("slot_default:");
-        boolean browserResource = !video && expectedRole != null
+        boolean browserResource = expectedRole != null
                 && expectedRole.startsWith("browser_resource:");
         if (slotDefault) {
             String slotKey = expectedRole.substring("slot_default:".length());
@@ -597,14 +599,15 @@ public class MusicMvTemplateCatalogService {
                         "The template photo role does not match a material slot");
             }
         }
-        if (browserResource && !isDeclaredBrowserResource(versionId, expectedRole)) {
+        if (browserResource && !isDeclaredBrowserResource(
+                versionId, expectedRole, video ? "video" : null)) {
             throw badRequest("TEMPLATE_MEDIA_BROWSER_RESOURCE_INVALID",
                     "The browser resource role is not declared by the template scene");
         }
-        if (video ? !"full_mv".equals(expectedRole)
+        if (video ? !("full_mv".equals(expectedRole) || browserResource)
                 : !("cover".equals(expectedRole) || slotDefault || browserResource)) {
             throw badRequest("TEMPLATE_MEDIA_ROLE_INVALID", video
-                    ? "Stream upload only accepts role full_mv"
+                    ? "Stream upload only accepts a full MV or declared browser video resource"
                     : "Images upload only accepts cover, a template slot photo, or a declared browser resource");
         }
         if (video && (request.getDurationSeconds() == null || request.getFilename() == null)) {
@@ -665,7 +668,8 @@ public class MusicMvTemplateCatalogService {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean isDeclaredBrowserResource(String versionId, String expectedRole) {
+    private boolean isDeclaredBrowserResource(
+            String versionId, String expectedRole, String requiredKind) {
         Map<String, Object> row = repository.browserScene(versionId);
         if (row == null || !"ready".equals(RowUtils.str(row, "status"))) return false;
         Object rawResources = parseObject(RowUtils.str(row, "scene_json")).get("resources");
@@ -678,7 +682,10 @@ public class MusicMvTemplateCatalogService {
             String role = blankToNull(resource.get("role") == null
                     ? null : String.valueOf(resource.get("role")));
             if (expectedRole.equals(role)
-                    && expectedRole.equals("browser_resource:" + resourceKey)) {
+                    && expectedRole.equals("browser_resource:" + resourceKey)
+                    && (requiredKind == null
+                            ? !"video".equals(String.valueOf(resource.get("kind")))
+                            : requiredKind.equals(String.valueOf(resource.get("kind"))))) {
                 return true;
             }
         }

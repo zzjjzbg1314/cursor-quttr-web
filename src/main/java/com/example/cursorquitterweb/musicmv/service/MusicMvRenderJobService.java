@@ -756,7 +756,9 @@ public class MusicMvRenderJobService {
             Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
                     RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
                     parseObject(RowUtils.str(media, "provider_details_json")));
-            String url = delivery == null ? null : RowUtils.str(delivery, "deliveryUrl");
+            String url = delivery == null ? null : RowUtils.str(delivery,
+                    "video".equals(String.valueOf(descriptor.get("kind")))
+                            ? "playbackUrl" : "deliveryUrl");
             if (url == null) {
                 throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",
                         "A browser scene resource has no delivery URL");
@@ -765,7 +767,7 @@ public class MusicMvRenderJobService {
             item.put("resourceKey", resourceKey);
             item.put("kind", descriptor.get("kind"));
             Map<String, Object> asset = new LinkedHashMap<String, Object>();
-            asset.put("kind", "image");
+            asset.put("kind", descriptor.get("kind"));
             asset.put("url", browserAssetUrl(url));
             item.put("asset", asset);
             resolved.add(item);

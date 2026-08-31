@@ -326,8 +326,11 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> stickerResource = row("resourceKey", "sticker_123");
         stickerResource.put("kind", "image");
         stickerResource.put("role", "browser_resource:sticker_123");
+        Map<String, Object> videoResource = row("resourceKey", "video_123");
+        videoResource.put("kind", "video");
+        videoResource.put("role", "browser_resource:video_123");
         scene.put("resources", java.util.Arrays.asList(
-                resource, lutResource, imageResource, stickerResource));
+                resource, lutResource, imageResource, stickerResource, videoResource));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
         layer.put("slotKey", "photo_01");
@@ -337,7 +340,11 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> stickerLayer = row("layerId", "sticker-segment-1");
         stickerLayer.put("type", "sticker");
         stickerLayer.put("resourceKey", "sticker_123");
-        scene.put("layers", java.util.Arrays.asList(layer, fixedLayer, stickerLayer));
+        Map<String, Object> videoLayer = row("layerId", "video-segment-1");
+        videoLayer.put("type", "video");
+        videoLayer.put("resourceKey", "video_123");
+        scene.put("layers", java.util.Arrays.asList(
+                layer, fixedLayer, stickerLayer, videoLayer));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
         request.setScene(scene);
@@ -702,6 +709,40 @@ class MusicMvTemplateCatalogServiceTest {
         verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
                 eq("browser_resource:lut_background"), anyString(), anyString(), anyString(),
                 anyString(), any(Long.class), any(), any(), any(), anyString());
+    }
+
+    @Test
+    void createsCloudflareStreamForADeclaredBrowserVideoResource() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> browserScene = row("status", "ready");
+        browserScene.put("scene_json", "{\"resources\":[{\"resourceKey\":\"video_background\","
+                + "\"role\":\"browser_resource:video_background\",\"kind\":\"video\"}]}");
+        when(repository.browserScene("tplver_1")).thenReturn(browserScene);
+        when(repository.mediaByRole("tplver_1", "browser_resource:video_background"))
+                .thenReturn(null);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "browser-video", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_resource:video_background");
+        request.setSourceSha256(hash('v'));
+        request.setSourceSizeBytes(Long.valueOf(1000));
+        request.setWidth(Integer.valueOf(720));
+        request.setHeight(Integer.valueOf(1280));
+        request.setDurationSeconds(Double.valueOf(18.0d));
+        request.setFilename("background.mp4");
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+
+        assertEquals("awaiting_upload", result.get("status"));
+        verify(mediaProvider).createStreamUpload(anyString(), any());
+        verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
+                eq("browser_resource:video_background"), eq("cloudflare_stream"),
+                anyString(), anyString(), anyString(), any(Long.class), any(), any(), any(),
+                anyString());
     }
 
     @Test
