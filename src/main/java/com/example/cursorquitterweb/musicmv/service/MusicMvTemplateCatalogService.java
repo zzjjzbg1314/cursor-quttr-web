@@ -406,6 +406,9 @@ public class MusicMvTemplateCatalogService {
             throw conflict("TEMPLATE_BROWSER_SCENE_ANIMATION_NOT_READY",
                     "Every published photo animation must be executable before browser rendering is enabled");
         }
+        if ("browser-template-scene-v4".equals(request.getSchemaVersion())) {
+            requireValidBrowserSceneGraph(scene);
+        }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
         invalidateDetail(templateId);
@@ -416,6 +419,48 @@ public class MusicMvTemplateCatalogService {
         result.put("schemaVersion", request.getSchemaVersion());
         result.put("manifestSha256", actualSha256);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireValidBrowserSceneGraph(Map<String, Object> scene) {
+        Object rawLayers = scene.get("layers");
+        if (!(rawLayers instanceof List) || ((List<?>) rawLayers).isEmpty()) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_GRAPH_REQUIRED",
+                    "Browser scene v4 requires a non-empty layer graph");
+        }
+        Set<String> slotKeys = new HashSet<String>();
+        Object rawSlots = scene.get("slots");
+        if (rawSlots instanceof List) {
+            for (Object rawSlot : (List<?>) rawSlots) {
+                if (!(rawSlot instanceof Map)) continue;
+                Object slotKey = ((Map<?, ?>) rawSlot).get("slotKey");
+                if (slotKey != null) slotKeys.add(String.valueOf(slotKey));
+            }
+        }
+        Set<String> layerIds = new HashSet<String>();
+        for (Object rawLayer : (List<?>) rawLayers) {
+            if (!(rawLayer instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_INVALID",
+                        "Every browser scene layer must be an object");
+            }
+            Map<String, Object> layer = (Map<String, Object>) rawLayer;
+            String layerId = blankToNull(layer.get("layerId") == null
+                    ? null : String.valueOf(layer.get("layerId")));
+            String type = blankToNull(layer.get("type") == null
+                    ? null : String.valueOf(layer.get("type")));
+            if (layerId == null || type == null || !layerIds.add(layerId)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_INVALID",
+                        "Browser scene layer IDs and types must be present and unique");
+            }
+            if ("photo".equals(type)) {
+                String slotKey = blankToNull(layer.get("slotKey") == null
+                        ? null : String.valueOf(layer.get("slotKey")));
+                if (slotKey == null || !slotKeys.contains(slotKey)) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID",
+                            "Photo layers must reference a declared template slot");
+                }
+            }
+        }
     }
 
     public Map<String, Object> updateMetadata(String templateId, TemplateMetadataUpdateRequest request) {
