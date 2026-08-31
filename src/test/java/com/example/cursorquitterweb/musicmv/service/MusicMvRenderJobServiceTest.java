@@ -211,6 +211,11 @@ class MusicMvRenderJobServiceTest {
                 + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}]}");
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
+        Map<String, Object> resource = new LinkedHashMap<String, Object>();
+        resource.put("resourceKey", "lut_background");
+        resource.put("kind", "lut_2d_png");
+        resource.put("role", "browser_resource:lut_background");
+        scene.put("resources", Collections.singletonList(resource));
         Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
         sceneRow.put("status", "ready");
         sceneRow.put("scene_json", json(scene));
@@ -222,6 +227,8 @@ class MusicMvRenderJobServiceTest {
         when(repository.byId("mvr_browser")).thenReturn(active);
         when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
         when(repository.slotDefaultMedia("tplver_1", "photo_01")).thenReturn(media);
+        when(repository.mediaByRole("tplver_1", "browser_resource:lut_background"))
+                .thenReturn(media);
         when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
         when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
         when(templateMedia.resolveDeliveryDetails(eq("cloudflare_images"), eq("image_1"),
@@ -235,6 +242,11 @@ class MusicMvRenderJobServiceTest {
                 (List<Map<String, Object>>) browserRender.get("slotBindings");
         Map<String, Object> asset = (Map<String, Object>) bindings.get(0).get("asset");
         assertEquals("https://images.example/photo.jpg", asset.get("url"));
+        List<Map<String, Object>> resources =
+                (List<Map<String, Object>>) browserRender.get("resources");
+        Map<String, Object> resourceAsset =
+                (Map<String, Object>) resources.get(0).get("asset");
+        assertEquals("https://images.example/photo.jpg", resourceAsset.get("url"));
         assertEquals(null, browserRender.get("sourceVideo"));
     }
 

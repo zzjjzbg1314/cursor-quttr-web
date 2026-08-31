@@ -93,6 +93,12 @@ public class MusicMvRenderJobRepository {
                 versionId, "slot_default:" + slotKey).firstRow();
     }
 
+    public Map<String, Object> mediaByRole(String versionId, String role) {
+        return d1.query("SELECT provider,provider_asset_id,provider_details_json,status "
+                + "FROM template_media WHERE version_id=? AND media_role=? LIMIT 1",
+                versionId, role).firstRow();
+    }
+
     public Map<String, Map<String, Object>> slotDefaultMedia(String versionId,
                                                              Set<String> slotKeys) {
         Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();

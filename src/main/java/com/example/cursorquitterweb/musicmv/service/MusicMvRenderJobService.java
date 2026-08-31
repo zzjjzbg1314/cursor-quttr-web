@@ -688,16 +688,62 @@ public class MusicMvRenderJobService {
             }
         }
         Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
+        List<Map<String, Object>> resources = templateBrowserResources(
+                RowUtils.str(row, "version_id"), scene);
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("scene", scene);
         result.put("sceneManifestSha256", sceneRow.get("manifest_sha256"));
         result.put("music", music);
         result.put("slotBindings", bindings);
+        result.put("resources", resources);
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> templateBrowserResources(
+            String versionId, Map<String, Object> scene) {
+        List<Map<String, Object>> resolved = new ArrayList<Map<String, Object>>();
+        Object rawResources = scene.get("resources");
+        if (!(rawResources instanceof List)) return resolved;
+        for (Object raw : (List<?>) rawResources) {
+            if (!(raw instanceof Map)) continue;
+            Map<String, Object> descriptor = (Map<String, Object>) raw;
+            String resourceKey = descriptor.get("resourceKey") == null ? null
+                    : String.valueOf(descriptor.get("resourceKey"));
+            String role = descriptor.get("role") == null ? null
+                    : String.valueOf(descriptor.get("role"));
+            if (resourceKey == null || role == null
+                    || !role.equals("browser_resource:" + resourceKey)) {
+                throw conflict("MV_BROWSER_RESOURCE_INVALID",
+                        "The browser scene contains an invalid resource binding");
+            }
+            Map<String, Object> media = repository.mediaByRole(versionId, role);
+            if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
+                throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",
+                        "A browser scene resource is unavailable");
+            }
+            Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
+                    RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
+                    parseObject(RowUtils.str(media, "provider_details_json")));
+            String url = delivery == null ? null : RowUtils.str(delivery, "deliveryUrl");
+            if (url == null) {
+                throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",
+                        "A browser scene resource has no delivery URL");
+            }
+            Map<String, Object> item = new LinkedHashMap<String, Object>();
+            item.put("resourceKey", resourceKey);
+            item.put("kind", descriptor.get("kind"));
+            Map<String, Object> asset = new LinkedHashMap<String, Object>();
+            asset.put("kind", "image");
+            asset.put("url", browserAssetUrl(url));
+            item.put("asset", asset);
+            resolved.add(item);
+        }
+        return resolved;
     }
 
     private Map<String, Object> templateSlotAsset(String versionId, String slotKey) {

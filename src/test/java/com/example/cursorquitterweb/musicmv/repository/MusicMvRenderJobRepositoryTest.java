@@ -86,6 +86,18 @@ class MusicMvRenderJobRepositoryTest {
     }
 
     @Test
+    void browserResourcesAreResolvedByTheirExactMediaRole() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+
+        repository.mediaByRole("tplver_1", "browser_resource:lut_background");
+
+        assertTrue(d1.sql.contains("media_role=?"));
+        assertEquals(Arrays.asList("tplver_1", "browser_resource:lut_background"), d1.params);
+        assertEquals(placeholders(d1.sql), d1.params.size());
+    }
+
+    @Test
     void preparingJobAndCreatedEventUseOneBatch() {
         CapturingD1 d1 = new CapturingD1();
         MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
