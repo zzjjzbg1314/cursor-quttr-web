@@ -301,6 +301,11 @@ class MusicMvTemplateCatalogServiceTest {
         capability.put("photoReplacementReady", Boolean.TRUE);
         capability.put("photoAnimationReady", Boolean.TRUE);
         capability.put("photoAnimationContract", "timeline_keyframes_v1");
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("photo_layers", 1, 1, "exact", false)));
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("schemaVersion", "browser-template-scene-v4");
         scene.put("templateId", "tpl_1");
@@ -338,7 +343,14 @@ class MusicMvTemplateCatalogServiceTest {
         scene.put("schemaVersion", "browser-template-scene-v4");
         scene.put("templateId", "tpl_1");
         scene.put("versionId", "tplver_1");
-        scene.put("capability", row("photoReplacementReady", Boolean.TRUE));
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("photo_layers", 1, 1, "exact", false)));
+        scene.put("capability", capability);
         scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
         Map<String, Object> layer = row("layerId", "segment-1");
         layer.put("type", "photo");
@@ -353,6 +365,39 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
 
         assertEquals("TEMPLATE_BROWSER_SCENE_SLOT_REFERENCE_INVALID", error.getCode());
+    }
+
+    @Test
+    void rejectsVersionFourSceneThatHidesAnUnsupportedExportFeature() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("video_layers", 1, 0, "unsupported", true)));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        Map<String, Object> layer = row("layerId", "segment-1");
+        layer.put("type", "photo");
+        layer.put("slotKey", "photo_01");
+        scene.put("layers", Collections.singletonList(layer));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_EXECUTION_STATUS_INVALID", error.getCode());
     }
 
     @Test
@@ -772,6 +817,17 @@ class MusicMvTemplateCatalogServiceTest {
 
     private Map<String, Object> row(String key, Object value) {
         Map<String, Object> row = new LinkedHashMap<String, Object>(); row.put(key, value); return row;
+    }
+
+    private Map<String, Object> executionCapability(
+            String feature, int declared, int executable, String fidelity, boolean blocksExport) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("feature", feature);
+        result.put("declaredCount", Integer.valueOf(declared));
+        result.put("executableCount", Integer.valueOf(executable));
+        result.put("fidelity", fidelity);
+        result.put("blocksExport", Boolean.valueOf(blocksExport));
+        return result;
     }
 
     private String hash(char value) {

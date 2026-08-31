@@ -211,6 +211,7 @@ class MusicMvRenderJobServiceTest {
                 + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}]}");
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
+        scene.put("capability", browserCapability(true, Collections.<String>emptyList()));
         Map<String, Object> resource = new LinkedHashMap<String, Object>();
         resource.put("resourceKey", "lut_background");
         resource.put("kind", "lut_2d_png");
@@ -257,6 +258,35 @@ class MusicMvRenderJobServiceTest {
         assertEquals("font", fontAsset.get("kind"));
         assertEquals("data:font/ttf;base64,AAECAw==", fontAsset.get("url"));
         assertEquals(null, browserRender.get("sourceVideo"));
+    }
+
+    @Test
+    void refusesToIssueRenderContractForIncompleteBrowserScene() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        CloudflareTemplateMediaProvider templateMedia = mock(CloudflareTemplateMediaProvider.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(), templateMedia,
+                new ObjectMapper(), true, 2);
+        Map<String, Object> active = row("mvr_browser", null);
+        active.put("client_id", "usr_owner");
+        active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},"
+                + "\"slotBindings\":[]}");
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("capability", browserCapability(false,
+                Collections.singletonList("video_layers")));
+        Map<String, Object> sceneRow = new LinkedHashMap<String, Object>();
+        sceneRow.put("status", "ready");
+        sceneRow.put("scene_json", json(scene));
+        when(repository.byId("mvr_browser")).thenReturn(active);
+        when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
+        when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
+        when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.get("usr_owner", "mvr_browser"));
+
+        assertEquals("MV_BROWSER_SCENE_EXPORT_INCOMPLETE", error.getCode());
     }
 
     @Test
@@ -472,6 +502,13 @@ class MusicMvRenderJobServiceTest {
         row.put("storage_file_name", "music.m4a");
         row.put("storage_content_type", "audio/mp4");
         return row;
+    }
+
+    private Map<String, Object> browserCapability(boolean ready, List<String> blockingFeatures) {
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("browserExportReady", Boolean.valueOf(ready));
+        capability.put("blockingFeatures", blockingFeatures);
+        return capability;
     }
 
     private Map<String, Object> slot(String key) {

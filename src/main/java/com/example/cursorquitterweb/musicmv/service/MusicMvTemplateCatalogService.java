@@ -409,6 +409,7 @@ public class MusicMvTemplateCatalogService {
         }
         if ("browser-template-scene-v4".equals(request.getSchemaVersion())) {
             requireValidBrowserSceneGraph(scene);
+            requireValidBrowserExecutionCapabilities(capability);
         }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
@@ -461,6 +462,56 @@ public class MusicMvTemplateCatalogService {
                             "Photo layers must reference a declared template slot");
                 }
             }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireValidBrowserExecutionCapabilities(Map<String, Object> capability) {
+        Object rawCapabilities = capability.get("executionCapabilities");
+        if (!(rawCapabilities instanceof List) || ((List<?>) rawCapabilities).isEmpty()) {
+            throw badRequest("TEMPLATE_BROWSER_EXECUTION_CAPABILITIES_REQUIRED",
+                    "Browser scene v4 requires an execution capability list");
+        }
+        Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
+                "exact", "semantic_approximation", "unsupported", "not_present"));
+        Set<String> features = new HashSet<String>();
+        Set<String> derivedBlocking = new HashSet<String>();
+        for (Object raw : (List<?>) rawCapabilities) {
+            if (!(raw instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_EXECUTION_CAPABILITY_INVALID",
+                        "Every browser execution capability must be an object");
+            }
+            Map<String, Object> item = (Map<String, Object>) raw;
+            String feature = blankToNull(item.get("feature") == null
+                    ? null : String.valueOf(item.get("feature")));
+            String fidelity = blankToNull(item.get("fidelity") == null
+                    ? null : String.valueOf(item.get("fidelity")));
+            long declared = item.get("declaredCount") instanceof Number
+                    ? ((Number) item.get("declaredCount")).longValue() : -1L;
+            long executable = item.get("executableCount") instanceof Number
+                    ? ((Number) item.get("executableCount")).longValue() : -1L;
+            boolean expectedBlock = "unsupported".equals(fidelity) && declared > 0L;
+            if (feature == null || !features.add(feature) || !allowedFidelity.contains(fidelity)
+                    || declared < 0L || executable < 0L || executable > declared
+                    || !Boolean.valueOf(expectedBlock).equals(item.get("blocksExport"))) {
+                throw badRequest("TEMPLATE_BROWSER_EXECUTION_CAPABILITY_INVALID",
+                        "Browser execution capabilities contain inconsistent counts or fidelity");
+            }
+            if (expectedBlock) derivedBlocking.add(feature);
+        }
+        Set<String> declaredBlocking = new HashSet<String>();
+        Object rawBlocking = capability.get("blockingFeatures");
+        if (rawBlocking instanceof List) {
+            for (Object item : (List<?>) rawBlocking) {
+                if (item != null) declaredBlocking.add(String.valueOf(item));
+            }
+        }
+        boolean expectedReady = derivedBlocking.isEmpty()
+                && Boolean.TRUE.equals(capability.get("browserLayerCompositionReady"));
+        if (!derivedBlocking.equals(declaredBlocking)
+                || !Boolean.valueOf(expectedReady).equals(capability.get("browserExportReady"))) {
+            throw badRequest("TEMPLATE_BROWSER_EXECUTION_STATUS_INVALID",
+                    "Browser export readiness does not match its declared blocking features");
         }
     }
 

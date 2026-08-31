@@ -688,6 +688,7 @@ public class MusicMvRenderJobService {
             }
         }
         Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
+        requireBrowserSceneExportReady(scene);
         List<Map<String, Object>> resources = templateBrowserResources(
                 RowUtils.str(row, "version_id"), scene);
 
@@ -701,6 +702,19 @@ public class MusicMvRenderJobService {
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireBrowserSceneExportReady(Map<String, Object> scene) {
+        Map<String, Object> capability = scene.get("capability") instanceof Map
+                ? (Map<String, Object>) scene.get("capability")
+                : new LinkedHashMap<String, Object>();
+        Object blocking = capability.get("blockingFeatures");
+        boolean hasBlockingFeature = blocking instanceof List && !((List<?>) blocking).isEmpty();
+        if (!Boolean.TRUE.equals(capability.get("browserExportReady")) || hasBlockingFeature) {
+            throw conflict("MV_BROWSER_SCENE_EXPORT_INCOMPLETE",
+                    "This template contains browser scene features that cannot be exported yet");
+        }
     }
 
     @SuppressWarnings("unchecked")
