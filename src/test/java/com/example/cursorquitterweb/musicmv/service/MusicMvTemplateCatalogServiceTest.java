@@ -370,6 +370,14 @@ class MusicMvTemplateCatalogServiceTest {
         textLayer.put("runs", Collections.singletonList(textRun));
         scene.put("layers", java.util.Arrays.asList(
                 layer, fixedLayer, stickerLayer, videoLayer, textLayer));
+        Map<String, Object> lutEffect = row("effectId", "filter-1");
+        lutEffect.put("preset", "dual_lut_filter_approximation");
+        lutEffect.put("targetStartSeconds", Double.valueOf(0.0d));
+        lutEffect.put("targetDurationSeconds", Double.valueOf(4.0d));
+        lutEffect.put("intensity", Double.valueOf(0.6d));
+        lutEffect.put("fidelity", "semantic_approximation");
+        lutEffect.put("resourceKeys", row("background", "lut_123"));
+        scene.put("postEffects", Collections.singletonList(lutEffect));
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
         request.setSchemaVersion("browser-template-scene-v4");
         request.setScene(scene);
@@ -381,6 +389,49 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
                 eq("browser-template-scene-v4"), anyString(), eq("ready"), anyString());
+    }
+
+    @Test
+    void rejectsVersionFourLutEffectWithUnknownResource() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(
+                executionCapability("post_effects", 1, 1,
+                        "semantic_approximation", false)));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        scene.put("resources", Collections.emptyList());
+        Map<String, Object> layer = row("layerId", "segment-1");
+        layer.put("type", "photo");
+        layer.put("slotKey", "photo_01");
+        scene.put("layers", Collections.singletonList(layer));
+        Map<String, Object> effect = row("effectId", "filter-1");
+        effect.put("preset", "dual_lut_filter_approximation");
+        effect.put("targetStartSeconds", Double.valueOf(0.0d));
+        effect.put("targetDurationSeconds", Double.valueOf(4.0d));
+        effect.put("intensity", Double.valueOf(0.6d));
+        effect.put("fidelity", "semantic_approximation");
+        effect.put("resourceKeys", row("background", "missing-lut"));
+        scene.put("postEffects", Collections.singletonList(effect));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_SCENE_POST_EFFECT_RESOURCE_INVALID", error.getCode());
     }
 
     @Test

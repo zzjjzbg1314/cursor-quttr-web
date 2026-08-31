@@ -494,6 +494,63 @@ public class MusicMvTemplateCatalogService {
             requireValidBrowserLayerEffects(layer);
             requireValidBrowserLayerMask(layer);
         }
+        requireValidBrowserPostEffects(scene, resourceKinds);
+    }
+
+    private void requireValidBrowserPostEffects(
+            Map<String, Object> scene, Map<String, String> resourceKinds) {
+        Object rawEffects = scene.get("postEffects");
+        if (rawEffects == null) return;
+        if (!(rawEffects instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_INVALID",
+                    "Browser scene post effects must be a list");
+        }
+        Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
+                "fade_to_black", "dual_lut_filter_approximation",
+                "orange_green_filter_approximation", "unsupported"));
+        Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
+                "exact", "semantic_approximation", "unsupported"));
+        for (Object raw : (List<?>) rawEffects) {
+            if (!(raw instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_INVALID",
+                        "Browser scene post effects must be objects");
+            }
+            Map<?, ?> effect = (Map<?, ?>) raw;
+            String preset = blankToNull(effect.get("preset") == null
+                    ? null : String.valueOf(effect.get("preset")));
+            String fidelity = blankToNull(effect.get("fidelity") == null
+                    ? null : String.valueOf(effect.get("fidelity")));
+            if (!allowedPresets.contains(preset) || !allowedFidelity.contains(fidelity)
+                    || !finiteNonNegative(effect.get("targetStartSeconds"), false)
+                    || !finiteNonNegative(effect.get("targetDurationSeconds"), true)
+                    || !finiteNonNegative(effect.get("intensity"), false)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_INVALID",
+                        "Browser scene post effect timing, intensity, preset, or fidelity is invalid");
+            }
+            if (!"dual_lut_filter_approximation".equals(preset)
+                    && !"orange_green_filter_approximation".equals(preset)) continue;
+            Object rawKeys = effect.get("resourceKeys");
+            if (!(rawKeys instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_RESOURCE_INVALID",
+                        "Browser LUT effects must reference their published resources");
+            }
+            Map<?, ?> keys = (Map<?, ?>) rawKeys;
+            String background = blankToNull(keys.get("background") == null
+                    ? null : String.valueOf(keys.get("background")));
+            String skin = blankToNull(keys.get("skin") == null
+                    ? null : String.valueOf(keys.get("skin")));
+            if (background == null || !"lut_2d_png".equals(resourceKinds.get(background))
+                    || (skin != null && !"lut_2d_png".equals(resourceKinds.get(skin)))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_RESOURCE_INVALID",
+                        "Browser LUT effects must reference LUT resources from this scene");
+            }
+        }
+    }
+
+    private boolean finiteNonNegative(Object value, boolean positive) {
+        if (!(value instanceof Number)) return false;
+        double number = ((Number) value).doubleValue();
+        return Double.isFinite(number) && (positive ? number > 0.0d : number >= 0.0d);
     }
 
     private void requireValidBrowserLayerAnimations(Map<String, Object> layer) {
