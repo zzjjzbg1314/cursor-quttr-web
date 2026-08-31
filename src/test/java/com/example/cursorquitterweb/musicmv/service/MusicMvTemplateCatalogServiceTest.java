@@ -482,6 +482,55 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void createsCloudflareImageForADeclaredBrowserResource() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> browserScene = row("status", "ready");
+        browserScene.put("scene_json", "{\"resources\":[{\"resourceKey\":\"lut_background\","
+                + "\"role\":\"browser_resource:lut_background\",\"kind\":\"lut_2d_png\"}]}");
+        when(repository.browserScene("tplver_1")).thenReturn(browserScene);
+        when(repository.mediaByRole("tplver_1", "browser_resource:lut_background"))
+                .thenReturn(null);
+        when(mediaProvider.createImageUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_images", "browser-lut", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_resource:lut_background");
+        request.setSourceSha256(hash('e'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+        request.setWidth(Integer.valueOf(512));
+        request.setHeight(Integer.valueOf(512));
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", false, request);
+
+        assertEquals("awaiting_upload", result.get("status"));
+        verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
+                eq("browser_resource:lut_background"), anyString(), anyString(), anyString(),
+                anyString(), any(Long.class), any(), any(), any(), anyString());
+    }
+
+    @Test
+    void rejectsBrowserResourceThatIsNotDeclaredByTheScene() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> browserScene = row("status", "ready");
+        browserScene.put("scene_json", "{\"resources\":[]}");
+        when(repository.browserScene("tplver_1")).thenReturn(browserScene);
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_resource:undeclared");
+        request.setSourceSha256(hash('f'));
+        request.setSourceSizeBytes(Long.valueOf(100));
+
+        ApiException error = assertThrows(ApiException.class, () -> service.createMediaSession(
+                "tpl_1", "tplver_1", false, request));
+
+        assertEquals("TEMPLATE_MEDIA_BROWSER_RESOURCE_INVALID", error.getCode());
+        verify(mediaProvider, never()).createImageUpload(anyString(), any());
+    }
+
+    @Test
     void reconcilesDerivedSlotsForTheSameImmutableSource() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("source_node_id", "mac-1");

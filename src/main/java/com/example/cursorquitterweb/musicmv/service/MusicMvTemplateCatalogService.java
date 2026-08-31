@@ -462,6 +462,8 @@ public class MusicMvTemplateCatalogService {
         String expectedRole = request.getRole();
         boolean slotDefault = !video && expectedRole != null
                 && expectedRole.startsWith("slot_default:");
+        boolean browserResource = !video && expectedRole != null
+                && expectedRole.startsWith("browser_resource:");
         if (slotDefault) {
             String slotKey = expectedRole.substring("slot_default:".length());
             boolean slotExists = false;
@@ -478,11 +480,15 @@ public class MusicMvTemplateCatalogService {
                         "The template photo role does not match a material slot");
             }
         }
+        if (browserResource && !isDeclaredBrowserResource(versionId, expectedRole)) {
+            throw badRequest("TEMPLATE_MEDIA_BROWSER_RESOURCE_INVALID",
+                    "The browser resource role is not declared by the template scene");
+        }
         if (video ? !"full_mv".equals(expectedRole)
-                : !("cover".equals(expectedRole) || slotDefault)) {
+                : !("cover".equals(expectedRole) || slotDefault || browserResource)) {
             throw badRequest("TEMPLATE_MEDIA_ROLE_INVALID", video
                     ? "Stream upload only accepts role full_mv"
-                    : "Images upload only accepts cover or a template slot photo");
+                    : "Images upload only accepts cover, a template slot photo, or a declared browser resource");
         }
         if (video && (request.getDurationSeconds() == null || request.getFilename() == null)) {
             throw badRequest("TEMPLATE_VIDEO_METADATA_REQUIRED",
@@ -539,6 +545,27 @@ public class MusicMvTemplateCatalogService {
                 session.getStatus(), providerDetails);
         result.put("idempotentReplay", Boolean.FALSE);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isDeclaredBrowserResource(String versionId, String expectedRole) {
+        Map<String, Object> row = repository.browserScene(versionId);
+        if (row == null || !"ready".equals(RowUtils.str(row, "status"))) return false;
+        Object rawResources = parseObject(RowUtils.str(row, "scene_json")).get("resources");
+        if (!(rawResources instanceof List)) return false;
+        for (Object rawResource : (List<?>) rawResources) {
+            if (!(rawResource instanceof Map)) continue;
+            Map<String, Object> resource = (Map<String, Object>) rawResource;
+            String resourceKey = blankToNull(resource.get("resourceKey") == null
+                    ? null : String.valueOf(resource.get("resourceKey")));
+            String role = blankToNull(resource.get("role") == null
+                    ? null : String.valueOf(resource.get("role")));
+            if (expectedRole.equals(role)
+                    && expectedRole.equals("browser_resource:" + resourceKey)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Map<String, Object> completeMedia(String templateId, String versionId, String mediaId) {
