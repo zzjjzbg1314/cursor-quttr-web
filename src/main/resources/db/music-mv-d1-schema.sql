@@ -453,6 +453,44 @@ CREATE TABLE IF NOT EXISTS template_runtime_packages (
 CREATE INDEX IF NOT EXISTS idx_template_runtime_packages_ready
   ON template_runtime_packages(template_id, status, updated_at);
 
+-- CapCut 字体、贴纸、滤镜、转场和特效等可复用资源采用内容寻址存储。
+-- 同一 resource_id 与内容哈希在所有模板版本之间只保存一份对象。
+CREATE TABLE IF NOT EXISTS template_resource_assets (
+  resource_id TEXT NOT NULL,
+  source_sha256 TEXT NOT NULL,
+  object_key TEXT NOT NULL,
+  source_size_bytes INTEGER NOT NULL,
+  content_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  ready_at TEXT,
+  PRIMARY KEY (resource_id, source_sha256),
+  UNIQUE (object_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_resource_assets_ready
+  ON template_resource_assets(resource_id, status, updated_at);
+
+CREATE TABLE IF NOT EXISTS template_version_resource_refs (
+  version_id TEXT NOT NULL,
+  template_id TEXT NOT NULL,
+  resource_id TEXT NOT NULL,
+  source_sha256 TEXT NOT NULL,
+  panel TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (version_id, resource_id),
+  FOREIGN KEY (template_id) REFERENCES templates(template_id),
+  FOREIGN KEY (version_id) REFERENCES template_versions(version_id),
+  FOREIGN KEY (resource_id, source_sha256)
+    REFERENCES template_resource_assets(resource_id, source_sha256)
+);
+
+CREATE INDEX IF NOT EXISTS idx_template_version_resource_refs_asset
+  ON template_version_resource_refs(resource_id, source_sha256);
+
 -- Provider-neutral AI songwriting tasks. Provider-specific identifiers and
 -- payloads are kept in attempts so the product contract never depends on KIE.
 CREATE TABLE IF NOT EXISTS ai_music_jobs (

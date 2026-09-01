@@ -29,6 +29,8 @@ class MusicMvSchemaIsolationTest {
         assertThat(schema).contains("create table if not exists template_translations");
         assertThat(schema).contains("create table if not exists template_slots");
         assertThat(schema).contains("create table if not exists template_media");
+        assertThat(schema).contains("create table if not exists template_resource_assets");
+        assertThat(schema).contains("create table if not exists template_version_resource_refs");
         assertThat(schema).contains("create table if not exists music_mv_schema_metadata");
         assertThat(schema).contains("create table if not exists ai_music_jobs");
         assertThat(schema).contains("create table if not exists ai_music_provider_attempts");

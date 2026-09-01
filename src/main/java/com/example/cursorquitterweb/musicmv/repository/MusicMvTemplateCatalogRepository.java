@@ -503,6 +503,62 @@ public class MusicMvTemplateCatalogRepository {
                 versionId).firstRow();
     }
 
+    public Map<String, Object> templateResourceAsset(String resourceId, String sha256) {
+        return d1.query("SELECT * FROM template_resource_assets "
+                + "WHERE resource_id=? AND source_sha256=? LIMIT 1",
+                resourceId, sha256.toLowerCase()).firstRow();
+    }
+
+    public void upsertTemplateResourceAsset(
+            String resourceId,
+            String sha256,
+            String objectKey,
+            long sizeBytes,
+            String contentType,
+            String status
+    ) {
+        d1.query("INSERT INTO template_resource_assets "
+                        + "(resource_id,source_sha256,object_key,source_size_bytes,content_type,"
+                        + "status,created_at,updated_at) "
+                        + "VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "ON CONFLICT(resource_id,source_sha256) DO UPDATE SET "
+                        + "object_key=excluded.object_key,source_size_bytes=excluded.source_size_bytes,"
+                        + "content_type=excluded.content_type,status=excluded.status,error_message=NULL,"
+                        + "updated_at=CURRENT_TIMESTAMP",
+                resourceId, sha256.toLowerCase(), objectKey, Long.valueOf(sizeBytes),
+                contentType, status);
+    }
+
+    public void markTemplateResourceAssetReady(String resourceId, String sha256) {
+        d1.query("UPDATE template_resource_assets SET status='ready',error_message=NULL,"
+                        + "ready_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP "
+                        + "WHERE resource_id=? AND source_sha256=?",
+                resourceId, sha256.toLowerCase());
+    }
+
+    public void markTemplateResourceAssetFailed(
+            String resourceId, String sha256, String message) {
+        d1.query("UPDATE template_resource_assets SET status='failed',error_message=?,"
+                        + "updated_at=CURRENT_TIMESTAMP WHERE resource_id=? AND source_sha256=?",
+                message, resourceId, sha256.toLowerCase());
+    }
+
+    public void upsertTemplateVersionResourceRef(
+            String templateId,
+            String versionId,
+            String resourceId,
+            String sha256,
+            String panel
+    ) {
+        d1.query("INSERT INTO template_version_resource_refs "
+                        + "(version_id,template_id,resource_id,source_sha256,panel,created_at,updated_at) "
+                        + "VALUES (?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                        + "ON CONFLICT(version_id,resource_id) DO UPDATE SET "
+                        + "source_sha256=excluded.source_sha256,panel=excluded.panel,"
+                        + "updated_at=CURRENT_TIMESTAMP",
+                versionId, templateId, resourceId, sha256.toLowerCase(), panel);
+    }
+
     public void upsertRuntimePackage(
             String templateId,
             String versionId,
@@ -742,6 +798,9 @@ public class MusicMvTemplateCatalogRepository {
     /** Deletes the complete catalog graph after the service has removed provider assets. */
     public void deleteTemplate(String templateId) {
         d1.batch(Arrays.asList(
+                statement("DELETE FROM template_version_resource_refs WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_runtime_packages WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
@@ -788,6 +847,7 @@ public class MusicMvTemplateCatalogRepository {
                 statement("UPDATE music_mv_projects SET template_id=NULL,template_version_id=NULL,"
                         + "current_step=CASE WHEN status='draft' THEN 'template' ELSE current_step END,"
                         + "revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE template_id=?", templateId),
+                statement("DELETE FROM template_version_resource_refs WHERE template_id=?", templateId),
                 statement("DELETE FROM template_runtime_packages WHERE template_id=?", templateId),
                 statement("DELETE FROM template_media WHERE template_id=?", templateId),
                 statement("DELETE FROM template_slots WHERE version_id IN ("
