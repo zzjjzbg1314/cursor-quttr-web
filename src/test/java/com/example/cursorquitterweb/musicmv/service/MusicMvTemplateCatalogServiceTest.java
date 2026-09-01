@@ -444,6 +444,82 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void acceptsVersionSixSceneWithCompiledRenderIr() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> feature = executionCapability(
+                "photo_layers", 1, 1, "exact", false);
+        Map<String, Object> capability = new LinkedHashMap<String, Object>();
+        capability.put("photoReplacementReady", Boolean.TRUE);
+        capability.put("browserLayerCompositionReady", Boolean.TRUE);
+        capability.put("browserExportReady", Boolean.TRUE);
+        capability.put("blockingFeatures", Collections.emptyList());
+        capability.put("executionCapabilities", Collections.singletonList(feature));
+        Map<String, Object> layer = row("layerId", "segment-1");
+        layer.put("type", "photo");
+        layer.put("slotKey", "photo_01");
+        layer.put("targetStartSeconds", Double.valueOf(0));
+        layer.put("targetDurationSeconds", Double.valueOf(4));
+        Map<String, Object> scene = new LinkedHashMap<String, Object>();
+        scene.put("schemaVersion", "browser-template-scene-v6");
+        scene.put("templateId", "tpl_1");
+        scene.put("versionId", "tplver_1");
+        scene.put("canvas", row("width", Integer.valueOf(720)));
+        scene.put("capability", capability);
+        scene.put("slots", Collections.singletonList(row("slotKey", "photo_01")));
+        scene.put("resources", Collections.emptyList());
+        scene.put("postEffects", Collections.emptyList());
+        scene.put("layers", Collections.singletonList(layer));
+        Map<String, Object> report = row(
+                "schemaVersion", "browser-scene-capability-report-v1");
+        report.put("effectRegistryContract", "browser_effect_registry_v1");
+        report.put("features", capability.get("executionCapabilities"));
+        report.put("effectImplementations", Collections.emptyList());
+        Map<String, Object> summary = row("declaredItemCount", Integer.valueOf(1));
+        summary.put("executableItemCount", Integer.valueOf(1));
+        summary.put("exactFeatureCount", Integer.valueOf(1));
+        summary.put("approximateFeatureCount", Integer.valueOf(0));
+        summary.put("unsupportedFeatureCount", Integer.valueOf(0));
+        summary.put("effectImplementationCount", Integer.valueOf(0));
+        report.put("summary", summary);
+        scene.put("capabilityReport", report);
+        Map<String, Object> irLayer = row("id", "segment-1");
+        irLayer.put("kind", "photo");
+        irLayer.put("startSeconds", Double.valueOf(0));
+        irLayer.put("durationSeconds", Double.valueOf(4));
+        irLayer.put("source", row("slotKey", "photo_01"));
+        irLayer.put("keyframes", Collections.emptyList());
+        irLayer.put("animations", Collections.emptyList());
+        irLayer.put("effects", Collections.emptyList());
+        Map<String, Object> policy = row(
+                "coordinateSpace", "canvas_center_normalized_y_up");
+        policy.put("timeUnit", "seconds");
+        policy.put("transitionClock", "dual_input_ab_v1");
+        policy.put("unsupported", "block_export");
+        Map<String, Object> ir = row("version", "browser-render-ir-v2");
+        ir.put("templateId", "tpl_1");
+        ir.put("versionId", "tplver_1");
+        ir.put("canvas", scene.get("canvas"));
+        ir.put("layers", Collections.singletonList(irLayer));
+        ir.put("postEffects", Collections.emptyList());
+        ir.put("resources", Collections.emptyList());
+        ir.put("policy", policy);
+        scene.put("renderIr", ir);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v6");
+        request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+
+        Map<String, Object> result = service.synchronizeBrowserScene(
+                "tpl_1", "tplver_1", request);
+
+        assertEquals("ready", result.get("status"));
+        verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
+                eq("browser-template-scene-v6"), anyString(), eq("ready"), anyString());
+    }
+
+    @Test
     void rejectsVersionFiveCapabilityReportThatInventsAnEffect() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))

@@ -409,12 +409,17 @@ public class MusicMvTemplateCatalogService {
                     "Every published photo animation must be executable before browser rendering is enabled");
         }
         if ("browser-template-scene-v4".equals(request.getSchemaVersion())
-                || "browser-template-scene-v5".equals(request.getSchemaVersion())) {
+                || "browser-template-scene-v5".equals(request.getSchemaVersion())
+                || "browser-template-scene-v6".equals(request.getSchemaVersion())) {
             requireValidBrowserSceneGraph(scene);
             requireValidBrowserExecutionCapabilities(capability);
         }
-        if ("browser-template-scene-v5".equals(request.getSchemaVersion())) {
+        if ("browser-template-scene-v5".equals(request.getSchemaVersion())
+                || "browser-template-scene-v6".equals(request.getSchemaVersion())) {
             requireValidBrowserCapabilityReport(scene, capability);
+        }
+        if ("browser-template-scene-v6".equals(request.getSchemaVersion())) {
+            requireValidBrowserRenderIr(scene);
         }
         repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
                 actualSha256, "ready", sceneJson);
@@ -426,6 +431,71 @@ public class MusicMvTemplateCatalogService {
         result.put("schemaVersion", request.getSchemaVersion());
         result.put("manifestSha256", actualSha256);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void requireValidBrowserRenderIr(Map<String, Object> scene) {
+        Object rawIr = scene.get("renderIr");
+        if (!(rawIr instanceof Map)) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_REQUIRED",
+                    "Browser scene v6 requires a compiled Render IR");
+        }
+        Map<String, Object> ir = (Map<String, Object>) rawIr;
+        if (!"browser-render-ir-v2".equals(RowUtils.str(ir, "version"))
+                || !RowUtils.str(scene, "templateId").equals(RowUtils.str(ir, "templateId"))
+                || !RowUtils.str(scene, "versionId").equals(RowUtils.str(ir, "versionId"))) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_ID_MISMATCH",
+                    "Compiled Render IR does not match the browser scene version");
+        }
+        Map<String, Object> policy = ir.get("policy") instanceof Map
+                ? (Map<String, Object>) ir.get("policy")
+                : Collections.<String, Object>emptyMap();
+        if (!"canvas_center_normalized_y_up".equals(RowUtils.str(policy, "coordinateSpace"))
+                || !"seconds".equals(RowUtils.str(policy, "timeUnit"))
+                || !"dual_input_ab_v1".equals(RowUtils.str(policy, "transitionClock"))
+                || !"block_export".equals(RowUtils.str(policy, "unsupported"))) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_POLICY_INVALID",
+                    "Compiled Render IR uses an unsupported coordinate, clock, or fallback policy");
+        }
+        if (!(ir.get("canvas") instanceof Map)
+                || !(ir.get("layers") instanceof List)
+                || !(ir.get("postEffects") instanceof List)
+                || !(ir.get("resources") instanceof List)) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_INVALID",
+                    "Compiled Render IR canvas, layers, effects, and resources are required");
+        }
+        List<?> sceneLayers = scene.get("layers") instanceof List
+                ? (List<?>) scene.get("layers") : Collections.emptyList();
+        List<?> irLayers = (List<?>) ir.get("layers");
+        if (sceneLayers.size() != irLayers.size()) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_LAYER_MISMATCH",
+                    "Compiled Render IR must contain every public scene layer exactly once");
+        }
+        Map<String, String> expected = new LinkedHashMap<String, String>();
+        for (Object raw : sceneLayers) {
+            Map<?, ?> layer = (Map<?, ?>) raw;
+            expected.put(String.valueOf(layer.get("layerId")), String.valueOf(layer.get("type")));
+        }
+        Set<String> actual = new HashSet<String>();
+        for (Object raw : irLayers) {
+            if (!(raw instanceof Map)) {
+                throw badRequest("TEMPLATE_BROWSER_RENDER_IR_LAYER_INVALID",
+                        "Compiled Render IR layers must be objects");
+            }
+            Map<String, Object> layer = (Map<String, Object>) raw;
+            String id = RowUtils.str(layer, "id");
+            String kind = RowUtils.str(layer, "kind");
+            if (id.isEmpty() || !kind.equals(expected.get(id)) || !actual.add(id)
+                    || !finiteNonNegative(layer.get("startSeconds"), false)
+                    || !finiteNonNegative(layer.get("durationSeconds"), true)
+                    || !(layer.get("source") instanceof Map)
+                    || !(layer.get("keyframes") instanceof List)
+                    || !(layer.get("animations") instanceof List)
+                    || !(layer.get("effects") instanceof List)) {
+                throw badRequest("TEMPLATE_BROWSER_RENDER_IR_LAYER_INVALID",
+                        "Compiled Render IR layer identity, timing, or executable state is invalid");
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
