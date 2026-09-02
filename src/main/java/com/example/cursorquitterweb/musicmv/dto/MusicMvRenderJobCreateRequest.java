@@ -1,7 +1,9 @@
 package com.example.cursorquitterweb.musicmv.dto;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMax;
@@ -29,6 +31,9 @@ public class MusicMvRenderJobCreateRequest {
     @Valid
     @Size(max = 100)
     private List<SlotBinding> slotBindings = new ArrayList<SlotBinding>();
+    @NotNull
+    @Size(max = 100)
+    private Map<String, String> textOverrides = new LinkedHashMap<String, String>();
     @Size(max = 120)
     private String outputFileName;
     private Boolean allowTemplateLoop = Boolean.TRUE;
@@ -51,6 +56,12 @@ public class MusicMvRenderJobCreateRequest {
     public List<SlotBinding> getSlotBindings() { return slotBindings; }
     public void setSlotBindings(List<SlotBinding> value) {
         slotBindings = value == null ? new ArrayList<SlotBinding>() : value;
+    }
+    public Map<String, String> getTextOverrides() { return textOverrides; }
+    public void setTextOverrides(Map<String, String> value) {
+        textOverrides = value == null
+                ? new LinkedHashMap<String, String>()
+                : new LinkedHashMap<String, String>(value);
     }
     public String getOutputFileName() { return outputFileName; }
     public void setOutputFileName(String value) { outputFileName = value; }

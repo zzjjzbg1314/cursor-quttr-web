@@ -536,6 +536,19 @@ public class MusicMvRenderJobService {
             throw badRequest("MV_RENDER_TEMPLATE_LOOP_REQUIRED",
                     "Full-song MV rendering requires template looping");
         }
+        if (request.getTextOverrides().size() > 100) {
+            throw badRequest("MV_RENDER_TEXT_OVERRIDES_INVALID",
+                    "Too many template text overrides were provided");
+        }
+        for (Map.Entry<String, String> entry : request.getTextOverrides().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (key == null || key.trim().isEmpty() || key.length() > 128
+                    || value == null || value.length() > 2000) {
+                throw badRequest("MV_RENDER_TEXT_OVERRIDES_INVALID",
+                        "Template text overrides are invalid");
+            }
+        }
     }
 
     private void validateAsset(MusicMvRenderJobCreateRequest.Asset asset, boolean music) {
@@ -606,6 +619,8 @@ public class MusicMvRenderJobService {
             }
         });
         canonical.put("slots", slots);
+        canonical.put("textOverrides", new java.util.TreeMap<String, String>(
+                request.getTextOverrides()));
         canonical.put("allowTemplateLoop", request.getAllowTemplateLoop());
         canonical.put("volume", request.getVolume());
         canonical.put("fadeOutSeconds", request.getFadeOutSeconds());
@@ -713,6 +728,8 @@ public class MusicMvRenderJobService {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("scene", scene);
         result.put("sceneManifestSha256", sceneRow.get("manifest_sha256"));
+        result.put("textOverrides", request.get("textOverrides") instanceof Map
+                ? request.get("textOverrides") : Collections.<String, String>emptyMap());
         result.put("music", music);
         result.put("slotBindings", bindings);
         result.put("resources", resources);
