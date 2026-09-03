@@ -370,9 +370,17 @@ class MusicMvTemplateCatalogServiceTest {
         animation.put("durationSeconds", Double.valueOf(0.4d));
         animation.put("fidelity", "semantic_approximation");
         layer.put("animations", Collections.singletonList(animation));
-        Map<String, Object> transition = row("preset", "soft_fade");
+        Map<String, Object> transition = row("preset", "ab_progress_mix");
         transition.put("durationSeconds", Double.valueOf(0.3d));
         transition.put("fidelity", "exact");
+        transition.put("contractVersion", "browser-transition-semantic-v1");
+        transition.put("semanticFamily", "ab_progress_mix");
+        transition.put("progressMapping", "normalized_transition_progress");
+        transition.put("inputAWeight", "one_minus_progress");
+        transition.put("inputBWeight", "progress");
+        transition.put("alphaOutputContract", "opaque");
+        transition.put("applicationStage", "timeline_ab_after_source_graph");
+        transition.put("evidence", "package_shader_two_input_progress_mix");
         layer.put("transitionIn", transition);
         Map<String, Object> layerEffect = row("preset", "shake_approximation");
         layerEffect.put("intensity", Double.valueOf(0.05d));
@@ -412,7 +420,7 @@ class MusicMvTemplateCatalogServiceTest {
         capabilityReport.put("effectImplementations", java.util.Arrays.asList(
                 effectImplementation("animation", "scale_up_approximation",
                         "timeline_animation_v1", "semantic_approximation"),
-                effectImplementation("transition", "soft_fade",
+                effectImplementation("transition", "ab_progress_mix",
                         "timeline_transition_v1", "exact"),
                 effectImplementation("layer_effect", "shake_approximation",
                         "canvas_layer_effect_v1", "semantic_approximation"),
@@ -441,6 +449,13 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
                 eq("browser-template-scene-v5"), anyString(), eq("ready"), anyString());
+
+        transition.remove("evidence");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incomplete = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_TRANSITION_CONTRACT_INVALID",
+                incomplete.getCode());
     }
 
     @Test

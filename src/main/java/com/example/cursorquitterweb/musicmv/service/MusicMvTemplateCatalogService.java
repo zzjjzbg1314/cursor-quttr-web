@@ -668,11 +668,27 @@ public class MusicMvTemplateCatalogService {
         Object rawTransition = layer.get("transitionIn");
         if (rawTransition == null) return;
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
-                "soft_fade", "white_flash_approximation", "wipe_approximation",
+                "ab_progress_mix", "soft_fade", "white_flash_approximation", "wipe_approximation",
                 "blur_crossfade_approximation", "push_slide_approximation",
                 "scale_zoom_approximation", "unsupported"));
         requireValidBrowserTimedPreset(rawTransition, allowed,
                 "TEMPLATE_BROWSER_SCENE_TRANSITION_INVALID", true);
+        Map<?, ?> transition = (Map<?, ?>) rawTransition;
+        if ("ab_progress_mix".equals(String.valueOf(transition.get("preset")))
+                && !("browser-transition-semantic-v1".equals(transition.get("contractVersion"))
+                        && "ab_progress_mix".equals(transition.get("semanticFamily"))
+                        && "normalized_transition_progress".equals(
+                                transition.get("progressMapping"))
+                        && "one_minus_progress".equals(transition.get("inputAWeight"))
+                        && "progress".equals(transition.get("inputBWeight"))
+                        && "opaque".equals(transition.get("alphaOutputContract"))
+                        && "timeline_ab_after_source_graph".equals(
+                                transition.get("applicationStage"))
+                        && "package_shader_two_input_progress_mix".equals(
+                                transition.get("evidence")))) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_TRANSITION_CONTRACT_INVALID",
+                    "Exact A/B progress mix transitions require the verified semantic contract");
+        }
     }
 
     private void requireValidBrowserLayerEffects(Map<String, Object> layer) {
