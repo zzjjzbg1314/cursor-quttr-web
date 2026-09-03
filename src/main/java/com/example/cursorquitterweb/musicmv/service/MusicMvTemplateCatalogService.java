@@ -771,7 +771,7 @@ public class MusicMvTemplateCatalogService {
                 || !"local_seconds_times_half_plus_speed_times_one_point_five".equals(
                         effect.get("packageClock"))) return false;
         if ("turbulence_bounce_shake".equals(preset)) {
-            return "turbulence_then_bounce_then_shake_then_passthrough_then_difference_sharpen".equals(
+            return "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake".equals(
                             effect.get("passOrder"))
                     && "preserve_source_alpha".equals(effect.get("alphaContract"))
                     && "share_bgmask_texture_unavailable".equals(
