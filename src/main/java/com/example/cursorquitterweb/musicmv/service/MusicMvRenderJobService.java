@@ -184,7 +184,9 @@ public class MusicMvRenderJobService {
             requireRenderableVersion(contract.getVersion(), request);
             requireSlotBindings(clientId, request.getTemplateVersionId(), contract.getSlots(),
                     request.getSlotBindings());
-            String preparedRequestJson = json(request);
+            Map<String, Object> preparedRequest = parseObject(json(request));
+            preparedRequest.put("outputVideo", outputVideo(contract.getVersion()));
+            String preparedRequestJson = json(preparedRequest);
             requireJsonSize(preparedRequestJson, "MV_RENDER_REQUEST_TOO_LARGE");
             Map<String, Object> ready = repository.completeBrowserPreparation(
                     jobId, preparedRequestJson);
@@ -730,6 +732,10 @@ public class MusicMvRenderJobService {
         result.put("textOverrides", request.get("textOverrides") instanceof Map
                 ? request.get("textOverrides") : Collections.<String, String>emptyMap());
         result.put("music", music);
+        result.put("outputVideo", request.get("outputVideo") instanceof Map
+                ? request.get("outputVideo") : outputVideo(scene.get("canvas") instanceof Map
+                        ? (Map<String, Object>) scene.get("canvas")
+                        : Collections.<String, Object>emptyMap()));
         result.put("slotBindings", bindings);
         result.put("resources", resources);
         if (runtimePackages != null) {
@@ -744,6 +750,26 @@ public class MusicMvRenderJobService {
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
         return result;
+    }
+
+    private Map<String, Object> outputVideo(Map<String, Object> source) {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("width", positiveInteger(source == null ? null : source.get("width"), 720));
+        result.put("height", positiveInteger(source == null ? null : source.get("height"), 1280));
+        result.put("fps", positiveInteger(source == null ? null : source.get("fps"), 30));
+        return result;
+    }
+
+    private Integer positiveInteger(Object value, int fallback) {
+        if (value instanceof Number && ((Number) value).doubleValue() > 0.0d) {
+            return Integer.valueOf((int) Math.round(((Number) value).doubleValue()));
+        }
+        try {
+            int parsed = Integer.parseInt(String.valueOf(value));
+            return Integer.valueOf(parsed > 0 ? parsed : fallback);
+        } catch (RuntimeException exception) {
+            return Integer.valueOf(fallback);
+        }
     }
 
     @SuppressWarnings("unchecked")

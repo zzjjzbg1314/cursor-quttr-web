@@ -236,7 +236,8 @@ class MusicMvRenderJobServiceTest {
         active.put("template_id", "tpl_1");
         active.put("client_id", "usr_owner");
         active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},"
-                + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}]}");
+                + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}],"
+                + "\"outputVideo\":{\"width\":1080,\"height\":1920,\"fps\":30}}");
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
         scene.put("capability", browserCapability(true, Collections.<String>emptyList()));
@@ -319,6 +320,11 @@ class MusicMvRenderJobServiceTest {
         assertEquals("https://r2.example/runtime.zip", issuedRuntimePackage.get("downloadUrl"));
         assertEquals(null, issuedRuntimePackage.get("objectKey"));
         assertEquals(null, browserRender.get("sourceVideo"));
+        Map<String, Object> outputVideo =
+                (Map<String, Object>) browserRender.get("outputVideo");
+        assertEquals(1080, ((Number) outputVideo.get("width")).intValue());
+        assertEquals(1920, ((Number) outputVideo.get("height")).intValue());
+        assertEquals(30, ((Number) outputVideo.get("fps")).intValue());
     }
 
     @Test
@@ -550,6 +556,9 @@ class MusicMvRenderJobServiceTest {
         row.put("current_version_id", "tplver_1");
         row.put("source_node_id", "mac-music-mv-primary");
         row.put("browser_scene_status", "ready");
+        row.put("width", Integer.valueOf(1080));
+        row.put("height", Integer.valueOf(1920));
+        row.put("fps", Integer.valueOf(30));
         return row;
     }
 
