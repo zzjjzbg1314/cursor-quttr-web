@@ -305,6 +305,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
+        stubParityInputs();
         Map<String, Object> stored = row("status", "passed");
         stored.put("validation_id", "bpar_1");
         when(repository.matchingBrowserParity("tplver_1", hash('c'), hash('d')))
@@ -331,6 +332,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
+        stubParityInputs();
         TemplateBrowserParityRequest request = browserParityRequest();
         request.setSsimThreshold(Double.valueOf(0.5d));
         request.setAverageSsim(Double.valueOf(0.6d));
@@ -356,6 +358,15 @@ class MusicMvTemplateCatalogServiceTest {
         request.setOutputDurationSeconds(Double.valueOf(33.5147d));
         request.setOutputSha256(hash('e'));
         return request;
+    }
+
+    private void stubParityInputs() {
+        Map<String, Object> scene = row("manifest_sha256", hash('c'));
+        when(repository.browserScene("tplver_1")).thenReturn(scene);
+        Map<String, Object> reference = row("status", "ready");
+        reference.put("source_sha256", hash('d'));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(reference);
     }
 
     @Test

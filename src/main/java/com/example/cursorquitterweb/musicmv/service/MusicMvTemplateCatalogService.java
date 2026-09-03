@@ -1420,6 +1420,16 @@ public class MusicMvTemplateCatalogService {
                 "TEMPLATE_BROWSER_PARITY_SCENE_HASH_INVALID");
         String referenceHash = normalizedSha256(request.getReferenceSha256(),
                 "TEMPLATE_BROWSER_PARITY_REFERENCE_HASH_INVALID");
+        Map<String, Object> browserScene = repository.browserScene(versionId);
+        Map<String, Object> reference = repository.mediaByRole(
+                versionId, "browser_parity_reference");
+        if (browserScene == null || !sceneHash.equals(
+                RowUtils.str(browserScene, "manifest_sha256"))
+                || !ready(reference) || !referenceHash.equals(
+                RowUtils.str(reference, "source_sha256"))) {
+            throw conflict("TEMPLATE_BROWSER_PARITY_INPUT_MISMATCH",
+                    "Browser parity evidence must match the immutable scene and reference video");
+        }
         String status = blankToNull(request.getStatus());
         if (!("pending".equals(status) || "passed".equals(status)
                 || "failed".equals(status))) {
