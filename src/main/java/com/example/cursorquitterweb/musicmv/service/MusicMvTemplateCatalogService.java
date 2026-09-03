@@ -766,11 +766,11 @@ public class MusicMvTemplateCatalogService {
     }
 
     private boolean validBrowserLayerEffectContract(Map<?, ?> effect, String preset) {
-        if (!preset.equals(effect.get("semanticFamily"))
-                || !"local_seconds_times_half_plus_speed_times_one_point_five".equals(
-                        effect.get("packageClock"))) return false;
+        if (!preset.equals(effect.get("semanticFamily"))) return false;
         if ("turbulence_bounce_shake".equals(preset)) {
             return "browser-layer-effect-semantic-v1".equals(effect.get("contractVersion"))
+                    && "local_seconds_times_half_plus_speed_times_one_point_five".equals(
+                            effect.get("packageClock"))
                     && "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake".equals(
                             effect.get("passOrder"))
                     && "preserve_source_alpha".equals(effect.get("alphaContract"))
@@ -778,13 +778,15 @@ public class MusicMvTemplateCatalogService {
                             effect.get("approximationBoundary"))
                     && "package_lua_and_five_fragment_passes".equals(effect.get("evidence"));
         }
-        return "browser-layer-effect-semantic-v2".equals(effect.get("contractVersion"))
+        return "browser-layer-effect-semantic-v3".equals(effect.get("contractVersion"))
+                && "effect_local_seconds_clamped_to_declared_range_then_times_half_plus_speed_times_one_point_five"
+                        .equals(effect.get("packageClock"))
                 && "screen_sequence_then_multiply_texture".equals(effect.get("passOrder"))
                 && "serialized_sequence_order_floor_clock".equals(
                         effect.get("sequenceSampling"))
                 && effect.get("sequenceDurationSeconds") instanceof Number
                 && ((Number) effect.get("sequenceDurationSeconds")).doubleValue() > 0.0d
-                && "activation_once".equals(effect.get("sequencePlaybackMode"))
+                && "clamp".equals(effect.get("sequencePlaybackMode"))
                 && "hold_last_frame".equals(effect.get("sequenceEndBehavior"))
                 && "straight_alpha_screen".equals(effect.get("screenBlend"))
                 && "inverse_premultiplied_straight_alpha_multiply".equals(

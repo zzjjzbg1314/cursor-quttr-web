@@ -385,13 +385,14 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> layerEffect = row("preset", "texture_sequence_screen_multiply");
         layerEffect.put("intensity", Double.valueOf(0.05d));
         layerEffect.put("fidelity", "exact");
-        layerEffect.put("contractVersion", "browser-layer-effect-semantic-v2");
+        layerEffect.put("contractVersion", "browser-layer-effect-semantic-v3");
         layerEffect.put("semanticFamily", "texture_sequence_screen_multiply");
-        layerEffect.put("packageClock", "local_seconds_times_half_plus_speed_times_one_point_five");
+        layerEffect.put("packageClock",
+                "effect_local_seconds_clamped_to_declared_range_then_times_half_plus_speed_times_one_point_five");
         layerEffect.put("passOrder", "screen_sequence_then_multiply_texture");
         layerEffect.put("sequenceSampling", "serialized_sequence_order_floor_clock");
         layerEffect.put("sequenceDurationSeconds", Double.valueOf(3.0d));
-        layerEffect.put("sequencePlaybackMode", "activation_once");
+        layerEffect.put("sequencePlaybackMode", "clamp");
         layerEffect.put("sequenceEndBehavior", "hold_last_frame");
         layerEffect.put("screenBlend", "straight_alpha_screen");
         layerEffect.put("multiplyBlend", "inverse_premultiplied_straight_alpha_multiply");
