@@ -398,7 +398,23 @@ class MusicMvTemplateCatalogServiceTest {
         layerEffect.put("multiplyBlend", "inverse_premultiplied_straight_alpha_multiply");
         layerEffect.put("alphaContract", "opaque_result");
         layerEffect.put("evidence", "package_lua_sequence_and_blend_shaders");
-        layer.put("effects", Collections.singletonList(layerEffect));
+        Map<String, Object> personProtectedEffect = row("preset", "turbulence_bounce_shake");
+        personProtectedEffect.put("fidelity", "semantic_approximation");
+        personProtectedEffect.put("contractVersion", "browser-layer-effect-semantic-v2");
+        personProtectedEffect.put("semanticFamily", "turbulence_bounce_shake");
+        personProtectedEffect.put("packageClock",
+                "local_seconds_times_half_plus_speed_times_one_point_five");
+        personProtectedEffect.put("passOrder",
+                "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake");
+        personProtectedEffect.put("alphaContract", "preserve_source_alpha");
+        personProtectedEffect.put("maskProvider", "person_matting");
+        personProtectedEffect.put("maskSource", "share_bgmask_red_y_flipped");
+        personProtectedEffect.put("maskInput", "effect_pass_input_rgba");
+        personProtectedEffect.put("maskProtection",
+                "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv");
+        personProtectedEffect.put("approximationBoundary", "browser_person_matting_model");
+        personProtectedEffect.put("evidence", "package_lua_and_five_fragment_passes");
+        layer.put("effects", java.util.Arrays.asList(layerEffect, personProtectedEffect));
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
         fixedLayer.put("resourceKey", "static_photo_123");
@@ -445,6 +461,8 @@ class MusicMvTemplateCatalogServiceTest {
                         "timeline_transition_v1", "exact"),
                 effectImplementation("layer_effect", "texture_sequence_screen_multiply",
                         "canvas_layer_effect_v1", "exact"),
+                effectImplementation("layer_effect", "turbulence_bounce_shake",
+                        "canvas_layer_effect_v1", "semantic_approximation"),
                 effectImplementation("mask", "rectangle",
                         "canvas_mask_v1", "exact"),
                 effectImplementation("text_template", "expanded_text_template",
@@ -456,7 +474,7 @@ class MusicMvTemplateCatalogServiceTest {
         reportSummary.put("exactFeatureCount", Integer.valueOf(1));
         reportSummary.put("approximateFeatureCount", Integer.valueOf(0));
         reportSummary.put("unsupportedFeatureCount", Integer.valueOf(0));
-        reportSummary.put("effectImplementationCount", Integer.valueOf(6));
+        reportSummary.put("effectImplementationCount", Integer.valueOf(7));
         capabilityReport.put("summary", reportSummary);
         scene.put("capabilityReport", capabilityReport);
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
@@ -478,6 +496,15 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
                 incompleteLayerEffect.getCode());
         layerEffect.put("sequenceEndBehavior", "hold_last_frame");
+
+        personProtectedEffect.remove("maskProtection");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompletePersonProtection = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
+                incompletePersonProtection.getCode());
+        personProtectedEffect.put("maskProtection",
+                "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv");
 
         transition.remove("evidence");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));

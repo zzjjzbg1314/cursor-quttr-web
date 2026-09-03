@@ -768,13 +768,18 @@ public class MusicMvTemplateCatalogService {
     private boolean validBrowserLayerEffectContract(Map<?, ?> effect, String preset) {
         if (!preset.equals(effect.get("semanticFamily"))) return false;
         if ("turbulence_bounce_shake".equals(preset)) {
-            return "browser-layer-effect-semantic-v1".equals(effect.get("contractVersion"))
+            return "browser-layer-effect-semantic-v2".equals(effect.get("contractVersion"))
                     && "local_seconds_times_half_plus_speed_times_one_point_five".equals(
                             effect.get("packageClock"))
                     && "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake".equals(
                             effect.get("passOrder"))
                     && "preserve_source_alpha".equals(effect.get("alphaContract"))
-                    && "share_bgmask_texture_unavailable".equals(
+                    && "person_matting".equals(effect.get("maskProvider"))
+                    && "share_bgmask_red_y_flipped".equals(effect.get("maskSource"))
+                    && "effect_pass_input_rgba".equals(effect.get("maskInput"))
+                    && "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv".equals(
+                            effect.get("maskProtection"))
+                    && "browser_person_matting_model".equals(
                             effect.get("approximationBoundary"))
                     && "package_lua_and_five_fragment_passes".equals(effect.get("evidence"));
         }
