@@ -777,11 +777,13 @@ public class MusicMvTemplateCatalogService {
     private boolean validBrowserLayerEffectContract(Map<?, ?> effect, String preset) {
         if (!preset.equals(effect.get("semanticFamily"))) return false;
         if ("turbulence_bounce_shake".equals(preset)) {
-            return "browser-layer-effect-semantic-v2".equals(effect.get("contractVersion"))
+            return "browser-layer-effect-semantic-v4".equals(effect.get("contractVersion"))
                     && "local_seconds_times_half_plus_speed_times_one_point_five".equals(
                             effect.get("packageClock"))
-                    && "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake".equals(
+                    && "downsample_passthrough_then_difference_sharpen_then_turbulence_then_shake_then_bounce".equals(
                             effect.get("passOrder"))
+                    && "source_graph_before_video_animation".equals(
+                            effect.get("applicationStage"))
                     && "preserve_source_alpha".equals(effect.get("alphaContract"))
                     && "person_matting".equals(effect.get("maskProvider"))
                     && "share_bgmask_red_y_flipped".equals(effect.get("maskSource"))
@@ -792,10 +794,12 @@ public class MusicMvTemplateCatalogService {
                             effect.get("approximationBoundary"))
                     && "package_lua_and_five_fragment_passes".equals(effect.get("evidence"));
         }
-        return "browser-layer-effect-semantic-v3".equals(effect.get("contractVersion"))
+        return "browser-layer-effect-semantic-v4".equals(effect.get("contractVersion"))
                 && "effect_local_seconds_clamped_to_declared_range_then_times_half_plus_speed_times_one_point_five"
                         .equals(effect.get("packageClock"))
                 && "screen_sequence_then_multiply_texture".equals(effect.get("passOrder"))
+                && "source_graph_before_video_animation".equals(
+                        effect.get("applicationStage"))
                 && "serialized_sequence_order_floor_clock".equals(
                         effect.get("sequenceSampling"))
                 && effect.get("sequenceDurationSeconds") instanceof Number

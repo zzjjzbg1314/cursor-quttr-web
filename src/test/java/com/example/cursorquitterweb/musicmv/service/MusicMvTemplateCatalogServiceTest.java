@@ -501,11 +501,12 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> layerEffect = row("preset", "texture_sequence_screen_multiply");
         layerEffect.put("intensity", Double.valueOf(0.05d));
         layerEffect.put("fidelity", "exact");
-        layerEffect.put("contractVersion", "browser-layer-effect-semantic-v3");
+        layerEffect.put("contractVersion", "browser-layer-effect-semantic-v4");
         layerEffect.put("semanticFamily", "texture_sequence_screen_multiply");
         layerEffect.put("packageClock",
                 "effect_local_seconds_clamped_to_declared_range_then_times_half_plus_speed_times_one_point_five");
         layerEffect.put("passOrder", "screen_sequence_then_multiply_texture");
+        layerEffect.put("applicationStage", "source_graph_before_video_animation");
         layerEffect.put("sequenceSampling", "serialized_sequence_order_floor_clock");
         layerEffect.put("sequenceDurationSeconds", Double.valueOf(3.0d));
         layerEffect.put("sequencePlaybackMode", "clamp");
@@ -516,12 +517,13 @@ class MusicMvTemplateCatalogServiceTest {
         layerEffect.put("evidence", "package_lua_sequence_and_blend_shaders");
         Map<String, Object> personProtectedEffect = row("preset", "turbulence_bounce_shake");
         personProtectedEffect.put("fidelity", "semantic_approximation");
-        personProtectedEffect.put("contractVersion", "browser-layer-effect-semantic-v2");
+        personProtectedEffect.put("contractVersion", "browser-layer-effect-semantic-v4");
         personProtectedEffect.put("semanticFamily", "turbulence_bounce_shake");
         personProtectedEffect.put("packageClock",
                 "local_seconds_times_half_plus_speed_times_one_point_five");
         personProtectedEffect.put("passOrder",
-                "downsample_passthrough_then_difference_sharpen_then_turbulence_then_bounce_then_shake");
+                "downsample_passthrough_then_difference_sharpen_then_turbulence_then_shake_then_bounce");
+        personProtectedEffect.put("applicationStage", "source_graph_before_video_animation");
         personProtectedEffect.put("alphaContract", "preserve_source_alpha");
         personProtectedEffect.put("maskProvider", "person_matting");
         personProtectedEffect.put("maskSource", "share_bgmask_red_y_flipped");
