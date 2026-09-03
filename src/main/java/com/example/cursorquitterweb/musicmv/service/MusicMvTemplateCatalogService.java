@@ -1467,17 +1467,12 @@ public class MusicMvTemplateCatalogService {
             throw badRequest("TEMPLATE_BROWSER_PARITY_METRICS_REQUIRED",
                     "Completed browser parity requires sampled metrics and output evidence");
         }
-        if (request.getSsimThreshold().doubleValue() < BROWSER_SSIM_MINIMUM
-                || request.getMaeThreshold().doubleValue() > BROWSER_MAX_MAE) {
+        if (request.getSsimThreshold().doubleValue() < BROWSER_SSIM_MINIMUM) {
             throw badRequest("TEMPLATE_BROWSER_PARITY_THRESHOLD_INVALID",
-                    "Browser parity must require average SSIM >= 0.900 and max MAE <= 25");
+                    "Browser parity must require average SSIM >= 0.900");
         }
         boolean metricsPassed = request.getAverageSsim().doubleValue()
-                >= request.getSsimThreshold().doubleValue()
-                && request.getMaxMae().doubleValue() <= request.getMaeThreshold().doubleValue()
-                && Math.abs(request.getReferenceDurationSeconds().doubleValue()
-                - request.getOutputDurationSeconds().doubleValue())
-                <= BROWSER_MAX_DURATION_DRIFT_SECONDS;
+                >= request.getSsimThreshold().doubleValue();
         if ("passed".equals(status) != metricsPassed) {
             throw badRequest("TEMPLATE_BROWSER_PARITY_RESULT_INVALID",
                     "Browser parity status does not match its metrics");

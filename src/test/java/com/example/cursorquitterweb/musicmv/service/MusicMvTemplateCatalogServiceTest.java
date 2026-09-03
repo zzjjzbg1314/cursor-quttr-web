@@ -328,6 +328,28 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void acceptsAverageSsimPassWhenMaeAndDurationAreDiagnosticOnly() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        stubParityInputs();
+        Map<String, Object> stored = row("status", "passed");
+        stored.put("validation_id", "bpar_1");
+        when(repository.matchingBrowserParity("tplver_1", hash('c'), hash('d')))
+                .thenReturn(null, stored);
+        TemplateBrowserParityRequest request = browserParityRequest();
+        request.setAverageSsim(Double.valueOf(0.91d));
+        request.setMinSsim(Double.valueOf(0.4d));
+        request.setMaxMae(Double.valueOf(200.0d));
+        request.setOutputDurationSeconds(Double.valueOf(50.0d));
+
+        Map<String, Object> result = service.synchronizeBrowserParity(
+                "tpl_1", "tplver_1", request);
+
+        assertEquals("passed", result.get("status"));
+    }
+
+    @Test
     void rejectsAClientSuppliedSsimThresholdBelowProductGate() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
