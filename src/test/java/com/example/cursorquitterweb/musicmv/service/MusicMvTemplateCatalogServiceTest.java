@@ -406,12 +406,20 @@ class MusicMvTemplateCatalogServiceTest {
         scene.put("layers", java.util.Arrays.asList(
                 layer, fixedLayer, stickerLayer, videoLayer, textLayer));
         Map<String, Object> lutEffect = row("effectId", "filter-1");
-        lutEffect.put("preset", "dual_lut_filter_approximation");
+        lutEffect.put("preset", "dual_lut_skin_mask");
         lutEffect.put("targetStartSeconds", Double.valueOf(0.0d));
         lutEffect.put("targetDurationSeconds", Double.valueOf(4.0d));
         lutEffect.put("intensity", Double.valueOf(0.6d));
         lutEffect.put("fidelity", "semantic_approximation");
         lutEffect.put("resourceKeys", row("background", "lut_123"));
+        lutEffect.put("contractVersion", "browser-post-effect-semantic-v1");
+        lutEffect.put("semanticFamily", "dual_lut_skin_mask");
+        lutEffect.put("lutSampling", "64_cube_8x8_floor_blue_linear_rg");
+        lutEffect.put("maskSource", "skin_seg_alpha_y_flipped");
+        lutEffect.put("intensityMix", "source_to_mask_selected_lut");
+        lutEffect.put("alphaContract", "preserve_source_alpha");
+        lutEffect.put("approximationBoundary", "browser_skin_mask_provider");
+        lutEffect.put("evidence", "package_skinseg_shader_algorithm_and_dual_lut_media");
         scene.put("postEffects", Collections.singletonList(lutEffect));
         Map<String, Object> capabilityReport = row(
                 "schemaVersion", "browser-scene-capability-report-v1");
@@ -428,7 +436,7 @@ class MusicMvTemplateCatalogServiceTest {
                         "canvas_mask_v1", "exact"),
                 effectImplementation("text_template", "expanded_text_template",
                         "text_template_expansion_v1", "semantic_approximation"),
-                effectImplementation("post_effect", "dual_lut_filter_approximation",
+                effectImplementation("post_effect", "dual_lut_skin_mask",
                         "canvas_post_effect_v1", "semantic_approximation")));
         Map<String, Object> reportSummary = row("declaredItemCount", Integer.valueOf(2));
         reportSummary.put("executableItemCount", Integer.valueOf(2));

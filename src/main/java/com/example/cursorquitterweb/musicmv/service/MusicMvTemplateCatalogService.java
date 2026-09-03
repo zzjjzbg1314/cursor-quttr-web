@@ -582,7 +582,7 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene post effects must be a list");
         }
         Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
-                "fade_to_black", "dual_lut_filter_approximation",
+                "fade_to_black", "dual_lut_skin_mask", "dual_lut_filter_approximation",
                 "orange_green_filter_approximation", "unsupported"));
         Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
                 "exact", "semantic_approximation", "unsupported"));
@@ -603,7 +603,13 @@ public class MusicMvTemplateCatalogService {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_INVALID",
                         "Browser scene post effect timing, intensity, preset, or fidelity is invalid");
             }
-            if (!"dual_lut_filter_approximation".equals(preset)
+            if ("dual_lut_skin_mask".equals(preset)
+                    && !validBrowserPostEffectContract(effect)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
+                        "Verified browser LUT effects require their complete semantic contract");
+            }
+            if (!"dual_lut_skin_mask".equals(preset)
+                    && !"dual_lut_filter_approximation".equals(preset)
                     && !"orange_green_filter_approximation".equals(preset)) continue;
             Object rawKeys = effect.get("resourceKeys");
             if (!(rawKeys instanceof Map)) {
@@ -623,6 +629,18 @@ public class MusicMvTemplateCatalogService {
         }
     }
 
+    private boolean validBrowserPostEffectContract(Map<?, ?> effect) {
+        return "browser-post-effect-semantic-v1".equals(effect.get("contractVersion"))
+                && "dual_lut_skin_mask".equals(effect.get("semanticFamily"))
+                && "64_cube_8x8_floor_blue_linear_rg".equals(effect.get("lutSampling"))
+                && "skin_seg_alpha_y_flipped".equals(effect.get("maskSource"))
+                && "source_to_mask_selected_lut".equals(effect.get("intensityMix"))
+                && "preserve_source_alpha".equals(effect.get("alphaContract"))
+                && "browser_skin_mask_provider".equals(effect.get("approximationBoundary"))
+                && "package_skinseg_shader_algorithm_and_dual_lut_media".equals(
+                        effect.get("evidence"));
+    }
+
     private boolean finiteNonNegative(Object value, boolean positive) {
         if (!(value instanceof Number)) return false;
         double number = ((Number) value).doubleValue();
@@ -637,7 +655,8 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene animations must be a list");
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
-                "noop", "fade_in", "fade_out", "text_reveal", "keyframe_transform",
+                "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation",
+                "keyframe_transform",
                 "jitter_approximation", "scale_down_approximation",
                 "scale_up_approximation", "blur_in_approximation",
                 "fade_approximation", "translate_approximation",
@@ -645,6 +664,28 @@ public class MusicMvTemplateCatalogService {
         for (Object raw : (List<?>) rawAnimations) {
             requireValidBrowserTimedPreset(raw, allowed,
                     "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
+            Map<?, ?> animation = (Map<?, ?>) raw;
+            if ("lumi_video_animation".equals(String.valueOf(animation.get("preset")))
+                    && !("browser-animation-semantic-v1".equals(animation.get("contractVersion"))
+                            && "lumi_video_animation".equals(animation.get("semanticFamily"))
+                            && "stretch_composition_to_declared_duration".equals(
+                                    animation.get("packageClock"))
+                            && "left_red_alpha_right_rgb_half_frame".equals(
+                                    animation.get("alphaPacking"))
+                            && "stretch_output_space".equals(animation.get("cropMode"))
+                            && "source_in_mask_then_frame_over".equals(
+                                    animation.get("matteComposition"))
+                            && "ae_camera_inverse_ray_projective_quad".equals(
+                                    animation.get("motionProjection"))
+                            && "per_component_cubic_bezier".equals(
+                                    animation.get("curveInterpolation"))
+                            && "package_duration_table_node_order".equals(
+                                    animation.get("compositionOrder"))
+                            && "package_lumi_export_lua_motion_shader_and_media".equals(
+                                    animation.get("evidence")))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID",
+                        "Exact Lumi video animations require the verified semantic contract");
+            }
         }
     }
 
@@ -699,11 +740,19 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene layer effects must be a list");
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
+                "turbulence_bounce_shake", "texture_sequence_screen_multiply",
                 "shake_approximation", "noise_approximation", "unsupported"));
         for (Object raw : (List<?>) rawEffects) {
             requireValidBrowserTimedPreset(raw, allowed,
                     "TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_INVALID", false);
             Map<?, ?> effect = (Map<?, ?>) raw;
+            String preset = String.valueOf(effect.get("preset"));
+            if (("turbulence_bounce_shake".equals(preset)
+                    || "texture_sequence_screen_multiply".equals(preset))
+                    && !validBrowserLayerEffectContract(effect, preset)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
+                        "Exact packaged layer effects require the verified semantic contract");
+            }
             for (String field : java.util.Arrays.asList(
                     "intensity", "speed", "distortion", "sharpen")) {
                 Object value = effect.get(field);
@@ -714,6 +763,29 @@ public class MusicMvTemplateCatalogService {
                 }
             }
         }
+    }
+
+    private boolean validBrowserLayerEffectContract(Map<?, ?> effect, String preset) {
+        if (!"browser-layer-effect-semantic-v1".equals(effect.get("contractVersion"))
+                || !preset.equals(effect.get("semanticFamily"))
+                || !"local_seconds_times_half_plus_speed_times_one_point_five".equals(
+                        effect.get("packageClock"))) return false;
+        if ("turbulence_bounce_shake".equals(preset)) {
+            return "turbulence_then_bounce_then_shake_then_passthrough_then_difference_sharpen".equals(
+                            effect.get("passOrder"))
+                    && "preserve_source_alpha".equals(effect.get("alphaContract"))
+                    && "share_bgmask_texture_unavailable".equals(
+                            effect.get("approximationBoundary"))
+                    && "package_lua_and_five_fragment_passes".equals(effect.get("evidence"));
+        }
+        return "screen_sequence_then_multiply_texture".equals(effect.get("passOrder"))
+                && "serialized_sequence_order_floor_clock".equals(
+                        effect.get("sequenceSampling"))
+                && "straight_alpha_screen".equals(effect.get("screenBlend"))
+                && "inverse_premultiplied_straight_alpha_multiply".equals(
+                        effect.get("multiplyBlend"))
+                && "opaque_result".equals(effect.get("alphaContract"))
+                && "package_lua_sequence_and_blend_shaders".equals(effect.get("evidence"));
     }
 
     private void requireValidBrowserTimedPreset(
