@@ -7,7 +7,6 @@ import javax.validation.constraints.NotNull;
 public class TemplateBrowserParityRequest {
     @NotBlank private String sceneManifestSha256;
     @NotBlank private String referenceSha256;
-    @NotBlank private String rendererVersion;
     @NotBlank private String status;
     private Integer sampleCount;
     private Double ssimThreshold;
@@ -25,8 +24,6 @@ public class TemplateBrowserParityRequest {
     public void setSceneManifestSha256(String value) { sceneManifestSha256 = value; }
     public String getReferenceSha256() { return referenceSha256; }
     public void setReferenceSha256(String value) { referenceSha256 = value; }
-    public String getRendererVersion() { return rendererVersion; }
-    public void setRendererVersion(String value) { rendererVersion = value; }
     public String getStatus() { return status; }
     public void setStatus(String value) { status = value; }
     public Integer getSampleCount() { return sampleCount; }

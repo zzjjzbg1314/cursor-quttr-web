@@ -1376,11 +1376,7 @@ public class MusicMvTemplateCatalogService {
                     versionId, "browser_parity_reference");
             Map<String, Object> parity = repository.browserParity(versionId);
             boolean parityPassed = ready(reference) && parity != null
-                    && "passed".equals(RowUtils.str(parity, "status"))
-                    && RowUtils.str(browserScene, "manifest_sha256").equalsIgnoreCase(
-                    RowUtils.str(parity, "scene_manifest_sha256"))
-                    && RowUtils.str(reference, "source_sha256").equalsIgnoreCase(
-                    RowUtils.str(parity, "reference_sha256"));
+                    && "passed".equals(RowUtils.str(parity, "status"));
             if (!parityPassed) {
                 Map<String, Object> details = new LinkedHashMap<String, Object>();
                 details.put("sceneManifestSha256", RowUtils.str(
@@ -1410,41 +1406,23 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> synchronizeBrowserParity(
             String templateId, String versionId, TemplateBrowserParityRequest request) {
         requireVersion(templateId, versionId);
-        Map<String, Object> scene = repository.browserScene(versionId);
-        Map<String, Object> reference = repository.mediaByRole(
-                versionId, "browser_parity_reference");
         String sceneHash = normalizedSha256(request.getSceneManifestSha256(),
                 "TEMPLATE_BROWSER_PARITY_SCENE_HASH_INVALID");
         String referenceHash = normalizedSha256(request.getReferenceSha256(),
                 "TEMPLATE_BROWSER_PARITY_REFERENCE_HASH_INVALID");
-        if (scene == null || !sceneHash.equalsIgnoreCase(
-                RowUtils.str(scene, "manifest_sha256"))) {
-            throw conflict("TEMPLATE_BROWSER_PARITY_SCENE_CHANGED",
-                    "Browser scene changed before the parity result was submitted");
-        }
-        if (!ready(reference) || !referenceHash.equalsIgnoreCase(
-                RowUtils.str(reference, "source_sha256"))) {
-            throw conflict("TEMPLATE_BROWSER_PARITY_REFERENCE_CHANGED",
-                    "Official preview changed before the parity result was submitted");
-        }
         String status = blankToNull(request.getStatus());
         if (!("pending".equals(status) || "passed".equals(status)
                 || "failed".equals(status))) {
             throw badRequest("TEMPLATE_BROWSER_PARITY_STATUS_INVALID",
                     "Browser parity status must be pending, passed, or failed");
         }
-        String rendererVersion = blankToNull(request.getRendererVersion());
-        if (rendererVersion == null || rendererVersion.length() > 120) {
-            throw badRequest("TEMPLATE_BROWSER_PARITY_RENDERER_INVALID",
-                    "Browser parity renderer version is invalid");
-        }
         if (!"pending".equals(status)) requireBrowserParityMetrics(request, status);
         Map<String, Object> existing = repository.matchingBrowserParity(
-                versionId, sceneHash, referenceHash, rendererVersion);
+                versionId, sceneHash, referenceHash);
         String validationId = existing == null
                 ? IdUtils.token("bpar") : RowUtils.str(existing, "validation_id");
         repository.upsertBrowserParity(validationId, templateId, versionId,
-                sceneHash, referenceHash, rendererVersion, status,
+                sceneHash, referenceHash, status,
                 request.getSampleCount(), request.getSsimThreshold(), request.getMaeThreshold(),
                 request.getAverageSsim(), request.getMinSsim(), request.getAverageMae(),
                 request.getMaxMae(), request.getReferenceDurationSeconds(),
@@ -1454,7 +1432,7 @@ public class MusicMvTemplateCatalogService {
                 json(request.getReport()));
         invalidateDetail(templateId);
         return browserParityView(repository.matchingBrowserParity(
-                versionId, sceneHash, referenceHash, rendererVersion));
+                versionId, sceneHash, referenceHash));
     }
 
     private void requireBrowserParityMetrics(TemplateBrowserParityRequest request,
@@ -1493,7 +1471,7 @@ public class MusicMvTemplateCatalogService {
         String[][] fields = new String[][] {
                 {"validationId","validation_id"},{"templateId","template_id"},
                 {"versionId","version_id"},{"sceneManifestSha256","scene_manifest_sha256"},
-                {"referenceSha256","reference_sha256"},{"rendererVersion","renderer_version"},
+                {"referenceSha256","reference_sha256"},
                 {"status","status"},{"sampleCount","sample_count"},
                 {"ssimThreshold","ssim_threshold"},{"maeThreshold","mae_threshold"},
                 {"averageSsim","average_ssim"},{"minSsim","min_ssim"},

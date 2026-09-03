@@ -427,17 +427,16 @@ public class MusicMvTemplateCatalogRepository {
     }
 
     public Map<String, Object> matchingBrowserParity(String versionId, String sceneManifest,
-                                                     String referenceSha256,
-                                                     String rendererVersion) {
+                                                     String referenceSha256) {
         return d1.query("SELECT * FROM template_browser_parity_validations WHERE version_id=? "
                         + "AND scene_manifest_sha256=? AND reference_sha256=? "
-                        + "AND renderer_version=? LIMIT 1",
-                versionId, sceneManifest, referenceSha256, rendererVersion).firstRow();
+                        + "ORDER BY updated_at DESC LIMIT 1",
+                versionId, sceneManifest, referenceSha256).firstRow();
     }
 
     public void upsertBrowserParity(String validationId, String templateId, String versionId,
                                     String sceneManifest, String referenceSha256,
-                                    String rendererVersion, String status, Integer sampleCount,
+                                    String status, Integer sampleCount,
                                     Double ssimThreshold, Double maeThreshold,
                                     Double averageSsim, Double minSsim, Double averageMae,
                                     Double maxMae, Double referenceDuration,
@@ -460,7 +459,7 @@ public class MusicMvTemplateCatalogRepository {
                         + "output_sha256=excluded.output_sha256,report_json=excluded.report_json,"
                         + "updated_at=CURRENT_TIMESTAMP,completed_at=excluded.completed_at",
                 validationId, templateId, versionId, sceneManifest, referenceSha256,
-                rendererVersion, status, sampleCount, ssimThreshold, maeThreshold, averageSsim,
+                "", status, sampleCount, ssimThreshold, maeThreshold, averageSsim,
                 minSsim, averageMae, maxMae, referenceDuration, outputDuration, outputSha256,
                 reportJson, status);
     }
