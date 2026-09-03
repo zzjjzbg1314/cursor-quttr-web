@@ -382,9 +382,21 @@ class MusicMvTemplateCatalogServiceTest {
         transition.put("applicationStage", "timeline_ab_after_source_graph");
         transition.put("evidence", "package_shader_two_input_progress_mix");
         layer.put("transitionIn", transition);
-        Map<String, Object> layerEffect = row("preset", "shake_approximation");
+        Map<String, Object> layerEffect = row("preset", "texture_sequence_screen_multiply");
         layerEffect.put("intensity", Double.valueOf(0.05d));
-        layerEffect.put("fidelity", "semantic_approximation");
+        layerEffect.put("fidelity", "exact");
+        layerEffect.put("contractVersion", "browser-layer-effect-semantic-v2");
+        layerEffect.put("semanticFamily", "texture_sequence_screen_multiply");
+        layerEffect.put("packageClock", "local_seconds_times_half_plus_speed_times_one_point_five");
+        layerEffect.put("passOrder", "screen_sequence_then_multiply_texture");
+        layerEffect.put("sequenceSampling", "serialized_sequence_order_floor_clock");
+        layerEffect.put("sequenceDurationSeconds", Double.valueOf(3.0d));
+        layerEffect.put("sequencePlaybackMode", "activation_once");
+        layerEffect.put("sequenceEndBehavior", "hold_last_frame");
+        layerEffect.put("screenBlend", "straight_alpha_screen");
+        layerEffect.put("multiplyBlend", "inverse_premultiplied_straight_alpha_multiply");
+        layerEffect.put("alphaContract", "opaque_result");
+        layerEffect.put("evidence", "package_lua_sequence_and_blend_shaders");
         layer.put("effects", Collections.singletonList(layerEffect));
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
@@ -430,8 +442,8 @@ class MusicMvTemplateCatalogServiceTest {
                         "timeline_animation_v1", "semantic_approximation"),
                 effectImplementation("transition", "ab_progress_mix",
                         "timeline_transition_v1", "exact"),
-                effectImplementation("layer_effect", "shake_approximation",
-                        "canvas_layer_effect_v1", "semantic_approximation"),
+                effectImplementation("layer_effect", "texture_sequence_screen_multiply",
+                        "canvas_layer_effect_v1", "exact"),
                 effectImplementation("mask", "rectangle",
                         "canvas_mask_v1", "exact"),
                 effectImplementation("text_template", "expanded_text_template",
@@ -457,6 +469,14 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
                 eq("browser-template-scene-v5"), anyString(), eq("ready"), anyString());
+
+        layerEffect.remove("sequenceEndBehavior");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompleteLayerEffect = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
+                incompleteLayerEffect.getCode());
+        layerEffect.put("sequenceEndBehavior", "hold_last_frame");
 
         transition.remove("evidence");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
