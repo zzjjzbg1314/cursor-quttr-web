@@ -444,11 +444,9 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene v6 requires a compiled Render IR");
         }
         Map<String, Object> ir = (Map<String, Object>) rawIr;
-        if (!"browser-render-ir-v2".equals(RowUtils.str(ir, "version"))
-                || !RowUtils.str(scene, "templateId").equals(RowUtils.str(ir, "templateId"))
-                || !RowUtils.str(scene, "versionId").equals(RowUtils.str(ir, "versionId"))) {
-            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_ID_MISMATCH",
-                    "Compiled Render IR does not match the browser scene version");
+        if (!"browser-render-ir-v2".equals(RowUtils.str(ir, "version"))) {
+            throw badRequest("TEMPLATE_BROWSER_RENDER_IR_VERSION_UNSUPPORTED",
+                    "Compiled Render IR version is unsupported");
         }
         Map<String, Object> policy = ir.get("policy") instanceof Map
                 ? (Map<String, Object>) ir.get("policy")

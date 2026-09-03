@@ -698,8 +698,6 @@ class MusicMvTemplateCatalogServiceTest {
         policy.put("transitionClock", "dual_input_ab_v1");
         policy.put("unsupported", "block_export");
         Map<String, Object> ir = row("version", "browser-render-ir-v2");
-        ir.put("templateId", "tpl_1");
-        ir.put("versionId", "tplver_1");
         ir.put("canvas", scene.get("canvas"));
         ir.put("layers", Collections.singletonList(irLayer));
         ir.put("postEffects", Collections.emptyList());
