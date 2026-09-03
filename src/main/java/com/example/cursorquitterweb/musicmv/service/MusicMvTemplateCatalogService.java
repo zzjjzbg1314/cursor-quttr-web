@@ -38,6 +38,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvTemplateCatalogService {
+    private static final double BROWSER_SSIM_MINIMUM = 0.900d;
+    private static final double BROWSER_MAX_MAE = 25.0d;
+    private static final double BROWSER_MAX_DURATION_DRIFT_SECONDS = 0.12d;
     private static final Set<String> VISIBILITIES;
     private static final Set<String> FULL_MV_SOURCE_TYPES;
     static {
@@ -1370,12 +1373,24 @@ public class MusicMvTemplateCatalogService {
             Map<String, Object> reference = repository.mediaByRole(
                     versionId, "browser_parity_reference");
             Map<String, Object> parity = repository.browserParity(versionId);
+            String sceneManifest = RowUtils.str(browserScene, "manifest_sha256");
+            String referenceSha256 = reference == null ? null
+                    : RowUtils.str(reference, "source_sha256");
             boolean parityPassed = ready(reference) && parity != null
-                    && "passed".equals(RowUtils.str(parity, "status"));
+                    && "passed".equals(RowUtils.str(parity, "status"))
+                    && sceneManifest != null
+                    && sceneManifest.equals(RowUtils.str(parity, "scene_manifest_sha256"))
+                    && referenceSha256 != null
+                    && referenceSha256.equals(RowUtils.str(parity, "reference_sha256"));
             if (!parityPassed) {
                 Map<String, Object> details = new LinkedHashMap<String, Object>();
                 details.put("sceneManifestSha256", RowUtils.str(
                         browserScene, "manifest_sha256"));
+                details.put("paritySceneManifestSha256", parity == null ? null
+                        : RowUtils.str(parity, "scene_manifest_sha256"));
+                details.put("referenceSha256", referenceSha256);
+                details.put("parityReferenceSha256", parity == null ? null
+                        : RowUtils.str(parity, "reference_sha256"));
                 details.put("referenceStatus", reference == null ? "missing"
                         : RowUtils.str(reference, "status"));
                 details.put("parityStatus", parity == null ? "missing"
@@ -1442,11 +1457,17 @@ public class MusicMvTemplateCatalogService {
             throw badRequest("TEMPLATE_BROWSER_PARITY_METRICS_REQUIRED",
                     "Completed browser parity requires sampled metrics and output evidence");
         }
+        if (request.getSsimThreshold().doubleValue() < BROWSER_SSIM_MINIMUM
+                || request.getMaeThreshold().doubleValue() > BROWSER_MAX_MAE) {
+            throw badRequest("TEMPLATE_BROWSER_PARITY_THRESHOLD_INVALID",
+                    "Browser parity must require average SSIM >= 0.900 and max MAE <= 25");
+        }
         boolean metricsPassed = request.getAverageSsim().doubleValue()
                 >= request.getSsimThreshold().doubleValue()
                 && request.getMaxMae().doubleValue() <= request.getMaeThreshold().doubleValue()
                 && Math.abs(request.getReferenceDurationSeconds().doubleValue()
-                - request.getOutputDurationSeconds().doubleValue()) <= 0.12d;
+                - request.getOutputDurationSeconds().doubleValue())
+                <= BROWSER_MAX_DURATION_DRIFT_SECONDS;
         if ("passed".equals(status) != metricsPassed) {
             throw badRequest("TEMPLATE_BROWSER_PARITY_RESULT_INVALID",
                     "Browser parity status does not match its metrics");

@@ -277,6 +277,30 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void refusesPassedParityEvidenceFromAnotherImmutableScene() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("validation_status", "browser_ready"));
+        Map<String, Object> scene = row("status", "ready");
+        scene.put("manifest_sha256", hash('c'));
+        when(repository.browserScene("tplver_1")).thenReturn(scene);
+        Map<String, Object> reference = row("status", "ready");
+        reference.put("source_sha256", hash('d'));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(reference);
+        Map<String, Object> parity = row("status", "passed");
+        parity.put("scene_manifest_sha256", hash('x'));
+        parity.put("reference_sha256", hash('d'));
+        when(repository.browserParity("tplver_1")).thenReturn(parity);
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.publish("tpl_1", "tplver_1"));
+
+        assertEquals("TEMPLATE_BROWSER_PARITY_REQUIRED", error.getCode());
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
     void acceptsAverageSsimPassEvenWhenOneDiagnosticFrameIsBelowThreshold() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
@@ -300,6 +324,22 @@ class MusicMvTemplateCatalogServiceTest {
                 eq(Double.valueOf(11.3446d)), eq(Double.valueOf(21.4141d)),
                 eq(Double.valueOf(33.4333d)), eq(Double.valueOf(33.5147d)),
                 eq(hash('e')), anyString());
+    }
+
+    @Test
+    void rejectsAClientSuppliedSsimThresholdBelowProductGate() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        TemplateBrowserParityRequest request = browserParityRequest();
+        request.setSsimThreshold(Double.valueOf(0.5d));
+        request.setAverageSsim(Double.valueOf(0.6d));
+        request.setMinSsim(Double.valueOf(0.4d));
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserParity("tpl_1", "tplver_1", request));
+
+        assertEquals("TEMPLATE_BROWSER_PARITY_THRESHOLD_INVALID", error.getCode());
     }
 
     private TemplateBrowserParityRequest browserParityRequest() {
