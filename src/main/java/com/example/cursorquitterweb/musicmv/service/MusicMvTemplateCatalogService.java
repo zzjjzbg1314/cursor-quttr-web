@@ -630,13 +630,19 @@ public class MusicMvTemplateCatalogService {
     }
 
     private boolean validBrowserPostEffectContract(Map<?, ?> effect) {
-        return "browser-post-effect-semantic-v1".equals(effect.get("contractVersion"))
+        return "browser-post-effect-semantic-v2".equals(effect.get("contractVersion"))
                 && "dual_lut_skin_mask".equals(effect.get("semanticFamily"))
                 && "64_cube_8x8_floor_blue_linear_rg".equals(effect.get("lutSampling"))
                 && "skin_seg_alpha_y_flipped".equals(effect.get("maskSource"))
+                && "mediapipe_selfie_multiclass_256".equals(effect.get("maskProvider"))
+                && "max_body_skin_face_skin_confidence".equals(
+                        effect.get("maskClassComposition"))
+                && "ten_hz_reuse_with_seek_refresh".equals(
+                        effect.get("maskRefreshContract"))
                 && "source_to_mask_selected_lut".equals(effect.get("intensityMix"))
                 && "preserve_source_alpha".equals(effect.get("alphaContract"))
-                && "browser_skin_mask_provider".equals(effect.get("approximationBoundary"))
+                && "browser_mediapipe_model_not_capcut_skin_seg".equals(
+                        effect.get("approximationBoundary"))
                 && "package_skinseg_shader_algorithm_and_dual_lut_media".equals(
                         effect.get("evidence"));
     }

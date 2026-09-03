@@ -441,13 +441,16 @@ class MusicMvTemplateCatalogServiceTest {
         lutEffect.put("intensity", Double.valueOf(0.6d));
         lutEffect.put("fidelity", "semantic_approximation");
         lutEffect.put("resourceKeys", row("background", "lut_123"));
-        lutEffect.put("contractVersion", "browser-post-effect-semantic-v1");
+        lutEffect.put("contractVersion", "browser-post-effect-semantic-v2");
         lutEffect.put("semanticFamily", "dual_lut_skin_mask");
         lutEffect.put("lutSampling", "64_cube_8x8_floor_blue_linear_rg");
         lutEffect.put("maskSource", "skin_seg_alpha_y_flipped");
+        lutEffect.put("maskProvider", "mediapipe_selfie_multiclass_256");
+        lutEffect.put("maskClassComposition", "max_body_skin_face_skin_confidence");
+        lutEffect.put("maskRefreshContract", "ten_hz_reuse_with_seek_refresh");
         lutEffect.put("intensityMix", "source_to_mask_selected_lut");
         lutEffect.put("alphaContract", "preserve_source_alpha");
-        lutEffect.put("approximationBoundary", "browser_skin_mask_provider");
+        lutEffect.put("approximationBoundary", "browser_mediapipe_model_not_capcut_skin_seg");
         lutEffect.put("evidence", "package_skinseg_shader_algorithm_and_dual_lut_media");
         scene.put("postEffects", Collections.singletonList(lutEffect));
         Map<String, Object> capabilityReport = row(
@@ -505,6 +508,14 @@ class MusicMvTemplateCatalogServiceTest {
                 incompletePersonProtection.getCode());
         personProtectedEffect.put("maskProtection",
                 "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv");
+
+        lutEffect.remove("maskClassComposition");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompleteSkinMask = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
+                incompleteSkinMask.getCode());
+        lutEffect.put("maskClassComposition", "max_body_skin_face_skin_confidence");
 
         transition.remove("evidence");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
