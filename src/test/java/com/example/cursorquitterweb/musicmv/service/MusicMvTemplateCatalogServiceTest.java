@@ -873,7 +873,7 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
-    void refusesPublishUntilBothImagesAndStreamMediaAreReady() {
+    void refusesNativeValidatedVersionEvenWhenLegacyMediaIsReady() {
         Map<String, Object> template = row("template_id", "tpl_1");
         Map<String, Object> version = row("validation_status", "exact");
         version.put("source_availability", "available");
@@ -888,7 +888,7 @@ class MusicMvTemplateCatalogServiceTest {
 
         ApiException error = assertThrows(ApiException.class,
                 () -> service.publish("tpl_1", "tplver_1"));
-        assertEquals("TEMPLATE_MEDIA_NOT_READY", error.getCode());
+        assertEquals("TEMPLATE_VERSION_NOT_PUBLISHABLE", error.getCode());
         verify(repository, never()).publish(anyString(), anyString());
     }
 

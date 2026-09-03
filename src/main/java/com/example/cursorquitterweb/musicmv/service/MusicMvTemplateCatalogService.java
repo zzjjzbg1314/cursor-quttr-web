@@ -1323,23 +1323,11 @@ public class MusicMvTemplateCatalogService {
             throw conflict("TEMPLATE_RUNTIME_PACKAGE_NOT_READY",
                     "Template runtime package must pass integrity verification before publish");
         }
-        String sourceAvailability = RowUtils.str(version, "effective_source_availability");
-        if (sourceAvailability == null) {
-            sourceAvailability = RowUtils.str(version, "source_availability");
-        }
         String validationStatus = RowUtils.str(version, "validation_status");
         boolean browserReady = "browser_ready".equals(validationStatus);
         if (!browserReady) {
-            requireVisualQuality(parseObject(RowUtils.str(version, "source_provenance_json"))
-                            .get("visualQuality"),
-                    RowUtils.dbl(version, "base_duration_seconds"),
-                    RowUtils.dbl(version, "cycle_duration_seconds"),
-                    RowUtils.str(version, "validation_master_sha256"));
-        }
-        boolean sourceReady = browserReady || "available".equals(sourceAvailability);
-        if ((!browserReady && !"exact".equals(validationStatus)) || !sourceReady) {
             throw conflict("TEMPLATE_VERSION_NOT_PUBLISHABLE",
-                    "Template version must be browser-ready, or exact and available on a renderer node");
+                    "Template version must be browser-ready; native renderer validation cannot publish a product template");
         }
         Map<String, Object> cover = repository.mediaByRole(versionId, "cover");
         Map<String, Object> fullMv = repository.mediaByRole(versionId, "full_mv");
@@ -1355,9 +1343,7 @@ public class MusicMvTemplateCatalogService {
         Map<String, Object> browserScene = repository.browserScene(versionId);
         boolean browserSceneReady = browserScene != null
                 && "ready".equals(RowUtils.str(browserScene, "status"));
-        boolean mediaReady = browserReady
-                ? browserSceneReady
-                : ready(cover) && ready(fullMv) && missingDefaults.isEmpty();
+        boolean mediaReady = browserSceneReady;
         if (!mediaReady) {
             Map<String, Object> details = new LinkedHashMap<String, Object>();
             details.put("coverStatus", cover == null ? "missing" : RowUtils.str(cover, "status"));
@@ -1366,9 +1352,7 @@ public class MusicMvTemplateCatalogService {
             details.put("browserSceneStatus", browserScene == null
                     ? "missing" : RowUtils.str(browserScene, "status"));
             throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_MEDIA_NOT_READY",
-                    browserReady
-                            ? "Browser scene must be ready before publish"
-                            : "Cover, full MV, and every original template photo must be ready before publish",
+                    "Browser scene must be ready before publish",
                     true, details);
         }
         if (browserSceneReady) {

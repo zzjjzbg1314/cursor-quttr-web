@@ -407,8 +407,7 @@ public class MusicMvRenderJobService {
                 "MV_RENDER_TEMPLATE_VERSION_NOT_FOUND", "Template version was not found");
         boolean ready = "published".equals(RowUtils.str(row, "template_status"))
                 && "published".equals(RowUtils.str(row, "version_status"))
-                && ("exact".equals(RowUtils.str(row, "validation_status"))
-                    || "browser_ready".equals(RowUtils.str(row, "validation_status")))
+                && "browser_ready".equals(RowUtils.str(row, "validation_status"))
                 && request.getTemplateVersionId().equals(RowUtils.str(row, "current_version_id"))
                 && "ready".equals(RowUtils.str(row, "browser_scene_status"));
         if (!ready) throw conflict("MV_RENDER_TEMPLATE_NOT_RENDERABLE",

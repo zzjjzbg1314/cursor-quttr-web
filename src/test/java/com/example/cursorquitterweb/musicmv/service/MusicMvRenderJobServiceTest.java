@@ -197,6 +197,31 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    void rejectsLegacyNativeValidatedTemplateFromProductRenderPath() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, aiMusicJobs,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
+                new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        Map<String, Object> nativeVersion = version();
+        nativeVersion.put("validation_status", "exact");
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(nativeVersion, Arrays.asList(slot("photo_01"), slot("photo_02"))));
+
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).failBrowserPreparation("mvr_1", "MV_RENDER_TEMPLATE_NOT_RENDERABLE",
+                "Template version is not published, current and browser-render ready", false);
+        verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void publishesDefaultTemplatePhotosWithoutUsingAFlattenedVideo() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
@@ -520,7 +545,7 @@ class MusicMvRenderJobServiceTest {
         Map<String, Object> row = new LinkedHashMap<String, Object>();
         row.put("template_status", "published");
         row.put("version_status", "published");
-        row.put("validation_status", "exact");
+        row.put("validation_status", "browser_ready");
         row.put("source_availability", "available");
         row.put("current_version_id", "tplver_1");
         row.put("source_node_id", "mac-music-mv-primary");
