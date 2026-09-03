@@ -29,6 +29,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateMediaUploadSessionRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserParityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
 import com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepository;
@@ -273,6 +274,48 @@ class MusicMvTemplateCatalogServiceTest {
 
         assertEquals("published", result.get("status"));
         verify(repository).publish("tpl_1", "tplver_1");
+    }
+
+    @Test
+    void acceptsAverageSsimPassEvenWhenOneDiagnosticFrameIsBelowThreshold() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> stored = row("status", "passed");
+        stored.put("validation_id", "bpar_1");
+        when(repository.matchingBrowserParity("tplver_1", hash('c'), hash('d')))
+                .thenReturn(null, stored);
+        TemplateBrowserParityRequest request = browserParityRequest();
+        request.setAverageSsim(Double.valueOf(0.910019d));
+        request.setMinSsim(Double.valueOf(0.756631d));
+
+        Map<String, Object> result = service.synchronizeBrowserParity(
+                "tpl_1", "tplver_1", request);
+
+        assertEquals("passed", result.get("status"));
+        verify(repository).upsertBrowserParity(anyString(), eq("tpl_1"), eq("tplver_1"),
+                eq(hash('c')), eq(hash('d')), eq("passed"), eq(Integer.valueOf(7)),
+                eq(Double.valueOf(0.9d)), eq(Double.valueOf(25.0d)),
+                eq(Double.valueOf(0.910019d)), eq(Double.valueOf(0.756631d)),
+                eq(Double.valueOf(11.3446d)), eq(Double.valueOf(21.4141d)),
+                eq(Double.valueOf(33.4333d)), eq(Double.valueOf(33.5147d)),
+                eq(hash('e')), anyString());
+    }
+
+    private TemplateBrowserParityRequest browserParityRequest() {
+        TemplateBrowserParityRequest request = new TemplateBrowserParityRequest();
+        request.setSceneManifestSha256(hash('c'));
+        request.setReferenceSha256(hash('d'));
+        request.setStatus("passed");
+        request.setSampleCount(Integer.valueOf(7));
+        request.setSsimThreshold(Double.valueOf(0.9d));
+        request.setMaeThreshold(Double.valueOf(25.0d));
+        request.setAverageMae(Double.valueOf(11.3446d));
+        request.setMaxMae(Double.valueOf(21.4141d));
+        request.setReferenceDurationSeconds(Double.valueOf(33.4333d));
+        request.setOutputDurationSeconds(Double.valueOf(33.5147d));
+        request.setOutputSha256(hash('e'));
+        return request;
     }
 
     @Test

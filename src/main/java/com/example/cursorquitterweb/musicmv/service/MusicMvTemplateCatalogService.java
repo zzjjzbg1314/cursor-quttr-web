@@ -1434,14 +1434,15 @@ public class MusicMvTemplateCatalogService {
                                              String status) {
         if (request.getSampleCount() == null || request.getSampleCount().intValue() < 3
                 || request.getSsimThreshold() == null || request.getMaeThreshold() == null
-                || request.getMinSsim() == null || request.getMaxMae() == null
+                || request.getAverageSsim() == null || request.getMinSsim() == null
+                || request.getMaxMae() == null
                 || request.getReferenceDurationSeconds() == null
                 || request.getOutputDurationSeconds() == null
                 || request.getOutputSha256() == null) {
             throw badRequest("TEMPLATE_BROWSER_PARITY_METRICS_REQUIRED",
                     "Completed browser parity requires sampled metrics and output evidence");
         }
-        boolean metricsPassed = request.getMinSsim().doubleValue()
+        boolean metricsPassed = request.getAverageSsim().doubleValue()
                 >= request.getSsimThreshold().doubleValue()
                 && request.getMaxMae().doubleValue() <= request.getMaeThreshold().doubleValue()
                 && Math.abs(request.getReferenceDurationSeconds().doubleValue()
