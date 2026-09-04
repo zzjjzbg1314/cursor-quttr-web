@@ -599,7 +599,8 @@ public class MusicMvTemplateCatalogService {
         }
         Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
                 "fade_to_black", "dual_lut_skin_mask", "dual_lut_filter_approximation",
-                "orange_green_filter_approximation", "unsupported"));
+                "orange_green_filter_approximation", "static_texture_screen_overlay",
+                "unsupported"));
         Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
                 "exact", "semantic_approximation", "unsupported"));
         for (Object raw : (List<?>) rawEffects) {
@@ -617,12 +618,22 @@ public class MusicMvTemplateCatalogService {
                     || !finiteNonNegative(effect.get("targetDurationSeconds"), true)
                     || !finiteNonNegative(effect.get("intensity"), false)) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_INVALID",
-                        "Browser scene post effect timing, intensity, preset, or fidelity is invalid");
+                        "Browser scene post effect timing, intensity, preset, or fidelity is invalid: "
+                                + "preset=" + preset
+                                + ", targetStartSeconds=" + effect.get("targetStartSeconds")
+                                + ", targetDurationSeconds=" + effect.get("targetDurationSeconds")
+                                + ", intensity=" + effect.get("intensity")
+                                + ", fidelity=" + fidelity);
             }
             if ("dual_lut_skin_mask".equals(preset)
                     && !validBrowserPostEffectContract(effect)) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
                         "Verified browser LUT effects require their complete semantic contract");
+            }
+            if ("static_texture_screen_overlay".equals(preset)
+                    && !validBrowserTextureOverlayContract(effect)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
+                        "Texture overlay effects require the verified semantic contract");
             }
             if (!"dual_lut_skin_mask".equals(preset)
                     && !"dual_lut_filter_approximation".equals(preset)
@@ -660,6 +671,19 @@ public class MusicMvTemplateCatalogService {
                 && "browser_mediapipe_model_not_capcut_skin_seg".equals(
                         effect.get("approximationBoundary"))
                 && "package_skinseg_shader_algorithm_and_dual_lut_media".equals(
+                        effect.get("evidence"));
+    }
+
+    private boolean validBrowserTextureOverlayContract(Map<?, ?> effect) {
+        return "browser-post-effect-semantic-v3".equals(effect.get("contractVersion"))
+                && "static_texture_screen_overlay".equals(effect.get("semanticFamily"))
+                && "post_scene_before_fade".equals(effect.get("applicationStage"))
+                && "straight_alpha_screen".equals(effect.get("blendMode"))
+                && "cover_center_crop_y_flipped".equals(effect.get("textureSampling"))
+                && "effects_adjust_texture".equals(effect.get("intensitySource"))
+                && "opaque_result".equals(effect.get("alphaContract"))
+                && "amazingfeature/image/a0.png".equals(effect.get("texturePath"))
+                && "package_lua_center_crop_screen_and_texture".equals(
                         effect.get("evidence"));
     }
 

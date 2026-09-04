@@ -705,7 +705,22 @@ class MusicMvTemplateCatalogServiceTest {
         lutEffect.put("alphaContract", "preserve_source_alpha");
         lutEffect.put("approximationBoundary", "browser_mediapipe_model_not_capcut_skin_seg");
         lutEffect.put("evidence", "package_skinseg_shader_algorithm_and_dual_lut_media");
-        scene.put("postEffects", Collections.singletonList(lutEffect));
+        Map<String, Object> textureOverlay = row("effectId", "texture-overlay-1");
+        textureOverlay.put("preset", "static_texture_screen_overlay");
+        textureOverlay.put("targetStartSeconds", Double.valueOf(0.0d));
+        textureOverlay.put("targetDurationSeconds", Double.valueOf(4.0d));
+        textureOverlay.put("intensity", Double.valueOf(0.25d));
+        textureOverlay.put("fidelity", "exact");
+        textureOverlay.put("contractVersion", "browser-post-effect-semantic-v3");
+        textureOverlay.put("semanticFamily", "static_texture_screen_overlay");
+        textureOverlay.put("applicationStage", "post_scene_before_fade");
+        textureOverlay.put("blendMode", "straight_alpha_screen");
+        textureOverlay.put("textureSampling", "cover_center_crop_y_flipped");
+        textureOverlay.put("intensitySource", "effects_adjust_texture");
+        textureOverlay.put("alphaContract", "opaque_result");
+        textureOverlay.put("texturePath", "amazingfeature/image/a0.png");
+        textureOverlay.put("evidence", "package_lua_center_crop_screen_and_texture");
+        scene.put("postEffects", java.util.Arrays.asList(lutEffect, textureOverlay));
         Map<String, Object> capabilityReport = row(
                 "schemaVersion", "browser-scene-capability-report-v1");
         capabilityReport.put("effectRegistryContract", "browser_effect_registry_v1");
@@ -728,13 +743,15 @@ class MusicMvTemplateCatalogServiceTest {
                 effectImplementation("text_template", "expanded_text_template",
                         "text_template_expansion_v1", "semantic_approximation"),
                 effectImplementation("post_effect", "dual_lut_skin_mask",
-                        "canvas_post_effect_v1", "semantic_approximation")));
+                        "canvas_post_effect_v1", "semantic_approximation"),
+                effectImplementation("post_effect", "static_texture_screen_overlay",
+                        "canvas_post_effect_v1", "exact")));
         Map<String, Object> reportSummary = row("declaredItemCount", Integer.valueOf(2));
         reportSummary.put("executableItemCount", Integer.valueOf(2));
         reportSummary.put("exactFeatureCount", Integer.valueOf(1));
         reportSummary.put("approximateFeatureCount", Integer.valueOf(0));
         reportSummary.put("unsupportedFeatureCount", Integer.valueOf(0));
-        reportSummary.put("effectImplementationCount", Integer.valueOf(9));
+        reportSummary.put("effectImplementationCount", Integer.valueOf(10));
         capabilityReport.put("summary", reportSummary);
         scene.put("capabilityReport", capabilityReport);
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
@@ -802,6 +819,14 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
                 incompleteSkinMask.getCode());
         lutEffect.put("maskClassComposition", "max_body_skin_face_skin_confidence");
+
+        textureOverlay.remove("textureSampling");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompleteTextureOverlay = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
+                incompleteTextureOverlay.getCode());
+        textureOverlay.put("textureSampling", "cover_center_crop_y_flipped");
 
         transition.remove("evidence");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
