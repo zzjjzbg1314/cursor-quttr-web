@@ -647,7 +647,27 @@ class MusicMvTemplateCatalogServiceTest {
                 "AmazingFeature/image/peopleTex.png");
         personProtectedEffect.put("approximationBoundary", "browser_person_matting_model");
         personProtectedEffect.put("evidence", "package_lua_and_five_fragment_passes");
-        layer.put("effects", java.util.Arrays.asList(layerEffect, personProtectedEffect));
+        Map<String, Object> paperStrokeEffect = row("preset", "paper_stroke_person_mask");
+        paperStrokeEffect.put("fidelity", "semantic_approximation");
+        paperStrokeEffect.put("contractVersion", "browser-layer-effect-semantic-v5");
+        paperStrokeEffect.put("semanticFamily", "paper_stroke_person_mask");
+        paperStrokeEffect.put("passOrder",
+                "person_matting_then_multi_radius_outline_then_textured_composite");
+        paperStrokeEffect.put("applicationStage", "source_graph_before_video_animation");
+        paperStrokeEffect.put("alphaContract", "preserve_source_alpha");
+        paperStrokeEffect.put("maskProvider", "person_matting");
+        paperStrokeEffect.put("maskSource", "share_bgmask_red_y_flipped");
+        paperStrokeEffect.put("maskInput", "effect_pass_input_rgba");
+        paperStrokeEffect.put("outlineExpansion", "draft_size_and_range_sliders");
+        paperStrokeEffect.put("paperTexturePath", "AmazingFeature/image/peopleTex.png");
+        paperStrokeEffect.put("approximationBoundary", "browser_person_matting_model");
+        paperStrokeEffect.put("evidence", "package_lua_matting_blur_and_composite_shaders");
+        paperStrokeEffect.put("texture", Double.valueOf(0.5d));
+        paperStrokeEffect.put("size", Double.valueOf(0.5d));
+        paperStrokeEffect.put("range", Double.valueOf(0.5d));
+        paperStrokeEffect.put("backgroundAlpha", Double.valueOf(1.0d));
+        layer.put("effects", java.util.Arrays.asList(
+                layerEffect, personProtectedEffect, paperStrokeEffect));
         Map<String, Object> fixedLayer = row("layerId", "fixed-segment-1");
         fixedLayer.put("type", "static_image");
         fixedLayer.put("resourceKey", "static_photo_123");
@@ -701,6 +721,8 @@ class MusicMvTemplateCatalogServiceTest {
                         "canvas_layer_effect_v1", "exact"),
                 effectImplementation("layer_effect", "turbulence_bounce_shake",
                         "canvas_layer_effect_v1", "semantic_approximation"),
+                effectImplementation("layer_effect", "paper_stroke_person_mask",
+                        "canvas_layer_effect_v1", "semantic_approximation"),
                 effectImplementation("mask", "rectangle",
                         "canvas_mask_v1", "exact"),
                 effectImplementation("text_template", "expanded_text_template",
@@ -712,7 +734,7 @@ class MusicMvTemplateCatalogServiceTest {
         reportSummary.put("exactFeatureCount", Integer.valueOf(1));
         reportSummary.put("approximateFeatureCount", Integer.valueOf(0));
         reportSummary.put("unsupportedFeatureCount", Integer.valueOf(0));
-        reportSummary.put("effectImplementationCount", Integer.valueOf(8));
+        reportSummary.put("effectImplementationCount", Integer.valueOf(9));
         capabilityReport.put("summary", reportSummary);
         scene.put("capabilityReport", capabilityReport);
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
@@ -764,6 +786,14 @@ class MusicMvTemplateCatalogServiceTest {
                 incompletePersonProtection.getCode());
         personProtectedEffect.put("maskProtection",
                 "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv");
+
+        paperStrokeEffect.remove("outlineExpansion");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompletePaperStroke = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
+                incompletePaperStroke.getCode());
+        paperStrokeEffect.put("outlineExpansion", "draft_size_and_range_sliders");
 
         lutEffect.remove("maskClassComposition");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));

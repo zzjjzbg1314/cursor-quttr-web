@@ -787,6 +787,7 @@ public class MusicMvTemplateCatalogService {
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "turbulence_bounce_shake", "texture_sequence_screen_multiply",
+                "paper_stroke_person_mask",
                 "shake_approximation", "noise_approximation", "unsupported"));
         for (Object raw : (List<?>) rawEffects) {
             requireValidBrowserTimedPreset(raw, allowed,
@@ -794,13 +795,15 @@ public class MusicMvTemplateCatalogService {
             Map<?, ?> effect = (Map<?, ?>) raw;
             String preset = String.valueOf(effect.get("preset"));
             if (("turbulence_bounce_shake".equals(preset)
-                    || "texture_sequence_screen_multiply".equals(preset))
+                    || "texture_sequence_screen_multiply".equals(preset)
+                    || "paper_stroke_person_mask".equals(preset))
                     && !validBrowserLayerEffectContract(effect, preset)) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_CONTRACT_INVALID",
                         "Exact packaged layer effects require the verified semantic contract");
             }
             for (String field : java.util.Arrays.asList(
-                    "intensity", "speed", "distortion", "sharpen")) {
+                    "intensity", "speed", "distortion", "sharpen",
+                    "texture", "size", "range", "backgroundAlpha")) {
                 Object value = effect.get(field);
                 if (value != null && (!(value instanceof Number)
                         || !Double.isFinite(((Number) value).doubleValue()))) {
@@ -830,6 +833,24 @@ public class MusicMvTemplateCatalogService {
                     && "browser_person_matting_model".equals(
                             effect.get("approximationBoundary"))
                     && "package_lua_and_five_fragment_passes".equals(effect.get("evidence"));
+        }
+        if ("paper_stroke_person_mask".equals(preset)) {
+            return "browser-layer-effect-semantic-v5".equals(effect.get("contractVersion"))
+                    && "person_matting_then_multi_radius_outline_then_textured_composite".equals(
+                            effect.get("passOrder"))
+                    && "source_graph_before_video_animation".equals(
+                            effect.get("applicationStage"))
+                    && "preserve_source_alpha".equals(effect.get("alphaContract"))
+                    && "person_matting".equals(effect.get("maskProvider"))
+                    && "share_bgmask_red_y_flipped".equals(effect.get("maskSource"))
+                    && "effect_pass_input_rgba".equals(effect.get("maskInput"))
+                    && "draft_size_and_range_sliders".equals(effect.get("outlineExpansion"))
+                    && "AmazingFeature/image/peopleTex.png".equals(
+                            effect.get("paperTexturePath"))
+                    && "browser_person_matting_model".equals(
+                            effect.get("approximationBoundary"))
+                    && "package_lua_matting_blur_and_composite_shaders".equals(
+                            effect.get("evidence"));
         }
         return "browser-layer-effect-semantic-v4".equals(effect.get("contractVersion"))
                 && "effect_local_seconds_clamped_to_declared_range_then_times_half_plus_speed_times_one_point_five"
@@ -872,7 +893,9 @@ public class MusicMvTemplateCatalogService {
                         || ((Number) duration).doubleValue() < 0.0d))
                 || (fidelity != null && !allowedFidelity.contains(fidelity))) {
             throw badRequest(errorCode,
-                    "Browser scene preset, duration, or fidelity is invalid");
+                    "Browser scene preset, duration, or fidelity is invalid: preset="
+                            + preset + ", durationSeconds=" + duration
+                            + ", fidelity=" + fidelity);
         }
     }
 
