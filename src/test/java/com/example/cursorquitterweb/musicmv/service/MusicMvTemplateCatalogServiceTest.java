@@ -278,9 +278,34 @@ class MusicMvTemplateCatalogServiceTest {
         template.put("visibility", "public");
         template.put("current_version_id", "tplver_1");
         Map<String, Object> version = row("version_id", "tplver_1");
+        version.put("width", Integer.valueOf(1080));
+        version.put("height", Integer.valueOf(1920));
+        version.put("fps", Integer.valueOf(30));
+        Map<String, Object> slot = row("version_id", "tplver_1");
+        slot.put("slot_key", "photo_1");
+        slot.put("timeline_order", Integer.valueOf(0));
+        Map<String, Object> defaultMedia = row("version_id", "tplver_1");
+        defaultMedia.put("media_role", "slot_default:photo_1");
+        defaultMedia.put("provider", "cloudflare_images");
+        defaultMedia.put("provider_asset_id", "default-photo");
+        defaultMedia.put("provider_details_json", "{}");
+        defaultMedia.put("status", "ready");
+        Map<String, Object> effectMedia = row("version_id", "tplver_1");
+        effectMedia.put("media_role", "browser_resource:effect_1");
+        effectMedia.put("provider", "cloudflare_images");
+        effectMedia.put("provider_asset_id", "effect-image");
+        effectMedia.put("provider_details_json", "{}");
+        effectMedia.put("status", "ready");
+        when(mediaProvider.resolveDeliveryDetails(eq("cloudflare_images"), eq("default-photo"), any()))
+                .thenReturn(row("deliveryUrl", "https://cdn.example/default.jpg"));
+        when(mediaProvider.resolveDeliveryDetails(eq("cloudflare_images"), eq("effect-image"), any()))
+                .thenReturn(row("deliveryUrl", "https://cdn.example/effect.png"));
         Map<String, Object> browserScene = row("version_id", "tplver_1");
         browserScene.put("status", "ready");
-        browserScene.put("scene_json", "{}");
+        browserScene.put("manifest_sha256", hash('b'));
+        browserScene.put("scene_json", "{\"canvas\":{\"width\":1080,\"height\":1920,\"fps\":30},"
+                + "\"slots\":[{\"slotKey\":\"photo_1\"}],"
+                + "\"resources\":[{\"resourceKey\":\"effect_1\",\"role\":\"browser_resource:effect_1\",\"kind\":\"image\"}]}");
         Map<String, Object> packageRow = row("status", "ready");
         when(repository.runtimePackage("tplver_1")).thenReturn(packageRow);
         Map<String, Object> download = new LinkedHashMap<String, Object>();
@@ -297,8 +322,8 @@ class MusicMvTemplateCatalogServiceTest {
                 Collections.<Map<String, Object>>emptyList(), null,
                 Collections.<Map<String, Object>>emptyList(),
                 Collections.singletonList(version),
-                Collections.<Map<String, Object>>emptyList(),
-                Collections.<Map<String, Object>>emptyList(),
+                Collections.singletonList(slot),
+                Arrays.asList(defaultMedia, effectMedia),
                 Collections.singletonList(browserScene)));
 
         Map<String, Object> detail = service.detail("tpl_1", false);
@@ -311,6 +336,20 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("https://r2.example/runtime.zip", runtimePackage.get("downloadUrl"));
         assertFalse(runtimePackage.containsKey("objectKey"));
         assertFalse(runtimePackage.containsKey("errorMessage"));
+        assertEquals(hash('b'), browserRender.get("sceneManifestSha256"));
+        List<Map<String, Object>> slotBindings =
+                (List<Map<String, Object>>) browserRender.get("slotBindings");
+        List<Map<String, Object>> resources =
+                (List<Map<String, Object>>) browserRender.get("resources");
+        assertEquals("https://cdn.example/default.jpg",
+                ((Map<String, Object>) slotBindings.get(0).get("asset")).get("url"));
+        assertEquals("https://cdn.example/effect.png",
+                ((Map<String, Object>) resources.get(0).get("asset")).get("url"));
+        assertEquals(Collections.emptyMap(), browserRender.get("textOverrides"));
+        Map<String, Object> outputVideo = (Map<String, Object>) browserRender.get("outputVideo");
+        assertEquals(Integer.valueOf(1080), outputVideo.get("width"));
+        assertEquals(Integer.valueOf(1920), outputVideo.get("height"));
+        assertEquals(Integer.valueOf(30), outputVideo.get("fps"));
     }
 
     @Test

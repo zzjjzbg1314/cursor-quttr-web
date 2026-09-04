@@ -220,8 +220,10 @@ public class MusicMvTemplateCatalogService {
             if (!admin && !String.valueOf(currentVersionId).equals(RowUtils.str(row, "version_id"))) continue;
             Map<String, Object> version = versionView(row, admin);
             String versionId = RowUtils.str(row, "version_id");
-            version.put("slots", slotViews(orEmpty(slotsByVersion.get(versionId))));
-            version.put("media", mediaViews(orEmpty(mediaByVersion.get(versionId))));
+            List<Map<String, Object>> slotViews = slotViews(orEmpty(slotsByVersion.get(versionId)));
+            List<Map<String, Object>> mediaViews = mediaViews(orEmpty(mediaByVersion.get(versionId)));
+            version.put("slots", slotViews);
+            version.put("media", mediaViews);
             Map<String, Object> browserScene = scenesByVersion.get(versionId);
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
                 Map<String, Object> browserRender = browserSceneView(browserScene, admin);
@@ -234,6 +236,7 @@ public class MusicMvTemplateCatalogService {
                     download.remove("errorMessage");
                     browserRender.put("runtimePackage", download);
                 }
+                if (!admin) completeBrowserRuntimeContract(browserRender, slotViews, mediaViews, row);
                 version.put("browserRender", browserRender);
             }
             versions.add(version);
@@ -2290,6 +2293,96 @@ public class MusicMvTemplateCatalogService {
             result.put("updatedAt", row.get("updated_at"));
         }
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void completeBrowserRuntimeContract(
+            Map<String, Object> contract,
+            List<Map<String, Object>> slots,
+            List<Map<String, Object>> media,
+            Map<String, Object> version
+    ) {
+        Map<String, Object> scene = contract.get("scene") instanceof Map
+                ? (Map<String, Object>) contract.get("scene")
+                : Collections.<String, Object>emptyMap();
+        Map<String, Map<String, Object>> mediaByRole = new LinkedHashMap<String, Map<String, Object>>();
+        for (Map<String, Object> item : media) {
+            String role = String.valueOf(item.get("role"));
+            if (role != null) mediaByRole.put(role, item);
+        }
+
+        List<Map<String, Object>> bindings = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> slot : slots) {
+            String slotKey = String.valueOf(slot.get("slotKey"));
+            Map<String, Object> item = new LinkedHashMap<String, Object>();
+            item.put("slotKey", slotKey);
+            item.put("useTemplateDefault", Boolean.TRUE);
+            Map<String, Object> asset = browserRuntimeAsset(
+                    mediaByRole.get("slot_default:" + slotKey), "image");
+            if (asset != null) item.put("asset", asset);
+            bindings.add(item);
+        }
+
+        List<Map<String, Object>> resources = new ArrayList<Map<String, Object>>();
+        Object rawResources = scene.get("resources");
+        if (rawResources instanceof List) {
+            for (Object raw : (List<?>) rawResources) {
+                if (!(raw instanceof Map)) continue;
+                Map<String, Object> descriptor = (Map<String, Object>) raw;
+                String resourceKey = String.valueOf(descriptor.get("resourceKey"));
+                String kind = descriptor.get("kind") == null
+                        ? "image" : String.valueOf(descriptor.get("kind"));
+                Map<String, Object> asset = null;
+                String inlineData = descriptor.get("inlineData") == null
+                        ? null : String.valueOf(descriptor.get("inlineData"));
+                if (inlineData != null && !inlineData.trim().isEmpty()) {
+                    asset = new LinkedHashMap<String, Object>();
+                    asset.put("kind", kind);
+                    asset.put("url", inlineData);
+                } else {
+                    asset = browserRuntimeAsset(mediaByRole.get(
+                            String.valueOf(descriptor.get("role"))), kind);
+                }
+                Map<String, Object> item = new LinkedHashMap<String, Object>();
+                item.put("resourceKey", resourceKey);
+                item.put("kind", kind);
+                if (asset != null) item.put("asset", asset);
+                resources.add(item);
+            }
+        }
+
+        Map<String, Object> canvas = scene.get("canvas") instanceof Map
+                ? (Map<String, Object>) scene.get("canvas")
+                : Collections.<String, Object>emptyMap();
+        Map<String, Object> output = new LinkedHashMap<String, Object>();
+        output.put("width", canvas.get("width") == null ? version.get("width") : canvas.get("width"));
+        output.put("height", canvas.get("height") == null ? version.get("height") : canvas.get("height"));
+        output.put("fps", canvas.get("fps") == null ? version.get("fps") : canvas.get("fps"));
+        Map<String, Object> runtimePackage = contract.get("runtimePackage") instanceof Map
+                ? (Map<String, Object>) contract.get("runtimePackage") : null;
+        contract.putAll(BrowserRuntimeContractFactory.create(
+                scene,
+                contract.get("manifestSha256"),
+                Collections.<String, Object>emptyMap(),
+                bindings,
+                resources,
+                runtimePackage,
+                output));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> browserRuntimeAsset(Map<String, Object> media, String kind) {
+        if (media == null || !"ready".equals(String.valueOf(media.get("status")))) return null;
+        Map<String, Object> details = media.get("providerDetails") instanceof Map
+                ? (Map<String, Object>) media.get("providerDetails")
+                : Collections.<String, Object>emptyMap();
+        Object rawUrl = "video".equals(kind) ? details.get("playbackUrl") : details.get("deliveryUrl");
+        if (rawUrl == null && "video".equals(kind)) rawUrl = details.get("deliveryUrl");
+        if (rawUrl == null || String.valueOf(rawUrl).trim().isEmpty()) return null;
+        Map<String, Object> asset = new LinkedHashMap<String, Object>();
+        asset.put("kind", kind);
+        asset.put("url", String.valueOf(rawUrl));
+        return asset;
     }
 
     private void requireSanitizedBrowserScene(Object value) {

@@ -726,26 +726,29 @@ public class MusicMvRenderJobService {
         List<Map<String, Object>> resources = templateBrowserResources(
                 RowUtils.str(row, "version_id"), scene);
 
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
-        result.put("scene", scene);
-        result.put("sceneManifestSha256", sceneRow.get("manifest_sha256"));
-        result.put("textOverrides", request.get("textOverrides") instanceof Map
-                ? request.get("textOverrides") : Collections.<String, String>emptyMap());
-        result.put("music", music);
-        result.put("outputVideo", request.get("outputVideo") instanceof Map
-                ? request.get("outputVideo") : outputVideo(scene.get("canvas") instanceof Map
-                        ? (Map<String, Object>) scene.get("canvas")
-                        : Collections.<String, Object>emptyMap()));
-        result.put("slotBindings", bindings);
-        result.put("resources", resources);
+        Map<String, Object> runtimePackage = null;
         if (runtimePackages != null) {
-            Map<String, Object> runtimePackage = new LinkedHashMap<String, Object>(
+            runtimePackage = new LinkedHashMap<String, Object>(
                     runtimePackages.downloadSession(RowUtils.str(row, "template_id"),
                             RowUtils.str(row, "version_id")));
             runtimePackage.remove("objectKey");
             runtimePackage.remove("errorMessage");
-            result.put("runtimePackage", runtimePackage);
         }
+        Map<String, Object> result = BrowserRuntimeContractFactory.create(
+                scene,
+                sceneRow.get("manifest_sha256"),
+                request.get("textOverrides") instanceof Map
+                        ? (Map<String, Object>) request.get("textOverrides")
+                        : Collections.<String, Object>emptyMap(),
+                bindings,
+                resources,
+                runtimePackage,
+                request.get("outputVideo") instanceof Map
+                        ? (Map<String, Object>) request.get("outputVideo")
+                        : outputVideo(scene.get("canvas") instanceof Map
+                                ? (Map<String, Object>) scene.get("canvas")
+                                : Collections.<String, Object>emptyMap()));
+        result.put("music", music);
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
