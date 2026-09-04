@@ -66,6 +66,19 @@ class MusicMvTemplateCatalogRepositoryTest {
     }
 
     @Test
+    void catalogPreviewFallsBackToBrowserParityReference() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+
+        repository.templates("en", "published", "public", null, null, null,
+                null, null, null, null, null, 24, 0);
+
+        assertTrue(client.sql.contains("'full_mv','browser_parity_reference'"));
+        assertTrue(client.sql.contains("candidate.status='ready'"));
+        assertTrue(client.sql.contains("candidate.media_role='full_mv'"));
+    }
+
+    @Test
     void templateDetailUsesOneEightStatementBatch() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

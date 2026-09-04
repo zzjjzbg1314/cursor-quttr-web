@@ -120,12 +120,12 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_versions v ON v.version_id=t.current_version_id ")
                 .append("LEFT JOIN template_media cover ON cover.version_id=t.current_version_id ")
                 .append("AND cover.media_role='cover' AND cover.status='ready' ")
-                .append("LEFT JOIN template_media preview ON preview.version_id=t.current_version_id ")
-                // A forced resync changes the full-MV row to processing before the
-                // replacement becomes playable. Cloudflare already provides a stable
-                // thumbnail at that point, so keep exposing it as the catalog cover.
-                // Playback readiness is still enforced by the media status elsewhere.
-                .append("AND preview.media_role='full_mv' ")
+                .append("LEFT JOIN template_media preview ON preview.media_id=(")
+                .append("SELECT candidate.media_id FROM template_media candidate ")
+                .append("WHERE candidate.version_id=t.current_version_id ")
+                .append("AND candidate.media_role IN ('full_mv','browser_parity_reference') ")
+                .append("ORDER BY CASE WHEN candidate.status='ready' THEN 0 ELSE 1 END, ")
+                .append("CASE WHEN candidate.media_role='full_mv' THEN 0 ELSE 1 END LIMIT 1) ")
                 .append("WHERE t.deleted_at IS NULL ");
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
