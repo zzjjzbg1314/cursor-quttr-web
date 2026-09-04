@@ -1992,6 +1992,7 @@ public class MusicMvTemplateCatalogService {
                 {"wedding", "wedding", "bride", "groom", "婚礼", "结婚"},
                 {"anniversary", "anniversary", "纪念日", "周年"},
                 {"graduation", "graduation", "graduate", "毕业"},
+                {"fathers-day", "father's day", "fathers day", "fathersday", "父亲节"},
                 {"holidays-parties", "christmas", "holiday", "party", "festival",
                         "mother's day", "mothers day", "mothersday", "father's day",
                         "fathers day", "fathersday", "thanksgiving", "母亲节", "父亲节",

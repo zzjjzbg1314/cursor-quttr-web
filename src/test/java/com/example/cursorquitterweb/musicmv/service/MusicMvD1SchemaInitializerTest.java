@@ -30,8 +30,8 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(12);
-        assertThat(result.get("categoryCount")).isEqualTo(24L);
+        assertThat(result.get("schemaVersion")).isEqualTo(13);
+        assertThat(result.get("categoryCount")).isEqualTo(25L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "CREATE TABLE IF NOT EXISTS music_mv_schema_metadata"));
@@ -148,11 +148,11 @@ class MusicMvD1SchemaInitializerTest {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
             if (sql.contains("COUNT(*) AS category_count")) {
-                return row("category_count", Long.valueOf(applied ? 24L : 0L));
+                return row("category_count", Long.valueOf(applied ? 25L : 0L));
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(12));
+                metadata.put("schema_version", Integer.valueOf(13));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }

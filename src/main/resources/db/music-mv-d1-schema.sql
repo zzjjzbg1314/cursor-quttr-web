@@ -696,6 +696,7 @@ VALUES
   ('anniversary', 'celebrations', 2, 'celebrations/anniversary', 1, '纪念日', 'Anniversary', 13, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('graduation', 'celebrations', 2, 'celebrations/graduation', 1, '毕业', 'Graduation', 14, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('holidays-parties', 'celebrations', 2, 'celebrations/holidays-parties', 1, '节日与派对', 'Holidays & Parties', 15, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  ('fathers-day', 'celebrations', 2, 'celebrations/fathers-day', 1, '父亲节', 'Father''s Day', 16, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('relationships', NULL, 1, 'relationships', 0, '人物与关系', 'People & Relationships', 20, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('family', 'relationships', 2, 'relationships/family', 1, '家庭', 'Family', 21, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('baby-kids', 'relationships', 2, 'relationships/baby-kids', 1, '宝宝与孩子', 'Baby & Kids', 22, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

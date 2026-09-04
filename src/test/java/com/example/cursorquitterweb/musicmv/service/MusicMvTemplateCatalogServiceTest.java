@@ -55,7 +55,7 @@ class MusicMvTemplateCatalogServiceTest {
         category.put("level", Integer.valueOf(2));
         category.put("is_selectable", Integer.valueOf(1));
         for (String key : Arrays.asList("birthday", "wedding", "anniversary", "graduation",
-                "holidays-parties", "family", "baby-kids", "couples", "friendship",
+                "holidays-parties", "fathers-day", "family", "baby-kids", "couples", "friendship",
                 "daily-life", "travel", "school-life", "growing-up", "recap",
                 "hobbies-interests", "motivation", "healing", "love-thanks",
                 "farewell-breakup", "memorial")) {
@@ -77,6 +77,22 @@ class MusicMvTemplateCatalogServiceTest {
         Set<String> keys = capturedCategoryKeys("family");
         assertEquals(new HashSet<String>(Arrays.asList(
                 "family", "holidays-parties", "love-thanks")), keys);
+    }
+
+    @Test
+    void classifiesFathersDayTemplateIntoDedicatedAssociatedCategory() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("family");
+        request.setSourceCategory("Family");
+        request.setSourceTitle("Happy Father's Day");
+        request.setSourceHashtags(Arrays.asList("fathersday", "bestdad"));
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
+
+        service.promote(request);
+
+        Set<String> keys = capturedCategoryKeys("family");
+        assertTrue(keys.containsAll(Arrays.asList(
+                "family", "fathers-day", "holidays-parties", "love-thanks")));
     }
 
     @Test
