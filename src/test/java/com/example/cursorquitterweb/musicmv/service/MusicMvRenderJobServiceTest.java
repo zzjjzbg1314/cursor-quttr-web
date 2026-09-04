@@ -280,6 +280,7 @@ class MusicMvRenderJobServiceTest {
         active.put("client_id", "usr_owner");
         active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},"
                 + "\"slotBindings\":[{\"slotKey\":\"photo_01\",\"useTemplateDefault\":true}],"
+                + "\"volume\":0.5011872336272722,"
                 + "\"outputVideo\":{\"width\":1080,\"height\":1920,\"fps\":30}}");
         Map<String, Object> scene = new LinkedHashMap<String, Object>();
         scene.put("canvas", Collections.singletonMap("durationSeconds", Double.valueOf(30.633d)));
@@ -368,6 +369,7 @@ class MusicMvRenderJobServiceTest {
         assertEquals(1080, ((Number) outputVideo.get("width")).intValue());
         assertEquals(1920, ((Number) outputVideo.get("height")).intValue());
         assertEquals(30, ((Number) outputVideo.get("fps")).intValue());
+        assertEquals(0.5011872336272722d, ((Number) browserRender.get("volume")).doubleValue());
     }
 
     @Test

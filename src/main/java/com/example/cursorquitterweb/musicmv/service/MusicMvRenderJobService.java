@@ -776,10 +776,18 @@ public class MusicMvRenderJobService {
                                 ? (Map<String, Object>) scene.get("canvas")
                                 : Collections.<String, Object>emptyMap()));
         result.put("music", music);
+        result.put("volume", browserAudioVolume(request.get("volume")));
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));
         result.put("maxDurationSeconds", Integer.valueOf(600));
         return result;
+    }
+
+    private Double browserAudioVolume(Object value) {
+        if (!(value instanceof Number)) return Double.valueOf(1.0d);
+        double volume = ((Number) value).doubleValue();
+        if (!Double.isFinite(volume)) return Double.valueOf(1.0d);
+        return Double.valueOf(Math.max(0.0d, Math.min(10.0d, volume)));
     }
 
     private Map<String, Object> outputVideo(Map<String, Object> source) {

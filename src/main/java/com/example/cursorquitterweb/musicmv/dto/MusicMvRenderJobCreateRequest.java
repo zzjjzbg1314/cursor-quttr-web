@@ -42,7 +42,7 @@ public class MusicMvRenderJobCreateRequest {
     private OutputVideo outputVideo;
     private Boolean allowTemplateLoop = Boolean.TRUE;
     @DecimalMin("0.0")
-    @DecimalMax("2.0")
+    @DecimalMax("10.0")
     private Double volume = Double.valueOf(1.0d);
     @DecimalMin("0.0")
     private Double fadeOutSeconds = Double.valueOf(0.0d);
