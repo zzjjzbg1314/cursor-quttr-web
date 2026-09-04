@@ -37,7 +37,7 @@ public class MusicMvRenderArtifactStorageService {
             R2StorageService r2,
             @Value("${music-mv.render.local-storage-dir:storage/music-mv-render}") String localDir,
             @Value("${music-mv.render.max-output-bytes:2147483648}") long maxOutputBytes,
-            @Value("${music-mv.render.browser-output-storage:local}") String browserOutputStorage
+            @Value("${music-mv.render.browser-output-storage:auto}") String browserOutputStorage
     ) {
         this.r2 = r2;
         this.localRoot = Paths.get(localDir).toAbsolutePath().normalize();
@@ -250,14 +250,16 @@ public class MusicMvRenderArtifactStorageService {
     }
 
     private boolean usesLocalBrowserOutputStorage() {
-        return "local".equals(browserOutputStorage);
+        return "local".equals(browserOutputStorage)
+                || ("auto".equals(browserOutputStorage) && !r2.isConfigured());
     }
 
     private String normalizeBrowserOutputStorage(String value) {
         String normalized = value == null ? "" : value.trim().toLowerCase();
-        if (!("local".equals(normalized) || "r2".equals(normalized))) {
+        if (!("auto".equals(normalized) || "local".equals(normalized)
+                || "r2".equals(normalized))) {
             throw new IllegalArgumentException(
-                    "music-mv.render.browser-output-storage must be local or r2");
+                    "music-mv.render.browser-output-storage must be auto, local or r2");
         }
         return normalized;
     }

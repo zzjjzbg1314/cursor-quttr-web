@@ -55,9 +55,9 @@ MUSIC_MV_CLOUDFLARE_R2_SECRET_ACCESS_KEY=<secret>
 MUSIC_MV_CLOUDFLARE_R2_PUBLIC_BASE_URL=<delivery base url>
 ```
 
-调试阶段默认把浏览器渲染成片保存在 `MUSIC_MV_LOCAL_STORAGE_DIR`。生产环境设置
-`MUSIC_MV_BROWSER_OUTPUT_STORAGE=r2` 后，浏览器才会把成片直传到独立 R2；已有成片仍按各自
-`output_storage_key` 从原存储位置读取，不会因切换配置而迁移或删除。
+浏览器渲染成片默认采用 `auto`：配置了上述 R2 凭据时直接上传到独立 R2，否则保存在
+`MUSIC_MV_LOCAL_STORAGE_DIR`。也可通过 `MUSIC_MV_BROWSER_OUTPUT_STORAGE=local|r2` 强制指定；
+已有成片仍按各自 `output_storage_key` 从原存储位置读取，不会因切换配置而迁移或删除。
 
 ## 新 D1 初始化
 

@@ -20,6 +20,39 @@ import java.security.MessageDigest;
 
 class MusicMvRenderArtifactStorageServiceTest {
     @Test
+    void automaticBrowserStorageUsesR2WhenConfigured() {
+        R2StorageService r2 = mock(R2StorageService.class);
+        when(r2.isConfigured()).thenReturn(true);
+        when(r2.presignedPutUrl(any(), any(), anyLong(), anyMap(), any()))
+                .thenReturn("https://upload.example/signed");
+        MusicMvRenderArtifactStorageService storage =
+                new MusicMvRenderArtifactStorageService(r2, "storage/test-render", 1024L, "auto");
+
+        MusicMvRenderArtifactStorageService.BrowserUploadSession session =
+                storage.createBrowserUploadSession("mvr_1", "bratt_1", 100L,
+                        "video/mp4", repeat('a'));
+
+        assertEquals("https://upload.example/signed", session.getUploadUrl());
+        assertTrue(!session.isLocal());
+    }
+
+    @Test
+    void automaticBrowserStorageFallsBackToLocalWithoutR2() {
+        R2StorageService r2 = mock(R2StorageService.class);
+        when(r2.isConfigured()).thenReturn(false);
+        MusicMvRenderArtifactStorageService storage =
+                new MusicMvRenderArtifactStorageService(r2, "storage/test-render", 1024L, "auto");
+
+        MusicMvRenderArtifactStorageService.BrowserUploadSession session =
+                storage.createBrowserUploadSession("mvr_1", "bratt_1", 100L,
+                        "video/mp4", repeat('a'));
+
+        assertTrue(session.isLocal());
+        assertEquals("/api/music-mv/v1/render-jobs/mvr_1/browser-output/local-upload",
+                session.getUploadUrl());
+    }
+
+    @Test
     void browserAttemptsReceiveDifferentImmutableObjectKeys() {
         R2StorageService r2 = mock(R2StorageService.class);
         when(r2.isConfigured()).thenReturn(true);
