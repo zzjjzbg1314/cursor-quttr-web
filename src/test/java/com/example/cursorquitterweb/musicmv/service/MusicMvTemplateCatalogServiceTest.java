@@ -630,6 +630,8 @@ class MusicMvTemplateCatalogServiceTest {
         personProtectedEffect.put("maskInput", "effect_pass_input_rgba");
         personProtectedEffect.put("maskProtection",
                 "max_original_3x3_radius_10_texels_and_displaced_then_restore_uv");
+        personProtectedEffect.put("paperTexturePath",
+                "AmazingFeature/image/peopleTex.png");
         personProtectedEffect.put("approximationBoundary", "browser_person_matting_model");
         personProtectedEffect.put("evidence", "package_lua_and_five_fragment_passes");
         layer.put("effects", java.util.Arrays.asList(layerEffect, personProtectedEffect));
@@ -709,6 +711,19 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
                 eq("browser-template-scene-v5"), anyString(), eq("ready"), anyString());
+
+        personProtectedEffect.put("paperTexturePath", "/Users/test/private/peopleTex.png");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException privatePath = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", privatePath.getCode());
+        personProtectedEffect.put("paperTexturePath", "../private/peopleTex.png");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException traversalPath = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", traversalPath.getCode());
+        personProtectedEffect.put("paperTexturePath",
+                "AmazingFeature/image/peopleTex.png");
 
         layerEffect.remove("sequenceEndBehavior");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));

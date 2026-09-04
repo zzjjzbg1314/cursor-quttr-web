@@ -42,10 +42,15 @@ public class MusicMvTemplateCatalogService {
     private static final double BROWSER_MAX_MAE = 25.0d;
     private static final double BROWSER_MAX_DURATION_DRIFT_SECONDS = 0.12d;
     private static final Set<String> VISIBILITIES;
+    private static final Set<String> BROWSER_PACKAGE_PATH_FIELDS;
     static {
         Set<String> values = new HashSet<String>();
         values.add("public"); values.add("private"); values.add("unlisted");
         VISIBILITIES = Collections.unmodifiableSet(values);
+        Set<String> packagePathFields = new HashSet<String>();
+        packagePathFields.add("papertexturepath");
+        packagePathFields.add("texturepath");
+        BROWSER_PACKAGE_PATH_FIELDS = Collections.unmodifiableSet(packagePathFields);
     }
 
     private final MusicMvTemplateCatalogRepository repository;
@@ -2391,6 +2396,9 @@ public class MusicMvTemplateCatalogService {
                 String key = String.valueOf(entry.getKey()).toLowerCase();
                 if (key.equals("path") || key.endsWith("path") || key.contains("localkey")
                         || key.contains("sourcedraft") || key.equals("materials")) {
+                    if (isSafeBrowserPackagePath(key, entry.getValue())) {
+                        continue;
+                    }
                     throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
                             "Browser scene contains private source information");
                 }
@@ -2413,6 +2421,28 @@ public class MusicMvTemplateCatalogService {
                         "Browser scene contains a local filesystem reference");
             }
         }
+    }
+
+    private boolean isSafeBrowserPackagePath(String key, Object value) {
+        if (!BROWSER_PACKAGE_PATH_FIELDS.contains(key) || !(value instanceof String)) {
+            return false;
+        }
+        String path = ((String) value).trim();
+        if (path.isEmpty() || path.length() > 512 || path.startsWith("/")
+                || path.startsWith("\\") || path.contains("\\") || path.contains(":")) {
+            return false;
+        }
+        String lower = path.toLowerCase();
+        if (lower.contains("templatedraft")) {
+            return false;
+        }
+        for (String segment : path.split("/")) {
+            if (segment.isEmpty() || ".".equals(segment) || "..".equals(segment)
+                    || !segment.matches("[A-Za-z0-9._-]+")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void requireSafeInlineBrowserResource(Object value) {
