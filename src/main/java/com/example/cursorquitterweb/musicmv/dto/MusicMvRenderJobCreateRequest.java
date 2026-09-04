@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -36,6 +38,8 @@ public class MusicMvRenderJobCreateRequest {
     private Map<String, String> textOverrides = new LinkedHashMap<String, String>();
     @Size(max = 120)
     private String outputFileName;
+    @Valid
+    private OutputVideo outputVideo;
     private Boolean allowTemplateLoop = Boolean.TRUE;
     @DecimalMin("0.0")
     @DecimalMax("2.0")
@@ -65,12 +69,38 @@ public class MusicMvRenderJobCreateRequest {
     }
     public String getOutputFileName() { return outputFileName; }
     public void setOutputFileName(String value) { outputFileName = value; }
+    public OutputVideo getOutputVideo() { return outputVideo; }
+    public void setOutputVideo(OutputVideo value) { outputVideo = value; }
     public Boolean getAllowTemplateLoop() { return allowTemplateLoop; }
     public void setAllowTemplateLoop(Boolean value) { allowTemplateLoop = value; }
     public Double getVolume() { return volume; }
     public void setVolume(Double value) { volume = value; }
     public Double getFadeOutSeconds() { return fadeOutSeconds; }
     public void setFadeOutSeconds(Double value) { fadeOutSeconds = value; }
+
+    public static class OutputVideo {
+        @NotNull @Min(2) @Max(2160)
+        private Integer width;
+        @NotNull @Min(2) @Max(2160)
+        private Integer height;
+        @NotNull @Min(24) @Max(60)
+        private Integer fps;
+        @NotBlank @Pattern(regexp = "^(standard|recommended|high)$")
+        private String quality = "recommended";
+        @NotBlank @Pattern(regexp = "^mp4$")
+        private String format = "mp4";
+
+        public Integer getWidth() { return width; }
+        public void setWidth(Integer value) { width = value; }
+        public Integer getHeight() { return height; }
+        public void setHeight(Integer value) { height = value; }
+        public Integer getFps() { return fps; }
+        public void setFps(Integer value) { fps = value; }
+        public String getQuality() { return quality; }
+        public void setQuality(String value) { quality = value; }
+        public String getFormat() { return format; }
+        public void setFormat(String value) { format = value; }
+    }
 
     public static class Asset {
         @NotBlank

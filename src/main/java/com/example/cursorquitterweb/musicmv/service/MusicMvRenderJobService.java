@@ -185,7 +185,7 @@ public class MusicMvRenderJobService {
             requireSlotBindings(clientId, request.getTemplateVersionId(), contract.getSlots(),
                     request.getSlotBindings());
             Map<String, Object> preparedRequest = parseObject(json(request));
-            preparedRequest.put("outputVideo", outputVideo(contract.getVersion()));
+            preparedRequest.put("outputVideo", requestedOutputVideo(request, contract.getVersion()));
             String preparedRequestJson = json(preparedRequest);
             requireJsonSize(preparedRequestJson, "MV_RENDER_REQUEST_TOO_LARGE");
             Map<String, Object> ready = repository.completeBrowserPreparation(
@@ -399,8 +399,11 @@ public class MusicMvRenderJobService {
             throw new ApiException(HttpStatus.GONE, "MV_RENDER_OUTPUT_MISSING",
                     "Rendered MV artifact is no longer available");
         }
+        Map<String, Object> request = parseObject(RowUtils.str(row, "request_json"));
+        String outputFileName = IdUtils.safeFilename(String.valueOf(
+                request.get("outputFileName") == null ? "music-mv.mp4" : request.get("outputFileName")));
         return new OutputAccess(artifacts, storageKey, RowUtils.lng(row, "output_size_bytes"),
-                RowUtils.str(row, "output_content_type"));
+                RowUtils.str(row, "output_content_type"), outputFileName);
     }
 
     private void requireRenderableVersion(Map<String, Object> row,
@@ -541,6 +544,29 @@ public class MusicMvRenderJobService {
             throw badRequest("MV_RENDER_TEXT_OVERRIDES_INVALID",
                     "Too many template text overrides were provided");
         }
+        MusicMvRenderJobCreateRequest.OutputVideo output = request.getOutputVideo();
+        if (output != null) {
+            if (output.getWidth() == null || output.getHeight() == null
+                    || output.getWidth().intValue() < 2 || output.getWidth().intValue() > 2160
+                    || output.getHeight().intValue() < 2 || output.getHeight().intValue() > 2160) {
+                throw badRequest("MV_RENDER_OUTPUT_RESOLUTION_INVALID",
+                        "Output resolution must stay between 2 and 2160 pixels per edge");
+            }
+            int fps = output.getFps() == null ? 0 : output.getFps().intValue();
+            if (fps != 24 && fps != 30 && fps != 60) {
+                throw badRequest("MV_RENDER_OUTPUT_FPS_INVALID",
+                        "Output frame rate must be 24, 30, or 60 fps");
+            }
+            if (!java.util.Arrays.asList("standard", "recommended", "high")
+                    .contains(output.getQuality())) {
+                throw badRequest("MV_RENDER_OUTPUT_QUALITY_INVALID",
+                        "Output quality is not supported");
+            }
+            if (!"mp4".equals(output.getFormat())) {
+                throw badRequest("MV_RENDER_OUTPUT_FORMAT_INVALID",
+                        "Only MP4 output is currently supported");
+            }
+        }
         for (Map.Entry<String, String> entry : request.getTextOverrides().entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
@@ -625,6 +651,7 @@ public class MusicMvRenderJobService {
         canonical.put("allowTemplateLoop", request.getAllowTemplateLoop());
         canonical.put("volume", request.getVolume());
         canonical.put("fadeOutSeconds", request.getFadeOutSeconds());
+        canonical.put("outputVideo", request.getOutputVideo());
         return sha256(json(canonical));
     }
 
@@ -760,6 +787,32 @@ public class MusicMvRenderJobService {
         result.put("width", positiveInteger(source == null ? null : source.get("width"), 720));
         result.put("height", positiveInteger(source == null ? null : source.get("height"), 1280));
         result.put("fps", positiveInteger(source == null ? null : source.get("fps"), 30));
+        return result;
+    }
+
+    private Map<String, Object> requestedOutputVideo(
+            MusicMvRenderJobCreateRequest request, Map<String, Object> templateVersion) {
+        MusicMvRenderJobCreateRequest.OutputVideo requested = request.getOutputVideo();
+        Map<String, Object> templateOutput = outputVideo(templateVersion);
+        if (requested == null) {
+            templateOutput.put("quality", "recommended");
+            templateOutput.put("format", "mp4");
+            return templateOutput;
+        }
+        double templateRatio = ((Number) templateOutput.get("width")).doubleValue()
+                / ((Number) templateOutput.get("height")).doubleValue();
+        double requestedRatio = requested.getWidth().doubleValue()
+                / requested.getHeight().doubleValue();
+        if (Math.abs(templateRatio - requestedRatio) > 0.01d) {
+            throw badRequest("MV_RENDER_OUTPUT_ASPECT_INVALID",
+                    "Output resolution must keep the template aspect ratio");
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("width", requested.getWidth());
+        result.put("height", requested.getHeight());
+        result.put("fps", requested.getFps());
+        result.put("quality", requested.getQuality());
+        result.put("format", requested.getFormat());
         return result;
     }
 
@@ -1068,22 +1121,32 @@ public class MusicMvRenderJobService {
         private final String storageKey;
         private final Long sizeBytes;
         private final String contentType;
+        private final String fileName;
 
         public OutputAccess(MusicMvRenderArtifactStorageService artifacts, String storageKey,
                             Long sizeBytes, String contentType) {
+            this(artifacts, storageKey, sizeBytes, contentType, null);
+        }
+
+        public OutputAccess(MusicMvRenderArtifactStorageService artifacts, String storageKey,
+                            Long sizeBytes, String contentType, String fileName) {
             this.artifacts = artifacts;
             this.storageKey = storageKey;
             this.sizeBytes = sizeBytes;
             this.contentType = contentType;
+            this.fileName = fileName;
         }
 
         public java.io.InputStream openStream(long start, long end) throws IOException {
             return artifacts.openStream(storageKey, start, end);
         }
         public String temporaryDownloadUrl(boolean inline) {
-            return artifacts.temporaryDownloadUrl(storageKey, inline);
+            return fileName == null
+                    ? artifacts.temporaryDownloadUrl(storageKey, inline)
+                    : artifacts.temporaryDownloadUrl(storageKey, inline, fileName);
         }
         public Long getSizeBytes() { return sizeBytes; }
         public String getContentType() { return contentType; }
+        public String getFileName() { return fileName == null ? "music-mv.mp4" : fileName; }
     }
 }

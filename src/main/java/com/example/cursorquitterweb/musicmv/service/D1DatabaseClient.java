@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class D1DatabaseClient {
-    private final RestTemplate restTemplate = CloudflareRestTemplateFactory.create();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     @Value("${music-mv.d1.enabled:false}")
@@ -41,8 +43,14 @@ public class D1DatabaseClient {
     @Value("${music-mv.d1.api-token:}")
     private String apiToken;
 
+    @Autowired
     public D1DatabaseClient(ObjectMapper objectMapper) {
+        this(objectMapper, CloudflareRestTemplateFactory.create());
+    }
+
+    D1DatabaseClient(ObjectMapper objectMapper, RestTemplate restTemplate) {
         this.objectMapper = objectMapper;
+        this.restTemplate = restTemplate;
     }
 
     public boolean isEnabled() {
@@ -72,7 +80,7 @@ public class D1DatabaseClient {
         body.put("sql", sql);
         body.put("params", params == null ? new ArrayList<Object>() : params);
 
-        List<D1QueryResult> results = execute(body);
+        List<D1QueryResult> results = execute(body, isReadOnly(sql));
         if (results.isEmpty()) {
             return new D1QueryResult(new ArrayList<Map<String, Object>>(), null);
         }
@@ -96,34 +104,40 @@ public class D1DatabaseClient {
         }
         Map<String, Object> body = new LinkedHashMap<String, Object>();
         body.put("batch", batch);
-        return execute(body);
+        return execute(body, false);
     }
 
-    private List<D1QueryResult> execute(Map<String, Object> body) {
+    private List<D1QueryResult> execute(Map<String, Object> body, boolean retryReadTimeout) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiToken);
 
         String url = baseUrl + "/accounts/" + accountId + "/d1/database/" + databaseId + "/query";
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    new HttpEntity<Map<String, Object>>(body, headers),
-                    String.class
-            );
-            return parse(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            throw new IllegalStateException(
-                    "Cloudflare D1 request failed. Check MUSIC_MV_CLOUDFLARE_ACCOUNT_ID, "
-                            + "MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID and "
-                            + "MUSIC_MV_CLOUDFLARE_API_TOKEN. "
-                            + "Account ID is the 32-character Cloudflare account id, not the D1 database UUID. "
-                            + "URL=" + url + ", response=" + e.getResponseBodyAsString(),
-                    e
-            );
+        int attempts = retryReadTimeout ? 2 : 1;
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        url,
+                        HttpMethod.POST,
+                        new HttpEntity<Map<String, Object>>(body, headers),
+                        String.class
+                );
+                return parse(response.getBody());
+            } catch (ResourceAccessException e) {
+                if (attempt == attempts) throw e;
+            } catch (HttpStatusCodeException e) {
+                throw new IllegalStateException(
+                        "Cloudflare D1 request failed. Check MUSIC_MV_CLOUDFLARE_ACCOUNT_ID, "
+                                + "MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID and "
+                                + "MUSIC_MV_CLOUDFLARE_API_TOKEN. "
+                                + "Account ID is the 32-character Cloudflare account id, not the D1 database UUID. "
+                                + "URL=" + url + ", response=" + e.getResponseBodyAsString(),
+                        e
+                );
+            }
         }
+        throw new IllegalStateException("Cloudflare D1 request failed without a response");
     }
 
     private List<D1QueryResult> parse(String body) {
@@ -182,5 +196,11 @@ public class D1DatabaseClient {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private boolean isReadOnly(String sql) {
+        if (sql == null) return false;
+        String normalized = sql.trim().toUpperCase(java.util.Locale.ROOT);
+        return normalized.startsWith("SELECT ") || normalized.startsWith("WITH ");
     }
 }

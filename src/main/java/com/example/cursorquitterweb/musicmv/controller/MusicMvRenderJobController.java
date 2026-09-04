@@ -209,7 +209,8 @@ public class MusicMvRenderJobController {
         if (partial) servletResponse.setHeader(HttpHeaders.CONTENT_RANGE,
                 "bytes " + start + "-" + end + "/" + resourceLength);
         servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                (inline ? "inline" : "attachment") + "; filename=\"music-mv.mp4\"");
+                (inline ? "inline" : "attachment") + "; filename=\""
+                        + output.getFileName() + "\"");
         servletResponse.setContentType(output.getContentType() == null
                 ? "video/mp4" : output.getContentType());
         servletResponse.setContentLengthLong(regionLength);

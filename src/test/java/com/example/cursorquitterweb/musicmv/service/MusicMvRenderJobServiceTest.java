@@ -64,6 +64,49 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void carriesValidatedDownloadSettingsIntoBrowserRenderContract() throws Exception {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.setOutputFileName("family-story.mp4");
+        MusicMvRenderJobCreateRequest.OutputVideo output =
+                new MusicMvRenderJobCreateRequest.OutputVideo();
+        output.setWidth(Integer.valueOf(720));
+        output.setHeight(Integer.valueOf(1280));
+        output.setFps(Integer.valueOf(60));
+        output.setQuality("high");
+        output.setFormat("mp4");
+        request.setOutputVideo(output);
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.<String, Map<String, Object>>emptyMap());
+        when(repository.completeBrowserPreparation(eq("mvr_1"), anyString()))
+                .thenReturn(row("mvr_1", null));
+
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        ArgumentCaptor<String> prepared = ArgumentCaptor.forClass(String.class);
+        verify(repository).completeBrowserPreparation(eq("mvr_1"), prepared.capture());
+        Map<String, Object> payload = new ObjectMapper().readValue(prepared.getValue(), Map.class);
+        Map<String, Object> preparedOutput = (Map<String, Object>) payload.get("outputVideo");
+        assertEquals(720, ((Number) preparedOutput.get("width")).intValue());
+        assertEquals(1280, ((Number) preparedOutput.get("height")).intValue());
+        assertEquals(60, ((Number) preparedOutput.get("fps")).intValue());
+        assertEquals("high", preparedOutput.get("quality"));
+        assertEquals("mp4", preparedOutput.get("format"));
+    }
+
+    @Test
     void rejectsIncompleteSlotContract() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.example.cursorquitterweb.musicmv.support.ApiException;
+import com.example.cursorquitterweb.musicmv.support.IdUtils;
 
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
@@ -283,9 +284,13 @@ public class MusicMvRenderArtifactStorageService {
     }
 
     public String temporaryDownloadUrl(String storageKey, boolean inline) {
+        return temporaryDownloadUrl(storageKey, inline, "music-mv.mp4");
+    }
+
+    public String temporaryDownloadUrl(String storageKey, boolean inline, String fileName) {
         if (storageKey != null && storageKey.startsWith("r2:") && r2.isConfigured()) {
             String disposition = (inline ? "inline" : "attachment")
-                    + "; filename=\"music-mv.mp4\"";
+                    + "; filename=\"" + IdUtils.safeFilename(fileName) + "\"";
             return r2.presignedGetUrl(storageKey.substring(3), disposition,
                     Duration.ofMinutes(15));
         }
