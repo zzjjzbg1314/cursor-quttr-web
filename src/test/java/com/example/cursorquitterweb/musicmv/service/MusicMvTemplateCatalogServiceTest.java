@@ -585,7 +585,20 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> animation = row("preset", "scale_up_approximation");
         animation.put("durationSeconds", Double.valueOf(0.4d));
         animation.put("fidelity", "semantic_approximation");
-        layer.put("animations", Collections.singletonList(animation));
+        Map<String, Object> glyphAnimation = row(
+                "preset", "glyph_texture_shuffle_animation");
+        glyphAnimation.put("durationSeconds", Double.valueOf(0.4d));
+        glyphAnimation.put("fidelity", "semantic_approximation");
+        glyphAnimation.put("contractVersion", "browser-animation-semantic-v2");
+        glyphAnimation.put("semanticFamily", "glyph_texture_shuffle_animation");
+        glyphAnimation.put("packageClock", "four_discrete_phases_per_declared_duration");
+        glyphAnimation.put("textTransform", "uppercase_supported_characters");
+        glyphAnimation.put("glyphSource", "indexed_charimage_texture_pairs");
+        glyphAnimation.put("variantSelection", "deterministic_seeded_character_variant");
+        glyphAnimation.put("motionSelection", "seeded_thirty_percent_position_scale_rotation");
+        glyphAnimation.put("layoutAdjustment", "package_word_gap_point_35_line_gap_point_45");
+        glyphAnimation.put("evidence", "package_textanim_lua_and_indexed_glyph_textures");
+        layer.put("animations", java.util.Arrays.asList(animation, glyphAnimation));
         Map<String, Object> transition = row("preset", "ab_progress_mix");
         transition.put("durationSeconds", Double.valueOf(0.3d));
         transition.put("fidelity", "exact");
@@ -680,6 +693,8 @@ class MusicMvTemplateCatalogServiceTest {
         capabilityReport.put("effectImplementations", java.util.Arrays.asList(
                 effectImplementation("animation", "scale_up_approximation",
                         "timeline_animation_v1", "semantic_approximation"),
+                effectImplementation("animation", "glyph_texture_shuffle_animation",
+                        "timeline_animation_v1", "semantic_approximation"),
                 effectImplementation("transition", "ab_progress_mix",
                         "timeline_transition_v1", "exact"),
                 effectImplementation("layer_effect", "texture_sequence_screen_multiply",
@@ -697,7 +712,7 @@ class MusicMvTemplateCatalogServiceTest {
         reportSummary.put("exactFeatureCount", Integer.valueOf(1));
         reportSummary.put("approximateFeatureCount", Integer.valueOf(0));
         reportSummary.put("unsupportedFeatureCount", Integer.valueOf(0));
-        reportSummary.put("effectImplementationCount", Integer.valueOf(7));
+        reportSummary.put("effectImplementationCount", Integer.valueOf(8));
         capabilityReport.put("summary", reportSummary);
         scene.put("capabilityReport", capabilityReport);
         TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
@@ -711,6 +726,14 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("ready", result.get("status"));
         verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"),
                 eq("browser-template-scene-v5"), anyString(), eq("ready"), anyString());
+
+        glyphAnimation.remove("glyphSource");
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        ApiException incompleteGlyphAnimation = assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+        assertEquals("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID",
+                incompleteGlyphAnimation.getCode());
+        glyphAnimation.put("glyphSource", "indexed_charimage_texture_pairs");
 
         personProtectedEffect.put("paperTexturePath", "/Users/test/private/peopleTex.png");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));

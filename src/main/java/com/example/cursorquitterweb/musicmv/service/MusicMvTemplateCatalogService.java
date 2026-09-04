@@ -678,6 +678,7 @@ public class MusicMvTemplateCatalogService {
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation",
+                "glyph_texture_shuffle_animation",
                 "keyframe_transform",
                 "jitter_approximation", "scale_down_approximation",
                 "scale_up_approximation", "blur_in_approximation",
@@ -707,6 +708,29 @@ public class MusicMvTemplateCatalogService {
                                     animation.get("evidence")))) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID",
                         "Exact Lumi video animations require the verified semantic contract");
+            }
+            if ("glyph_texture_shuffle_animation".equals(
+                    String.valueOf(animation.get("preset")))
+                    && !("browser-animation-semantic-v2".equals(
+                            animation.get("contractVersion"))
+                            && "glyph_texture_shuffle_animation".equals(
+                                    animation.get("semanticFamily"))
+                            && "four_discrete_phases_per_declared_duration".equals(
+                                    animation.get("packageClock"))
+                            && "uppercase_supported_characters".equals(
+                                    animation.get("textTransform"))
+                            && "indexed_charimage_texture_pairs".equals(
+                                    animation.get("glyphSource"))
+                            && "deterministic_seeded_character_variant".equals(
+                                    animation.get("variantSelection"))
+                            && "seeded_thirty_percent_position_scale_rotation".equals(
+                                    animation.get("motionSelection"))
+                            && "package_word_gap_point_35_line_gap_point_45".equals(
+                                    animation.get("layoutAdjustment"))
+                            && "package_textanim_lua_and_indexed_glyph_textures".equals(
+                                    animation.get("evidence")))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID",
+                        "Glyph texture animations require the verified semantic contract");
             }
         }
     }
