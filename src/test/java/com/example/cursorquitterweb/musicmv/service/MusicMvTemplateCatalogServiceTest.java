@@ -40,14 +40,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class MusicMvTemplateCatalogServiceTest {
     private MusicMvTemplateCatalogRepository repository;
     private CloudflareTemplateMediaProvider mediaProvider;
+    private TemplateRuntimePackageService runtimePackages;
     private MusicMvTemplateCatalogService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(MusicMvTemplateCatalogRepository.class);
         mediaProvider = mock(CloudflareTemplateMediaProvider.class);
+        runtimePackages = mock(TemplateRuntimePackageService.class);
         service = new MusicMvTemplateCatalogService(repository,
-                mediaProvider, mock(D1DatabaseClient.class),
+                mediaProvider, runtimePackages, mock(D1DatabaseClient.class),
                 new ObjectMapper());
         when(repository.versionByValidationJob(anyString())).thenReturn(null);
         Map<String, Object> category = new LinkedHashMap<String, Object>();
@@ -266,6 +268,49 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("tplver_1", first.get("currentVersionId"));
         assertTrue(first == second);
         verify(repository).templateDetail("tpl_1");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void includesReadyRuntimePackageInPublicBrowserRenderDetail() {
+        Map<String, Object> template = row("template_id", "tpl_1");
+        template.put("status", "published");
+        template.put("visibility", "public");
+        template.put("current_version_id", "tplver_1");
+        Map<String, Object> version = row("version_id", "tplver_1");
+        Map<String, Object> browserScene = row("version_id", "tplver_1");
+        browserScene.put("status", "ready");
+        browserScene.put("scene_json", "{}");
+        Map<String, Object> packageRow = row("status", "ready");
+        when(repository.runtimePackage("tplver_1")).thenReturn(packageRow);
+        Map<String, Object> download = new LinkedHashMap<String, Object>();
+        download.put("templateId", "tpl_1");
+        download.put("versionId", "tplver_1");
+        download.put("status", "ready");
+        download.put("downloadUrl", "https://r2.example/runtime.zip");
+        download.put("sourceSha256", hash('a'));
+        download.put("sourceSizeBytes", Long.valueOf(1234L));
+        download.put("objectKey", "private/runtime.zip");
+        download.put("errorMessage", null);
+        when(runtimePackages.downloadSession("tpl_1", "tplver_1")).thenReturn(download);
+        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template,
+                Collections.<Map<String, Object>>emptyList(), null,
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.singletonList(version),
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.<Map<String, Object>>emptyList(),
+                Collections.singletonList(browserScene)));
+
+        Map<String, Object> detail = service.detail("tpl_1", false);
+        List<Map<String, Object>> versions = (List<Map<String, Object>>) detail.get("versions");
+        Map<String, Object> browserRender =
+                (Map<String, Object>) versions.get(0).get("browserRender");
+        Map<String, Object> runtimePackage =
+                (Map<String, Object>) browserRender.get("runtimePackage");
+
+        assertEquals("https://r2.example/runtime.zip", runtimePackage.get("downloadUrl"));
+        assertFalse(runtimePackage.containsKey("objectKey"));
+        assertFalse(runtimePackage.containsKey("errorMessage"));
     }
 
     @Test

@@ -50,6 +50,7 @@ public class MusicMvTemplateCatalogService {
 
     private final MusicMvTemplateCatalogRepository repository;
     private final CloudflareTemplateMediaProvider mediaProvider;
+    private final TemplateRuntimePackageService runtimePackages;
     private final D1DatabaseClient d1;
     private final ObjectMapper objectMapper;
     private final Cache<String, Map<String, Object>> publicDetailCache = Caffeine.newBuilder()
@@ -59,10 +60,12 @@ public class MusicMvTemplateCatalogService {
 
     public MusicMvTemplateCatalogService(MusicMvTemplateCatalogRepository repository,
                                          CloudflareTemplateMediaProvider mediaProvider,
+                                         TemplateRuntimePackageService runtimePackages,
                                          D1DatabaseClient d1,
                                          ObjectMapper objectMapper) {
         this.repository = repository;
         this.mediaProvider = mediaProvider;
+        this.runtimePackages = runtimePackages;
         this.d1 = d1;
         this.objectMapper = objectMapper;
     }
@@ -221,7 +224,17 @@ public class MusicMvTemplateCatalogService {
             version.put("media", mediaViews(orEmpty(mediaByVersion.get(versionId))));
             Map<String, Object> browserScene = scenesByVersion.get(versionId);
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
-                version.put("browserRender", browserSceneView(browserScene, admin));
+                Map<String, Object> browserRender = browserSceneView(browserScene, admin);
+                Map<String, Object> runtimePackage = repository.runtimePackage(versionId);
+                if (!admin && runtimePackage != null
+                        && "ready".equals(RowUtils.str(runtimePackage, "status"))) {
+                    Map<String, Object> download = new LinkedHashMap<String, Object>(
+                            runtimePackages.downloadSession(templateId, versionId));
+                    download.remove("objectKey");
+                    download.remove("errorMessage");
+                    browserRender.put("runtimePackage", download);
+                }
+                version.put("browserRender", browserRender);
             }
             versions.add(version);
         }
