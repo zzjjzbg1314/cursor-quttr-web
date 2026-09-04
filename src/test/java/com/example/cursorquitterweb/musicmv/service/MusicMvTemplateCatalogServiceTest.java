@@ -1302,6 +1302,37 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void recordsCurrentNativeVersionExportAsBrowserParityReference() {
+        when(repository.version("tpl_1", "tplver_1"))
+                .thenReturn(row("version_id", "tplver_1"));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(null);
+        when(mediaProvider.createStreamUpload(anyString(), any()))
+                .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
+                        "cloudflare_stream", "native-reference", "https://upload.example",
+                        "awaiting_upload", new LinkedHashMap<String, Object>()));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_parity_reference");
+        request.setSourceSha256(hash('n'));
+        request.setSourceSizeBytes(Long.valueOf(1000));
+        request.setWidth(Integer.valueOf(1080));
+        request.setHeight(Integer.valueOf(1920));
+        request.setDurationSeconds(Double.valueOf(33.433d));
+        request.setFilename("native-validation.mp4");
+        request.setSourceType("capcut_native_version_export");
+        request.setDisplayLabel("CapCut 原生验收成片");
+
+        Map<String, Object> result = service.createMediaSession(
+                "tpl_1", "tplver_1", true, request);
+        Map<String, Object> details = (Map<String, Object>) result.get("providerDetails");
+
+        assertEquals("awaiting_upload", result.get("status"));
+        assertEquals("capcut_native_version_export", details.get("sourceType"));
+        assertEquals("CapCut 原生验收成片", details.get("displayLabel"));
+    }
+
+    @Test
     void rejectsBrowserResourceThatIsNotDeclaredByTheScene() {
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
