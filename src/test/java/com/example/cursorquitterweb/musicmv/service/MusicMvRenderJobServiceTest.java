@@ -107,6 +107,101 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void defaultsDownloadSettingsToThePublishedTemplateOutput() throws Exception {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.setOutputVideo(null);
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.<String, Map<String, Object>>emptyMap());
+        when(repository.completeBrowserPreparation(eq("mvr_1"), anyString()))
+                .thenReturn(row("mvr_1", null));
+
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        ArgumentCaptor<String> prepared = ArgumentCaptor.forClass(String.class);
+        verify(repository).completeBrowserPreparation(eq("mvr_1"), prepared.capture());
+        Map<String, Object> payload = new ObjectMapper().readValue(prepared.getValue(), Map.class);
+        Map<String, Object> output = (Map<String, Object>) payload.get("outputVideo");
+        assertEquals(Integer.valueOf(1080), output.get("width"));
+        assertEquals(Integer.valueOf(1920), output.get("height"));
+        assertEquals(Integer.valueOf(30), output.get("fps"));
+        assertEquals("recommended", output.get("quality"));
+        assertEquals("mp4", output.get("format"));
+    }
+
+    @Test
+    void acceptsEverySupportedDownloadFrameRateAndQuality() {
+        for (int fps : new int[] { 24, 30, 60 }) {
+            for (String quality : Arrays.asList("standard", "recommended", "high")) {
+                MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+                MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                        mock(AiMusicJobRepository.class), mock(MusicMvRenderArtifactStorageService.class),
+                        inputAssets(), new ObjectMapper(), true, 2);
+                MusicMvRenderJobCreateRequest request = request();
+                request.setRequestId("req_" + fps + "_" + quality);
+                request.setOutputVideo(outputVideo(1080, 1920, fps, quality, "mp4"));
+
+                Map<String, Object> created = service.create("website-backend", request);
+
+                assertEquals("preparing", created.get("status"));
+                verify(repository).createBrowserPreparing(anyString(), eq("website-backend"),
+                        eq(request.getRequestId()), eq("tpl_1"), eq("tplver_1"),
+                        anyString(), anyString(), anyString(), anyString());
+            }
+        }
+    }
+
+    @Test
+    void rejectsUnsupportedDownloadResolutionFrameRateQualityAndFormat() {
+        assertInvalidOutput(outputVideo(1, 1920, 30, "recommended", "mp4"),
+                "MV_RENDER_OUTPUT_RESOLUTION_INVALID");
+        assertInvalidOutput(outputVideo(1080, 1920, 25, "recommended", "mp4"),
+                "MV_RENDER_OUTPUT_FPS_INVALID");
+        assertInvalidOutput(outputVideo(1080, 1920, 30, "ultra", "mp4"),
+                "MV_RENDER_OUTPUT_QUALITY_INVALID");
+        assertInvalidOutput(outputVideo(1080, 1920, 30, "recommended", "webm"),
+                "MV_RENDER_OUTPUT_FORMAT_INVALID");
+    }
+
+    @Test
+    void rejectsDownloadResolutionThatChangesTemplateAspectRatio() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                aiMusicJobs, mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.setOutputVideo(outputVideo(1080, 1080, 30, "recommended", "mp4"));
+        when(repository.claimBrowserPreparation("mvr_1"))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(aiMusicJobs.ownedCandidate("website-backend", "song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("mvr_1", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_1", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.<String, Map<String, Object>>emptyMap());
+
+        service.prepareBrowserAsync("website-backend", "mvr_1");
+
+        verify(repository).failBrowserPreparation("mvr_1", "MV_RENDER_OUTPUT_ASPECT_INVALID",
+                "Output resolution must keep the template aspect ratio", false);
+        verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+    }
+
+    @Test
     void rejectsIncompleteSlotContract() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
@@ -549,6 +644,31 @@ class MusicMvRenderJobServiceTest {
         verify(artifacts, never()).delete(anyString());
     }
 
+    @Test
+    void usesTheRequestedSafeFileNameForTheFinishedDownload() throws Exception {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        Map<String, Object> completed = row("mvr_completed", null);
+        completed.put("client_id", "usr_owner");
+        completed.put("status", "completed");
+        completed.put("output_storage_key", "r2:music-mv-renders/mvr_completed.mp4");
+        completed.put("output_size_bytes", Long.valueOf(4L));
+        completed.put("output_content_type", "video/mp4");
+        completed.put("request_json", "{\"outputFileName\":\"Family: story.mp4\"}");
+        when(repository.byId("mvr_completed")).thenReturn(completed);
+        when(artifacts.exists("r2:music-mv-renders/mvr_completed.mp4")).thenReturn(true);
+
+        MusicMvRenderJobService.OutputAccess output = service.output("usr_owner", "mvr_completed");
+
+        assertEquals("Family__story.mp4", output.getFileName());
+        output.temporaryDownloadUrl(false);
+        verify(artifacts).temporaryDownloadUrl("r2:music-mv-renders/mvr_completed.mp4",
+                false, "Family__story.mp4");
+    }
+
     private MusicMvRenderJobCreateRequest request() {
         MusicMvRenderJobCreateRequest request = new MusicMvRenderJobCreateRequest();
         request.setRequestId("req_1");
@@ -562,6 +682,35 @@ class MusicMvRenderJobServiceTest {
         request.setAllowTemplateLoop(Boolean.TRUE);
         request.setFadeOutSeconds(Double.valueOf(0.0d));
         return request;
+    }
+
+    private MusicMvRenderJobCreateRequest.OutputVideo outputVideo(
+            int width, int height, int fps, String quality, String format) {
+        MusicMvRenderJobCreateRequest.OutputVideo output =
+                new MusicMvRenderJobCreateRequest.OutputVideo();
+        output.setWidth(Integer.valueOf(width));
+        output.setHeight(Integer.valueOf(height));
+        output.setFps(Integer.valueOf(fps));
+        output.setQuality(quality);
+        output.setFormat(format);
+        return output;
+    }
+
+    private void assertInvalidOutput(MusicMvRenderJobCreateRequest.OutputVideo output,
+                                     String expectedCode) {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.setOutputVideo(output);
+
+        ApiException error = assertThrows(ApiException.class,
+                () -> service.create("website-backend", request));
+
+        assertEquals(expectedCode, error.getCode());
+        verify(repository, never()).createBrowserPreparing(anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     private MusicMvInputAssetStorageService inputAssets() {

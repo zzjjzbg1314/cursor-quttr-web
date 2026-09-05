@@ -107,10 +107,11 @@ class MusicMvRenderJobControllerTest {
     void redirectsR2OutputToAShortLivedPrivateUrl() throws Exception {
         when(auth.requireUserId(any())).thenReturn("usr_owner");
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
-        when(artifacts.temporaryDownloadUrl("r2:result.mp4", true))
+        when(artifacts.temporaryDownloadUrl("r2:result.mp4", true, "Family story.mp4"))
                 .thenReturn("https://private-r2.example/result.mp4?signed=true");
         when(service.output("usr_owner", "mvr_completed"))
-                .thenReturn(new OutputAccess(artifacts, "r2:result.mp4", 4L, "video/mp4"));
+                .thenReturn(new OutputAccess(artifacts, "r2:result.mp4", 4L,
+                        "video/mp4", "Family story.mp4"));
 
         mockMvc.perform(get("/api/music-mv/v1/render-jobs/mvr_completed/output")
                         .header("X-Music-Mv-Client-Token", "isolated-client-token")
@@ -121,7 +122,7 @@ class MusicMvRenderJobControllerTest {
                         "https://private-r2.example/result.mp4?signed=true"))
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "private, no-store"));
 
-        verify(artifacts).temporaryDownloadUrl("r2:result.mp4", true);
+        verify(artifacts).temporaryDownloadUrl("r2:result.mp4", true, "Family story.mp4");
         verify(artifacts, never()).openStream(anyString(), anyLong(), anyLong());
     }
 
