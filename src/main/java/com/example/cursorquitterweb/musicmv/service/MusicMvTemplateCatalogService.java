@@ -1374,6 +1374,25 @@ public class MusicMvTemplateCatalogService {
         }
         Map<String, Object> existing = repository.mediaByRole(versionId, expectedRole);
         boolean forceReplace = Boolean.TRUE.equals(request.getForceReplace());
+        if (!forceReplace && video && existing != null
+                && request.getSourceSha256().equalsIgnoreCase(RowUtils.str(existing, "source_sha256"))
+                && !"ready".equals(RowUtils.str(existing, "status"))) {
+            MediaState pending = mediaProvider.streamState(RowUtils.str(existing, "provider_asset_id"));
+            String state = String.valueOf(pending.getProviderDetails().get("state"));
+            if ("ready".equals(pending.getStatus()) || "queued".equals(state) || "inprogress".equals(state)) {
+                Map<String, Object> details = parseObject(RowUtils.str(existing, "provider_details_json"));
+                details.putAll(pending.getProviderDetails());
+                if ("ready".equals(pending.getStatus())) {
+                    repository.markMediaReady(RowUtils.str(existing, "media_id"), json(details));
+                    invalidateDetail(templateId);
+                }
+                // 已上传的视频继续等待原处理任务，不新建云端副本。
+                Map<String, Object> reused = mediaSessionView(RowUtils.str(existing, "media_id"),
+                        null, pending.getStatus(), details);
+                reused.put("idempotentReplay", Boolean.TRUE);
+                return reused;
+            }
+        }
         if (!forceReplace && existing != null && request.getSourceSha256().equalsIgnoreCase(
                 RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))
                 && mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),

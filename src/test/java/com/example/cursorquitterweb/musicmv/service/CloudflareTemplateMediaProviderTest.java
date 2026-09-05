@@ -38,6 +38,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class CloudflareTemplateMediaProviderTest {
     @Test
+    void recentlyReadyImageReusesBoundedCache() {
+        RestTemplate rest = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(rest).build();
+        server.expect(once(), requestTo("https://api.cloudflare.test/accounts/account/images/v1/img-1"))
+                .andRespond(withSuccess("{\"success\":true,\"result\":{\"draft\":false}}", MediaType.APPLICATION_JSON));
+        CloudflareTemplateMediaProvider provider = provider(rest);
+        assertEquals("ready", provider.imageState("img-1").getStatus());
+        assertTrue(provider.isReusableReadyAsset("cloudflare_images", "img-1"));
+        server.verify();
+    }
+
+    @Test
+    void processingVideoIsNotCachedAndCanBecomeReady() {
+        RestTemplate rest = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(rest).build();
+        server.expect(once(), requestTo("https://api.cloudflare.test/accounts/account/stream/video-1"))
+                .andRespond(withSuccess("{\"success\":true,\"result\":{\"status\":{\"state\":\"queued\"}}}", MediaType.APPLICATION_JSON));
+        server.expect(once(), requestTo("https://api.cloudflare.test/accounts/account/stream/video-1"))
+                .andRespond(withSuccess("{\"success\":true,\"result\":{\"readyToStream\":true}}", MediaType.APPLICATION_JSON));
+        CloudflareTemplateMediaProvider provider = provider(rest);
+        assertEquals("processing", provider.streamState("video-1").getStatus());
+        assertEquals("ready", provider.streamState("video-1").getStatus());
+        assertEquals("ready", provider.streamState("video-1").getStatus());
+        server.verify();
+    }
+    @Test
     void createsImagesDirectUploadWithoutExposingApiToken() {
         RestTemplate restTemplate = new RestTemplate();
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();

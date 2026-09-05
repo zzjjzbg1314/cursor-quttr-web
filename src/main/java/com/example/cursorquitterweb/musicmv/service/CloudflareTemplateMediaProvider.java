@@ -29,6 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class CloudflareTemplateMediaProvider {
+    private final com.github.benmanes.caffeine.cache.Cache<String, MediaState> readyStates =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(2048)
+                    .expireAfterWrite(5, java.util.concurrent.TimeUnit.MINUTES).build();
     private static final int READ_ATTEMPTS = 3;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -173,6 +176,8 @@ public class CloudflareTemplateMediaProvider {
 
     public MediaState imageState(String providerAssetId) {
         requireImagesConfigured();
+        MediaState cached = readyStates.getIfPresent("image:" + providerAssetId);
+        if (cached != null) return cached;
         JsonNode result = jsonExchange(apiBaseUrl + "/accounts/" + imagesAccountId
                 + "/images/v1/" + providerAssetId, HttpMethod.GET,
                 new HttpEntity<Void>(bearer(imagesApiToken))).path("result");
@@ -183,7 +188,9 @@ public class CloudflareTemplateMediaProvider {
         Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("deliveryUrl", imagesDeliveryBaseUrl + "/" + providerAssetId + "/public");
         details.put("draft", Boolean.valueOf(!ready));
-        return new MediaState(ready ? "ready" : "processing", details);
+        MediaState state = new MediaState(ready ? "ready" : "processing", details);
+        if (ready) readyStates.put("image:" + providerAssetId, state);
+        return state;
     }
 
     public boolean isReusableReadyAsset(String provider, String providerAssetId) {
@@ -209,6 +216,8 @@ public class CloudflareTemplateMediaProvider {
 
     public MediaState streamState(String providerAssetId) {
         requireStreamConfigured();
+        MediaState cached = readyStates.getIfPresent("video:" + providerAssetId);
+        if (cached != null) return cached;
         JsonNode result = jsonExchange(apiBaseUrl + "/accounts/" + streamAccountId
                 + "/stream/" + providerAssetId, HttpMethod.GET,
                 new HttpEntity<Void>(bearer(streamApiToken))).path("result");
@@ -218,12 +227,15 @@ public class CloudflareTemplateMediaProvider {
         details.put("readyToStream", Boolean.valueOf(ready));
         details.put("state", result.path("status").path("state").asText("unknown"));
         details.put("pctComplete", result.path("status").path("pctComplete").asText(null));
-        return new MediaState(ready ? "ready" : "processing", details);
+        MediaState state = new MediaState(ready ? "ready" : "processing", details);
+        if (ready) readyStates.put("video:" + providerAssetId, state);
+        return state;
     }
 
     /** Permanently removes a template showcase asset from its Cloudflare product. */
     public void deleteAsset(String provider, String providerAssetId) {
         String assetId = required(trim(providerAssetId), "Cloudflare asset id is required");
+        readyStates.invalidate(("cloudflare_images".equals(provider) ? "image:" : "video:") + assetId);
         if ("cloudflare_images".equals(provider)) {
             requireImagesConfigured();
             deleteIgnoringMissing(apiBaseUrl + "/accounts/" + imagesAccountId

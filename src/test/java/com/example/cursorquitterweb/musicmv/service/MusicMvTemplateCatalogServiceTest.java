@@ -1395,6 +1395,32 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void repeatedSynchronizationReusesQueuedVideoInsteadOfUploadingAgain() {
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        Map<String, Object> existing = row("media_id", "media_1");
+        existing.put("source_sha256", hash('a'));
+        existing.put("status", "awaiting_upload");
+        existing.put("provider_asset_id", "queued-video");
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference")).thenReturn(existing);
+        when(mediaProvider.streamState("queued-video")).thenReturn(
+                new CloudflareTemplateMediaProvider.MediaState("processing", row("state", "queued")));
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("browser_parity_reference");
+        request.setSourceSha256(hash('a'));
+        request.setFilename("reference.mp4");
+        request.setDurationSeconds(14.267);
+        Map<String, Object> result = service.createMediaSession("tpl_1", "tplver_1", true, request);
+        assertEquals("processing", result.get("status"));
+        assertEquals("media_1", result.get("mediaId"));
+        assertEquals(Boolean.TRUE, result.get("idempotentReplay"));
+        verify(mediaProvider, never()).createStreamUpload(anyString(), any());
+        when(mediaProvider.streamState("queued-video")).thenReturn(
+                new CloudflareTemplateMediaProvider.MediaState("ready", row("state", "ready")));
+        assertEquals("ready", service.createMediaSession("tpl_1", "tplver_1", true, request).get("status"));
+        verify(repository).markMediaReady(eq("media_1"), anyString());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void recordsCapCutOfficialPreviewProvenanceOnFullMv() {
         when(repository.version("tpl_1", "tplver_1"))
