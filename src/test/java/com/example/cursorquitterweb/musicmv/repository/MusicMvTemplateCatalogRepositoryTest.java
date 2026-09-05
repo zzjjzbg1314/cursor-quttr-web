@@ -19,11 +19,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
     @Test
+    void cleanupIsDelayedBoundedAndFailsClosedWithoutReferenceEvidence() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.cleanupCandidates();
+        assertTrue(client.sql.contains("-24 hours"));
+        assertTrue(client.sql.contains("LIMIT 50"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                () -> repository.cleanupAssetReferenced("cloudflare_images", "old", "t", "v"));
+        assertTrue(client.sql.contains("template_browser_scenes"));
+        assertTrue(client.sql.contains("music_mv_projects"));
+        assertTrue(client.sql.contains("music_mv_render_jobs"));
+        assertTrue(client.sql.contains("status<>'ready'"));
+    }
+    @Test
     void staleMediaCleanupIsLimitedToTargetTemplateAndVersion() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
         repository.retainSynchronizedMedia("tpl_1", "tplver_1", Arrays.asList("cover", "browser_parity_reference"));
-        assertTrue(client.sql.contains("template_id=? AND version_id=? AND media_role NOT IN (?,?)"));
+        assertEquals(2, client.statements.size());
+        assertTrue(client.statements.get(0).getSql().startsWith("INSERT OR IGNORE INTO template_media_cleanup"));
+        for (D1Statement item : client.statements) {
+            assertTrue(item.getSql().contains("template_id=? AND version_id=? AND media_role NOT IN (?,?)"));
+            assertEquals(placeholders(item.getSql()), item.getParams().size());
+        }
+    }
+
+    @Test
+    void replacedMediaIsQueuedAtomicallyBeforeOverwrite() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.upsertMedia("m", "t", "v", "cover", "cloudflare_images", "new", "ready",
+                hash('a'), 1, 1, 1, null, "{}");
+        assertEquals(2, client.statements.size());
+        assertTrue(client.statements.get(0).getSql().contains("AND (provider<>? OR provider_asset_id<>?)"));
+        assertTrue(client.statements.get(1).getSql().startsWith("INSERT INTO template_media"));
+        for (D1Statement item : client.statements) assertEquals(placeholders(item.getSql()), item.getParams().size());
     }
     @Test
     void synchronizationUpdatesInPlaceWithoutDeletingVersionsOrProjects() {

@@ -18,6 +18,53 @@ import com.example.cursorquitterweb.musicmv.support.IdUtils;
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvTemplateCatalogRepository {
     private final D1DatabaseClient d1;
+    private volatile boolean cleanupQueueReady;
+
+    public synchronized void ensureCleanupQueue() {
+        if (cleanupQueueReady) return;
+        d1.query("CREATE TABLE IF NOT EXISTS template_media_cleanup ("
+                + "provider TEXT NOT NULL,provider_asset_id TEXT NOT NULL,template_id TEXT NOT NULL,"
+                + "version_id TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                + "next_attempt_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,attempts INTEGER NOT NULL DEFAULT 0,"
+                + "PRIMARY KEY(provider,provider_asset_id))");
+        cleanupQueueReady = true;
+    }
+
+    private String enqueueCleanup(String predicate) {
+        return "INSERT OR IGNORE INTO template_media_cleanup "
+                + "(provider,provider_asset_id,template_id,version_id) "
+                + "SELECT provider,provider_asset_id,template_id,version_id FROM template_media WHERE " + predicate;
+    }
+
+    public List<Map<String, Object>> cleanupCandidates() {
+        ensureCleanupQueue();
+        return d1.query("SELECT * FROM template_media_cleanup WHERE created_at <= datetime('now','-24 hours') "
+                + "AND next_attempt_at <= CURRENT_TIMESTAMP ORDER BY next_attempt_at LIMIT 50").getRows();
+    }
+
+    public boolean cleanupAssetReferenced(String provider, String assetId, String templateId, String versionId) {
+        // 对已有作品保守保留，避免删除旧作品或正在运行任务使用的素材。
+        Map<String, Object> result = d1.query("SELECT (SELECT COUNT(*) FROM template_media WHERE provider=? AND provider_asset_id=?) "
+                + "+ (SELECT COUNT(*) FROM template_browser_scenes WHERE instr(scene_json,?)>0) "
+                + "+ (SELECT COUNT(*) FROM music_mv_projects WHERE template_id=?) "
+                + "+ (SELECT COUNT(*) FROM music_mv_render_jobs WHERE template_id=?) "
+                + "+ (SELECT COUNT(*) FROM template_media WHERE version_id=? AND status<>'ready') AS total",
+                provider, assetId, assetId, templateId, templateId, versionId).firstRow();
+        if (result == null || result.get("total") == null) {
+            throw new IllegalStateException("无法确认旧素材引用状态");
+        }
+        return Long.parseLong(String.valueOf(result.get("total"))) > 0;
+    }
+
+    public void deferCleanup(String provider, String assetId) {
+        d1.query("UPDATE template_media_cleanup SET attempts=attempts+1,"
+                + "next_attempt_at=datetime('now','+1 day') WHERE provider=? AND provider_asset_id=?",
+                provider, assetId);
+    }
+
+    public void completeCleanup(String provider, String assetId) {
+        d1.query("DELETE FROM template_media_cleanup WHERE provider=? AND provider_asset_id=?", provider, assetId);
+    }
 
     public MusicMvTemplateCatalogRepository(D1DatabaseClient d1) {
         this.d1 = d1;
@@ -480,13 +527,15 @@ public class MusicMvTemplateCatalogRepository {
 
     public void retainSynchronizedMedia(String templateId, String versionId, List<String> roles) {
         if (roles == null || roles.isEmpty()) throw new IllegalArgumentException("Media roles are required");
+        ensureCleanupQueue();
         List<Object> params = new ArrayList<Object>();
         params.add(templateId);
         params.add(versionId);
         params.addAll(roles);
-        // 仅移除过期关联，不删除云存储对象，以免影响已生成作品的引用。
-        d1.query("DELETE FROM template_media WHERE template_id=? AND version_id=? AND media_role NOT IN ("
-                + String.join(",", java.util.Collections.nCopies(roles.size(), "?")) + ")", params.toArray());
+        String predicate = "template_id=? AND version_id=? AND media_role NOT IN ("
+                + String.join(",", java.util.Collections.nCopies(roles.size(), "?")) + ")";
+        d1.batch(Arrays.asList(statement(enqueueCleanup(predicate), params.toArray()),
+                statement("DELETE FROM template_media WHERE " + predicate, params.toArray())));
     }
 
     public List<Map<String, Object>> mediaForTemplate(String templateId) {
@@ -799,7 +848,10 @@ public class MusicMvTemplateCatalogRepository {
                             String provider, String providerAssetId, String status, String sha256,
                             long sizeBytes, Integer width, Integer height, Double duration,
                             String providerDetailsJson) {
-        d1.query("INSERT INTO template_media "
+        ensureCleanupQueue();
+        d1.batch(Arrays.asList(statement(enqueueCleanup("version_id=? AND media_role=? "
+                        + "AND (provider<>? OR provider_asset_id<>?)"), versionId, role, provider, providerAssetId),
+                statement("INSERT INTO template_media "
                 + "(media_id,template_id,version_id,media_role,provider,provider_asset_id,status,"
                 + "source_sha256,source_size_bytes,width,height,duration_seconds,provider_details_json,"
                 + "created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
@@ -810,7 +862,7 @@ public class MusicMvTemplateCatalogRepository {
                 + "provider_details_json=excluded.provider_details_json,error_message=NULL,"
                 + "ready_at=NULL,updated_at=CURRENT_TIMESTAMP",
                 mediaId, templateId, versionId, role, provider, providerAssetId, status,
-                sha256.toLowerCase(), Long.valueOf(sizeBytes), width, height, duration, providerDetailsJson);
+                sha256.toLowerCase(), Long.valueOf(sizeBytes), width, height, duration, providerDetailsJson)));
     }
 
     public void markMediaReady(String mediaId, String providerDetailsJson) {
