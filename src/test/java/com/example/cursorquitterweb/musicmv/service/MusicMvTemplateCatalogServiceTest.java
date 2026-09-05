@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -243,6 +244,88 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("validated", result.get("status"));
         verify(repository).promote(eq(request), anyString(), eq(Integer.valueOf(4)),
                 anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void synchronizationReplacesChangedEvidenceOnPublishedVersion() {
+        TemplatePromotionRequest request = synchronizationRequest();
+        Map<String, Object> existing = row("version_id", "tplver_existing");
+        existing.put("template_id", "tpl_1");
+        existing.put("status", "published");
+        existing.put("validation_master_sha256", hash('f'));
+        when(repository.versionByValidationJob("draft_1")).thenReturn(existing);
+        Map<String, Object> result = service.promote(request);
+        assertEquals("tplver_existing", result.get("versionId"));
+        assertEquals(Boolean.TRUE, result.get("replacedExisting"));
+        verify(repository).replaceSynchronizedVersion(eq(request), eq("tplver_existing"),
+                anyString(), anyString(), anyString());
+        verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void synchronizationUsesExistingTemplateForNewDraftTask() {
+        TemplatePromotionRequest request = synchronizationRequest();
+        Map<String, Object> existing = row("version_id", "tplver_current");
+        existing.put("status", "validated");
+        when(repository.synchronizationVersion("tpl_1")).thenReturn(existing);
+        Map<String, Object> result = service.promote(request);
+        assertEquals("tplver_current", result.get("versionId"));
+        verify(repository).replaceSynchronizedVersion(eq(request), eq("tplver_current"),
+                anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void synchronizationCannotReplaceAnotherTemplatesEvidence() {
+        TemplatePromotionRequest request = synchronizationRequest();
+        Map<String, Object> existing = row("version_id", "tplver_other");
+        existing.put("template_id", "tpl_other");
+        when(repository.versionByValidationJob("draft_1")).thenReturn(existing);
+        assertEquals("TEMPLATE_PROMOTION_IDEMPOTENCY_CONFLICT",
+                assertThrows(ApiException.class, () -> service.promote(request)).getCode());
+        verify(repository, never()).replaceSynchronizedVersion(any(), anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void firstSynchronizationStillCreatesVersion() {
+        TemplatePromotionRequest request = synchronizationRequest();
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(1);
+        service.promote(request);
+        verify(repository).promote(eq(request), anyString(), eq(1), anyString(), anyString(), anyString());
+    }
+
+    private TemplatePromotionRequest synchronizationRequest() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setPromotionMode("latest_saved_draft");
+        request.setReplaceExisting(Boolean.TRUE);
+        request.setValidationRenderJobId("draft_1");
+        request.setSemanticIntegrity("browser_ready");
+        request.setVideoEncodeCount(0);
+        request.setRendererVersion("browser-canvas-v1");
+        return request;
+    }
+
+    @Test
+    void synchronizationCleansOldMediaOnlyAfterLatestMediaAreReady() {
+        Map<String, Object> version = row("version_id", "tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        when(repository.browserScene("tplver_1")).thenReturn(row("manifest_sha256", hash('a')));
+        com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest request =
+                new com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest();
+        request.setManifestSha256(hash('a'));
+        request.setMediaRoles(java.util.Arrays.asList("cover", "browser_parity_reference"));
+        assertEquals("TEMPLATE_SYNC_MEDIA_NOT_READY", assertThrows(ApiException.class,
+                () -> service.completeSynchronization("tpl_1", "tplver_1", request)).getCode());
+        verify(repository, never()).retainSynchronizedMedia(anyString(), anyString(), anyList());
+        Map<String, Object> cover = row("media_role", "cover");
+        cover.put("status", "ready");
+        Map<String, Object> reference = row("media_role", "browser_parity_reference");
+        reference.put("status", "ready");
+        when(repository.media("tplver_1")).thenReturn(java.util.Arrays.asList(cover, reference));
+        assertEquals("synchronized", service.completeSynchronization("tpl_1", "tplver_1", request).get("status"));
+        verify(repository).retainSynchronizedMedia("tpl_1", "tplver_1", request.getMediaRoles());
+        request.setManifestSha256(hash('b'));
+        assertEquals("TEMPLATE_SYNC_SCENE_CHANGED", assertThrows(ApiException.class,
+                () -> service.completeSynchronization("tpl_1", "tplver_1", request)).getCode());
     }
 
     @Test

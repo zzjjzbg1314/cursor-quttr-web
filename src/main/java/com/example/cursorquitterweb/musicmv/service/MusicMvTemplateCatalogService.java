@@ -294,6 +294,31 @@ public class MusicMvTemplateCatalogService {
                             + RowUtils.str(identities.get(0), "template_id"));
         }
         Map<String, Object> existing = repository.versionByValidationJob(request.getValidationRenderJobId());
+        if (Boolean.TRUE.equals(request.getReplaceExisting())) {
+            if (!"latest_saved_draft".equals(request.getPromotionMode())) {
+                throw badRequest("TEMPLATE_REPLACEMENT_MODE_INVALID", "Only template synchronization may replace existing data");
+            }
+            if (existing != null && !request.getTemplateId().equals(RowUtils.str(existing, "template_id"))) {
+                throw conflict("TEMPLATE_PROMOTION_IDEMPOTENCY_CONFLICT", "Validation job belongs to another template");
+            }
+            Map<String, Object> target = existing == null
+                    ? repository.synchronizationVersion(request.getTemplateId()) : existing;
+            if (target != null && !target.isEmpty()) {
+                String targetId = RowUtils.str(target, "version_id");
+                repository.replaceSynchronizedVersion(request, targetId, json(sourceHashtags),
+                        json(promotionProvenance(request)), jsonOrEmpty(request.getValidationEvidence()));
+                repository.upsertTemplateSourceMetadata(request.getTemplateId(), safe(request.getSourceTitle()),
+                        safe(request.getSourceDescription()), safe(request.getSourceCategory()),
+                        safe(request.getSourceSearchKeyword()), json(sourceHashtags), safe(request.getSourceUrl()),
+                        Boolean.TRUE.equals(request.getClassificationLocked()));
+                repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory, categoryAssignments);
+                invalidateDetail(request.getTemplateId());
+                Map<String, Object> result = promotionView(request.getTemplateId(), targetId, RowUtils.str(target, "status"));
+                result.put("replacedExisting", Boolean.TRUE);
+                result.put("idempotentReplay", Boolean.FALSE);
+                return result;
+            }
+        }
         if (existing != null) {
             boolean same = request.getTemplateId().equals(RowUtils.str(existing, "template_id"))
                     && request.getDraftSnapshotSha256().equalsIgnoreCase(
@@ -369,6 +394,40 @@ public class MusicMvTemplateCatalogService {
         result.put("templateId", templateId);
         result.put("capcutTemplateId", capcutTemplateId);
         result.put("status", "bound");
+        return result;
+    }
+
+    public Map<String, Object> completeSynchronization(String templateId, String versionId,
+            com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest request) {
+        requireVersion(templateId, versionId);
+        Map<String, Object> scene = repository.browserScene(versionId);
+        if (scene == null || !request.getManifestSha256().equalsIgnoreCase(RowUtils.str(scene, "manifest_sha256"))) {
+            throw conflict("TEMPLATE_SYNC_SCENE_CHANGED", "Template scene changed during synchronization");
+        }
+        List<String> roles = request.getMediaRoles();
+        if (roles == null || !roles.contains("cover") || !roles.contains("browser_parity_reference")
+                || roles.contains(null) || roles.contains("")) {
+            throw badRequest("TEMPLATE_SYNC_MEDIA_REQUIRED", "Synchronization requires cover and reference media");
+        }
+        Set<String> ready = new HashSet<String>();
+        for (Map<String, Object> slot : repository.slots(versionId)) {
+            String type = RowUtils.str(slot, "slot_type");
+            if (("image".equals(type) || "photo".equals(type))
+                    && !roles.contains("slot_default:" + RowUtils.str(slot, "slot_key"))) {
+                throw badRequest("TEMPLATE_SYNC_MEDIA_REQUIRED", "Synchronization omitted a current photo slot");
+            }
+        }
+        for (Map<String, Object> media : repository.media(versionId)) {
+            if ("ready".equals(RowUtils.str(media, "status"))) ready.add(RowUtils.str(media, "media_role"));
+        }
+        if (!ready.containsAll(roles)) {
+            throw conflict("TEMPLATE_SYNC_MEDIA_NOT_READY", "Latest template media are not ready");
+        }
+        repository.retainSynchronizedMedia(templateId, versionId, roles);
+        invalidateDetail(templateId);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("status", "synchronized");
+        result.put("versionId", versionId);
         return result;
     }
 

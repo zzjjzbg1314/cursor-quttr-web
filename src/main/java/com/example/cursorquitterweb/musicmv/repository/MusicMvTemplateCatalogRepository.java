@@ -397,6 +397,13 @@ public class MusicMvTemplateCatalogRepository {
                 : value == null ? 1 : Integer.parseInt(String.valueOf(value));
     }
 
+    public Map<String, Object> synchronizationVersion(String templateId) {
+        return d1.query("SELECT v.version_id,v.template_id,v.status FROM template_versions v "
+                + "JOIN templates t ON t.template_id=v.template_id WHERE v.template_id=? "
+                + "ORDER BY CASE WHEN v.version_id=t.current_version_id THEN 0 ELSE 1 END,v.version_number DESC LIMIT 1",
+                templateId).firstRow();
+    }
+
     public List<Map<String, Object>> slots(String versionId) {
         return d1.query("SELECT slot_id, slot_key, slot_type, display_name, timeline_order, aspect_ratio, "
                 + "crop_policy, repeat_policy, is_required, material_id, material_group "
@@ -469,6 +476,17 @@ public class MusicMvTemplateCatalogRepository {
                 + "source_size_bytes, width, height, duration_seconds, provider_details_json, "
                 + "error_message, created_at, updated_at, ready_at FROM template_media "
                 + "WHERE version_id=? ORDER BY media_role", versionId).getRows();
+    }
+
+    public void retainSynchronizedMedia(String templateId, String versionId, List<String> roles) {
+        if (roles == null || roles.isEmpty()) throw new IllegalArgumentException("Media roles are required");
+        List<Object> params = new ArrayList<Object>();
+        params.add(templateId);
+        params.add(versionId);
+        params.addAll(roles);
+        // 仅移除过期关联，不删除云存储对象，以免影响已生成作品的引用。
+        d1.query("DELETE FROM template_media WHERE template_id=? AND version_id=? AND media_role NOT IN ("
+                + String.join(",", java.util.Collections.nCopies(roles.size(), "?")) + ")", params.toArray());
     }
 
     public List<Map<String, Object>> mediaForTemplate(String templateId) {
@@ -593,7 +611,22 @@ public class MusicMvTemplateCatalogRepository {
 
     public void promote(TemplatePromotionRequest request, String versionId, int versionNumber,
                         String tagsJson, String sourceProvenanceJson, String evidenceJson) {
+        savePromotion(request, versionId, versionNumber, tagsJson, sourceProvenanceJson, evidenceJson, false);
+    }
+
+    public void replaceSynchronizedVersion(TemplatePromotionRequest request, String versionId,
+                                          String tagsJson, String sourceProvenanceJson, String evidenceJson) {
+        savePromotion(request, versionId, 1, tagsJson, sourceProvenanceJson, evidenceJson, true);
+    }
+
+    private void savePromotion(TemplatePromotionRequest request, String versionId, int versionNumber,
+                               String tagsJson, String sourceProvenanceJson, String evidenceJson, boolean replace) {
         List<D1Statement> statements = new ArrayList<D1Statement>();
+        if (replace) {
+            // 只替换目标版本的同步数据，保留版本标识、发布状态和用户作品。
+            statements.add(statement("DELETE FROM template_slots WHERE version_id=?", versionId));
+            statements.add(statement("DELETE FROM template_validation_records WHERE version_id=?", versionId));
+        }
         statements.add(statement("INSERT INTO renderer_nodes "
                 + "(node_id,name,status,runtime_version,runtime_sha256,last_seen_at,created_at,updated_at) "
                 + "VALUES (?,?,'online',?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
@@ -618,7 +651,17 @@ public class MusicMvTemplateCatalogRepository {
                 + "timeline_evidence_sha256,native_runtime_version,native_runtime_sha256,renderer_version,"
                 + "source_node_id,source_local_key,source_availability,last_source_verified_at,"
                 + "source_provenance_json,created_at) VALUES (?,?,?,'validated',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
-                + "?,'available',CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)",
+                + "?,'available',CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP)" + (replace
+                ? " ON CONFLICT(version_id) DO UPDATE SET width=excluded.width,height=excluded.height,"
+                + "fps=excluded.fps,duration_seconds=excluded.duration_seconds,base_duration_seconds=excluded.base_duration_seconds,"
+                + "cycle_duration_seconds=excluded.cycle_duration_seconds,slot_count=excluded.slot_count,"
+                + "validation_status=excluded.validation_status,validation_render_job_id=excluded.validation_render_job_id,"
+                + "validation_master_sha256=excluded.validation_master_sha256,draft_snapshot_sha256=excluded.draft_snapshot_sha256,"
+                + "timeline_evidence_sha256=excluded.timeline_evidence_sha256,native_runtime_version=excluded.native_runtime_version,"
+                + "native_runtime_sha256=excluded.native_runtime_sha256,renderer_version=excluded.renderer_version,"
+                + "source_node_id=excluded.source_node_id,source_local_key=excluded.source_local_key,"
+                + "source_availability=excluded.source_availability,last_source_verified_at=CURRENT_TIMESTAMP,"
+                + "source_provenance_json=excluded.source_provenance_json WHERE template_versions.template_id=excluded.template_id" : ""),
                 versionId, request.getTemplateId(), Integer.valueOf(versionNumber), request.getWidth(),
                 request.getHeight(), request.getFps(), request.getDurationSeconds(),
                 request.getBaseDurationSeconds(), request.getCycleDurationSeconds(),
@@ -649,6 +692,13 @@ public class MusicMvTemplateCatalogRepository {
                 request.getIntermediateVideoCount(), request.getExternalResourceReadCount(),
                 request.getMissingResourceCount(), request.getRendererVersion(),
                 request.getValidationElapsedSeconds(), evidenceJson));
+        if (replace) {
+            statements.add(statement("UPDATE template_versions SET status='published' WHERE version_id=? "
+                    + "AND EXISTS (SELECT 1 FROM templates WHERE template_id=? AND status='published')",
+                    versionId, request.getTemplateId()));
+            statements.add(statement("UPDATE templates SET current_version_id=? WHERE template_id=? AND status='published'",
+                    versionId, request.getTemplateId()));
+        }
         d1.batch(statements);
     }
 

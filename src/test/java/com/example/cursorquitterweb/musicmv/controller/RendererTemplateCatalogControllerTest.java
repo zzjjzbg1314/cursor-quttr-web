@@ -2,6 +2,7 @@ package com.example.cursorquitterweb.musicmv.controller;
 
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,6 +24,23 @@ class RendererTemplateCatalogControllerTest {
                 mock(MusicMvTemplateCatalogService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new MusicMvExceptionHandler()).build();
+    }
+
+    @Test
+    void syncCleanupRequiresDedicatedCredentialAndValidManifest() throws Exception {
+        String body = "{\"manifestSha256\":\"" + new String(new char[64]).replace('\0', 'a')
+                + "\",\"mediaRoles\":[\"cover\",\"browser_parity_reference\"]}";
+        mockMvc.perform(post("/internal/music-mv/v1/templates/tpl_1/versions/tplver_1/sync-complete")
+                        .contentType("application/json").content(body))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/internal/music-mv/v1/templates/tpl_1/versions/tplver_1/sync-complete")
+                        .header("X-Music-Mv-Template-Sync-Token", "sync-only")
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/internal/music-mv/v1/templates/tpl_1/versions/tplver_1/sync-complete")
+                        .header("X-Music-Mv-Template-Sync-Token", "sync-only")
+                        .contentType("application/json").content("{\"mediaRoles\":[]}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

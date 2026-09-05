@@ -20,6 +20,7 @@ import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserSceneRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateBrowserParityRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplatePromotionRequest;
 import com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileRequest;
+import com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest;
 import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
 import com.example.cursorquitterweb.musicmv.service.TemplateSyncAuthenticationService;
 
@@ -136,6 +137,15 @@ public class RendererTemplateCatalogController {
             @PathVariable String mediaId) {
         authentication.requireAuthorized(token);
         return service.completeMedia(templateId, versionId, mediaId);
+    }
+
+    @PostMapping("/{templateId}/versions/{versionId}/sync-complete")
+    public Map<String, Object> completeSynchronization(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId,
+            @Valid @RequestBody TemplateSyncCompleteRequest request) {
+        authentication.requireAuthorized(token);
+        return service.completeSynchronization(templateId, versionId, request);
     }
 
     @PostMapping("/{templateId}/versions/{versionId}/publish")

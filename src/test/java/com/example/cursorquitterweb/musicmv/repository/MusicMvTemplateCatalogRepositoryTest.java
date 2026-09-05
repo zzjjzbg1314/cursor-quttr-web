@@ -19,6 +19,33 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
     @Test
+    void staleMediaCleanupIsLimitedToTargetTemplateAndVersion() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.retainSynchronizedMedia("tpl_1", "tplver_1", Arrays.asList("cover", "browser_parity_reference"));
+        assertTrue(client.sql.contains("template_id=? AND version_id=? AND media_role NOT IN (?,?)"));
+    }
+    @Test
+    void synchronizationUpdatesInPlaceWithoutDeletingVersionsOrProjects() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.replaceSynchronizedVersion(validPromotion(), "tplver_1", "[]", "{}", "{}");
+        StringBuilder sql = new StringBuilder();
+        for (D1Statement statement : client.statements) {
+            assertEquals(placeholders(statement.getSql()), statement.getParams().size(), statement.getSql());
+            sql.append(statement.getSql()).append('\n');
+        }
+        String batch = sql.toString();
+        assertTrue(batch.contains("ON CONFLICT(version_id) DO UPDATE SET width=excluded.width"));
+        assertTrue(batch.contains("validation_master_sha256=excluded.validation_master_sha256"));
+        assertTrue(batch.contains("DELETE FROM template_validation_records WHERE version_id=?"));
+        assertTrue(batch.contains("AND status='published'"));
+        assertFalse(batch.contains("DELETE FROM template_versions"));
+        assertFalse(batch.contains("DELETE FROM templates"));
+        assertFalse(batch.contains("music_mv_projects"));
+    }
+
+    @Test
     void promotionBatchHasOneBoundValueForEverySqlPlaceholder() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

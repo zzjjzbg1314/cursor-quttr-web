@@ -16,6 +16,9 @@ import javax.validation.constraints.Size;
  * validation result is promoted into the cloud template catalog.
  */
 public class TemplatePromotionRequest {
+    private Boolean replaceExisting = Boolean.FALSE;
+    public Boolean getReplaceExisting() { return replaceExisting; }
+    public void setReplaceExisting(Boolean value) { replaceExisting = value; }
     @NotBlank private String promotionMode = "validated_native";
     @NotBlank private String templateId;
     @NotBlank @Pattern(regexp = "^[0-9]{8,24}$") private String capcutTemplateId;
