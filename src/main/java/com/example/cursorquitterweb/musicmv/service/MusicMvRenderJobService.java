@@ -354,14 +354,6 @@ public class MusicMvRenderJobService {
             throw conflict("MV_BROWSER_RENDER_ALREADY_ACTIVE",
                     "This video is already rendering in another browser tab");
         }
-        try {
-            artifacts.clearLocalBrowserOutputs();
-        } catch (RuntimeException exception) {
-            repository.failBrowser(jobId, ownerId, attemptId, leaseToken,
-                    "MV_LOCAL_RENDER_OUTPUT_CLEANUP_FAILED",
-                    "Historical local render videos could not be cleared");
-            throw exception;
-        }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("attemptId", attemptId);
         result.put("leaseToken", leaseToken);

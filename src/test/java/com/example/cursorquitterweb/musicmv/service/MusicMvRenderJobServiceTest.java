@@ -571,7 +571,7 @@ class MusicMvRenderJobServiceTest {
         assertEquals("rendering", ((Map<?, ?>) first.get("job")).get("status"));
         assertEquals(Boolean.TRUE, String.valueOf(first.get("attemptId")).startsWith("bratt_"));
         assertEquals("MV_BROWSER_RENDER_ALREADY_ACTIVE", second.getCode());
-        verify(artifacts).clearLocalBrowserOutputs();
+        verify(artifacts, never()).clearLocalBrowserOutputs();
     }
 
     @Test
