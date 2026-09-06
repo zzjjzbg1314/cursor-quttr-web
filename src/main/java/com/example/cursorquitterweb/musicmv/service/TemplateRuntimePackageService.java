@@ -108,6 +108,56 @@ public class TemplateRuntimePackageService {
         return result;
     }
 
+    /** 新版本按依赖签发独立资源地址，旧版本继续读取归档协议。 */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> downloadForScene(String templateId, String versionId, Map<String, Object> scene) {
+        Object raw = scene.get("runtimeDelivery");
+        if (raw == null) return downloadSession(templateId, versionId);
+        requireVersion(templateId, versionId);
+        if (!(raw instanceof Map)) throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖清单无效");
+        Map<String, Object> manifest = (Map<String, Object>) raw;
+        if (!"browser-runtime-delivery-v1".equals(manifest.get("schemaVersion"))
+                || !(manifest.get("resources") instanceof java.util.List))
+            throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖协议不受支持");
+        java.util.List<Map<String, Object>> downloads = new java.util.ArrayList<>();
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        long total = 0;
+        TemplateResourceAssetService assets = new TemplateResourceAssetService(repository, r2);
+        for (Object item : (java.util.List<?>) manifest.get("resources")) {
+            if (!(item instanceof Map)) throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖条目无效");
+            Map<String, Object> dependency = (Map<String, Object>) item;
+            String id = String.valueOf(dependency.get("resourceId"));
+            String sha = String.valueOf(dependency.get("sourceSha256"));
+            if (!id.matches("[A-Za-z0-9_-]{1,160}") || !ids.add(id)
+                    || !sha.matches("[a-f0-9]{64}") || !("sha_" + sha).equals(dependency.get("assetId")))
+                throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖标识无效或重复");
+            Map<String, Object> download = assets.downloadSession("sha_" + sha, sha);
+            if (number(download.get("sourceSizeBytes")) != number(dependency.get("sourceSizeBytes")))
+                throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖大小与已发布资产不一致");
+            download.put("resourceId", id);
+            download.put("templateId", templateId); download.put("versionId", versionId);
+            download.remove("objectKey"); download.remove("method"); download.remove("reused");
+            downloads.add(download); total += number(download.get("sourceSizeBytes"));
+        }
+        if (total != number(manifest.get("totalSizeBytes")))
+            throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖总大小不一致");
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("deliverySchema", "browser-runtime-delivery-v1");
+        result.put("resources", downloads); result.put("status", "ready");
+        result.put("templateId", templateId); result.put("versionId", versionId);
+        result.put("sourceSizeBytes", total);
+        try {
+            byte[] bytes = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsBytes(manifest);
+            StringBuilder hash = new StringBuilder();
+            for (byte b : java.security.MessageDigest.getInstance("SHA-256").digest(bytes)) hash.append(String.format("%02x", b & 255));
+            result.put("sourceSha256", hash.toString());
+        } catch (java.io.IOException | java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException(exception);
+        }
+        result.put("downloadUrl", "");
+        return result;
+    }
+
     private boolean sameReadyPackage(
             Map<String, Object> existing, String sha256, long size, String objectKey) {
         if (existing == null || !"ready".equals(RowUtils.str(existing, "status"))) return false;

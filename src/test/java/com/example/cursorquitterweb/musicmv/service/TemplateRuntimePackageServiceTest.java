@@ -88,6 +88,43 @@ class TemplateRuntimePackageServiceTest {
                 eq("运行包大小或 SHA-256 元数据不匹配"));
     }
 
+    @Test
+    void emptyDeliveryDoesNotRequireLegacyPackageOrStorage() {
+        Map<String, Object> delivery = new LinkedHashMap<>();
+        delivery.put("schemaVersion", "browser-runtime-delivery-v1");
+        delivery.put("resources", Collections.emptyList()); delivery.put("totalSizeBytes", 0);
+        when(r2.isConfigured()).thenReturn(false);
+        Map<String, Object> result = service.downloadForScene("tpl_1", "tplver_1",
+                Collections.singletonMap("runtimeDelivery", delivery));
+        assertEquals("", result.get("downloadUrl"));
+        assertEquals(0L, result.get("sourceSizeBytes"));
+        assertEquals(Collections.emptyList(), result.get("resources"));
+        org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).runtimePackage(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void deliveryBindsTheExpectedAssetAndRejectsSizeMismatch() {
+        Map<String, Object> asset = new LinkedHashMap<>();
+        asset.put("status", "ready"); asset.put("source_size_bytes", 1234L);
+        asset.put("object_key", "shared.zip"); asset.put("content_type", "application/zip");
+        when(repository.templateResourceAsset("sha_" + hash(), hash())).thenReturn(asset);
+        when(r2.presignedGetUrl("shared.zip", Duration.ofMinutes(15))).thenReturn("https://r2.example/shared.zip");
+        Map<String, Object> dependency = new LinkedHashMap<>();
+        dependency.put("resourceId", "arbitrary"); dependency.put("assetId", "sha_" + hash());
+        dependency.put("sourceSha256", hash()); dependency.put("sourceSizeBytes", 1234L);
+        Map<String, Object> delivery = new LinkedHashMap<>();
+        delivery.put("schemaVersion", "browser-runtime-delivery-v1");
+        delivery.put("resources", Collections.singletonList(dependency)); delivery.put("totalSizeBytes", 1234L);
+        Map<String, Object> scene = Collections.singletonMap("runtimeDelivery", delivery);
+        Map<String, Object> result = service.downloadForScene("tpl_1", "tplver_1", scene);
+        Map<?, ?> download = (Map<?, ?>) ((java.util.List<?>) result.get("resources")).get(0);
+        assertEquals("arbitrary", download.get("resourceId"));
+        assertEquals("https://r2.example/shared.zip", download.get("downloadUrl"));
+        assertEquals(false, download.containsKey("objectKey"));
+        dependency.put("sourceSizeBytes", 1235L);
+        assertThrows(ApiException.class, () -> service.downloadForScene("tpl_1", "tplver_1", scene));
+    }
+
     private TemplateRuntimePackageUploadRequest request() {
         TemplateRuntimePackageUploadRequest request = new TemplateRuntimePackageUploadRequest();
         request.setSourceSha256(hash());

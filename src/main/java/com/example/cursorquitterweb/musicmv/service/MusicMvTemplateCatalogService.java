@@ -233,10 +233,10 @@ public class MusicMvTemplateCatalogService {
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
                 Map<String, Object> browserRender = browserSceneView(browserScene, admin);
                 Map<String, Object> runtimePackage = repository.runtimePackage(versionId);
-                if (!admin && runtimePackage != null
-                        && "ready".equals(RowUtils.str(runtimePackage, "status"))) {
+                if (!admin && ((runtimePackage != null && "ready".equals(RowUtils.str(runtimePackage, "status")))
+                        || ((Map<?, ?>) browserRender.get("scene")).containsKey("runtimeDelivery"))) {
                     Map<String, Object> download = new LinkedHashMap<String, Object>(
-                            runtimePackages.downloadSession(templateId, versionId));
+                            runtimePackages.downloadForScene(templateId, versionId, (Map<String, Object>) browserRender.get("scene")));
                     download.remove("objectKey");
                     download.remove("errorMessage");
                     browserRender.put("runtimePackage", download);
@@ -467,6 +467,7 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene schema does not match its envelope");
         }
         requireSanitizedBrowserScene(scene);
+        if (scene.containsKey("runtimeDelivery")) runtimePackages.downloadForScene(templateId, versionId, scene);
         String sceneJson = json(scene);
         String actualSha256 = sha256(sceneJson);
         if (!actualSha256.equalsIgnoreCase(request.getManifestSha256())) {

@@ -400,7 +400,7 @@ class MusicMvTemplateCatalogServiceTest {
         download.put("sourceSizeBytes", Long.valueOf(1234L));
         download.put("objectKey", "private/runtime.zip");
         download.put("errorMessage", null);
-        when(runtimePackages.downloadSession("tpl_1", "tplver_1")).thenReturn(download);
+        when(runtimePackages.downloadForScene(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.eq("tplver_1"), org.mockito.ArgumentMatchers.anyMap())).thenReturn(download);
         when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template,
                 Collections.<Map<String, Object>>emptyList(), null,
                 Collections.<Map<String, Object>>emptyList(),

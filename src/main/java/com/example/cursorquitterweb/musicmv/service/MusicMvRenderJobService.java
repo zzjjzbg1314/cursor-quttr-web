@@ -746,8 +746,8 @@ public class MusicMvRenderJobService {
         Map<String, Object> runtimePackage = null;
         if (runtimePackages != null) {
             runtimePackage = new LinkedHashMap<String, Object>(
-                    runtimePackages.downloadSession(RowUtils.str(row, "template_id"),
-                            RowUtils.str(row, "version_id")));
+                    runtimePackages.downloadForScene(RowUtils.str(row, "template_id"),
+                            RowUtils.str(row, "version_id"), scene));
             runtimePackage.remove("objectKey");
             runtimePackage.remove("errorMessage");
         }

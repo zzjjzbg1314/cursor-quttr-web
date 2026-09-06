@@ -432,7 +432,7 @@ class MusicMvRenderJobServiceTest {
         runtimePackage.put("sourceSha256", "abc123");
         runtimePackage.put("sourceSizeBytes", Long.valueOf(1234L));
         runtimePackage.put("objectKey", "private/runtime.zip");
-        when(runtimePackages.downloadSession("tpl_1", "tplver_1"))
+        when(runtimePackages.downloadForScene(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.eq("tplver_1"), org.mockito.ArgumentMatchers.anyMap()))
                 .thenReturn(runtimePackage);
 
         Map<String, Object> result = service.get("usr_owner", "mvr_browser");
