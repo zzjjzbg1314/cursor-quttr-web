@@ -857,6 +857,31 @@ class MusicMvTemplateCatalogServiceTest {
                 incompleteGlyphAnimation.getCode());
         glyphAnimation.put("glyphSource", "indexed_charimage_texture_pairs");
 
+        personProtectedEffect.put("paperTexturePath", null);
+        personProtectedEffect.put("texturePath", null);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        assertEquals("ready", service.synchronizeBrowserScene(
+                "tpl_1", "tplver_1", request).get("status"));
+        personProtectedEffect.remove("texturePath");
+
+        for (String privateField : java.util.Arrays.asList("path", "sourceDraftPath", "materials")) {
+            personProtectedEffect.put(privateField, null);
+            request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+            ApiException privateFieldError = assertThrows(ApiException.class,
+                    () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+            assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", privateFieldError.getCode());
+            personProtectedEffect.remove(privateField);
+        }
+
+        for (Object invalidPath : java.util.Arrays.asList("", "   ", "file:///tmp/private.png",
+                "C:\\Users\\test\\private.png", Integer.valueOf(1), row("path", "/tmp/private.png"))) {
+            personProtectedEffect.put("paperTexturePath", invalidPath);
+            request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+            ApiException invalidPathError = assertThrows(ApiException.class,
+                    () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request));
+            assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", invalidPathError.getCode());
+        }
+
         personProtectedEffect.put("paperTexturePath", "/Users/test/private/peopleTex.png");
         request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
         ApiException privatePath = assertThrows(ApiException.class,

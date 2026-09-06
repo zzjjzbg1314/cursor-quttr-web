@@ -2573,7 +2573,12 @@ public class MusicMvTemplateCatalogService {
     }
 
     private boolean isSafeBrowserPackagePath(String key, Object value) {
-        if (!BROWSER_PACKAGE_PATH_FIELDS.contains(key) || !(value instanceof String)) {
+        if (!BROWSER_PACKAGE_PATH_FIELDS.contains(key)) {
+            return false;
+        }
+        // 可选包内纹理未设置时允许为空，其他来源字段仍由隐私校验拦截。
+        if (value == null) return true;
+        if (!(value instanceof String)) {
             return false;
         }
         String path = ((String) value).trim();
