@@ -42,8 +42,20 @@ class MusicMvRenderJobRepositoryTest {
 
         assertTrue(d1.sql.contains("native_render_job_id=? AND lease_token=?"));
         assertTrue(d1.sql.contains("semantic_integrity='unverified'"));
-        assertTrue(d1.sql.contains("video_encode_count=NULL,intermediate_video_count=NULL,writer_sidecar_count=NULL"));
+        assertTrue(d1.sql.contains("video_encode_count=?,intermediate_video_count=?,writer_sidecar_count=?"));
+        assertEquals(Arrays.asList(null, null, null), d1.params.subList(5, 8));
         assertTrue(!d1.sql.contains("lease_expires_at>=CURRENT_TIMESTAMP"));
+        assertEquals(placeholders(d1.sql), d1.params.size());
+    }
+
+    @Test
+    void browserCompletionPersistsReportedCountsWithoutInventingExact() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+        repository.completeBrowser("mvr_1", "usr_1", "bratt_1", "brlease_1",
+                "r2:attempt.mp4", "video/mp4", 12L, repeat('a'), 4.0d, "{}", "{}", 2L, 1L, 3L);
+        assertTrue(d1.sql.contains("semantic_integrity='unverified'"));
+        assertEquals(Arrays.asList(2L, 1L, 3L), d1.params.subList(5, 8));
         assertEquals(placeholders(d1.sql), d1.params.size());
     }
 

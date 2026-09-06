@@ -246,10 +246,18 @@ public class MusicMvRenderJobRepository {
                                                long sizeBytes, String sha256,
                                                double durationSeconds, String resultJson,
                                                String evidenceJson) {
+        return completeBrowser(jobId, clientId, attemptId, leaseToken, storageKey, contentType,
+                sizeBytes, sha256, durationSeconds, resultJson, evidenceJson, null, null, null);
+    }
+
+    public Map<String, Object> completeBrowser(String jobId, String clientId,
+            String attemptId, String leaseToken, String storageKey, String contentType,
+            long sizeBytes, String sha256, double durationSeconds, String resultJson,
+            String evidenceJson, Long encodeCount, Long intermediateCount, Long sidecarCount) {
         return d1.query("UPDATE music_mv_render_jobs SET status='completed',stage='completed',"
                         + "progress=1,output_storage_key=?,output_content_type=?,output_size_bytes=?,"
                         + "output_sha256=?,output_duration_seconds=?,semantic_integrity='unverified',"
-                        + "video_encode_count=NULL,intermediate_video_count=NULL,writer_sidecar_count=NULL,"
+                        + "video_encode_count=?,intermediate_video_count=?,writer_sidecar_count=?,"
                         + "result_json=?,evidence_json=?,retryable=0,completed_at=CURRENT_TIMESTAMP,"
                         + "lease_token=NULL,lease_expires_at=NULL,"
                         + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
@@ -257,7 +265,8 @@ public class MusicMvRenderJobRepository {
                         + "AND status IN ('rendering','uploading') AND stage LIKE 'browser_%' "
                         + "AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
                 storageKey, contentType, Long.valueOf(sizeBytes), sha256,
-                Double.valueOf(durationSeconds), resultJson, evidenceJson, jobId, clientId,
+                Double.valueOf(durationSeconds), encodeCount, intermediateCount, sidecarCount,
+                resultJson, evidenceJson, jobId, clientId,
                 attemptId, leaseToken).firstRow();
     }
 

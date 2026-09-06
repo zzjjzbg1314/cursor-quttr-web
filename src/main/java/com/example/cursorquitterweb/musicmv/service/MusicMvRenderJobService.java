@@ -321,11 +321,34 @@ public class MusicMvRenderJobService {
         evidence.put("verificationStatus", "missing_runtime_evidence");
         evidence.put("sceneManifestSha256", browserSceneHash(row));
         evidence.put("outputSha256", stored.getSha256());
-        Map<String, Object> completed = repository.completeBrowser(jobId, ownerId,
+        Map<String, Object> execution = null;
+        if (request.getExecutionEvidence() != null || request.getRendererFingerprint() != null) {
+            try {
+                if (request.getExecutionEvidence() == null || request.getRendererFingerprint() == null
+                        || !request.getRendererFingerprint().matches("(?i)^[0-9a-f]{64}$"))
+                    throw new java.io.IOException("缺少有效引擎指纹或执行记录");
+                execution = BrowserExecutionEvidence.validate(request.getExecutionEvidence());
+                if (BrowserExecutionEvidence.count(execution, "finalVideoBytes") != stored.getSizeBytes())
+                    throw new java.io.IOException("执行记录与上传成片大小不一致");
+            } catch (java.io.IOException invalid) {
+                throw badRequest("MV_BROWSER_EXECUTION_EVIDENCE_INVALID", invalid.getMessage());
+            }
+            evidence.put("verificationStatus", "browser_reported_runtime_events");
+            evidence.put("rendererFingerprint", request.getRendererFingerprint().toLowerCase(java.util.Locale.ROOT));
+            evidence.put("executionEvidence", execution);
+        }
+        Map<String, Object> completed = execution == null ? repository.completeBrowser(jobId, ownerId,
+
                 request.getAttemptId(), request.getLeaseToken(),
                 stored.getStorageKey(), stored.getContentType(), stored.getSizeBytes(),
                 stored.getSha256(), request.getDurationSeconds().doubleValue(),
-                json(resultPayload), json(evidence));
+                json(resultPayload), json(evidence)) : repository.completeBrowser(jobId, ownerId,
+                request.getAttemptId(), request.getLeaseToken(), stored.getStorageKey(),
+                stored.getContentType(), stored.getSizeBytes(), stored.getSha256(),
+                request.getDurationSeconds().doubleValue(), json(resultPayload), json(evidence),
+                Long.valueOf(BrowserExecutionEvidence.count(execution, "videoEncodeCount")),
+                Long.valueOf(BrowserExecutionEvidence.count(execution, "materializedIntermediateVideoCount")),
+                Long.valueOf(BrowserExecutionEvidence.count(execution, "writerSidecarCount")));
         if (completed == null) {
             artifacts.delete(stored.getStorageKey());
             throw conflict("MV_BROWSER_RENDER_STATE_CHANGED",

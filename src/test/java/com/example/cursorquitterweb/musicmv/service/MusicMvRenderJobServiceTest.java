@@ -556,6 +556,85 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    void savesRuntimeEventsBoundToUploadedOutput() throws Exception {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(),
+                new ObjectMapper(), true, 2);
+        String sha256 = repeat('e');
+        Map<String, Object> active = row("mvr_browser", null);
+        active.put("client_id", "usr_owner");
+        active.put("status", "uploading");
+        active.put("stage", "browser_output_uploading");
+        Map<String, Object> completed = new LinkedHashMap<String, Object>(active);
+        completed.put("status", "completed");
+        completed.put("stage", "completed");
+        completed.put("semantic_integrity", "unverified");
+        completed.put("result_json", "{\"status\":\"completed\",\"renderMode\":\"browser\"}");
+        when(repository.byId("mvr_browser")).thenReturn(active);
+        when(repository.activeBrowserAttempt("mvr_browser", "usr_owner", "bratt_1",
+                "brlease_1")).thenReturn(active);
+        when(artifacts.verifyBrowserUpload("mvr_browser", "bratt_1", 1234L,
+                "video/mp4", sha256))
+                .thenReturn(new MusicMvRenderArtifactStorageService.StoredArtifact(
+                        "r2:music-mv-renders/mvr_browser/attempts/bratt_1/result.mp4",
+                        1234L, sha256, "video/mp4"));
+        when(repository.completeBrowser(eq("mvr_browser"), eq("usr_owner"),
+                eq("bratt_1"), eq("brlease_1"), anyString(), eq("video/mp4"),
+                eq(1234L), eq(sha256), eq(180.0d), anyString(), anyString(), eq(1L), eq(0L), eq(0L)))
+                .thenReturn(completed);
+        BrowserRenderOutputRequest request = new BrowserRenderOutputRequest();
+        request.setAttemptId("bratt_1");
+        request.setLeaseToken("brlease_1");
+        request.setSha256(sha256);
+        request.setSizeBytes(Long.valueOf(1234L));
+        request.setContentType("video/mp4");
+        request.setDurationSeconds(Double.valueOf(180.0d));
+
+        request.setRendererFingerprint(repeat('a'));
+        Map<String, Object> events = new LinkedHashMap<String, Object>();
+        events.put("schemaVersion", "browser-render-execution-v1");
+        events.put("observationScope", "instrumented_browser_output_pipeline");
+        events.put("videoEncodeCount", 1);
+        events.put("submittedVideoFrameCount", 5400);
+        events.put("encodedVideoPacketCount", 5400);
+        events.put("materializedIntermediateVideoCount", 0);
+        events.put("writerSidecarCount", 0);
+        events.put("finalVideoCount", 1);
+        events.put("finalVideoBytes", 1234);
+        request.setExecutionEvidence(events);
+
+        Map<String, Object> result = service.completeBrowserOutput(
+                "usr_owner", "mvr_browser", request);
+
+        assertEquals("browser", result.get("renderMode"));
+        assertEquals("unverified", result.get("semanticIntegrity"));
+        assertEquals(null, result.get("videoEncodeCount"));
+        assertEquals(null, result.get("intermediateVideoCount"));
+        assertEquals(null, result.get("writerSidecarCount"));
+        ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> evidence = ArgumentCaptor.forClass(String.class);
+        verify(repository).completeBrowser(eq("mvr_browser"), eq("usr_owner"),
+                eq("bratt_1"), eq("brlease_1"), anyString(), eq("video/mp4"),
+                eq(1234L), eq(sha256), eq(180.0d), payload.capture(), evidence.capture(), eq(1L), eq(0L), eq(0L));
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("unverified", mapper.readTree(payload.getValue()).path("semanticIntegrity").asText());
+        com.fasterxml.jackson.databind.JsonNode saved = mapper.readTree(evidence.getValue());
+        assertEquals("browser_reported_runtime_events", saved.path("verificationStatus").asText());
+        assertEquals(repeat('a'), saved.path("rendererFingerprint").asText());
+        assertEquals(1, saved.path("executionEvidence").path("videoEncodeCount").asInt());
+        events.put("finalVideoBytes", 1235);
+        assertThrows(RuntimeException.class, () -> service.completeBrowserOutput("usr_owner", "mvr_browser", request));
+        events.put("finalVideoBytes", 1234);
+        events.put("videoEncodeCount", -1);
+        assertThrows(RuntimeException.class, () -> service.completeBrowserOutput("usr_owner", "mvr_browser", request));
+        assertEquals(false, saved.has("videoEncodeCount"));
+        assertEquals(false, saved.has("materializedIntermediateVideoCount"));
+        assertEquals(sha256, saved.path("outputSha256").asText());
+    }
+
+    @Test
     void grantsOnlyOneActiveBrowserAttempt() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);

@@ -16,6 +16,14 @@ public class BrowserRenderOutputRequest {
     @NotBlank @Size(max = 100) private String contentType;
     @NotNull @DecimalMin("0.1") private Double durationSeconds;
 
+    @Pattern(regexp = "(?i)^[0-9a-f]{64}$") private String rendererFingerprint;
+    private java.util.Map<String, Object> executionEvidence;
+
+    public String getRendererFingerprint() { return rendererFingerprint; }
+    public void setRendererFingerprint(String value) { rendererFingerprint = value; }
+    public java.util.Map<String, Object> getExecutionEvidence() { return executionEvidence; }
+    public void setExecutionEvidence(java.util.Map<String, Object> value) { executionEvidence = value; }
+
     public String getAttemptId() { return attemptId; }
     public void setAttemptId(String value) { attemptId = value; }
     public String getLeaseToken() { return leaseToken; }
