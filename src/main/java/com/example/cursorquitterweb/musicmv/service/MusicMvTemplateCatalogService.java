@@ -269,7 +269,7 @@ public class MusicMvTemplateCatalogService {
         return rows == null ? Collections.<Map<String, Object>>emptyList() : rows;
     }
 
-    private void invalidateDetail(String templateId) {
+    public void invalidateDetail(String templateId) {
         if (templateId != null) publicDetailCache.invalidate(templateId);
     }
 

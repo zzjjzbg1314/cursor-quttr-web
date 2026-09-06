@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cursorquitterweb.musicmv.dto.TemplateRuntimePackageUploadRequest;
 import com.example.cursorquitterweb.musicmv.service.TemplateRuntimePackageService;
+import com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogService;
 import com.example.cursorquitterweb.musicmv.service.TemplateSyncAuthenticationService;
 
 /** 模板管理节点与云端私有运行包之间的同步协议。 */
@@ -24,13 +25,16 @@ import com.example.cursorquitterweb.musicmv.service.TemplateSyncAuthenticationSe
 public class RendererTemplateRuntimePackageController {
     private final TemplateSyncAuthenticationService authentication;
     private final TemplateRuntimePackageService service;
+    private final MusicMvTemplateCatalogService catalog;
 
     public RendererTemplateRuntimePackageController(
             TemplateSyncAuthenticationService authentication,
-            TemplateRuntimePackageService service
+            TemplateRuntimePackageService service,
+            MusicMvTemplateCatalogService catalog
     ) {
         this.authentication = authentication;
         this.service = service;
+        this.catalog = catalog;
     }
 
     @PostMapping("/{templateId}/versions/{versionId}/runtime-package/upload-session")
@@ -51,7 +55,9 @@ public class RendererTemplateRuntimePackageController {
             @PathVariable String versionId
     ) {
         authentication.requireAuthorized(token);
-        return service.complete(templateId, versionId);
+        Map<String, Object> result = service.complete(templateId, versionId);
+        catalog.invalidateDetail(templateId);
+        return result;
     }
 
     @GetMapping("/{templateId}/versions/{versionId}/runtime-package/download-session")
