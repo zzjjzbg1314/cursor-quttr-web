@@ -41,6 +41,8 @@ class MusicMvRenderJobRepositoryTest {
                 "r2:attempt.mp4", "video/mp4", 12L, repeat('a'), 4.0d, "{}", "{}");
 
         assertTrue(d1.sql.contains("native_render_job_id=? AND lease_token=?"));
+        assertTrue(d1.sql.contains("semantic_integrity='unverified'"));
+        assertTrue(d1.sql.contains("video_encode_count=NULL,intermediate_video_count=NULL,writer_sidecar_count=NULL"));
         assertTrue(!d1.sql.contains("lease_expires_at>=CURRENT_TIMESTAMP"));
         assertEquals(placeholders(d1.sql), d1.params.size());
     }

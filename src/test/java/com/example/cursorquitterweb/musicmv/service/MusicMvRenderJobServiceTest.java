@@ -497,7 +497,7 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
-    void completesBrowserOutputAsExactSingleEncode() {
+    void completesBrowserOutputWithoutInventingRuntimeEvidence() throws Exception {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
@@ -511,10 +511,7 @@ class MusicMvRenderJobServiceTest {
         Map<String, Object> completed = new LinkedHashMap<String, Object>(active);
         completed.put("status", "completed");
         completed.put("stage", "completed");
-        completed.put("semantic_integrity", "exact");
-        completed.put("video_encode_count", Integer.valueOf(1));
-        completed.put("intermediate_video_count", Integer.valueOf(0));
-        completed.put("writer_sidecar_count", Integer.valueOf(0));
+        completed.put("semantic_integrity", "unverified");
         completed.put("result_json", "{\"status\":\"completed\",\"renderMode\":\"browser\"}");
         when(repository.byId("mvr_browser")).thenReturn(active);
         when(repository.activeBrowserAttempt("mvr_browser", "usr_owner", "bratt_1",
@@ -540,10 +537,22 @@ class MusicMvRenderJobServiceTest {
                 "usr_owner", "mvr_browser", request);
 
         assertEquals("browser", result.get("renderMode"));
-        assertEquals("exact", result.get("semanticIntegrity"));
-        assertEquals(Integer.valueOf(1), result.get("videoEncodeCount"));
-        assertEquals(Integer.valueOf(0), result.get("intermediateVideoCount"));
-        assertEquals(Integer.valueOf(0), result.get("writerSidecarCount"));
+        assertEquals("unverified", result.get("semanticIntegrity"));
+        assertEquals(null, result.get("videoEncodeCount"));
+        assertEquals(null, result.get("intermediateVideoCount"));
+        assertEquals(null, result.get("writerSidecarCount"));
+        ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> evidence = ArgumentCaptor.forClass(String.class);
+        verify(repository).completeBrowser(eq("mvr_browser"), eq("usr_owner"),
+                eq("bratt_1"), eq("brlease_1"), anyString(), eq("video/mp4"),
+                eq(1234L), eq(sha256), eq(180.0d), payload.capture(), evidence.capture());
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("unverified", mapper.readTree(payload.getValue()).path("semanticIntegrity").asText());
+        com.fasterxml.jackson.databind.JsonNode saved = mapper.readTree(evidence.getValue());
+        assertEquals("missing_runtime_evidence", saved.path("verificationStatus").asText());
+        assertEquals(false, saved.has("videoEncodeCount"));
+        assertEquals(false, saved.has("materializedIntermediateVideoCount"));
+        assertEquals(sha256, saved.path("outputSha256").asText());
     }
 
     @Test

@@ -315,14 +315,12 @@ public class MusicMvRenderJobService {
         resultPayload.put("status", "completed");
         resultPayload.put("renderMode", "browser");
         resultPayload.put("outputDownloadPath", outputPath(jobId));
-        resultPayload.put("semanticIntegrity", "exact");
+        resultPayload.put("semanticIntegrity", "unverified");
         Map<String, Object> evidence = new LinkedHashMap<String, Object>();
         evidence.put("renderer", "customer_browser");
-        evidence.put("renderStrategy", "validated_preview_plus_authoritative_slot_delta");
+        evidence.put("verificationStatus", "missing_runtime_evidence");
         evidence.put("sceneManifestSha256", browserSceneHash(row));
         evidence.put("outputSha256", stored.getSha256());
-        evidence.put("videoEncodeCount", Integer.valueOf(1));
-        evidence.put("materializedIntermediateVideoCount", Integer.valueOf(0));
         Map<String, Object> completed = repository.completeBrowser(jobId, ownerId,
                 request.getAttemptId(), request.getLeaseToken(),
                 stored.getStorageKey(), stored.getContentType(), stored.getSizeBytes(),

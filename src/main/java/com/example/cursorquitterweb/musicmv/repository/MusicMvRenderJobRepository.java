@@ -248,8 +248,8 @@ public class MusicMvRenderJobRepository {
                                                String evidenceJson) {
         return d1.query("UPDATE music_mv_render_jobs SET status='completed',stage='completed',"
                         + "progress=1,output_storage_key=?,output_content_type=?,output_size_bytes=?,"
-                        + "output_sha256=?,output_duration_seconds=?,semantic_integrity='exact',"
-                        + "video_encode_count=1,intermediate_video_count=0,writer_sidecar_count=0,"
+                        + "output_sha256=?,output_duration_seconds=?,semantic_integrity='unverified',"
+                        + "video_encode_count=NULL,intermediate_video_count=NULL,writer_sidecar_count=NULL,"
                         + "result_json=?,evidence_json=?,retryable=0,completed_at=CURRENT_TIMESTAMP,"
                         + "lease_token=NULL,lease_expires_at=NULL,"
                         + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND client_id=? "
