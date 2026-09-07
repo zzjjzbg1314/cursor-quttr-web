@@ -284,6 +284,10 @@ public class MusicMvRenderJobRepository {
     }
 
     public List<Map<String, Object>> ownedJobs(String clientId, int limit, boolean completedOnly, int offset) {
+        return ownedJobs(clientId, limit, completedOnly, offset, false);
+    }
+
+    public List<Map<String, Object>> ownedJobs(String clientId, int limit, boolean completedOnly, int offset, boolean activeOnly) {
         return d1.query("SELECT " + prefixedJobColumns("j") + ","
                         + "COALESCE(en.name,df.name,t.slug) AS template_name,t.category_key,"
                         + "json_extract(j.request_json,'$.musicCandidateId') AS music_candidate_id,"
@@ -298,6 +302,7 @@ public class MusicMvRenderJobRepository {
                         + "json_extract(j.request_json,'$.musicCandidateId') "
                         + "WHERE j.client_id=? "
                         + (completedOnly ? "AND j.status='completed' AND j.output_storage_key IS NOT NULL " : "")
+                        + (activeOnly ? "AND j.status IN ('preparing','queued','ready','interrupted','leased','rendering','uploading') " : "")
                         + "ORDER BY j.created_at DESC,j.job_id DESC LIMIT ? OFFSET ?",
                 clientId, Integer.valueOf(Math.max(1, Math.min(completedOnly ? 101 : 100, limit))),
                 Integer.valueOf(Math.max(0, offset))).getRows();

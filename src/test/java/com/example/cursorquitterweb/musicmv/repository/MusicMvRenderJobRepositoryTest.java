@@ -17,6 +17,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvRenderJobRepositoryTest {
     @Test
+    void activeTasksExcludeTerminalStatesAndRemainOwned() {
+        CapturingD1 d1 = new CapturingD1();
+        new MusicMvRenderJobRepository(d1).ownedJobs("usr_1", 100, false, 0, true);
+        assertTrue(d1.sql.contains("WHERE j.client_id=?"));
+        assertTrue(d1.sql.contains("AND j.status IN ('preparing','queued','ready','interrupted','leased','rendering','uploading')"));
+        assertEquals(Arrays.asList("usr_1", 100, 0), d1.params);
+    }
+
+    @Test
     void completedLibraryFiltersBeforePaginationAndKeepsOwnership() {
         CapturingD1 d1 = new CapturingD1();
         MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);

@@ -211,9 +211,13 @@ public class MusicMvRenderJobService {
     }
 
     public Map<String, Object> list(String clientId, int limit) {
+        return list(clientId, limit, false);
+    }
+
+    public Map<String, Object> list(String clientId, int limit, boolean activeOnly) {
         String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
         List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.ownedJobs(normalizedClientId, limit)) {
+        for (Map<String, Object> row : (activeOnly ? repository.ownedJobs(normalizedClientId, limit, false, 0, true) : repository.ownedJobs(normalizedClientId, limit))) {
             items.add(clientView(row));
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
