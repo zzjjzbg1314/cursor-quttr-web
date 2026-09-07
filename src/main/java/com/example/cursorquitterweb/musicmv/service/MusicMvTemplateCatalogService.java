@@ -243,6 +243,12 @@ public class MusicMvTemplateCatalogService {
                 }
                 if (!admin) completeBrowserRuntimeContract(browserRender, slotViews, mediaViews, row);
                 version.put("browserRender", browserRender);
+                Map<?, ?> scene = (Map<?, ?>) browserRender.get("scene");
+                Object delivery = scene.get("runtimeDelivery");
+                if (delivery instanceof Map && "browser-runtime-delivery-v1".equals(((Map<?, ?>) delivery).get("schemaVersion"))) {
+                    version.put("runtimePackageSizeBytes", ((Map<?, ?>) delivery).get("totalSizeBytes"));
+                    if (versionId.equals(currentVersionId)) result.put("runtimePackageSizeBytes", version.get("runtimePackageSizeBytes"));
+                }
             }
             versions.add(version);
         }
@@ -1812,6 +1818,7 @@ public class MusicMvTemplateCatalogService {
         copy(result, "durationSeconds", row, "duration_seconds");
         copy(result, "cycleDurationSeconds", row, "cycle_duration_seconds");
         copy(result, "slotCount", row, "slot_count");
+        copy(result, "runtimePackageSizeBytes", row, "runtime_package_size_bytes");
         copy(result, "validationStatus", row, "validation_status");
         copy(result, "rendererVersion", row, "renderer_version");
         result.put("cover", providerMedia(row, "cover"));

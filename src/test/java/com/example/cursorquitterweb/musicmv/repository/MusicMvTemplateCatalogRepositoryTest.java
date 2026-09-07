@@ -119,6 +119,9 @@ class MusicMvTemplateCatalogRepositoryTest {
                 null, null, null, null, null, 24, 0);
 
         assertTrue(client.sql.contains("v.source_availability AS source_availability"));
+        assertTrue(client.sql.contains("$.runtimeDelivery.totalSizeBytes"));
+        assertTrue(client.sql.contains("END AS runtime_package_size_bytes"));
+        assertTrue(client.sql.contains("runtime_scene.version_id=t.current_version_id"));
         assertFalse(client.sql.contains("renderer_nodes"));
         assertFalse(client.sql.contains("last_seen_at"));
     }

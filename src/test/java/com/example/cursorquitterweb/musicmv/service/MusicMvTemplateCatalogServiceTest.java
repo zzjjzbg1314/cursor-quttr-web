@@ -411,6 +411,8 @@ class MusicMvTemplateCatalogServiceTest {
         browserScene.put("scene_json", "{\"canvas\":{\"width\":1080,\"height\":1920,\"fps\":30},"
                 + "\"slots\":[{\"slotKey\":\"photo_1\"}],"
                 + "\"resources\":[{\"resourceKey\":\"effect_1\",\"role\":\"browser_resource:effect_1\",\"kind\":\"image\"}]}");
+        browserScene.put("scene_json", String.valueOf(browserScene.get("scene_json")).replaceFirst("\\{",
+                "{\"runtimeDelivery\":{\"schemaVersion\":\"browser-runtime-delivery-v1\",\"totalSizeBytes\":1234,\"resources\":[]},"));
         Map<String, Object> packageRow = row("status", "ready");
         when(repository.runtimePackage("tplver_1")).thenReturn(packageRow);
         Map<String, Object> download = new LinkedHashMap<String, Object>();
@@ -438,6 +440,8 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> runtimePackage =
                 (Map<String, Object>) browserRender.get("runtimePackage");
 
+        assertEquals(1234, detail.get("runtimePackageSizeBytes"));
+        assertEquals(1234, versions.get(0).get("runtimePackageSizeBytes"));
         assertEquals("https://r2.example/runtime.zip", runtimePackage.get("downloadUrl"));
         assertFalse(runtimePackage.containsKey("objectKey"));
         assertFalse(runtimePackage.containsKey("errorMessage"));
