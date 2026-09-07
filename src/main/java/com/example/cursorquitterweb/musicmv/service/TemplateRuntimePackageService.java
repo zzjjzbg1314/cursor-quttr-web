@@ -39,80 +39,80 @@ public class TemplateRuntimePackageService {
             TemplateRuntimePackageUploadRequest request
     ) {
         requireVersion(templateId, versionId);
-        requireStorage();
-        long size = request.getSourceSizeBytes().longValue();
-        if (size <= 0L || size > MAX_PACKAGE_BYTES) {
-            throw error(HttpStatus.BAD_REQUEST, "TEMPLATE_RUNTIME_PACKAGE_SIZE_INVALID",
-                    "模板运行包大小无效");
-        }
-        String sha256 = request.getSourceSha256().toLowerCase();
-        String objectKey = objectKey(templateId, versionId, sha256);
-        Map<String, Object> existing = repository.runtimePackage(versionId);
-        if (sameReadyPackage(existing, sha256, size, objectKey)) {
-            return view(existing, null, null);
-        }
-        Map<String, String> metadata = metadata(templateId, versionId, sha256);
-        repository.upsertRuntimePackage(templateId, versionId, objectKey, sha256,
-                size, CONTENT_TYPE, "awaiting_upload");
-        String uploadUrl = r2.presignedPutUrl(objectKey, CONTENT_TYPE, size, metadata, UPLOAD_TTL);
-        Map<String, String> headers = new LinkedHashMap<String, String>();
-        headers.put("Content-Type", CONTENT_TYPE);
-        headers.put("x-amz-meta-sha256", sha256);
-        headers.put("x-amz-meta-template-id", templateId);
-        headers.put("x-amz-meta-version-id", versionId);
-        return view(repository.runtimePackage(versionId), uploadUrl, headers);
+        throw legacyPackageRetired();
     }
 
     public Map<String, Object> complete(String templateId, String versionId) {
         requireVersion(templateId, versionId);
-        requireStorage();
-        Map<String, Object> record = requirePackage(versionId);
-        String objectKey = RowUtils.str(record, "object_key");
-        String expectedSha256 = RowUtils.str(record, "source_sha256");
-        long expectedSize = number(record.get("source_size_bytes"));
-        R2StorageService.ObjectInfo info;
-        try {
-            info = r2.objectInfo(objectKey);
-        } catch (RuntimeException exception) {
-            repository.markRuntimePackageFailed(versionId, "R2 中未找到上传后的运行包");
-            throw error(HttpStatus.CONFLICT, "TEMPLATE_RUNTIME_PACKAGE_NOT_UPLOADED",
-                    "R2 中未找到上传后的模板运行包");
-        }
-        String actualSha256 = info.getMetadata() == null
-                ? null : info.getMetadata().get("sha256");
-        if (info.getSizeBytes() != expectedSize
-                || actualSha256 == null
-                || !expectedSha256.equalsIgnoreCase(actualSha256)) {
-            repository.markRuntimePackageFailed(versionId, "运行包大小或 SHA-256 元数据不匹配");
-            throw error(HttpStatus.CONFLICT, "TEMPLATE_RUNTIME_PACKAGE_INTEGRITY_MISMATCH",
-                    "模板运行包完整性校验失败");
-        }
-        repository.markRuntimePackageReady(versionId);
-        return view(repository.runtimePackage(versionId), null, null);
+        throw legacyPackageRetired();
     }
 
     public Map<String, Object> downloadSession(String templateId, String versionId) {
         requireVersion(templateId, versionId);
+        throw legacyPackageRetired();
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> cleanupLegacyPackage(String templateId, String versionId, String expectedSceneHash) {
+        requireVersion(templateId, versionId);
         requireStorage();
-        Map<String, Object> record = requirePackage(versionId);
-        if (!"ready".equals(RowUtils.str(record, "status"))) {
-            throw error(HttpStatus.CONFLICT, "TEMPLATE_RUNTIME_PACKAGE_NOT_READY",
-                    "模板运行包尚未完成上传校验");
+        Map<String, Object> row = repository.browserScene(versionId);
+        if (row == null || !templateId.equals(RowUtils.str(row, "template_id"))
+                || expectedSceneHash == null || !expectedSceneHash.equals(RowUtils.str(row, "manifest_sha256")))
+            throw error(HttpStatus.CONFLICT, "RUNTIME_CLEANUP_SCENE_CHANGED", "清理前场景身份或哈希不匹配");
+        Map<String, Object> scene;
+        try {
+            scene = new com.fasterxml.jackson.databind.ObjectMapper().readValue(RowUtils.str(row, "scene_json"), Map.class);
+        } catch (java.io.IOException exception) {
+            throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "场景无法读取");
         }
-        String objectKey = RowUtils.str(record, "object_key");
-        String filename = "template-runtime-" + versionId + ".zip";
-        String disposition = "attachment; filename=\"" + filename + "\"";
-        Map<String, Object> result = view(record,
-                r2.presignedGetUrl(objectKey, disposition, DOWNLOAD_TTL), null);
-        result.put("expiresInSeconds", Long.valueOf(DOWNLOAD_TTL.getSeconds()));
+        downloadForScene(templateId, versionId, scene);
+        Map<String, Object> delivery = (Map<String, Object>) scene.get("runtimeDelivery");
+        for (Object item : (java.util.List<?>) delivery.get("resources")) verifyStoredDependency((Map<String, Object>) item);
+        Object resources = scene.get("resources");
+        if (resources instanceof java.util.List) for (Object item : (java.util.List<?>) resources) {
+            Map<String, Object> descriptor = (Map<String, Object>) item;
+            if (descriptor.get("sourceAsset") instanceof Map) {
+                downloadExactImage(descriptor);
+                verifyStoredDependency((Map<String, Object>) descriptor.get("sourceAsset"));
+            }
+        }
+        String prefix = "music-mv-template-runtime/" + safeId(templateId) + "/" + safeId(versionId) + "/";
+        java.util.List<String> keys = r2.listKeys(prefix);
+        long bytes = 0;
+        for (String key : keys) {
+            if (!key.startsWith(prefix) || !key.substring(prefix.length()).matches("[a-fA-F0-9]{64}\\.zip"))
+                throw error(HttpStatus.CONFLICT, "RUNTIME_CLEANUP_KEY_INVALID", "旧包目录包含未知对象，已阻止清理");
+            bytes += r2.objectInfo(key).getSizeBytes();
+        }
+        for (String key : keys) r2.delete(key);
+        if (!r2.listKeys(prefix).isEmpty()) throw error(HttpStatus.CONFLICT, "RUNTIME_CLEANUP_INCOMPLETE", "旧包尚未完全清理");
+        repository.deleteRuntimePackage(templateId, versionId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", "deleted"); result.put("deletedObjectKeys", keys); result.put("deletedBytes", bytes);
+        result.put("sceneManifestSha256", expectedSceneHash);
         return result;
     }
 
-    /** 新版本按依赖签发独立资源地址，旧版本继续读取归档协议。 */
+    private void verifyStoredDependency(Map<String, Object> dependency) {
+        String sha = String.valueOf(dependency.get("sourceSha256"));
+        Map<String, Object> asset = repository.templateResourceAsset(String.valueOf(dependency.get("assetId")), sha);
+        R2StorageService.ObjectInfo info = r2.objectInfo(RowUtils.str(asset, "object_key"));
+        if (info.getSizeBytes() != number(dependency.get("sourceSizeBytes")) || info.getMetadata() == null
+                || !sha.equalsIgnoreCase(info.getMetadata().get("sha256")))
+            throw error(HttpStatus.CONFLICT, "RUNTIME_CLEANUP_DEPENDENCY_INVALID", "最小依赖实体未通过校验，已阻止清理旧包");
+    }
+
+    private ApiException legacyPackageRetired() {
+        return error(HttpStatus.GONE, "FULL_RUNTIME_PACKAGE_RETIRED",
+                "完整运行包已停用，模板必须使用最小运行依赖清单");
+    }
+
+    /** 只按场景签发最小依赖，缺少清单时明确阻断。 */
     @SuppressWarnings("unchecked")
     public Map<String, Object> downloadForScene(String templateId, String versionId, Map<String, Object> scene) {
         Object raw = scene.get("runtimeDelivery");
-        if (raw == null) return downloadSession(templateId, versionId);
+        if (raw == null) throw legacyPackageRetired();
         requireVersion(templateId, versionId);
         if (!(raw instanceof Map)) throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖清单无效");
         Map<String, Object> manifest = (Map<String, Object>) raw;

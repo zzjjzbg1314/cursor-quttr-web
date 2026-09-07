@@ -60,6 +60,17 @@ public class RendererTemplateRuntimePackageController {
         return result;
     }
 
+    @PostMapping("/{templateId}/versions/{versionId}/runtime-package/cleanup")
+    public Map<String, Object> cleanup(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId,
+            @RequestBody Map<String, String> request) {
+        authentication.requireAuthorized(token);
+        Map<String, Object> result = service.cleanupLegacyPackage(templateId, versionId, request.get("sceneManifestSha256"));
+        catalog.invalidateDetail(templateId);
+        return result;
+    }
+
     @GetMapping("/{templateId}/versions/{versionId}/runtime-package/download-session")
     public Map<String, Object> downloadSession(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,

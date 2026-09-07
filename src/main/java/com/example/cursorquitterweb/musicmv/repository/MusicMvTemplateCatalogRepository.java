@@ -564,6 +564,10 @@ public class MusicMvTemplateCatalogRepository {
                 + "AND media_id=? LIMIT 1", templateId, versionId, mediaId).firstRow();
     }
 
+    public void deleteRuntimePackage(String templateId, String versionId) {
+        d1.query("DELETE FROM template_runtime_packages WHERE template_id=? AND version_id=?", templateId, versionId);
+    }
+
     public Map<String, Object> runtimePackage(String versionId) {
         return d1.query("SELECT * FROM template_runtime_packages WHERE version_id=? LIMIT 1",
                 versionId).firstRow();
