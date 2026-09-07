@@ -31,6 +31,25 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void completedLibraryUsesExtraRowOnlyForHasMore() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        Map<String, Object> first = row("mvr_1", "fingerprint");
+        first.put("status", "completed");
+        first.put("output_storage_key", "r2:video.mp4");
+        when(repository.ownedJobs("usr_1", 2, true, 24)).thenReturn(Arrays.asList(first, first));
+        Map<String, Object> page = service.listCompleted("usr_1", 1, 24);
+        assertEquals(1, ((List<?>) page.get("items")).size());
+        assertEquals(Boolean.TRUE, page.get("hasMore"));
+        when(repository.ownedJobs("usr_1", 2, true, 25)).thenReturn(Collections.singletonList(first));
+        assertEquals(Boolean.FALSE, service.listCompleted("usr_1", 1, 25).get("hasMore"));
+        when(repository.ownedJobs("usr_1", 2, true, 26)).thenReturn(Collections.emptyList());
+        assertEquals(0, service.listCompleted("usr_1", 1, 26).get("count"));
+    }
+
+    @Test
     void createsExactPublishedTemplateJobAndSupportsIdempotentReplay() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);

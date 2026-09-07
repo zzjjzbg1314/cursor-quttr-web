@@ -280,6 +280,10 @@ public class MusicMvRenderJobRepository {
     }
 
     public List<Map<String, Object>> ownedJobs(String clientId, int limit) {
+        return ownedJobs(clientId, limit, false, 0);
+    }
+
+    public List<Map<String, Object>> ownedJobs(String clientId, int limit, boolean completedOnly, int offset) {
         return d1.query("SELECT " + prefixedJobColumns("j") + ","
                         + "COALESCE(en.name,df.name,t.slug) AS template_name,t.category_key,"
                         + "json_extract(j.request_json,'$.musicCandidateId') AS music_candidate_id,"
@@ -292,8 +296,11 @@ public class MusicMvRenderJobRepository {
                         + "AND df.locale=t.default_locale "
                         + "LEFT JOIN ai_music_candidates c ON c.candidate_id="
                         + "json_extract(j.request_json,'$.musicCandidateId') "
-                        + "WHERE j.client_id=? ORDER BY j.created_at DESC,j.job_id DESC LIMIT ?",
-                clientId, Integer.valueOf(Math.max(1, Math.min(100, limit)))).getRows();
+                        + "WHERE j.client_id=? "
+                        + (completedOnly ? "AND j.status='completed' AND j.output_storage_key IS NOT NULL " : "")
+                        + "ORDER BY j.created_at DESC,j.job_id DESC LIMIT ? OFFSET ?",
+                clientId, Integer.valueOf(Math.max(1, Math.min(completedOnly ? 101 : 100, limit))),
+                Integer.valueOf(Math.max(0, offset))).getRows();
     }
 
     private String prefixedJobColumns(String alias) {

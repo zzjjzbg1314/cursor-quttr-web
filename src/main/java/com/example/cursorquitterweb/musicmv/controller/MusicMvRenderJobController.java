@@ -72,10 +72,13 @@ public class MusicMvRenderJobController {
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestHeader(value = "X-Music-Mv-Client-Id", required = false) String clientId,
             @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "false") boolean completedOnly,
+            @RequestParam(defaultValue = "0") int offset,
             HttpServletRequest servletRequest
     ) {
         authentication.requireAuthorized(token);
-        return service.list(auth.requireUserId(servletRequest), limit);
+        String ownerId = auth.requireUserId(servletRequest);
+        return completedOnly ? service.listCompleted(ownerId, limit, offset) : service.list(ownerId, limit);
     }
 
     @GetMapping("/{jobId}")

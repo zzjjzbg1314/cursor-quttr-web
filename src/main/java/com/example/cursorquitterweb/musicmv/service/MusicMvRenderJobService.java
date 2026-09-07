@@ -222,6 +222,21 @@ public class MusicMvRenderJobService {
         return result;
     }
 
+    public Map<String, Object> listCompleted(String ownerId, int limit, int offset) {
+        int pageSize = Math.max(1, Math.min(100, limit));
+        List<Map<String, Object>> rows = repository.ownedJobs(
+                requireId(ownerId, "MV_RENDER_CLIENT_ID_INVALID"), pageSize + 1, true, Math.max(0, offset));
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : rows.subList(0, Math.min(pageSize, rows.size()))) {
+            items.add(clientView(row));
+        }
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("items", items);
+        result.put("count", items.size());
+        result.put("hasMore", rows.size() > pageSize);
+        return result;
+    }
+
     public Map<String, Object> cancel(String clientId, String jobId) {
         requireOwnedJob(clientId, jobId);
         Map<String, Object> row = repository.cancel(jobId, requireId(clientId,
