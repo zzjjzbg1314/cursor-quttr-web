@@ -36,6 +36,23 @@ class TemplateRuntimePackageServiceTest {
     }
 
     @Test
+    void deliversExactAtlasFromR2AndRejectsChangedSize() {
+        Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
+        row.put("object_key", "atlas.png"); row.put("source_size_bytes", 123L); row.put("content_type", "image/png");
+        when(repository.templateResourceAsset("sha_" + hash(), hash())).thenReturn(row);
+        when(r2.presignedGetUrl("atlas.png", Duration.ofMinutes(15))).thenReturn("https://download.example/atlas");
+        Map<String, Object> source = new LinkedHashMap<>(); source.put("assetId", "sha_" + hash());
+        source.put("sourceSha256", hash()); source.put("sourceSizeBytes", 123L); source.put("contentType", "image/png");
+        Map<String, Object> descriptor = new LinkedHashMap<>(); descriptor.put("sourceAsset", source);
+        descriptor.put("kind", "image"); descriptor.put("spriteAtlas", Collections.emptyMap());
+        assertEquals("https://download.example/atlas", service.downloadExactImage(descriptor).get("url"));
+        source.put("sourceSizeBytes", 124L);
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+        source.put("sourceSizeBytes", 123L); descriptor.remove("spriteAtlas");
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+    }
+
+    @Test
     void createsPrivateR2UploadSessionWithIntegrityHeaders() {
         TemplateRuntimePackageUploadRequest request = request();
         Map<String, Object> awaiting = packageRow("awaiting_upload");

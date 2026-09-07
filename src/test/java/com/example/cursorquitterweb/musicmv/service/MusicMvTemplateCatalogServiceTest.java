@@ -67,6 +67,28 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void validatesInlineEffectClockSchemaAndPublishedBinding() throws Exception {
+        Map<String, Object> clock = new LinkedHashMap<>();
+        clock.put("schemaVersion", "browser-effect-clock-v1"); clock.put("effectId", "segment-1");
+        clock.put("resourceId", "resource-1"); clock.put("targetStartSeconds", 10.0);
+        clock.put("targetDurationSeconds", 0.2); clock.put("sourceStartSeconds", 2.0);
+        clock.put("segmentSpeed", 0.5); clock.put("speedAdjustment", 0.33);
+        String inline = "data:application/json;base64," + java.util.Base64.getEncoder().encodeToString(new ObjectMapper().writeValueAsBytes(clock));
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireSafeInlineBrowserResource", inline);
+        Map<String, Object> resource = new LinkedHashMap<>();
+        resource.put("resourceKey", "effect_clock_segment-1"); resource.put("inlineData", inline);
+        Map<String, Object> effect = new LinkedHashMap<>(clock);
+        Map<String, Object> scene = new LinkedHashMap<>(); scene.put("postEffects", Collections.singletonList(effect));
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserEffectClock", resource, scene);
+        effect.put("targetStartSeconds", 11.0);
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserEffectClock", resource, scene));
+        clock.put("privatePath", "/Users/private/source.json");
+        String invalid = "data:application/json;base64," + java.util.Base64.getEncoder().encodeToString(new ObjectMapper().writeValueAsBytes(clock));
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireSafeInlineBrowserResource", invalid));
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireSafeInlineBrowserResource", "data:application/json;base64,e30="));
+    }
+
+    @Test
     void classifiesMothersDayFamilyTemplateIntoFamilyHolidayAndThanks() {
         TemplatePromotionRequest request = validPromotion();
         request.setCategoryKey("family");

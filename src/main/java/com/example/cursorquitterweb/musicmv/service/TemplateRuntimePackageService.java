@@ -158,6 +158,23 @@ public class TemplateRuntimePackageService {
         return result;
     }
 
+    public Map<String, Object> downloadExactImage(Map<String, Object> descriptor) {
+        Object raw = descriptor.get("sourceAsset");
+        if (!(raw instanceof Map) || !(descriptor.get("spriteAtlas") instanceof Map || "lut_2d_png".equals(descriptor.get("kind"))))
+            throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片绑定类型无效");
+        Map<?, ?> source = (Map<?, ?>) raw;
+        String sha = String.valueOf(source.get("sourceSha256"));
+        if (!sha.matches("[a-f0-9]{64}") || !("sha_" + sha).equals(source.get("assetId")) || !"image/png".equals(source.get("contentType")))
+            throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片内容标识无效");
+        Map<String, Object> download = new TemplateResourceAssetService(repository, r2).downloadSession("sha_" + sha, sha);
+        if (!"image/png".equals(download.get("contentType")) || number(source.get("sourceSizeBytes")) != number(download.get("sourceSizeBytes")))
+            throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片大小或类型不一致");
+        Map<String, Object> asset = new LinkedHashMap<>();
+        asset.put("kind", descriptor.get("kind")); asset.put("url", download.get("downloadUrl"));
+        asset.put("sourceSha256", sha); asset.put("sourceSizeBytes", source.get("sourceSizeBytes"));
+        return asset;
+    }
+
     private boolean sameReadyPackage(
             Map<String, Object> existing, String sha256, long size, String objectKey) {
         if (existing == null || !"ready".equals(RowUtils.str(existing, "status"))) return false;

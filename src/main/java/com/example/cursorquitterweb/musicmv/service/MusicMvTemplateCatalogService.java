@@ -468,6 +468,9 @@ public class MusicMvTemplateCatalogService {
         }
         requireSanitizedBrowserScene(scene);
         if (scene.containsKey("runtimeDelivery")) runtimePackages.downloadForScene(templateId, versionId, scene);
+        if (scene.get("resources") instanceof List) for (Object raw : (List<?>) scene.get("resources")) {
+            if (raw instanceof Map && ((Map<?, ?>) raw).containsKey("sourceAsset")) runtimePackages.downloadExactImage((Map<String, Object>) raw);
+        }
         String sceneJson = json(scene);
         String actualSha256 = sha256(sceneJson);
         if (!actualSha256.equalsIgnoreCase(request.getManifestSha256())) {
@@ -603,6 +606,7 @@ public class MusicMvTemplateCatalogService {
                 if (resourceKey != null && kind != null) {
                     resourceKinds.put(resourceKey, kind);
                     if ("font".equals(kind)) requireValidBrowserFontResource(resource);
+                    if ("effect_clock".equals(kind)) requireValidBrowserEffectClock(resource, scene);
                 }
             }
         }
@@ -2490,7 +2494,9 @@ public class MusicMvTemplateCatalogService {
                 Map<String, Object> asset = null;
                 String inlineData = descriptor.get("inlineData") == null
                         ? null : String.valueOf(descriptor.get("inlineData"));
-                if (inlineData != null && !inlineData.trim().isEmpty()) {
+                if (descriptor.containsKey("sourceAsset")) {
+                    asset = runtimePackages.downloadExactImage(descriptor);
+                } else if (inlineData != null && !inlineData.trim().isEmpty()) {
                     asset = new LinkedHashMap<String, Object>();
                     asset.put("kind", kind);
                     asset.put("url", inlineData);
@@ -2600,10 +2606,58 @@ public class MusicMvTemplateCatalogService {
         return true;
     }
 
+    private Map<?, ?> decodeBrowserEffectClock(String inline) {
+        try {
+            if (!inline.startsWith("data:application/json;base64,") || inline.length() > 4096) throw new IllegalArgumentException();
+            Map<?, ?> clock = objectMapper.readValue(Base64.getDecoder().decode(inline.substring(inline.indexOf(',') + 1)), Map.class);
+            Set<String> keys = new HashSet<String>(java.util.Arrays.asList("schemaVersion", "effectId", "resourceId",
+                    "targetStartSeconds", "targetDurationSeconds", "sourceStartSeconds", "segmentSpeed", "speedAdjustment"));
+            if (!keys.equals(clock.keySet()) || !"browser-effect-clock-v1".equals(clock.get("schemaVersion"))) throw new IllegalArgumentException();
+            for (String key : java.util.Arrays.asList("effectId", "resourceId")) {
+                if (!(clock.get(key) instanceof String) || !((String) clock.get(key)).matches("[A-Za-z0-9_-]{1,160}")) throw new IllegalArgumentException();
+            }
+            for (String key : java.util.Arrays.asList("targetStartSeconds", "targetDurationSeconds", "sourceStartSeconds", "segmentSpeed", "speedAdjustment")) {
+                Object number = clock.get(key);
+                if (!(number instanceof Number) || !Double.isFinite(((Number) number).doubleValue()) || ((Number) number).doubleValue() < 0) throw new IllegalArgumentException();
+            }
+            if (((Number) clock.get("segmentSpeed")).doubleValue() <= 0) throw new IllegalArgumentException();
+            return clock;
+        } catch (Exception exception) {
+            throw badRequest("TEMPLATE_BROWSER_RESOURCE_INLINE_INVALID", "Effect clock must be bounded JSON with the declared schema and finite timing values");
+        }
+    }
+
+    private void requireValidBrowserEffectClock(Map<?, ?> resource, Map<String, Object> scene) {
+        Map<?, ?> clock = decodeBrowserEffectClock(String.valueOf(resource.get("inlineData")));
+        if (!("effect_clock_" + clock.get("effectId")).equals(resource.get("resourceKey"))) {
+            throw badRequest("TEMPLATE_BROWSER_EFFECT_CLOCK_INVALID", "Effect clock resource key does not match its effect");
+        }
+        Object effects = scene.get("postEffects");
+        if (effects instanceof List) for (Object raw : (List<?>) effects) {
+            if (!(raw instanceof Map)) continue;
+            Map<?, ?> effect = (Map<?, ?>) raw;
+            if (!clock.get("effectId").equals(effect.get("effectId"))) continue;
+            if (!clock.get("resourceId").equals(effect.get("resourceId"))) break;
+            boolean matches = true;
+            for (String key : java.util.Arrays.asList("targetStartSeconds", "targetDurationSeconds")) {
+                Object value = effect.get(key);
+                matches &= value instanceof Number && Double.isFinite(((Number) value).doubleValue())
+                        && Math.abs(((Number) value).doubleValue() - ((Number) clock.get(key)).doubleValue()) <= 1e-6;
+            }
+            if (matches) return;
+            break;
+        }
+        throw badRequest("TEMPLATE_BROWSER_EFFECT_CLOCK_INVALID", "Effect clock timing does not match the published scene");
+    }
+
     private void requireSafeInlineBrowserResource(Object value) {
         String text = value == null ? "" : String.valueOf(value);
         int comma = text.indexOf(',');
         String header = comma < 0 ? "" : text.substring(0, comma).toLowerCase();
+        if (header.equals("data:application/json;base64")) {
+            decodeBrowserEffectClock(text);
+            return;
+        }
         if (!(header.equals("data:font/ttf;base64")
                 || header.equals("data:font/otf;base64")
                 || header.equals("data:font/woff;base64")
