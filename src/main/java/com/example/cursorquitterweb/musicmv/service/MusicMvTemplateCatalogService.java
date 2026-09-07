@@ -670,6 +670,7 @@ public class MusicMvTemplateCatalogService {
         Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
                 "fade_to_black", "dual_lut_skin_mask", "dual_lut_filter_approximation",
                 "orange_green_filter_approximation", "static_texture_screen_overlay",
+                "aspect_texture_sequence", "duration_texture_sequence", "chromatic_texture_distortion",
                 "unsupported"));
         Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
                 "exact", "semantic_approximation", "unsupported"));
@@ -695,6 +696,7 @@ public class MusicMvTemplateCatalogService {
                                 + ", intensity=" + effect.get("intensity")
                                 + ", fidelity=" + fidelity);
             }
+            requireScriptedTextureContract(effect, preset, "whole_scene_after_layers");
             if ("dual_lut_skin_mask".equals(preset)
                     && !validBrowserPostEffectContract(effect)) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
@@ -773,7 +775,9 @@ public class MusicMvTemplateCatalogService {
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation",
                 "glyph_texture_shuffle_animation",
-                "keyframe_transform",
+                "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+                "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
+                "directional_blur_fade_animation", "keyframe_transform",
                 "jitter_approximation", "scale_down_approximation",
                 "scale_up_approximation", "blur_in_approximation",
                 "fade_approximation", "translate_approximation",
@@ -782,6 +786,17 @@ public class MusicMvTemplateCatalogService {
             requireValidBrowserTimedPreset(raw, allowed,
                     "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
             Map<?, ?> animation = (Map<?, ?>) raw;
+            String preset = String.valueOf(animation.get("preset"));
+            if (java.util.Arrays.asList("linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+                    "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
+                    "directional_blur_fade_animation").contains(preset)
+                    && !(preset.equals(animation.get("semanticFamily"))
+                    && "browser-package-animation-v1".equals(animation.get("contractVersion"))
+                    && "declared_category_duration".equals(animation.get("packageClock"))
+                    && "package_script_transform_glyph_and_shader_equations".equals(animation.get("evidence")))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID",
+                        "Packaged text animations require the verified semantic contract");
+            }
             if ("lumi_video_animation".equals(String.valueOf(animation.get("preset")))
                     && !("browser-animation-semantic-v1".equals(animation.get("contractVersion"))
                             && "lumi_video_animation".equals(animation.get("semanticFamily"))
@@ -882,12 +897,14 @@ public class MusicMvTemplateCatalogService {
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "turbulence_bounce_shake", "texture_sequence_screen_multiply",
                 "paper_stroke_person_mask",
+                "aspect_texture_sequence", "duration_texture_sequence", "chromatic_texture_distortion",
                 "shake_approximation", "noise_approximation", "unsupported"));
         for (Object raw : (List<?>) rawEffects) {
             requireValidBrowserTimedPreset(raw, allowed,
                     "TEMPLATE_BROWSER_SCENE_LAYER_EFFECT_INVALID", false);
             Map<?, ?> effect = (Map<?, ?>) raw;
             String preset = String.valueOf(effect.get("preset"));
+            requireScriptedTextureContract(effect, preset, "source_graph_before_video_animation");
             if (("turbulence_bounce_shake".equals(preset)
                     || "texture_sequence_screen_multiply".equals(preset)
                     || "paper_stroke_person_mask".equals(preset))
@@ -905,6 +922,18 @@ public class MusicMvTemplateCatalogService {
                             "Browser scene layer effect parameters must be finite numbers");
                 }
             }
+        }
+    }
+
+    private void requireScriptedTextureContract(Map<?, ?> effect, String preset, String applicationStage) {
+        if (!java.util.Arrays.asList("aspect_texture_sequence", "duration_texture_sequence",
+                "chromatic_texture_distortion").contains(preset)) return;
+        if (!(preset.equals(effect.get("semanticFamily"))
+                && "browser-scripted-texture-v1".equals(effect.get("contractVersion"))
+                && applicationStage.equals(effect.get("applicationStage"))
+                && "package_lua_clock_and_original_shader_graph".equals(effect.get("evidence")))) {
+            throw badRequest("TEMPLATE_BROWSER_SCENE_SCRIPTED_TEXTURE_CONTRACT_INVALID",
+                    "Scripted texture effects require the verified semantic contract");
         }
     }
 
@@ -987,7 +1016,8 @@ public class MusicMvTemplateCatalogService {
                         || ((Number) duration).doubleValue() < 0.0d))
                 || (fidelity != null && !allowedFidelity.contains(fidelity))) {
             throw badRequest(errorCode,
-                    "Browser scene preset, duration, or fidelity is invalid: preset="
+                    "Browser scene preset, duration, or fidelity is invalid: presetAllowed="
+                            + allowedPresets.contains(preset) + ", durationRequired=" + requireDuration + ", preset="
                             + preset + ", durationSeconds=" + duration
                             + ", fidelity=" + fidelity);
         }

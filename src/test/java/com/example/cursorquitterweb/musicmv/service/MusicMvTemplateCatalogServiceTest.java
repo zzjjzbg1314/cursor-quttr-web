@@ -67,6 +67,57 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void acceptsScriptedTexturesWithoutLayerDurationButRequiresTheirContract() {
+        for (String preset : Arrays.asList("aspect_texture_sequence", "duration_texture_sequence",
+                "chromatic_texture_distortion")) {
+            Map<String, Object> effect = row("preset", preset);
+            effect.put("fidelity", "exact");
+            effect.put("semanticFamily", preset);
+            effect.put("contractVersion", "browser-scripted-texture-v1");
+            effect.put("applicationStage", "source_graph_before_video_animation");
+            effect.put("evidence", "package_lua_clock_and_original_shader_graph");
+            Map<String, Object> layer = row("effects", Collections.singletonList(effect));
+            org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerEffects", layer);
+            effect.put("targetStartSeconds", 0.0);
+            effect.put("targetDurationSeconds", 22.0);
+            effect.put("intensity", 1.0);
+            effect.put("applicationStage", "whole_scene_after_layers");
+            Map<String, Object> scene = row("postEffects", Collections.singletonList(effect));
+            org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserPostEffects", scene, Collections.emptyMap());
+            effect.remove("targetDurationSeconds");
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserPostEffects", scene, Collections.emptyMap()));
+            effect.put("applicationStage", "source_graph_before_video_animation");
+            effect.remove("evidence");
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerEffects", layer));
+        }
+        Map<String, Object> unknown = row("effects", Collections.singletonList(row("preset", "unknown_texture")));
+        ApiException error = assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerEffects", unknown));
+        assertTrue(error.getMessage().contains("presetAllowed=false"));
+        assertTrue(error.getMessage().contains("durationRequired=false"));
+    }
+
+    @Test
+    void acceptsAllCompiledTextAnimationsAndRejectsMissingDurationOrContract() {
+        for (String preset : Arrays.asList("linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+                "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation", "directional_blur_fade_animation")) {
+            Map<String, Object> animation = row("preset", preset);
+            animation.put("fidelity", "exact");
+            animation.put("durationSeconds", 0.8);
+            animation.put("semanticFamily", preset);
+            animation.put("contractVersion", "browser-package-animation-v1");
+            animation.put("packageClock", "declared_category_duration");
+            animation.put("evidence", "package_script_transform_glyph_and_shader_equations");
+            Map<String, Object> layer = row("animations", Collections.singletonList(animation));
+            org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer);
+            animation.remove("durationSeconds");
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer));
+            animation.put("durationSeconds", 0.8);
+            animation.put("semanticFamily", "incorrect");
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer));
+        }
+    }
+
+    @Test
     void validatesInlineEffectClockSchemaAndPublishedBinding() throws Exception {
         Map<String, Object> clock = new LinkedHashMap<>();
         clock.put("schemaVersion", "browser-effect-clock-v1"); clock.put("effectId", "segment-1");
