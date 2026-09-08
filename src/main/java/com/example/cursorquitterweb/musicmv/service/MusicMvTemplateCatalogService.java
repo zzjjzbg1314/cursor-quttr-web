@@ -643,7 +643,8 @@ public class MusicMvTemplateCatalogService {
                 String resourceKey = blankToNull(layer.get("resourceKey") == null
                         ? null : String.valueOf(layer.get("resourceKey")));
                 String requiredKind = "video".equals(type) ? "video" : "image";
-                if (resourceKey == null || !requiredKind.equals(resourceKinds.get(resourceKey))) {
+                if (resourceKey == null || !(requiredKind.equals(resourceKinds.get(resourceKey))
+                        || ("sticker".equals(type) && "animated_image".equals(resourceKinds.get(resourceKey))))) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
                             "Image, sticker, and video layers must reference a matching resource");
                 }
@@ -668,7 +669,7 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene post effects must be a list");
         }
         Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
-                "fade_to_black", "dual_lut_skin_mask", "dual_lut_filter_approximation",
+                "fade_to_black", "builtin_lut_512", "scripted_resource_graph", "dual_lut_skin_mask", "dual_lut_filter_approximation",
                 "orange_green_filter_approximation", "static_texture_screen_overlay",
                 "aspect_texture_sequence", "duration_texture_sequence", "chromatic_texture_distortion",
                 "unsupported"));
@@ -707,7 +708,12 @@ public class MusicMvTemplateCatalogService {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
                         "Texture overlay effects require the verified semantic contract");
             }
-            if (!"dual_lut_skin_mask".equals(preset)
+            if ("builtin_lut_512".equals(preset) && !("builtin_lut_512".equals(effect.get("semanticFamily"))
+                    && "browser-builtin-lut-v1".equals(effect.get("contractVersion"))
+                    && "64_cube_bilinear_rg_linear_blue".equals(effect.get("lutSampling"))
+                    && "official_web_default_filter_config_and_BEFGlobalFilterV2_shader".equals(effect.get("evidence"))))
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID", "内置 LUT 必须携带已核实的采样契约");
+            if (!"builtin_lut_512".equals(preset) && !"dual_lut_skin_mask".equals(preset)
                     && !"dual_lut_filter_approximation".equals(preset)
                     && !"orange_green_filter_approximation".equals(preset)) continue;
             Object rawKeys = effect.get("resourceKeys");
@@ -864,12 +870,20 @@ public class MusicMvTemplateCatalogService {
         Object rawTransition = layer.get("transitionIn");
         if (rawTransition == null) return;
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
-                "ab_progress_mix", "soft_fade", "white_flash_approximation", "wipe_approximation",
+                "ab_progress_mix", "general_shader_transition", "soft_fade", "white_flash_approximation", "wipe_approximation",
                 "blur_crossfade_approximation", "push_slide_approximation",
                 "scale_zoom_approximation", "unsupported"));
         requireValidBrowserTimedPreset(rawTransition, allowed,
                 "TEMPLATE_BROWSER_SCENE_TRANSITION_INVALID", true);
         Map<?, ?> transition = (Map<?, ?>) rawTransition;
+        if ("general_shader_transition".equals(transition.get("preset"))
+                && !("browser-transition-semantic-v1".equals(transition.get("contractVersion"))
+                    && "general_shader_transition".equals(transition.get("semanticFamily"))
+                    && "normalized_transition_progress".equals(transition.get("progressMapping"))
+                    && "timeline_ab_after_source_graph".equals(transition.get("applicationStage"))
+                    && "package_ge_protocol_shader".equals(transition.get("evidence"))
+                    && transition.get("resourceId") instanceof String && ((String)transition.get("resourceId")).matches("[A-Za-z0-9_-]{1,160}")))
+            throw badRequest("TEMPLATE_BROWSER_SCENE_TRANSITION_CONTRACT_INVALID", "原始 GE 转场必须携带完整执行契约与资源标识");
         if ("ab_progress_mix".equals(String.valueOf(transition.get("preset")))
                 && !("browser-transition-semantic-v1".equals(transition.get("contractVersion"))
                         && "ab_progress_mix".equals(transition.get("semanticFamily"))
@@ -896,7 +910,7 @@ public class MusicMvTemplateCatalogService {
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "turbulence_bounce_shake", "texture_sequence_screen_multiply",
-                "paper_stroke_person_mask",
+                "paper_stroke_person_mask", "scripted_resource_graph",
                 "aspect_texture_sequence", "duration_texture_sequence", "chromatic_texture_distortion",
                 "shake_approximation", "noise_approximation", "unsupported"));
         for (Object raw : (List<?>) rawEffects) {
@@ -926,6 +940,16 @@ public class MusicMvTemplateCatalogService {
     }
 
     private void requireScriptedTextureContract(Map<?, ?> effect, String preset, String applicationStage) {
+        if ("scripted_resource_graph".equals(preset)) {
+            if (!(preset.equals(effect.get("semanticFamily"))
+                    && "browser-original-resource-graph-v1".equals(effect.get("contractVersion"))
+                    && applicationStage.equals(effect.get("applicationStage"))
+                    && "parse_scene_execute_original_lua_link_active_shader_inputs".equals(effect.get("runtimeValidation"))
+                    && "original_scene_references_lua_and_shader_descriptors".equals(effect.get("evidence"))
+                    && effect.get("resourceId") instanceof String && ((String)effect.get("resourceId")).matches("[A-Za-z0-9_-]{1,160}")))
+                throw badRequest("TEMPLATE_BROWSER_SCENE_SCRIPTED_TEXTURE_CONTRACT_INVALID", "原始资源图必须携带完整运行校验契约");
+            return;
+        }
         if (!java.util.Arrays.asList("aspect_texture_sequence", "duration_texture_sequence",
                 "chromatic_texture_distortion").contains(preset)) return;
         if (!(preset.equals(effect.get("semanticFamily"))

@@ -36,6 +36,23 @@ class TemplateRuntimePackageServiceTest {
     }
 
     @Test
+    void deliversOriginalGifFromR2AndRejectsChangedSize() {
+        Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
+        row.put("object_key", "motion.gif"); row.put("source_size_bytes", 123L); row.put("content_type", "image/gif");
+        when(repository.templateResourceAsset("sha_" + hash(), hash())).thenReturn(row);
+        when(r2.presignedGetUrl("motion.gif", Duration.ofMinutes(15))).thenReturn("https://download.example/atlas");
+        Map<String, Object> source = new LinkedHashMap<>(); source.put("assetId", "sha_" + hash());
+        source.put("sourceSha256", hash()); source.put("sourceSizeBytes", 123L); source.put("contentType", "image/gif");
+        Map<String, Object> descriptor = new LinkedHashMap<>(); descriptor.put("sourceAsset", source);
+        descriptor.put("kind", "animated_image");
+        assertEquals("https://download.example/atlas", service.downloadExactImage(descriptor).get("url"));
+        source.put("sourceSizeBytes", 124L);
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+        source.put("sourceSizeBytes", 123L); source.put("contentType", "image/png");
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+    }
+
+    @Test
     void deliversExactAtlasFromR2AndRejectsChangedSize() {
         Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
         row.put("object_key", "atlas.png"); row.put("source_size_bytes", 123L); row.put("content_type", "image/png");

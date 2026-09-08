@@ -67,6 +67,32 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void acceptsCompleteOriginalGraphSceneAndRejectsUnverifiedNewContracts() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String,Object> scene = mapper.readValue(getClass().getResourceAsStream("/musicmv/browser-original-graph-scene.json"), Map.class);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));request.setScene(scene);
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("ready", service.synchronizeBrowserScene("tpl_1", "tplver_1", request).get("status"));
+        Map<String,Object> transition=null, graph=null;
+        for (Map<String,Object> layer:(List<Map<String,Object>>)scene.get("layers")) {
+            if(layer.get("transitionIn") instanceof Map)transition=(Map<String,Object>)layer.get("transitionIn");
+            for(Map<String,Object> effect:(List<Map<String,Object>>)layer.getOrDefault("effects",Collections.emptyList()))
+                if("scripted_resource_graph".equals(effect.get("preset")))graph=effect;
+        }
+        Object original=transition.remove("evidence");request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_BROWSER_SCENE_TRANSITION_CONTRACT_INVALID",assertThrows(ApiException.class,()->service.synchronizeBrowserScene("tpl_1","tplver_1",request)).getCode());
+        transition.put("evidence",original);original=graph.remove("runtimeValidation");request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_BROWSER_SCENE_SCRIPTED_TEXTURE_CONTRACT_INVALID",assertThrows(ApiException.class,()->service.synchronizeBrowserScene("tpl_1","tplver_1",request)).getCode());
+        graph.put("runtimeValidation",original);
+        Map<String,Object> lut=((List<Map<String,Object>>)scene.get("postEffects")).get(0);lut.put("lutSampling","unknown");request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",assertThrows(ApiException.class,()->service.synchronizeBrowserScene("tpl_1","tplver_1",request)).getCode());
+    }
+
+    @Test
     void acceptsScriptedTexturesWithoutLayerDurationButRequiresTheirContract() {
         for (String preset : Arrays.asList("aspect_texture_sequence", "duration_texture_sequence",
                 "chromatic_texture_distortion")) {
