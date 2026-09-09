@@ -558,6 +558,34 @@ class MusicMvTemplateCatalogServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void historicalDetailSelectsOnlyPublishedVersionAndPreservesCatalogPointer() {
+        Map<String, Object> template = row("template_id", "tpl_1");
+        template.put("status", "published"); template.put("visibility", "public");
+        template.put("current_version_id", "new");
+        Map<String, Object> old = row("version_id", "accepted"); old.put("status", "published");
+        Map<String, Object> latest = row("version_id", "new"); latest.put("status", "published");
+        Map<String, Object> draft = row("version_id", "draft"); draft.put("status", "draft");
+        TemplateDetailRows rows = new TemplateDetailRows(template, Collections.emptyList(), null,
+                Collections.emptyList(), Arrays.asList(latest, old, draft),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        when(repository.templateDetail("tpl_1")).thenReturn(rows);
+        Map<String, Object> detail = service.publishedVersionDetail("tpl_1", "accepted");
+        assertEquals("new", detail.get("currentVersionId"));
+        List<Map<String, Object>> versions = (List<Map<String, Object>>) detail.get("versions");
+        assertEquals(1, versions.size()); assertEquals("accepted", versions.get(0).get("versionId"));
+        for (String rejected : Arrays.asList("draft", "missing", "")) {
+            assertEquals("TEMPLATE_VERSION_NOT_FOUND", assertThrows(ApiException.class,
+                    () -> service.publishedVersionDetail("tpl_1", rejected)).getCode());
+        }
+        old.put("status", "archived");
+        assertThrows(ApiException.class, () -> service.publishedVersionDetail("tpl_1", "accepted"));
+        old.put("status", "published"); template.put("visibility", "private");
+        assertEquals("TEMPLATE_NOT_FOUND", assertThrows(ApiException.class,
+                () -> service.publishedVersionDetail("tpl_1", "accepted")).getCode());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void includesReadyRuntimePackageInPublicBrowserRenderDetail() {
         Map<String, Object> template = row("template_id", "tpl_1");
         template.put("status", "published");

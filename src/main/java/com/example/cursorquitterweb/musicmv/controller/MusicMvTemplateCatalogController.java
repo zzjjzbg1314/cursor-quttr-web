@@ -84,6 +84,14 @@ public class MusicMvTemplateCatalogController {
                 .body(detail);
     }
 
+    @GetMapping("/templates/{templateId}/versions/{versionId}")
+    public Map<String, Object> templateVersion(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String templateId, @PathVariable String versionId) {
+        authentication.requireAuthorized(token);
+        return service.publishedVersionDetail(templateId, versionId);
+    }
+
     @GetMapping("/templates/{templateId}/similar")
     public Map<String, Object> similar(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,

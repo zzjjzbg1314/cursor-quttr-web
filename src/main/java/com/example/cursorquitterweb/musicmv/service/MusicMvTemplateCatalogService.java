@@ -193,6 +193,16 @@ public class MusicMvTemplateCatalogService {
     }
 
     private Map<String, Object> loadDetail(String templateId, boolean admin) {
+        return loadDetail(templateId, admin, null);
+    }
+
+    public Map<String, Object> publishedVersionDetail(String templateId, String versionId) {
+        if (versionId == null || versionId.trim().isEmpty())
+            throw notFound("TEMPLATE_VERSION_NOT_FOUND", "Published template version was not found");
+        return loadDetail(templateId, false, versionId);
+    }
+
+    private Map<String, Object> loadDetail(String templateId, boolean admin, String requestedVersionId) {
         TemplateDetailRows rows = repository.templateDetail(templateId);
         Map<String, Object> template = rows.getTemplate();
         if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
@@ -222,7 +232,11 @@ public class MusicMvTemplateCatalogService {
         }
         List<Map<String, Object>> versions = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> row : rows.getVersions()) {
-            if (!admin && !String.valueOf(currentVersionId).equals(RowUtils.str(row, "version_id"))) continue;
+            if (requestedVersionId != null) {
+                // 历史版本必须仍为已发布状态，不能借版本参数读取草稿或撤回版本。
+                if (!requestedVersionId.equals(RowUtils.str(row, "version_id"))
+                        || !"published".equals(RowUtils.str(row, "status"))) continue;
+            } else if (!admin && !String.valueOf(currentVersionId).equals(RowUtils.str(row, "version_id"))) continue;
             Map<String, Object> version = versionView(row, admin);
             String versionId = RowUtils.str(row, "version_id");
             List<Map<String, Object>> slotViews = slotViews(orEmpty(slotsByVersion.get(versionId)));
@@ -252,6 +266,8 @@ public class MusicMvTemplateCatalogService {
             }
             versions.add(version);
         }
+        if (requestedVersionId != null && versions.size() != 1)
+            throw notFound("TEMPLATE_VERSION_NOT_FOUND", "Published template version was not found");
         result.put("versions", versions);
         return result;
     }
