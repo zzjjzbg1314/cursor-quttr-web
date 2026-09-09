@@ -422,10 +422,11 @@ public class MusicMvRenderJobService {
         boolean ready = "published".equals(RowUtils.str(row, "template_status"))
                 && "published".equals(RowUtils.str(row, "version_status"))
                 && "browser_ready".equals(RowUtils.str(row, "validation_status"))
-                && request.getTemplateVersionId().equals(RowUtils.str(row, "current_version_id"))
+                && request.getTemplateId().equals(RowUtils.str(row, "template_id"))
+                && request.getTemplateVersionId().equals(RowUtils.str(row, "version_id"))
                 && "ready".equals(RowUtils.str(row, "browser_scene_status"));
         if (!ready) throw conflict("MV_RENDER_TEMPLATE_NOT_RENDERABLE",
-                "Template version is not published, current and browser-render ready");
+                "Requested template version is not published and browser-render ready");
     }
 
     private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request) {

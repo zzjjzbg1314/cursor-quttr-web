@@ -409,8 +409,53 @@ class MusicMvRenderJobServiceTest {
         service.prepareBrowserAsync("website-backend", "mvr_1");
 
         verify(repository).failBrowserPreparation("mvr_1", "MV_RENDER_TEMPLATE_NOT_RENDERABLE",
-                "Template version is not published, current and browser-render ready", false);
+                "Requested template version is not published and browser-render ready", false);
         verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+    }
+
+    @Test
+    void preparesPublishedHistoricalVersionWithoutSwitchingToCurrentVersion() throws Exception {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        Map<String, Object> historical = version(); historical.put("current_version_id", "new-version");
+        when(music.ownedCandidate("owner", "song_1")).thenReturn(candidate());
+        when(repository.claimBrowserPreparation("mvr_history")).thenReturn(preparingRow("mvr_history", request));
+        when(repository.updateBrowserPreparation("mvr_history", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("mvr_history", request));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(new RenderContract(historical,
+                Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet())).thenReturn(Collections.emptyMap());
+        service.prepareBrowserAsync("owner", "mvr_history");
+        ArgumentCaptor<String> prepared = ArgumentCaptor.forClass(String.class);
+        verify(repository).completeBrowserPreparation(eq("mvr_history"), prepared.capture());
+        assertEquals("tplver_1", new ObjectMapper().readTree(prepared.getValue()).path("templateVersionId").asText());
+        verify(repository, never()).renderContract("tpl_1", "new-version");
+    }
+
+    @Test
+    void historicalVersionStillRejectsUnpublishedUnreadyAndMismatchedContracts() {
+        for (String field : Arrays.asList("template_status", "version_status", "validation_status",
+                "browser_scene_status", "template_id", "version_id")) {
+            MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+            AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+            MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                    mock(MusicMvRenderArtifactStorageService.class), inputAssets(), new ObjectMapper(), true, 2);
+            MusicMvRenderJobCreateRequest request = request();
+            Map<String, Object> historical = version(); historical.put("current_version_id", "new-version");
+            historical.put(field, "invalid");
+            when(music.ownedCandidate("owner", "song_1")).thenReturn(candidate());
+            when(repository.claimBrowserPreparation("mvr_history")).thenReturn(preparingRow("mvr_history", request));
+            when(repository.updateBrowserPreparation("mvr_history", "preparing_template", 0.55d))
+                    .thenReturn(preparingRow("mvr_history", request));
+            when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(new RenderContract(historical, Collections.emptyList()));
+            service.prepareBrowserAsync("owner", "mvr_history");
+            verify(repository).failBrowserPreparation("mvr_history", "MV_RENDER_TEMPLATE_NOT_RENDERABLE",
+                    "Requested template version is not published and browser-render ready", false);
+            verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+        }
     }
 
     @Test
@@ -806,6 +851,8 @@ class MusicMvRenderJobServiceTest {
 
     private Map<String, Object> version() {
         Map<String, Object> row = new LinkedHashMap<String, Object>();
+        row.put("template_id", "tpl_1");
+        row.put("version_id", "tplver_1");
         row.put("template_status", "published");
         row.put("version_status", "published");
         row.put("validation_status", "browser_ready");
