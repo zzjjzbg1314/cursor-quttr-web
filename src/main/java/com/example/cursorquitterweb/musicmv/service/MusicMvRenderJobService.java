@@ -6,6 +6,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -488,11 +489,42 @@ public class MusicMvRenderJobService {
         }
     }
 
+    // 空槽位只有在已保存场景完整声明纯文字时成立，不能把缺失的照片槽当作无照片模板。
+    private boolean verifiedTextOnlyScene(String versionId) {
+        Map<String, Object> row = repository.browserScene(versionId);
+        if (row == null || !"ready".equals(RowUtils.str(row, "status"))) return false;
+        Map<String, Object> scene = parseObject(RowUtils.str(row, "scene_json"));
+        if (scene == null || !"browser-template-scene-v6".equals(scene.get("schemaVersion"))) return false;
+        for (String key : Arrays.asList("slots", "timelineSegments")) {
+            if (!(scene.get(key) instanceof List) || !((List<?>) scene.get(key)).isEmpty()) return false;
+        }
+        if (!(scene.get("layers") instanceof List) || ((List<?>) scene.get("layers")).isEmpty()
+                || !(scene.get("textLayers") instanceof List)) return false;
+        Set<String> layers = new HashSet<>(), texts = new HashSet<>();
+        for (Object value : (List<?>) scene.get("layers")) {
+            if (!(value instanceof Map)) return false;
+            Map<?, ?> layer = (Map<?, ?>) value;
+            if (!"text".equals(layer.get("type")) || !(layer.get("layerId") instanceof String)
+                    || ((String) layer.get("layerId")).isEmpty() || !layers.add((String) layer.get("layerId"))) return false;
+        }
+        for (Object value : (List<?>) scene.get("textLayers")) {
+            if (!(value instanceof Map)) return false;
+            Map<?, ?> text = (Map<?, ?>) value;
+            if (!(text.get("segmentId") instanceof String) || !texts.add((String) text.get("segmentId"))
+                    || !(text.get("nativeTextSource") instanceof Map)) return false;
+            Map<?, ?> source = (Map<?, ?>) text.get("nativeTextSource");
+            if (!"native-text-source-v1".equals(source.get("schemaVersion"))
+                    || !"material_projected".equals(source.get("status"))) return false;
+        }
+        return layers.equals(texts);
+    }
+
     private void requireSlotBindings(String ownerId, String versionId,
                                      List<Map<String, Object>> slots,
                                      List<MusicMvRenderJobCreateRequest.SlotBinding> bindings) {
         if (slots == null || slots.isEmpty()) {
-            throw conflict("MV_RENDER_TEMPLATE_HAS_NO_SLOTS", "Template has no material slots");
+            if (slots != null && bindings.isEmpty() && verifiedTextOnlyScene(versionId)) return;
+            throw conflict("MV_RENDER_TEMPLATE_HAS_NO_SLOTS", "Template has no verified material slot contract");
         }
         Set<String> expected = new HashSet<String>();
         for (Map<String, Object> slot : slots) {

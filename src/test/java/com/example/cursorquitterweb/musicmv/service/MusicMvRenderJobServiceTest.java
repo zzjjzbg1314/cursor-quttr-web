@@ -31,6 +31,38 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void emptyBindingsRequireAuthoritativePublishedTextOnlyScene() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        for (String variant : Arrays.asList("valid", "missing", "photo", "unowned", "missingSource", "extraBinding", "notReady")) {
+            MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+            AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+            MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                    mock(MusicMvRenderArtifactStorageService.class), inputAssets(), mapper, true, 2);
+            MusicMvRenderJobCreateRequest request = request();
+            if (!"extraBinding".equals(variant)) request.setSlotBindings(Collections.emptyList());
+            when(music.ownedCandidate("owner", "song_1")).thenReturn(candidate());
+            when(repository.claimBrowserPreparation("text-job")).thenReturn(preparingRow("text-job", request));
+            when(repository.updateBrowserPreparation("text-job", "preparing_template", 0.55d))
+                    .thenReturn(preparingRow("text-job", request));
+            when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(new RenderContract(version(), Collections.emptyList()));
+            Map<String,Object> scene=mapper.readValue("{\"schemaVersion\":\"browser-template-scene-v6\",\"slots\":[],\"timelineSegments\":[],\"layers\":[{\"layerId\":\"text\",\"type\":\"text\"}],\"textLayers\":[{\"segmentId\":\"text\",\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\"}}]}",Map.class);
+            if ("photo".equals(variant)) ((Map)((List)scene.get("layers")).get(0)).put("type","photo");
+            if ("unowned".equals(variant)) scene.put("slots",Collections.singletonList(Collections.singletonMap("slotKey","photo")));
+            if ("missingSource".equals(variant)) ((Map)((List)scene.get("textLayers")).get(0)).remove("nativeTextSource");
+            Map<String,Object> stored=new LinkedHashMap<>();stored.put("status","notReady".equals(variant)?"pending":"ready");stored.put("scene_json",mapper.writeValueAsString(scene));
+            if (!"missing".equals(variant)) when(repository.browserScene("tplver_1")).thenReturn(stored);
+            service.prepareBrowserAsync("owner","text-job");
+            if ("valid".equals(variant)) {
+                verify(repository).completeBrowserPreparation(eq("text-job"),anyString());
+                verify(repository,never()).slotDefaultMedia(anyString(),anySet());
+            } else {
+                verify(repository,never()).completeBrowserPreparation(anyString(),anyString());
+                verify(repository).failBrowserPreparation(eq("text-job"),eq("MV_RENDER_TEMPLATE_HAS_NO_SLOTS"),anyString(),eq(false));
+            }
+        }
+    }
+
+    @Test
     void completedLibraryUsesExtraRowOnlyForHasMore() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,

@@ -1,0 +1,27 @@
+{
+  "status": "native-session-frames-extracted",
+  "fixture": "synthetic native text-only fixture, original ordinary text material and delivered font, no photos or animations; not 0909 acceptance",
+  "previewSha": "839a597d5f02bd7ed7db582a6af9deca7a1e4e73a1f61fec7cdb44b6c39cd206",
+  "validation": {
+    "semanticIntegrity": "exact",
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0,
+    "completedFrameCount": 60,
+    "elapsedSeconds": 0.9436549999713898,
+    "phaseSeconds": {
+      "prepare": 1.6063849999904634,
+      "scene": 0.39261500000953675,
+      "encode": 0.37859500002861024,
+      "finalize": 0.08606499999761581,
+      "total": 2.4637049999833107
+    }
+  },
+  "rendererFingerprint": "7eb73927d5eec53b7cac05daa99f3584918ed6da81bd03404d8595a426c1c7ce",
+  "durationSeconds": 2,
+  "sizeBytes": 59900,
+  "job": "migration-native-zero-slot-backend-validation",
+  "ssimRun": false,
+  "writerResidueCount": 0,
+  "backendFocusedTests": 41,
+  "liveAccountEndToEnd": false
+}
