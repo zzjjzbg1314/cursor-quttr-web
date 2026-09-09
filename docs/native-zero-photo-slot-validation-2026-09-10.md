@@ -17,6 +17,12 @@
 - 渲染记录耗时 9.017 秒；总阶段耗时 9.578655 秒。
 - semanticIntegrity=exact，videoEncodeCount=1，materializedIntermediateVideoCount=0。
 - 输出 646155 字节，容器时长 12.992 秒；未发现工作目录 Writer 或 raw 残留，独立 Chrome worker 已退出。
-- SSIM 未运行；已上架版本未改变。当前服务尚未重载此次 Java 修改。
+- SSIM 未运行；已上架版本未改变。8080 已重载此次 Java 修改，进程由 66686 更新为 73930，健康访问正常。
 
 范围限制：任务准备入口通过模拟仓储的后端测试验证，浏览器基础导出采用独立夹具，尚不是已发布版本的完整客户 API 到导出上传闭环。新 0909 尾帧 SSIM 差异和批量迁移仍未完成。
+
+## 本地服务与客户入口复核
+
+重载前后经客户网站 `/api/music-mv/v1/templates?pageSize=50` 核对，7 个模板的 templateId/currentVersionId 完全一致。重载使用当前进程的完整参数、环境和原工作目录；未输出配置或重启其他端口。记录：`/tmp/native-zero-slot-service-reload/result.json`。
+
+前端静态追踪确认：编辑页以已填槽位数与声明数量相等判断就绪，零槽位可成立；预览合同接受空绑定；导出提交按版本槽位生成空绑定；明确保存的零槽位不会从旧照片缓存恢复多余槽位。`project-photo-slots` 与 `browser-runtime-contract` 的 7 项现有测试通过。以上是代码路径与单元检查，不等同于真实客户页面的完整端到端操作验收。
