@@ -70,7 +70,8 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertTrue(batch.contains("ON CONFLICT(version_id) DO UPDATE SET width=excluded.width"));
         assertTrue(batch.contains("validation_master_sha256=excluded.validation_master_sha256"));
         assertTrue(batch.contains("DELETE FROM template_validation_records WHERE version_id=?"));
-        assertTrue(batch.contains("AND status='published'"));
+        assertFalse(batch.contains("SET current_version_id="));
+        assertFalse(batch.contains("SET status='published'"));
         assertFalse(batch.contains("DELETE FROM template_versions"));
         assertFalse(batch.contains("DELETE FROM templates"));
         assertFalse(batch.contains("music_mv_projects"));

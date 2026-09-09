@@ -325,7 +325,9 @@ public class MusicMvTemplateCatalogService {
             }
             Map<String, Object> target = existing == null
                     ? repository.synchronizationVersion(request.getTemplateId()) : existing;
-            if (target != null && !target.isEmpty()) {
+            // 已发布版本保留为回退点；新验收内容必须使用独立版本。
+            if (target != null && !target.isEmpty()
+                    && !"published".equals(RowUtils.str(target, "status"))) {
                 String targetId = RowUtils.str(target, "version_id");
                 repository.replaceSynchronizedVersion(request, targetId, json(sourceHashtags),
                         json(promotionProvenance(request)), jsonOrEmpty(request.getValidationEvidence()));

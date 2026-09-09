@@ -748,13 +748,7 @@ public class MusicMvTemplateCatalogRepository {
                 request.getIntermediateVideoCount(), request.getExternalResourceReadCount(),
                 request.getMissingResourceCount(), request.getRendererVersion(),
                 request.getValidationElapsedSeconds(), evidenceJson));
-        if (replace) {
-            statements.add(statement("UPDATE template_versions SET status='published' WHERE version_id=? "
-                    + "AND EXISTS (SELECT 1 FROM templates WHERE template_id=? AND status='published')",
-                    versionId, request.getTemplateId()));
-            statements.add(statement("UPDATE templates SET current_version_id=? WHERE template_id=? AND status='published'",
-                    versionId, request.getTemplateId()));
-        }
+        // 同步只更新待验收内容，发布指针由通过验收的 publish 操作切换。
         d1.batch(statements);
     }
 

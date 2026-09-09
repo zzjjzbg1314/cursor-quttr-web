@@ -450,19 +450,31 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
-    void synchronizationReplacesChangedEvidenceOnPublishedVersion() {
+    void synchronizationCannotOverwritePublishedEvidenceWithSameValidationJob() {
         TemplatePromotionRequest request = synchronizationRequest();
         Map<String, Object> existing = row("version_id", "tplver_existing");
         existing.put("template_id", "tpl_1");
         existing.put("status", "published");
         existing.put("validation_master_sha256", hash('f'));
         when(repository.versionByValidationJob("draft_1")).thenReturn(existing);
-        Map<String, Object> result = service.promote(request);
-        assertEquals("tplver_existing", result.get("versionId"));
-        assertEquals(Boolean.TRUE, result.get("replacedExisting"));
-        verify(repository).replaceSynchronizedVersion(eq(request), eq("tplver_existing"),
-                anyString(), anyString(), anyString());
+        assertEquals("TEMPLATE_PROMOTION_IDEMPOTENCY_CONFLICT",
+                assertThrows(ApiException.class, () -> service.promote(request)).getCode());
+        verify(repository, never()).replaceSynchronizedVersion(any(), anyString(), anyString(), anyString(), anyString());
         verify(repository, never()).promote(any(), anyString(), anyInt(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void synchronizationCreatesSeparateCandidateWhenCurrentVersionIsPublished() {
+        TemplatePromotionRequest request = synchronizationRequest();
+        Map<String, Object> existing = row("version_id", "tplver_published");
+        existing.put("status", "published");
+        when(repository.synchronizationVersion("tpl_1")).thenReturn(existing);
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(2);
+        Map<String, Object> result = service.promote(request);
+        assertFalse("tplver_published".equals(result.get("versionId")));
+        verify(repository).promote(eq(request), anyString(), eq(2), anyString(), anyString(), anyString());
+        verify(repository, never()).replaceSynchronizedVersion(any(), anyString(), anyString(), anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString());
     }
 
     @Test
