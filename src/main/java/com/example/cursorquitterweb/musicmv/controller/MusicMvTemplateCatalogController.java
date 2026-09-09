@@ -87,7 +87,7 @@ public class MusicMvTemplateCatalogController {
     @GetMapping("/templates/{templateId}/versions/{versionId}")
     public Map<String, Object> templateVersion(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
-            @PathVariable String templateId, @PathVariable String versionId) {
+            @PathVariable("templateId") String templateId, @PathVariable("versionId") String versionId) {
         authentication.requireAuthorized(token);
         return service.publishedVersionDetail(templateId, versionId);
     }
