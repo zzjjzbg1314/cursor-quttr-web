@@ -501,25 +501,26 @@ public class MusicMvRenderJobService {
         if (!(scene.get("layers") instanceof List) || ((List<?>) scene.get("layers")).isEmpty()
                 || !(scene.get("textLayers") instanceof List)) return false;
         Set<String> layers = new HashSet<>(), texts = new HashSet<>(), identities = new HashSet<>();
-        Set<String> fixedResources = new HashSet<>();
+        Set<String> fixedResources = new HashSet<>(), videoResources = new HashSet<>();
         if (scene.get("resources") instanceof List) for (Object value : (List<?>) scene.get("resources")) {
             if (!(value instanceof Map)) return false;
             Map<?, ?> resource = (Map<?, ?>) value;
-            if ("image".equals(resource.get("kind"))) {
+            if ("image".equals(resource.get("kind")) || "video".equals(resource.get("kind"))) {
                 if (!(resource.get("resourceKey") instanceof String) || ((String) resource.get("resourceKey")).isEmpty()
-                        || !fixedResources.add((String) resource.get("resourceKey"))) return false;
+                        || !("video".equals(resource.get("kind")) ? videoResources : fixedResources).add((String) resource.get("resourceKey"))) return false;
             }
         }
-        boolean ownsFixed = hasVerifiedFixedImageDescriptor(scene);
+        String nativeVersion = verifiedNativeVisualVersion(scene);
+        boolean ownsFixed = nativeVersion != null, ownsVideo = "browser-native-scene-runtime-v4".equals(nativeVersion);
         for (Object value : (List<?>) scene.get("layers")) {
             if (!(value instanceof Map)) return false;
             Map<?, ?> layer = (Map<?, ?>) value;
             if (!(layer.get("layerId") instanceof String) || ((String) layer.get("layerId")).isEmpty()
                     || !identities.add((String) layer.get("layerId"))) return false;
             if ("text".equals(layer.get("type"))) layers.add((String) layer.get("layerId"));
-            else if (!ownsFixed || !"static_image".equals(layer.get("type"))
+            else if (!ownsFixed || !("static_image".equals(layer.get("type")) || (ownsVideo && "video".equals(layer.get("type"))))
                     || !layer.get("layerId").equals(layer.get("segmentId"))
-                    || !fixedResources.contains(layer.get("resourceKey"))
+                    || !("video".equals(layer.get("type")) ? videoResources : fixedResources).contains(layer.get("resourceKey"))
                     || !(layer.get("originalTimeline") instanceof Map)
                     || !(layer.get("clip") instanceof Map) || !(layer.get("videoCrop") instanceof Map)
                     || !(layer.get("common_keyframes") instanceof List)
@@ -537,23 +538,23 @@ public class MusicMvRenderJobService {
         return layers.equals(texts);
     }
 
-    private boolean hasVerifiedFixedImageDescriptor(Map<String, Object> scene) {
-        if (!(scene.get("runtimeDelivery") instanceof Map)) return false;
+    private String verifiedNativeVisualVersion(Map<String, Object> scene) {
+        if (!(scene.get("runtimeDelivery") instanceof Map)) return null;
         Map<?, ?> delivery = (Map<?, ?>) scene.get("runtimeDelivery");
         if (!"browser-runtime-delivery-v1".equals(delivery.get("schemaVersion"))
-                || !(delivery.get("nativeEngine") instanceof Map) || !(delivery.get("resources") instanceof List)) return false;
+                || !(delivery.get("nativeEngine") instanceof Map) || !(delivery.get("resources") instanceof List)) return null;
         Map<?, ?> descriptor = (Map<?, ?>) delivery.get("nativeEngine");
-        if (!"browser-native-scene-runtime-v3".equals(descriptor.get("schemaVersion"))) return false;
+        if (!Arrays.asList("browser-native-scene-runtime-v3", "browser-native-scene-runtime-v4").contains(descriptor.get("schemaVersion"))) return null;
         Set<String> ids = new HashSet<>();
         for (Object value : (List<?>) delivery.get("resources")) {
             if (!(value instanceof Map) || !(((Map<?, ?>) value).get("resourceId") instanceof String)
-                    || !ids.add((String) ((Map<?, ?>) value).get("resourceId"))) return false;
+                    || !ids.add((String) ((Map<?, ?>) value).get("resourceId"))) return null;
         }
         try {
             BrowserNativeRuntimeContract.validate(descriptor, ids);
-            return true;
+            return (String) descriptor.get("schemaVersion");
         } catch (ApiException invalid) {
-            return false;
+            return null;
         }
     }
 

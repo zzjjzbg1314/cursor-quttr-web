@@ -10,11 +10,13 @@ final class BrowserNativeRuntimeContract {
     static Map<String,Object> validate(Object raw, Set<String> deliveredIds) {
         if (!(raw instanceof Map)) throw invalid();
         Map<String,Object> source=(Map<String,Object>)raw;
-        if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2", "browser-native-scene-runtime-v3").contains(source.get("schemaVersion"))
+        if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2", "browser-native-scene-runtime-v3", "browser-native-scene-runtime-v4").contains(source.get("schemaVersion"))
                 || !(source.get("layerMode") instanceof Number)
                 || (((Number)source.get("layerMode")).doubleValue()!=0 && ((Number)source.get("layerMode")).doubleValue()!=1)
                 || !(source.get("assets") instanceof Map) || !(source.get("files") instanceof List)
                 || !(source.get("bindings") instanceof List)) throw invalid();
+        boolean ownsVideo="browser-native-scene-runtime-v4".equals(source.get("schemaVersion"));
+        if(ownsVideo&&!"external_music_only".equals(source.get("videoAudioPolicy")))throw invalid();
         Map<String,Object> assets=(Map<String,Object>)source.get("assets");
         Map<String,Object> safeAssets=new LinkedHashMap<>(); String root=null;
         String[][] roles={{"loaderUrl","loader.js"},{"mainWasmUrl","main.wasm"},{"mediaWasmUrl","media.wasm"},
@@ -68,6 +70,7 @@ final class BrowserNativeRuntimeContract {
             bindings.add(binding);
         }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion",source.get("schemaVersion"));
+        if(ownsVideo)result.put("videoAudioPolicy","external_music_only");
         result.put("layerMode",((Number)source.get("layerMode")).intValue());result.put("assets",safeAssets);
         result.put("files",files);result.put("bindings",bindings);return result;
     }

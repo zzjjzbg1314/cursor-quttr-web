@@ -31,6 +31,15 @@ class BrowserNativeRuntimeContractTest {
         assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
     }
+    @Test void videoSceneRequiresExplicitExternalMusicPolicyAndPreservesIt() {
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v4");
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("videoAudioPolicy","source_audio");
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("videoAudioPolicy","external_music_only");
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+    }
     @Test void rejectsUndeliveredDependencyAndUnknownVersion(){
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(descriptor(),Collections.emptySet()));
         Map<String,Object> value=descriptor();value.put("schemaVersion","future");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));

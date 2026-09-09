@@ -1,0 +1,22 @@
+{
+  "status": "native-session-frames-extracted",
+  "fixture": "representative 1.4-second source-trimmed video; automatic v4 delivery; external music only; no SSIM",
+  "previewSha": "2aae29f40102af3ce5761dd66da44dfe9848e9c43d2c29405f945014507e190c",
+  "validation": {
+    "semanticIntegrity": "exact",
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0,
+    "completedFrameCount": 42,
+    "elapsedSeconds": 1.0652049999833106,
+    "phaseSeconds": {
+      "prepare": 1.4546499999761582,
+      "scene": 0.898174999833107,
+      "encode": 0.06409500020742416,
+      "finalize": 0.09982000005245209,
+      "total": 2.5168050000071527
+    }
+  },
+  "rendererFingerprint": "225f806eb76562fac19d7806cb00bf001a388dcb92e3ce5672e07aea631c3494",
+  "durationSeconds": 1.4,
+  "sizeBytes": 1322701
+}

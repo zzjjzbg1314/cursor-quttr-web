@@ -66,7 +66,7 @@ class MusicMvRenderJobServiceTest {
     @SuppressWarnings("unchecked")
     void emptyBindingsRequireVerifiedNativeFixedImageOwnership() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        for (String variant : Arrays.asList("valid", "mixedText", "legacy", "missingDelivery", "missingResource",
+        for (String variant : Arrays.asList("valid", "mixedText", "videoV4", "videoV3", "videoPolicyMissing", "legacy", "missingDelivery", "missingResource",
                 "missingClip", "photo", "duplicateLayer", "missingDependency", "extraBinding", "notReady")) {
             MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
             AiMusicJobRepository music = mock(AiMusicJobRepository.class);
@@ -89,6 +89,12 @@ class MusicMvRenderJobServiceTest {
                     : Collections.singletonList(Collections.singletonMap("resourceId", "effect")));
             scene.put("runtimeDelivery", delivery);
             List<Map<String,Object>> layers = (List<Map<String,Object>>) scene.get("layers");
+            if (variant.startsWith("video")) {
+                layers.get(0).put("type", "video");
+                ((List<Map<String,Object>>)scene.get("resources")).get(0).put("kind", "video");
+                if (!"videoV3".equals(variant)) descriptor.put("schemaVersion", "browser-native-scene-runtime-v4");
+                if (!"videoPolicyMissing".equals(variant)) descriptor.put("videoAudioPolicy", "external_music_only");
+            }
             if ("mixedText".equals(variant)) {
                 layers.add(mapper.readValue("{\"layerId\":\"text\",\"type\":\"text\"}", Map.class));
                 scene.put("textLayers", Collections.singletonList(mapper.readValue("{\"segmentId\":\"text\",\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\"}}", Map.class)));
@@ -103,7 +109,7 @@ class MusicMvRenderJobServiceTest {
             stored.put("scene_json", mapper.writeValueAsString(scene));
             when(repository.browserScene("tplver_1")).thenReturn(stored);
             service.prepareBrowserAsync("owner", "fixed-job");
-            if ("valid".equals(variant) || "mixedText".equals(variant)) {
+            if ("valid".equals(variant) || "mixedText".equals(variant) || "videoV4".equals(variant)) {
                 verify(repository).completeBrowserPreparation(eq("fixed-job"), anyString());
                 verify(repository, never()).slotDefaultMedia(anyString(), anySet());
             } else {
