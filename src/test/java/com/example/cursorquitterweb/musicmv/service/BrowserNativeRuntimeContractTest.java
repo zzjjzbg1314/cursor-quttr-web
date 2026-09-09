@@ -1,0 +1,48 @@
+package com.example.cursorquitterweb.musicmv.service;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import com.example.cursorquitterweb.musicmv.support.ApiException;
+
+class BrowserNativeRuntimeContractTest {
+    static Map<String,Object> descriptor(){
+        Map<String,Object> value=new LinkedHashMap<>(),assets=new LinkedHashMap<>(),binding=new LinkedHashMap<>();
+        String root="/native-runtime/"+String.join("",Collections.nCopies(64,"a"))+"/";
+        for(String[] pair:new String[][]{{"loaderUrl","loader.js"},{"mainWasmUrl","main.wasm"},{"mediaWasmUrl","media.wasm"},{"workerUrl","worker.mjs"},{"workletUrl","worklet.js"}})assets.put(pair[0],root+pair[1]);
+        binding.put("resourceId","effect");binding.put("kind","filter");binding.put("path","effect/");
+        value.put("schemaVersion","browser-native-photo-runtime-v1");value.put("layerMode",0);value.put("assets",assets);
+        value.put("files",Collections.singletonList("effect/config.json"));value.put("bindings",Collections.singletonList(binding));return value;
+    }
+    @Test void acceptsDeliveredResourcesAndPreservesInput(){
+        Map<String,Object> value=descriptor();assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
+    @Test void rejectsUndeliveredDependencyAndUnknownVersion(){
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(descriptor(),Collections.emptySet()));
+        Map<String,Object> value=descriptor();value.put("schemaVersion","future");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
+    @Test @SuppressWarnings("unchecked") void rejectsAdminRemoteAndMixedSdkPaths(){
+        for(String path:Arrays.asList("http://localhost:8082/worker.mjs","https://other.example/worker.mjs","/native-runtime/"+String.join("",Collections.nCopies(64,"b"))+"/worker.mjs")){
+            Map<String,Object> value=descriptor();((Map<String,Object>)value.get("assets")).put("workerUrl",path);
+            assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        }
+    }
+    @Test void rejectsTraversalAndDuplicateFiles(){
+        for(List<String> files:Arrays.asList(Arrays.asList("effect/../config.json"),Arrays.asList("effect/config.json","effect/config.json"))){
+            Map<String,Object> value=descriptor();value.put("files",files);
+            assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        }
+    }
+    @Test @SuppressWarnings("unchecked") void preservesModelsAndRejectsUndeliveredOrNonModelFiles(){
+        Map<String,Object> value=descriptor();
+        value.put("files",Arrays.asList("effect/config.json","effect/models/face.model"));
+        Map<String,Object> binding=((List<Map<String,Object>>)value.get("bindings")).get(0);
+        binding.put("models",Collections.singletonMap("tt_face","effect/models/face.model"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        for(String file:Arrays.asList("other/face.model","effect/config.json","effect/../face.model")) {
+            binding.put("models",Collections.singletonMap("tt_face",file));
+            assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        }
+        binding.put("models",Collections.singletonMap("../face","effect/models/face.model"));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
+}

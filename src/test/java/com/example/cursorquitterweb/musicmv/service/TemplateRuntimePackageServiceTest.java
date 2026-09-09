@@ -146,6 +146,12 @@ class TemplateRuntimePackageServiceTest {
         assertEquals("arbitrary", download.get("resourceId"));
         assertEquals("https://r2.example/shared.zip", download.get("downloadUrl"));
         assertEquals(false, download.containsKey("objectKey"));
+        Map<String,Object> nativeEngine=BrowserNativeRuntimeContractTest.descriptor();
+        Map<String,Object> binding=new LinkedHashMap<>();binding.put("resourceId","arbitrary");binding.put("kind","filter");binding.put("path","arbitrary/");
+        binding.put("models",Collections.singletonMap("tt_face","arbitrary/models/face.model"));
+        nativeEngine.put("files",java.util.Arrays.asList("arbitrary/config.json","arbitrary/models/face.model"));nativeEngine.put("bindings",Collections.singletonList(binding));
+        delivery.put("nativeEngine",nativeEngine);
+        assertEquals(nativeEngine,service.downloadForScene("tpl_1","tplver_1",scene).get("nativeEngine"));
         dependency.put("sourceSizeBytes", 1235L);
         assertThrows(ApiException.class, () -> service.downloadForScene("tpl_1", "tplver_1", scene));
     }

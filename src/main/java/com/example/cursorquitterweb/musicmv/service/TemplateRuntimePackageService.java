@@ -146,6 +146,8 @@ public class TemplateRuntimePackageService {
         result.put("resources", downloads); result.put("status", "ready");
         result.put("templateId", templateId); result.put("versionId", versionId);
         result.put("sourceSizeBytes", total);
+        if (manifest.containsKey("nativeEngine"))
+            result.put("nativeEngine", BrowserNativeRuntimeContract.validate(manifest.get("nativeEngine"), ids));
         try {
             byte[] bytes = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsBytes(manifest);
             StringBuilder hash = new StringBuilder();
