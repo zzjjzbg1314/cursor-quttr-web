@@ -1,0 +1,587 @@
+{
+  "schemaVersion": "browser-template-scene-v6",
+  "templateId": "tpl_1",
+  "versionId": "tplver_1",
+  "canvas": {
+    "width": 320,
+    "height": 240,
+    "fps": 30,
+    "durationSeconds": 3
+  },
+  "slots": [
+    {
+      "slotKey": "photo",
+      "displayName": null,
+      "timelineOrder": null,
+      "aspectRatio": null,
+      "cropPolicy": null,
+      "repeatPolicy": null,
+      "required": null,
+      "browserMaterialId": "photo",
+      "browserSegmentIds": [
+        "segment"
+      ],
+      "browserResolved": null,
+      "sourceWidth": 0,
+      "sourceHeight": 0
+    }
+  ],
+  "timelineSegments": [
+    {
+      "segmentId": "segment",
+      "targetStartSeconds": 0,
+      "targetDurationSeconds": 3,
+      "renderIndex": null,
+      "trackRenderIndex": null,
+      "slotKey": "photo",
+      "sourceWidth": 0,
+      "sourceHeight": 0,
+      "sourceCrop": {
+        "left": 0.0,
+        "top": 0.0,
+        "right": 1.0,
+        "bottom": 1.0
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {},
+        "transform": {},
+        "flip": {},
+        "rotation": 0,
+        "alpha": 1
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [
+        {
+          "property_type": "KFTypeColorCorrect",
+          "material_id": "",
+          "keyframe_list": [
+            {
+              "time_offset": 0,
+              "curveType": "Line",
+              "values": [
+                0
+              ],
+              "string_value": "",
+              "graphID": ""
+            },
+            {
+              "time_offset": 3000000,
+              "curveType": "Line",
+              "values": [
+                0
+              ],
+              "string_value": "",
+              "graphID": ""
+            }
+          ]
+        },
+        {
+          "property_type": "KFTypeScale",
+          "material_id": "",
+          "keyframe_list": [
+            {
+              "time_offset": 0,
+              "curveType": "Line",
+              "values": [
+                0.5,
+                0.5
+              ]
+            },
+            {
+              "time_offset": 3000000,
+              "curveType": "Line",
+              "values": [
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "draft_keyframe_clock": {
+        "mode": "segment"
+      },
+      "draft_keyframe_bindings": {
+        "contractVersion": "draft-keyframe-bindings-v2",
+        "absentProperties": [
+          "KFTypeChromaIntensity",
+          "KFTypeSmartColorAdjust",
+          "KFTypeColorCorrect"
+        ]
+      }
+    }
+  ],
+  "textLayers": [],
+  "layers": [
+    {
+      "segmentId": "segment",
+      "targetStartSeconds": 0,
+      "targetDurationSeconds": 3,
+      "renderIndex": null,
+      "trackRenderIndex": null,
+      "slotKey": "photo",
+      "sourceWidth": 0,
+      "sourceHeight": 0,
+      "sourceCrop": {
+        "left": 0.0,
+        "top": 0.0,
+        "right": 1.0,
+        "bottom": 1.0
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {},
+        "transform": {},
+        "flip": {},
+        "rotation": 0,
+        "alpha": 1
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [
+        {
+          "property_type": "KFTypeColorCorrect",
+          "material_id": "",
+          "keyframe_list": [
+            {
+              "time_offset": 0,
+              "curveType": "Line",
+              "values": [
+                0
+              ],
+              "string_value": "",
+              "graphID": ""
+            },
+            {
+              "time_offset": 3000000,
+              "curveType": "Line",
+              "values": [
+                0
+              ],
+              "string_value": "",
+              "graphID": ""
+            }
+          ]
+        },
+        {
+          "property_type": "KFTypeScale",
+          "material_id": "",
+          "keyframe_list": [
+            {
+              "time_offset": 0,
+              "curveType": "Line",
+              "values": [
+                0.5,
+                0.5
+              ]
+            },
+            {
+              "time_offset": 3000000,
+              "curveType": "Line",
+              "values": [
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "draft_keyframe_clock": {
+        "mode": "segment"
+      },
+      "draft_keyframe_bindings": {
+        "contractVersion": "draft-keyframe-bindings-v2",
+        "absentProperties": [
+          "KFTypeChromaIntensity",
+          "KFTypeSmartColorAdjust",
+          "KFTypeColorCorrect"
+        ]
+      },
+      "layerId": "segment",
+      "type": "photo"
+    }
+  ],
+  "postEffects": [],
+  "resources": [],
+  "renderIr": {
+    "version": "browser-render-ir-v2",
+    "canvas": {
+      "width": 320,
+      "height": 240,
+      "fps": 30,
+      "durationSeconds": 3
+    },
+    "layers": [
+      {
+        "id": "segment",
+        "kind": "photo",
+        "startSeconds": 0,
+        "durationSeconds": 3,
+        "trackRenderIndex": 0,
+        "renderIndex": 0,
+        "source": {
+          "slotKey": "photo",
+          "resourceKey": null,
+          "speed": null,
+          "videoCrop": null,
+          "width": 0,
+          "height": 0,
+          "startSeconds": null,
+          "durationSeconds": null,
+          "crop": {
+            "left": 0.0,
+            "top": 0.0,
+            "right": 1.0,
+            "bottom": 1.0
+          }
+        },
+        "clip": {
+          "scale": {},
+          "transform": {},
+          "flip": {},
+          "rotation": 0,
+          "alpha": 1
+        },
+        "keyframes": [],
+        "animations": [],
+        "transitionIn": null,
+        "effects": [],
+        "blendMode": "source-over",
+        "mask": null,
+        "common_keyframes": [
+          {
+            "property_type": "KFTypeColorCorrect",
+            "material_id": "",
+            "keyframe_list": [
+              {
+                "time_offset": 0,
+                "curveType": "Line",
+                "values": [
+                  0
+                ],
+                "string_value": "",
+                "graphID": ""
+              },
+              {
+                "time_offset": 3000000,
+                "curveType": "Line",
+                "values": [
+                  0
+                ],
+                "string_value": "",
+                "graphID": ""
+              }
+            ]
+          },
+          {
+            "property_type": "KFTypeScale",
+            "material_id": "",
+            "keyframe_list": [
+              {
+                "time_offset": 0,
+                "curveType": "Line",
+                "values": [
+                  0.5,
+                  0.5
+                ]
+              },
+              {
+                "time_offset": 3000000,
+                "curveType": "Line",
+                "values": [
+                  1,
+                  1
+                ]
+              }
+            ]
+          }
+        ],
+        "draft_keyframe_clock": {
+          "mode": "segment"
+        },
+        "draft_keyframe_bindings": {
+          "contractVersion": "draft-keyframe-bindings-v2",
+          "absentProperties": [
+            "KFTypeChromaIntensity",
+            "KFTypeSmartColorAdjust",
+            "KFTypeColorCorrect"
+          ]
+        }
+      }
+    ],
+    "postEffects": [],
+    "resources": [],
+    "policy": {
+      "coordinateSpace": "canvas_center_normalized_y_up",
+      "timeUnit": "seconds",
+      "transitionClock": "dual_input_ab_v1",
+      "unsupported": "block_export"
+    }
+  },
+  "layerModel": "original_draft_scene_graph_v2",
+  "capability": {
+    "photoReplacementReady": true,
+    "photoAnimationReady": true,
+    "photoAnimationContract": "timeline_keyframes_v1",
+    "animatedPhotoSegmentCount": 1,
+    "photoKeyframeCount": 4,
+    "unsupportedPhotoKeyframeCount": 0,
+    "draftPhotoSegmentCount": 1,
+    "publishedPhotoSegmentCount": 1,
+    "browserFixedPhotoLayerCount": 0,
+    "unmappedDraftPhotoSegmentCount": 0,
+    "unsupportedBrowserAnimationCount": 0,
+    "browserAnimationApproximationCount": 0,
+    "unsupportedBrowserTransitionCount": 0,
+    "browserTransitionApproximationCount": 0,
+    "browserLayerEffectApproximationCount": 0,
+    "unsupportedBrowserLayerEffectCount": 0,
+    "browserLayerCompositionReady": true,
+    "browserTextLayerCount": 0,
+    "browserTextTemplateApproximationCount": 0,
+    "declaredTextTemplateDecorationCount": 0,
+    "browserTextTemplateDecorationCount": 0,
+    "browserPostEffectApproximationCount": 0,
+    "unsupportedBrowserPostEffectCount": 0,
+    "unsupportedBrowserMaskCount": 0,
+    "browserMaskApproximationCount": 0,
+    "unsupportedBrowserBlendModeCount": 0,
+    "declaredBrowserVideoCropCount": 0,
+    "unsupportedBrowserVideoCropCount": 0,
+    "browserFontFallbackCount": 0,
+    "draftVideoLayerCount": 0,
+    "browserVideoLayerCount": 0,
+    "draftStickerLayerCount": 0,
+    "browserStickerLayerCount": 0,
+    "unsupportedVisualLayerCount": 0,
+    "executionCapabilities": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 4,
+        "executableCount": 4,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "blockingFeatures": [],
+    "resourceDiagnostics": [],
+    "browserExportReady": true,
+    "browserSceneExactReady": true
+  },
+  "capabilityReport": {
+    "schemaVersion": "browser-scene-capability-report-v1",
+    "effectRegistryContract": "browser_effect_registry_v1",
+    "features": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 4,
+        "executableCount": 4,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "effectImplementations": [
+      {
+        "kind": "blend_mode",
+        "implementationKey": "source-over",
+        "renderer": "canvas_composite_v1",
+        "usageCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      }
+    ],
+    "summary": {
+      "declaredItemCount": 5,
+      "executableItemCount": 5,
+      "exactFeatureCount": 3,
+      "approximateFeatureCount": 0,
+      "unsupportedFeatureCount": 0,
+      "effectImplementationCount": 1
+    }
+  },
+  "renderStrategy": "browser_scene_graph_composition_v2"
+}

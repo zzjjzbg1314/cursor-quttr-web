@@ -68,6 +68,27 @@ class MusicMvTemplateCatalogServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void preservesColorCorrectBindingEvidenceAndRawFramesInStoredScene() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String,Object> scene = mapper.readValue(getClass().getResourceAsStream("/musicmv/browser-color-correct-scene.json"), Map.class);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion(String.valueOf(scene.get("schemaVersion"))); request.setScene(scene);
+        String original = mapper.writeValueAsString(scene);
+        request.setManifestSha256(sha256(original));
+        assertEquals("ready", service.synchronizeBrowserScene("tpl_1", "tplver_1", request).get("status"));
+        ArgumentCaptor<String> stored = ArgumentCaptor.forClass(String.class);
+        verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"), eq(request.getSchemaVersion()),
+                eq(request.getManifestSha256()), eq("ready"), stored.capture());
+        assertEquals(mapper.readTree(original), mapper.readTree(stored.getValue()));
+        Map<String,Object> layer = ((List<Map<String,Object>>)scene.get("layers")).get(0);
+        assertEquals("draft-keyframe-bindings-v2", ((Map<?,?>)layer.get("draft_keyframe_bindings")).get("contractVersion"));
+        assertEquals("KFTypeColorCorrect", ((Map<?,?>)((List<?>)layer.get("common_keyframes")).get(0)).get("property_type"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void acceptsCompleteOriginalGraphSceneAndRejectsUnverifiedNewContracts() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
