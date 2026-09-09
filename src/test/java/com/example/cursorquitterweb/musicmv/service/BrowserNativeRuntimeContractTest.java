@@ -26,6 +26,11 @@ class BrowserNativeRuntimeContractTest {
         binding.put("path","effect/../other/");
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
     }
+    @Test void acceptsFixedImageSceneVersionWithoutAcceptingMissingDependencies(){
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v3");
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+    }
     @Test void rejectsUndeliveredDependencyAndUnknownVersion(){
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(descriptor(),Collections.emptySet()));
         Map<String,Object> value=descriptor();value.put("schemaVersion","future");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));

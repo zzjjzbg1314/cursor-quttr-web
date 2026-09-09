@@ -10,7 +10,7 @@ final class BrowserNativeRuntimeContract {
     static Map<String,Object> validate(Object raw, Set<String> deliveredIds) {
         if (!(raw instanceof Map)) throw invalid();
         Map<String,Object> source=(Map<String,Object>)raw;
-        if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2").contains(source.get("schemaVersion"))
+        if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2", "browser-native-scene-runtime-v3").contains(source.get("schemaVersion"))
                 || !(source.get("layerMode") instanceof Number)
                 || (((Number)source.get("layerMode")).doubleValue()!=0 && ((Number)source.get("layerMode")).doubleValue()!=1)
                 || !(source.get("assets") instanceof Map) || !(source.get("files") instanceof List)
