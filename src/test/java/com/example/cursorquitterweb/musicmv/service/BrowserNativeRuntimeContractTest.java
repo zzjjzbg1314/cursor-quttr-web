@@ -16,6 +16,16 @@ class BrowserNativeRuntimeContractTest {
     @Test void acceptsDeliveredResourcesAndPreservesInput(){
         Map<String,Object> value=descriptor();assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
     }
+    @Test @SuppressWarnings("unchecked") void acceptsSceneVersionWithoutWeakeningAnimationDependencyValidation(){
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v2");
+        Map<String,Object> binding=((List<Map<String,Object>>)value.get("bindings")).get(0);
+        binding.put("kind","animation");
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        assertEquals("browser-native-scene-runtime-v2",value.get("schemaVersion"));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+        binding.put("path","effect/../other/");
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     @Test void rejectsUndeliveredDependencyAndUnknownVersion(){
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(descriptor(),Collections.emptySet()));
         Map<String,Object> value=descriptor();value.put("schemaVersion","future");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));

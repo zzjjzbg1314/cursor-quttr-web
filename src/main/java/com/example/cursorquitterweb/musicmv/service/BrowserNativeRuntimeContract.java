@@ -4,13 +4,13 @@ import java.util.*;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 import org.springframework.http.HttpStatus;
 
-/** 校验原生照片执行契约；SDK 从客户网站同源加载，效果只引用已交付最小包。 */
+/** 校验原生照片及场景执行契约；SDK 从客户网站同源加载，效果只引用已交付最小包。 */
 final class BrowserNativeRuntimeContract {
     @SuppressWarnings("unchecked")
     static Map<String,Object> validate(Object raw, Set<String> deliveredIds) {
         if (!(raw instanceof Map)) throw invalid();
         Map<String,Object> source=(Map<String,Object>)raw;
-        if (!"browser-native-photo-runtime-v1".equals(source.get("schemaVersion"))
+        if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2").contains(source.get("schemaVersion"))
                 || !(source.get("layerMode") instanceof Number)
                 || (((Number)source.get("layerMode")).doubleValue()!=0 && ((Number)source.get("layerMode")).doubleValue()!=1)
                 || !(source.get("assets") instanceof Map) || !(source.get("files") instanceof List)

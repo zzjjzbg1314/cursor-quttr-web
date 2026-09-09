@@ -1,0 +1,36 @@
+{
+  "probe": {
+    "status": "native-session-frames-extracted",
+    "fixture": "new0909 v2 runtime session with all original text layers and photo replacement; backend-validated v2 descriptor and customer text override; diagnostic contract only",
+    "previewSha": "e95c7e28d18c624a008f82cf82dffe5968d09682888d56722bbf001b45097d40",
+    "validation": {
+      "semanticIntegrity": "exact",
+      "videoEncodeCount": 1,
+      "materializedIntermediateVideoCount": 0,
+      "completedFrameCount": 1049,
+      "elapsedSeconds": 23.129855000019074,
+      "phaseSeconds": {
+        "prepare": 1.590564999997616,
+        "scene": 22.062269999802115,
+        "encode": 0.7741250001788103,
+        "finalize": 0.13218500000238417,
+        "total": 24.559194999992847
+      }
+    },
+    "rendererFingerprint": "36bb1029f6906f72574994bd511760f9fdd3dd7449ec9953b181c9b72c2c8aad",
+    "durationSeconds": 34.966666,
+    "sizeBytes": 32266647
+  },
+  "javaTestsPassed": 13,
+  "ssimRun": false,
+  "residue": [],
+  "downloadCleanup": [
+    {
+      "name": "downloads.html.crdownload",
+      "bytes": 1637617,
+      "sha256": "864eb503f4d2d89a0512eaa0e8b57f4f05db942ed6e76845bbed62669a5ae0af",
+      "magic": "Cr24",
+      "removed": true
+    }
+  ]
+}

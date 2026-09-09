@@ -152,6 +152,10 @@ class TemplateRuntimePackageServiceTest {
         nativeEngine.put("files",java.util.Arrays.asList("arbitrary/config.json","arbitrary/models/face.model"));nativeEngine.put("bindings",Collections.singletonList(binding));
         delivery.put("nativeEngine",nativeEngine);
         assertEquals(nativeEngine,service.downloadForScene("tpl_1","tplver_1",scene).get("nativeEngine"));
+        nativeEngine.put("schemaVersion","browser-native-scene-runtime-v2");
+        binding.put("kind","animation");
+        binding.remove("models");
+        assertEquals(nativeEngine,service.downloadForScene("tpl_1","tplver_1",scene).get("nativeEngine"));
         dependency.put("sourceSizeBytes", 1235L);
         assertThrows(ApiException.class, () -> service.downloadForScene("tpl_1", "tplver_1", scene));
     }
