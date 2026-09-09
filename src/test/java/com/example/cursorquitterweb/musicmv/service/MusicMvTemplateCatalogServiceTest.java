@@ -114,6 +114,89 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void synchronizesWholeSceneTextureSequenceAndRejectsInvalidContracts() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> scene = mapper.readValue(getClass().getResourceAsStream(
+                "/musicmv/browser-color-correct-scene.json"), Map.class);
+        Map<String, Object> effect = row("preset", "texture_sequence_screen_multiply");
+        effect.put("contractVersion", "browser-post-texture-sequence-v1");
+        effect.put("semanticFamily", "texture_sequence_screen_multiply");
+        effect.put("applicationStage", "whole_scene_after_layers");
+        effect.put("resourceId", "published_texture_sequence");
+        effect.put("targetStartSeconds", 0.0);
+        effect.put("targetDurationSeconds", 32.533333);
+        effect.put("intensity", 1.0);
+        effect.put("fidelity", "exact");
+        effect.put("sourceStartSeconds", 0.0);
+        effect.put("sourceSpeed", 1.0);
+        effect.put("effectSpeed", 0.65);
+        scene.put("postEffects", Collections.singletonList(effect));
+        Map<String, Object> capability = (Map<String, Object>) scene.get("capability");
+        Map<String, Object> report = (Map<String, Object>) scene.get("capabilityReport");
+        for (Object rawFeatures : Arrays.asList(capability.get("executionCapabilities"), report.get("features"))) {
+            for (Map<String, Object> feature : (List<Map<String, Object>>) rawFeatures) {
+                if ("post_effects".equals(feature.get("feature"))) {
+                    feature.put("declaredCount", 1);
+                    feature.put("executableCount", 1);
+                    feature.put("fidelity", "exact");
+                }
+            }
+        }
+        ((List<Map<String, Object>>) report.get("effectImplementations")).add(effectImplementation(
+                "post_effect", "texture_sequence_screen_multiply", "canvas_post_effect_v1", "exact"));
+        Map<String, Object> summary = (Map<String, Object>) report.get("summary");
+        for (String key : Arrays.asList("declaredItemCount", "executableItemCount", "exactFeatureCount", "effectImplementationCount")) {
+            summary.put(key, ((Number) summary.get(key)).intValue() + 1);
+        }
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
+        request.setScene(scene);
+        String original = mapper.writeValueAsString(scene);
+        request.setManifestSha256(sha256(original));
+        assertEquals("ready", service.synchronizeBrowserScene("tpl_1", "tplver_1", request).get("status"));
+        ArgumentCaptor<String> stored = ArgumentCaptor.forClass(String.class);
+        verify(repository).upsertBrowserScene(eq("tpl_1"), eq("tplver_1"), eq(request.getSchemaVersion()),
+                eq(request.getManifestSha256()), eq("ready"), stored.capture());
+        assertEquals(mapper.readTree(original), mapper.readTree(stored.getValue()));
+        for (String field : Arrays.asList("contractVersion", "semanticFamily", "applicationStage", "resourceId", "effectSpeed")) {
+            Object value = effect.remove(field);
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                    service, "requireValidBrowserPostEffects", scene, Collections.emptyMap()), field);
+            effect.put(field, value);
+        }
+        for (String field : Arrays.asList("effectSpeed", "sourceStartSeconds", "sourceSpeed",
+                "targetStartSeconds", "targetDurationSeconds", "intensity")) {
+            Object value = effect.get(field);
+            for (Object invalid : Arrays.asList(-1.0, Double.NaN, Double.POSITIVE_INFINITY, "1")) {
+                effect.put(field, invalid);
+                assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                        service, "requireValidBrowserPostEffects", scene, Collections.emptyMap()), field);
+            }
+            effect.put(field, value);
+        }
+        for (String field : Arrays.asList("contractVersion", "semanticFamily", "applicationStage", "preset", "fidelity", "resourceId")) {
+            Object value = effect.put(field, "invalid/unknown");
+            assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                    service, "requireValidBrowserPostEffects", scene, Collections.emptyMap()), field);
+            effect.put(field, value);
+        }
+        effect.put("contractVersion", "browser-layer-effect-semantic-v4");
+        effect.put("applicationStage", "source_graph_before_video_animation");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                service, "requireValidBrowserPostEffects", scene, Collections.emptyMap()));
+        effect.put("contractVersion", "browser-post-texture-sequence-v1");
+        effect.put("applicationStage", "whole_scene_after_layers");
+        effect.remove("sourceStartSeconds");
+        effect.remove("sourceSpeed");
+        effect.put("effectSpeed", 0.0);
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                service, "requireValidBrowserPostEffects", scene, Collections.emptyMap());
+    }
+
+    @Test
     void acceptsScriptedTexturesWithoutLayerDurationButRequiresTheirContract() {
         for (String preset : Arrays.asList("aspect_texture_sequence", "duration_texture_sequence",
                 "chromatic_texture_distortion")) {

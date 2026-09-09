@@ -670,7 +670,7 @@ public class MusicMvTemplateCatalogService {
         }
         Set<String> allowedPresets = new HashSet<String>(java.util.Arrays.asList(
                 "fade_to_black", "builtin_lut_512", "scripted_resource_graph", "dual_lut_skin_mask", "dual_lut_filter_approximation",
-                "orange_green_filter_approximation", "static_texture_screen_overlay",
+                "orange_green_filter_approximation", "static_texture_screen_overlay", "texture_sequence_screen_multiply",
                 "aspect_texture_sequence", "duration_texture_sequence", "chromatic_texture_distortion",
                 "unsupported"));
         Set<String> allowedFidelity = new HashSet<String>(java.util.Arrays.asList(
@@ -698,6 +698,20 @@ public class MusicMvTemplateCatalogService {
                                 + ", fidelity=" + fidelity);
             }
             requireScriptedTextureContract(effect, preset, "whole_scene_after_layers");
+            if ("texture_sequence_screen_multiply".equals(preset)
+                    && !("browser-post-texture-sequence-v1".equals(effect.get("contractVersion"))
+                    && preset.equals(effect.get("semanticFamily"))
+                    && "whole_scene_after_layers".equals(effect.get("applicationStage"))
+                    && effect.get("resourceId") instanceof String
+                    && ((String) effect.get("resourceId")).matches("[A-Za-z0-9_-]{1,160}")
+                    && finiteNonNegative(effect.get("effectSpeed"), false)
+                    && (effect.get("sourceStartSeconds") == null
+                        || finiteNonNegative(effect.get("sourceStartSeconds"), false))
+                    && (effect.get("sourceSpeed") == null
+                        || finiteNonNegative(effect.get("sourceSpeed"), false)))) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
+                        "整场景纹理序列必须携带已核实的执行契约、资源标识和有效时钟参数");
+            }
             if ("dual_lut_skin_mask".equals(preset)
                     && !validBrowserPostEffectContract(effect)) {
                 throw badRequest("TEMPLATE_BROWSER_SCENE_POST_EFFECT_CONTRACT_INVALID",
