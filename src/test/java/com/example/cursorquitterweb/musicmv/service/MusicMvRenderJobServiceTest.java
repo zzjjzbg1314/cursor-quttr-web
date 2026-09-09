@@ -83,6 +83,41 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    void defaultPhotoCropParticipatesInIdempotency() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(
+                repository, aiMusicJobs, artifacts, inputAssets(), new ObjectMapper(), true, 2);
+        MusicMvRenderJobCreateRequest request = request();
+        request.getSlotBindings().get(0).setAsset(null);
+        request.getSlotBindings().get(0).setUseTemplateDefault(Boolean.TRUE);
+        Map<String, Object> created = service.create("website-backend", request);
+
+        assertEquals("preparing", created.get("status"));
+        assertEquals("preparing_queued", created.get("stage"));
+        ArgumentCaptor<String> fingerprint = ArgumentCaptor.forClass(String.class);
+        verify(repository).createBrowserPreparing(anyString(), eq("website-backend"), eq("req_1"),
+                eq("tpl_1"), eq("tplver_1"), fingerprint.capture(), anyString(),
+                anyString(), anyString());
+
+        when(repository.byClientRequest("website-backend", "req_1"))
+                .thenReturn(row("mvr_existing", fingerprint.getValue()));
+        Map<String, Object> replay = service.create("website-backend", request);
+        assertEquals(Boolean.TRUE, replay.get("idempotentReplay"));
+        assertEquals("mvr_existing", replay.get("jobId"));
+
+        MusicMvRenderJobCreateRequest.Crop changedCrop = new MusicMvRenderJobCreateRequest.Crop();
+        changedCrop.setX(Double.valueOf(65.0d));
+        changedCrop.setY(Double.valueOf(50.0d));
+        changedCrop.setZoom(Double.valueOf(1.0d));
+        request.getSlotBindings().get(0).setCrop(changedCrop);
+        ApiException conflict = assertThrows(ApiException.class,
+                () -> service.create("website-backend", request));
+        assertEquals("MV_RENDER_IDEMPOTENCY_CONFLICT", conflict.getCode());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void carriesValidatedDownloadSettingsIntoBrowserRenderContract() throws Exception {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);

@@ -642,7 +642,7 @@ public class MusicMvRenderJobService {
                 slot.put("sha256", binding.getAsset().getSha256().toLowerCase());
                 slot.put("sizeBytes", binding.getAsset().getSizeBytes());
             }
-            if (!useDefault && binding.getCrop() != null) {
+            if (binding.getCrop() != null) {
                 slot.put("cropX", binding.getCrop().getX());
                 slot.put("cropY", binding.getCrop().getY());
                 slot.put("cropZoom", binding.getCrop().getZoom());
@@ -742,13 +742,13 @@ public class MusicMvRenderJobService {
                 item.put("slotKey", source.get("slotKey"));
                 boolean useDefault = Boolean.TRUE.equals(source.get("useTemplateDefault"));
                 item.put("useTemplateDefault", Boolean.valueOf(useDefault));
+                item.put("crop", source.get("crop"));
                 if (useDefault) {
                     item.put("asset", templateSlotAsset(RowUtils.str(row, "version_id"),
                             String.valueOf(source.get("slotKey"))));
                     bindings.add(item);
                     continue;
                 }
-                item.put("crop", source.get("crop"));
                 Map<String, Object> asset = source.get("asset") instanceof Map
                         ? new LinkedHashMap<String, Object>((Map<String, Object>) source.get("asset"))
                         : new LinkedHashMap<String, Object>();
