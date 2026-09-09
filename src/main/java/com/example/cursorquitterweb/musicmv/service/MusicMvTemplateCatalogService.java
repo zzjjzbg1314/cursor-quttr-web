@@ -795,7 +795,7 @@ public class MusicMvTemplateCatalogService {
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
                 "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation",
                 "glyph_texture_shuffle_animation",
-                "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+                "quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                 "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
                 "directional_blur_fade_animation", "keyframe_transform",
                 "jitter_approximation", "scale_down_approximation",
@@ -807,7 +807,7 @@ public class MusicMvTemplateCatalogService {
                     "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
             Map<?, ?> animation = (Map<?, ?>) raw;
             String preset = String.valueOf(animation.get("preset"));
-            if (java.util.Arrays.asList("linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+            if (java.util.Arrays.asList("quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                     "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
                     "directional_blur_fade_animation").contains(preset)
                     && !(preset.equals(animation.get("semanticFamily"))

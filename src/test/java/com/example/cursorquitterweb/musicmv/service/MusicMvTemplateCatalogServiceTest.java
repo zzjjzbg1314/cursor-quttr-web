@@ -228,7 +228,7 @@ class MusicMvTemplateCatalogServiceTest {
 
     @Test
     void acceptsAllCompiledTextAnimationsAndRejectsMissingDurationOrContract() {
-        for (String preset : Arrays.asList("linear_scale_alpha_animation", "sequential_glyph_fade_animation",
+        for (String preset : Arrays.asList("quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                 "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation", "directional_blur_fade_animation")) {
             Map<String, Object> animation = row("preset", preset);
             animation.put("fidelity", "exact");
