@@ -489,8 +489,8 @@ public class MusicMvRenderJobService {
         }
     }
 
-    // 空槽位只有在已保存场景完整声明纯文字时成立，不能把缺失的照片槽当作无照片模板。
-    private boolean verifiedTextOnlyScene(String versionId) {
+    // 此检查只确认场景明确不需要客户照片；完整效果与时钟仍由场景规划器严格验证。
+    private boolean verifiedNoPhotoSlotScene(String versionId) {
         Map<String, Object> row = repository.browserScene(versionId);
         if (row == null || !"ready".equals(RowUtils.str(row, "status"))) return false;
         Map<String, Object> scene = parseObject(RowUtils.str(row, "scene_json"));
@@ -500,12 +500,30 @@ public class MusicMvRenderJobService {
         }
         if (!(scene.get("layers") instanceof List) || ((List<?>) scene.get("layers")).isEmpty()
                 || !(scene.get("textLayers") instanceof List)) return false;
-        Set<String> layers = new HashSet<>(), texts = new HashSet<>();
+        Set<String> layers = new HashSet<>(), texts = new HashSet<>(), identities = new HashSet<>();
+        Set<String> fixedResources = new HashSet<>();
+        if (scene.get("resources") instanceof List) for (Object value : (List<?>) scene.get("resources")) {
+            if (!(value instanceof Map)) return false;
+            Map<?, ?> resource = (Map<?, ?>) value;
+            if ("image".equals(resource.get("kind"))) {
+                if (!(resource.get("resourceKey") instanceof String) || ((String) resource.get("resourceKey")).isEmpty()
+                        || !fixedResources.add((String) resource.get("resourceKey"))) return false;
+            }
+        }
+        boolean ownsFixed = hasVerifiedFixedImageDescriptor(scene);
         for (Object value : (List<?>) scene.get("layers")) {
             if (!(value instanceof Map)) return false;
             Map<?, ?> layer = (Map<?, ?>) value;
-            if (!"text".equals(layer.get("type")) || !(layer.get("layerId") instanceof String)
-                    || ((String) layer.get("layerId")).isEmpty() || !layers.add((String) layer.get("layerId"))) return false;
+            if (!(layer.get("layerId") instanceof String) || ((String) layer.get("layerId")).isEmpty()
+                    || !identities.add((String) layer.get("layerId"))) return false;
+            if ("text".equals(layer.get("type"))) layers.add((String) layer.get("layerId"));
+            else if (!ownsFixed || !"static_image".equals(layer.get("type"))
+                    || !layer.get("layerId").equals(layer.get("segmentId"))
+                    || !fixedResources.contains(layer.get("resourceKey"))
+                    || !(layer.get("originalTimeline") instanceof Map)
+                    || !(layer.get("clip") instanceof Map) || !(layer.get("videoCrop") instanceof Map)
+                    || !(layer.get("common_keyframes") instanceof List)
+                    || !(layer.get("animations") instanceof List) || !(layer.get("effects") instanceof List)) return false;
         }
         for (Object value : (List<?>) scene.get("textLayers")) {
             if (!(value instanceof Map)) return false;
@@ -519,11 +537,31 @@ public class MusicMvRenderJobService {
         return layers.equals(texts);
     }
 
+    private boolean hasVerifiedFixedImageDescriptor(Map<String, Object> scene) {
+        if (!(scene.get("runtimeDelivery") instanceof Map)) return false;
+        Map<?, ?> delivery = (Map<?, ?>) scene.get("runtimeDelivery");
+        if (!"browser-runtime-delivery-v1".equals(delivery.get("schemaVersion"))
+                || !(delivery.get("nativeEngine") instanceof Map) || !(delivery.get("resources") instanceof List)) return false;
+        Map<?, ?> descriptor = (Map<?, ?>) delivery.get("nativeEngine");
+        if (!"browser-native-scene-runtime-v3".equals(descriptor.get("schemaVersion"))) return false;
+        Set<String> ids = new HashSet<>();
+        for (Object value : (List<?>) delivery.get("resources")) {
+            if (!(value instanceof Map) || !(((Map<?, ?>) value).get("resourceId") instanceof String)
+                    || !ids.add((String) ((Map<?, ?>) value).get("resourceId"))) return false;
+        }
+        try {
+            BrowserNativeRuntimeContract.validate(descriptor, ids);
+            return true;
+        } catch (ApiException invalid) {
+            return false;
+        }
+    }
+
     private void requireSlotBindings(String ownerId, String versionId,
                                      List<Map<String, Object>> slots,
                                      List<MusicMvRenderJobCreateRequest.SlotBinding> bindings) {
         if (slots == null || slots.isEmpty()) {
-            if (slots != null && bindings.isEmpty() && verifiedTextOnlyScene(versionId)) return;
+            if (slots != null && bindings.isEmpty() && verifiedNoPhotoSlotScene(versionId)) return;
             throw conflict("MV_RENDER_TEMPLATE_HAS_NO_SLOTS", "Template has no verified material slot contract");
         }
         Set<String> expected = new HashSet<String>();

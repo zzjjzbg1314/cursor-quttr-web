@@ -63,6 +63,57 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void emptyBindingsRequireVerifiedNativeFixedImageOwnership() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        for (String variant : Arrays.asList("valid", "mixedText", "legacy", "missingDelivery", "missingResource",
+                "missingClip", "photo", "duplicateLayer", "missingDependency", "extraBinding", "notReady")) {
+            MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+            AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+            MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                    mock(MusicMvRenderArtifactStorageService.class), inputAssets(), mapper, true, 2);
+            MusicMvRenderJobCreateRequest request = request();
+            if (!"extraBinding".equals(variant)) request.setSlotBindings(Collections.emptyList());
+            when(music.ownedCandidate("owner", "song_1")).thenReturn(candidate());
+            when(repository.claimBrowserPreparation("fixed-job")).thenReturn(preparingRow("fixed-job", request));
+            when(repository.updateBrowserPreparation("fixed-job", "preparing_template", 0.55d))
+                    .thenReturn(preparingRow("fixed-job", request));
+            when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(new RenderContract(version(), Collections.emptyList()));
+            Map<String,Object> scene = mapper.readValue("{\"schemaVersion\":\"browser-template-scene-v6\",\"slots\":[],\"timelineSegments\":[],\"layers\":[{\"layerId\":\"fixed\",\"segmentId\":\"fixed\",\"type\":\"static_image\",\"resourceKey\":\"image\",\"originalTimeline\":{},\"clip\":{},\"videoCrop\":{},\"common_keyframes\":[],\"animations\":[],\"effects\":[]}],\"textLayers\":[],\"resources\":[{\"kind\":\"image\",\"resourceKey\":\"image\"}]}", Map.class);
+            Map<String,Object> descriptor = BrowserNativeRuntimeContractTest.descriptor();
+            descriptor.put("schemaVersion", "legacy".equals(variant) ? "browser-native-scene-runtime-v2" : "browser-native-scene-runtime-v3");
+            Map<String,Object> delivery = new LinkedHashMap<>();
+            delivery.put("schemaVersion", "browser-runtime-delivery-v1");
+            delivery.put("nativeEngine", descriptor);
+            delivery.put("resources", "missingDependency".equals(variant) ? Collections.emptyList()
+                    : Collections.singletonList(Collections.singletonMap("resourceId", "effect")));
+            scene.put("runtimeDelivery", delivery);
+            List<Map<String,Object>> layers = (List<Map<String,Object>>) scene.get("layers");
+            if ("mixedText".equals(variant)) {
+                layers.add(mapper.readValue("{\"layerId\":\"text\",\"type\":\"text\"}", Map.class));
+                scene.put("textLayers", Collections.singletonList(mapper.readValue("{\"segmentId\":\"text\",\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\"}}", Map.class)));
+            }
+            if ("missingDelivery".equals(variant)) scene.remove("runtimeDelivery");
+            if ("missingResource".equals(variant)) scene.put("resources", Collections.emptyList());
+            if ("missingClip".equals(variant)) layers.get(0).remove("clip");
+            if ("photo".equals(variant)) layers.get(0).put("type", "photo");
+            if ("duplicateLayer".equals(variant)) layers.add(new LinkedHashMap<>(layers.get(0)));
+            Map<String,Object> stored = new LinkedHashMap<>();
+            stored.put("status", "notReady".equals(variant) ? "pending" : "ready");
+            stored.put("scene_json", mapper.writeValueAsString(scene));
+            when(repository.browserScene("tplver_1")).thenReturn(stored);
+            service.prepareBrowserAsync("owner", "fixed-job");
+            if ("valid".equals(variant) || "mixedText".equals(variant)) {
+                verify(repository).completeBrowserPreparation(eq("fixed-job"), anyString());
+                verify(repository, never()).slotDefaultMedia(anyString(), anySet());
+            } else {
+                verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+                verify(repository).failBrowserPreparation(eq("fixed-job"), eq("MV_RENDER_TEMPLATE_HAS_NO_SLOTS"), anyString(), eq(false));
+            }
+        }
+    }
+
+    @Test
     void completedLibraryUsesExtraRowOnlyForHasMore() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
