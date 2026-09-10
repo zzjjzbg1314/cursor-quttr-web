@@ -17,6 +17,8 @@ final class BrowserNativeRuntimeContract {
                 || !(source.get("bindings") instanceof List)) throw invalid();
         boolean ownsVideo="browser-native-scene-runtime-v4".equals(source.get("schemaVersion"));
         if(ownsVideo&&!"external_music_only".equals(source.get("videoAudioPolicy")))throw invalid();
+        boolean ownsTemplates="original_attachments_v1".equals(source.get("textTemplatePolicy"));
+        if(source.containsKey("textTemplatePolicy")&&(!ownsTemplates||!ownsVideo))throw invalid();
         Map<String,Object> assets=(Map<String,Object>)source.get("assets");
         Map<String,Object> safeAssets=new LinkedHashMap<>(); String root=null;
         String[][] roles={{"loaderUrl","loader.js"},{"mainWasmUrl","main.wasm"},{"mediaWasmUrl","media.wasm"},
@@ -42,8 +44,10 @@ final class BrowserNativeRuntimeContract {
             if(!(value instanceof Map))throw invalid();Map<String,Object> item=(Map<String,Object>)value;
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
-                    || !Arrays.asList("filter","video_effect","adjustment","animation","transition","blend").contains(item.get("kind"))
+                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend").contains(item.get("kind"))
+                        ||(ownsTemplates&&"text_template".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
+            if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
             Map<String,Object> binding=new LinkedHashMap<>();binding.put("resourceId",id);binding.put("path",id+"/");binding.put("kind",item.get("kind"));
             if(item.containsKey("models")) {
                 if(!(item.get("models") instanceof Map))throw invalid();
@@ -71,6 +75,7 @@ final class BrowserNativeRuntimeContract {
         }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion",source.get("schemaVersion"));
         if(ownsVideo)result.put("videoAudioPolicy","external_music_only");
+        if(ownsTemplates)result.put("textTemplatePolicy","original_attachments_v1");
         result.put("layerMode",((Number)source.get("layerMode")).intValue());result.put("assets",safeAssets);
         result.put("files",files);result.put("bindings",bindings);return result;
     }

@@ -13,6 +13,20 @@ class BrowserNativeRuntimeContractTest {
         value.put("schemaVersion","browser-native-photo-runtime-v1");value.put("layerMode",0);value.put("assets",assets);
         value.put("files",Collections.singletonList("effect/config.json"));value.put("bindings",Collections.singletonList(binding));return value;
     }
+    @Test @SuppressWarnings("unchecked") void templatePolicyRequiresV4AndBothOriginalEntrypointFiles() {
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v4");
+        value.put("videoAudioPolicy","external_music_only");value.put("textTemplatePolicy","original_attachments_v1");
+        Map<String,Object> binding=((List<Map<String,Object>>)value.get("bindings")).get(0);binding.put("kind","text_template");
+        value.put("files",Arrays.asList("effect/config.json","effect/content.json"));
+        Map<String,Object> validated=BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect"));
+        assertEquals(value,validated);assertNotSame(value,validated);
+        value.remove("textTemplatePolicy");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("textTemplatePolicy","unknown");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("textTemplatePolicy","original_attachments_v1");value.put("schemaVersion","browser-native-scene-runtime-v2");
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("schemaVersion","browser-native-scene-runtime-v4");value.put("files",Collections.singletonList("effect/config.json"));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     @Test @SuppressWarnings("unchecked") void blendRequiresDeliveredResourceAndSafePath() {
         Map<String,Object> value=descriptor();
         Map<String,Object> binding=((List<Map<String,Object>>)value.get("bindings")).get(0);
