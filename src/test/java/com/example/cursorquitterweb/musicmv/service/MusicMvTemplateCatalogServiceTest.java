@@ -2093,6 +2093,68 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void publishedSlotReplayPreservesIdsWithoutWriting() {
+        Map<String, Object> version = row("status", "published");
+        version.put("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        Map<String, Object> stored = publishedSlot();
+        when(repository.slots("tplver_1")).thenReturn(Collections.singletonList(stored));
+
+        assertEquals("reconciled", service.reconcileSlots("tpl_1", "tplver_1", reconcileRequest()).get("status"));
+        assertEquals("slot_original", stored.get("slot_id"));
+        verify(repository, never()).replaceSlots(anyString(), anyString(), any());
+    }
+
+    @Test
+    void publishedSlotsRejectChangesToEveryPersistedFieldAndMissingSlots() {
+        Map<String, Object> version = row("status", "published");
+        version.put("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        for (String field : Arrays.asList("slot_key", "slot_type", "display_name", "timeline_order",
+                "aspect_ratio", "crop_policy", "repeat_policy", "material_id", "material_group", "is_required")) {
+            Map<String, Object> stored = publishedSlot();
+            stored.put(field, "timeline_order".equals(field) ? Integer.valueOf(2)
+                    : "is_required".equals(field) ? Integer.valueOf(0) : "changed");
+            when(repository.slots("tplver_1")).thenReturn(Collections.singletonList(stored));
+            assertEquals("TEMPLATE_PUBLISHED_SLOTS_IMMUTABLE", assertThrows(ApiException.class,
+                    () -> service.reconcileSlots("tpl_1", "tplver_1", reconcileRequest())).getCode(), field);
+        }
+        when(repository.slots("tplver_1")).thenReturn(Collections.emptyList());
+        assertEquals("TEMPLATE_PUBLISHED_SLOTS_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.reconcileSlots("tpl_1", "tplver_1", reconcileRequest())).getCode());
+        verify(repository, never()).replaceSlots(anyString(), anyString(), any());
+    }
+
+    @Test
+    void withdrawnPreviouslyPublishedSlotsRemainImmutable() {
+        Map<String, Object> version = row("status", "offline");
+        version.put("published_at", "2026-09-10T00:00:00Z");
+        version.put("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        when(repository.slots("tplver_1")).thenReturn(Collections.singletonList(publishedSlot()));
+        TemplateSlotReconcileRequest request = reconcileRequest();
+        request.getSlots().get(0).setMaterialId("replacement");
+        assertEquals("TEMPLATE_PUBLISHED_SLOTS_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.reconcileSlots("tpl_1", "tplver_1", request)).getCode());
+        verify(repository, never()).replaceSlots(anyString(), anyString(), any());
+    }
+
+    private Map<String, Object> publishedSlot() {
+        Map<String, Object> slot = row("slot_id", "slot_original");
+        slot.put("slot_key", "photo_1");
+        slot.put("slot_type", "image");
+        slot.put("display_name", "Photo 1");
+        slot.put("timeline_order", Long.valueOf(0));
+        slot.put("crop_policy", "fill");
+        slot.put("repeat_policy", "cycle");
+        slot.put("is_required", Integer.valueOf(1));
+        return slot;
+    }
+
+    @Test
     void permanentlyDeletesOfflineTemplateMediaAndCatalogGraph() {
         Map<String, Object> template = row("status", "offline");
         when(repository.template("tpl_1")).thenReturn(template);

@@ -530,8 +530,18 @@ public class MusicMvTemplateCatalogService {
                     "Slot reconciliation source does not match the immutable template version");
         }
         requireUniqueSlots(request.getSlots());
-        repository.replaceSlots(templateId, versionId, request.getSlots());
-        invalidateDetail(templateId);
+        boolean published = "published".equals(RowUtils.str(version, "status"))
+                || version.get("published_at") != null;
+        if (published) {
+            // 已验收回退版本只接受内容相同的重放，保留原有槽位标识和素材绑定。
+            if (!samePublishedSlots(repository.slots(versionId), request.getSlots())) {
+                throw conflict("TEMPLATE_PUBLISHED_SLOTS_IMMUTABLE",
+                        "Published template slots are immutable; synchronize changed content to a new version");
+            }
+        } else {
+            repository.replaceSlots(templateId, versionId, request.getSlots());
+            invalidateDetail(templateId);
+        }
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
@@ -539,6 +549,31 @@ public class MusicMvTemplateCatalogService {
         result.put("status", "reconciled");
         result.put("slotCount", Integer.valueOf(request.getSlots().size()));
         return result;
+    }
+
+    private boolean samePublishedSlots(List<Map<String, Object>> stored,
+                                       List<TemplatePromotionRequest.Slot> requested) {
+        if (stored == null || stored.size() != requested.size()) return false;
+        Map<String, Map<String, Object>> byKey = new LinkedHashMap<String, Map<String, Object>>();
+        for (Map<String, Object> row : stored) {
+            if (byKey.put(RowUtils.str(row, "slot_key"), row) != null) return false;
+        }
+        for (TemplatePromotionRequest.Slot slot : requested) {
+            Map<String, Object> row = byKey.remove(slot.getSlotKey());
+            if (row == null
+                    || !Objects.equals(slot.getSlotType(), RowUtils.str(row, "slot_type"))
+                    || !Objects.equals(slot.getDisplayName(), RowUtils.str(row, "display_name"))
+                    || !Objects.equals(slot.getTimelineOrder(), RowUtils.integer(row, "timeline_order"))
+                    || !Objects.equals(slot.getAspectRatio(), RowUtils.str(row, "aspect_ratio"))
+                    || !Objects.equals(slot.getCropPolicy(), RowUtils.str(row, "crop_policy"))
+                    || !Objects.equals(slot.getRepeatPolicy(), RowUtils.str(row, "repeat_policy"))
+                    || !Objects.equals(slot.getMaterialId(), RowUtils.str(row, "material_id"))
+                    || !Objects.equals(slot.getMaterialGroup(), RowUtils.str(row, "material_group"))
+                    || (!Boolean.FALSE.equals(slot.getRequired())) != RowUtils.bool(row, "is_required")) {
+                return false;
+            }
+        }
+        return byKey.isEmpty();
     }
 
     public Map<String, Object> synchronizeBrowserScene(
