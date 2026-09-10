@@ -682,6 +682,11 @@ class MusicMvRenderJobServiceTest {
                 () -> service.get("usr_owner", "mvr_browser"));
 
         assertEquals("MV_BROWSER_SCENE_EXPORT_INCOMPLETE", error.getCode());
+        Map<String, Object> nativeScene = BrowserNativeSceneCapabilitiesTest.fixture();
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireBrowserSceneExportReady", nativeScene);
+        ((Map<String, Object>) nativeScene.get("capability")).put("resourceDiagnostics", Collections.emptyList());
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(
+                service, "requireBrowserSceneExportReady", nativeScene));
     }
 
     @Test

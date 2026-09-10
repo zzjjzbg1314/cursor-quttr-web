@@ -925,6 +925,7 @@ public class MusicMvRenderJobService {
         Object blocking = capability.get("blockingFeatures");
         boolean hasBlockingFeature = blocking instanceof List && !((List<?>) blocking).isEmpty();
         if (!Boolean.TRUE.equals(capability.get("browserExportReady")) || hasBlockingFeature) {
+            if (BrowserNativeSceneCapabilities.ownsEffectBlockers(scene)) return;
             throw conflict("MV_BROWSER_SCENE_EXPORT_INCOMPLETE",
                     "This template contains browser scene features that cannot be exported yet");
         }
