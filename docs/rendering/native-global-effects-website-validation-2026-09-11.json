@@ -1,0 +1,61 @@
+{
+  "templateId": "tpl_828a8050805ac26b",
+  "localVersionId": "tplver_13af90c738146376",
+  "websiteVersionId": "tplver_75fb3e1e992c46bab66f3ef694cbdaca",
+  "intakeId": "intake_9d8c311775d3b83aabcadb1ddedf150e",
+  "status": "published",
+  "render": {
+    "status": "completed",
+    "jobId": "0827-global-website-20260911-attempt-1",
+    "totalSeconds": 44.02349500000477,
+    "validation": {
+      "semanticIntegrity": "exact",
+      "videoEncodeCount": 1,
+      "materializedIntermediateVideoCount": 0,
+      "completedFrameCount": 1003,
+      "elapsedSeconds": 26.20582999998331
+    },
+    "rendererFingerprint": "d0d1ba3b022f9918a792cac1e68a2393f5ff77693e448c3980baf29085f49712",
+    "sizeBytes": 33992161,
+    "sha256": "55093da5842381157aa620abf702b2279193260328d3560814670b7d688dfe73",
+    "ffprobe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_type": "video",
+          "width": 720,
+          "height": 1280,
+          "duration": "33.433333",
+          "nb_frames": "1003"
+        },
+        {
+          "codec_type": "audio",
+          "duration": "33.493333",
+          "nb_frames": "1570"
+        }
+      ],
+      "format": {
+        "duration": "33.493333",
+        "size": "33992161"
+      }
+    },
+    "cleanup": {
+      "opfsFiles": 0,
+      "writerOrRawResidues": []
+    }
+  },
+  "ssim": {
+    "status": "passed",
+    "averageSsim": 0.945216,
+    "minSsim": 0.828474,
+    "averageMae": 8.0138,
+    "criticalAverageSsim": 0.961669,
+    "criticalMinSsim": 0.908782
+  },
+  "remaining": [
+    "Customer edited export using this version",
+    "Long-song multiple-cycle export",
+    "Remaining template migration and retirement evidence"
+  ]
+}
