@@ -20,6 +20,7 @@ final class BrowserNativeSceneCapabilities {
             }
             Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(map(delivery.get("nativeEngine")), delivered);
             Set<String> globalEffects=BrowserNativeGlobalEffectContract.validate(scene,descriptor);
+            BrowserNativeStickerContract.validate(scene,descriptor);
             Set<String> bindings = new HashSet<>();
             for (Object value : list(descriptor.get("bindings"))) bindings.add(string(map(value).get("resourceId")));
             String schema = string(descriptor.get("schemaVersion"));

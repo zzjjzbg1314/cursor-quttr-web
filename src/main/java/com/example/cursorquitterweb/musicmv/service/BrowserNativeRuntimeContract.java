@@ -19,6 +19,8 @@ final class BrowserNativeRuntimeContract {
         if(ownsVideo&&!"external_music_only".equals(source.get("videoAudioPolicy")))throw invalid();
         boolean ownsTemplates="original_attachments_v1".equals(source.get("textTemplatePolicy"));
         if(source.containsKey("textTemplatePolicy")&&(!ownsTemplates||!ownsVideo))throw invalid();
+        boolean ownsStickers="original_resources_v1".equals(source.get("stickerPolicy"));
+        if(source.containsKey("stickerPolicy")&&(!ownsStickers||!ownsVideo))throw invalid();
         boolean ownsGlobals="original_tracks_v1".equals(source.get("globalEffectPolicy"));
         if(source.containsKey("globalEffectPolicy")&&(!ownsGlobals||!ownsVideo))throw invalid();
         Map<String,Object> assets=(Map<String,Object>)source.get("assets");
@@ -47,8 +49,10 @@ final class BrowserNativeRuntimeContract {
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
                     || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend").contains(item.get("kind"))
-                        ||(ownsTemplates&&"text_template".equals(item.get("kind"))))
+                        ||(ownsTemplates&&"text_template".equals(item.get("kind")))
+                        ||(ownsStickers&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
+            if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/infoSticker.lua")))throw invalid();
             if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
             Map<String,Object> binding=new LinkedHashMap<>();binding.put("resourceId",id);binding.put("path",id+"/");binding.put("kind",item.get("kind"));
             if(item.containsKey("models")) {
@@ -77,6 +81,7 @@ final class BrowserNativeRuntimeContract {
         }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion",source.get("schemaVersion"));
         if(ownsVideo)result.put("videoAudioPolicy","external_music_only");
+        if(ownsStickers)result.put("stickerPolicy","original_resources_v1");
         if(ownsGlobals)result.put("globalEffectPolicy","original_tracks_v1");
         if(ownsTemplates)result.put("textTemplatePolicy","original_attachments_v1");
         result.put("layerMode",((Number)source.get("layerMode")).intValue());result.put("assets",safeAssets);

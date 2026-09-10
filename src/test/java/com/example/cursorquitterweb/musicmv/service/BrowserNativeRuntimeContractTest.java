@@ -13,6 +13,17 @@ class BrowserNativeRuntimeContractTest {
         value.put("schemaVersion","browser-native-photo-runtime-v1");value.put("layerMode",0);value.put("assets",assets);
         value.put("files",Collections.singletonList("effect/config.json"));value.put("bindings",Collections.singletonList(binding));return value;
     }
+    @Test @SuppressWarnings("unchecked") void stickerPolicyRequiresV4AndOriginalEntrypoint() {
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v4");
+        value.put("videoAudioPolicy","external_music_only");value.put("stickerPolicy","original_resources_v1");
+        ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","sticker");
+        value.put("files",Arrays.asList("effect/config.json","effect/infoSticker.lua","effect/image.png"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.remove("stickerPolicy");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("stickerPolicy","unknown");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("stickerPolicy","original_resources_v1");value.put("files",Collections.singletonList("effect/config.json"));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     @Test @SuppressWarnings("unchecked") void templatePolicyRequiresV4AndBothOriginalEntrypointFiles() {
         Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v4");
         value.put("videoAudioPolicy","external_music_only");value.put("textTemplatePolicy","original_attachments_v1");

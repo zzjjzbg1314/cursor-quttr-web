@@ -158,6 +158,7 @@ public class TemplateRuntimePackageService {
         if (manifest.containsKey("nativeEngine")) {
             Map<String,Object> descriptor=BrowserNativeRuntimeContract.validate(manifest.get("nativeEngine"), ids);
             BrowserNativeGlobalEffectContract.validate(scene,descriptor);
+            BrowserNativeStickerContract.validate(scene,descriptor);
             result.put("nativeEngine", descriptor);
         }
         try {
