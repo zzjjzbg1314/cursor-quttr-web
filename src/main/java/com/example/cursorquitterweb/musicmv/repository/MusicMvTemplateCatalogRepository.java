@@ -292,6 +292,20 @@ public class MusicMvTemplateCatalogRepository {
      * sequence of remote requests on the template detail path.
      */
     public TemplateDetailRows templateDetail(String templateId) {
+        return loadTemplateDetail(templateId, null, true);
+    }
+
+    public TemplateDetailRows templateDetail(String templateId, String requestedVersionId) {
+        return loadTemplateDetail(templateId, requestedVersionId, false);
+    }
+
+    private TemplateDetailRows loadTemplateDetail(String templateId, String requestedVersionId, boolean allVersions) {
+        // 客户只读取指定版本；未指定时在同一批查询内使用当前发布指针。
+        String versionFilter = allVersions ? "" : requestedVersionId == null
+                ? " AND v.version_id=(SELECT current_version_id FROM templates WHERE template_id=?)"
+                : " AND v.version_id=?";
+        Object[] versionParams = allVersions ? new Object[]{templateId}
+                : new Object[]{templateId, requestedVersionId == null ? templateId : requestedVersionId};
         List<D1QueryResult> results = d1.batch(Arrays.asList(
                 D1Statement.of("SELECT template_id, capcut_template_id, slug, default_locale, "
                                 + "category_key, tags_json, status, visibility, current_version_id, "
@@ -319,27 +333,27 @@ public class MusicMvTemplateCatalogRepository {
                                 + "v.source_availability AS effective_source_availability, "
                                 + "v.last_source_verified_at, v.source_provenance_json, "
                                 + "v.created_at, v.published_at FROM template_versions v "
-                                + "WHERE v.template_id=? ORDER BY v.version_number DESC",
-                        templateId),
+                                + "WHERE v.template_id=?" + versionFilter + " ORDER BY v.version_number DESC",
+                        versionParams),
                 D1Statement.of("SELECT s.version_id,s.slot_id,s.slot_key,s.slot_type,s.display_name,"
                                 + "s.timeline_order,s.aspect_ratio,s.crop_policy,s.repeat_policy,"
                                 + "s.is_required,s.material_id,s.material_group FROM template_slots s "
                                 + "JOIN template_versions v ON v.version_id=s.version_id "
-                                + "WHERE v.template_id=? ORDER BY s.version_id,s.timeline_order,s.slot_key",
-                        templateId),
+                                + "WHERE v.template_id=?" + versionFilter + " ORDER BY s.version_id,s.timeline_order,s.slot_key",
+                        versionParams),
                 D1Statement.of("SELECT m.version_id,m.media_id,m.media_role,m.provider,"
                                 + "m.provider_asset_id,m.status,m.source_sha256,m.source_size_bytes,"
                                 + "m.width,m.height,m.duration_seconds,m.provider_details_json,"
                                 + "m.error_message,m.created_at,m.updated_at,m.ready_at "
                                 + "FROM template_media m JOIN template_versions v ON v.version_id=m.version_id "
-                                + "WHERE v.template_id=? ORDER BY m.version_id,m.media_role",
-                        templateId),
+                                + "WHERE v.template_id=?" + versionFilter + " ORDER BY m.version_id,m.media_role",
+                        versionParams),
                 D1Statement.of("SELECT s.version_id,s.template_id,s.schema_version,s.manifest_sha256,"
                                 + "s.status,s.scene_json,s.created_at,s.updated_at "
                                 + "FROM template_browser_scenes s JOIN template_versions v "
-                                + "ON v.version_id=s.version_id WHERE v.template_id=? "
-                                + "ORDER BY s.version_id",
-                        templateId)
+                                + "ON v.version_id=s.version_id WHERE v.template_id=?" + versionFilter
+                                + " ORDER BY s.version_id",
+                        versionParams)
         ));
         if (results.size() != 8) {
             throw new IllegalStateException("Template detail D1 batch returned " + results.size()

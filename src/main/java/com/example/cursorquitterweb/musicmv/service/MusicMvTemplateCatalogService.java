@@ -264,7 +264,8 @@ public class MusicMvTemplateCatalogService {
     }
 
     private Map<String, Object> loadDetail(String templateId, boolean admin, String requestedVersionId, boolean candidate) {
-        TemplateDetailRows rows = repository.templateDetail(templateId);
+        TemplateDetailRows rows = admin ? repository.templateDetail(templateId)
+                : repository.templateDetail(templateId, requestedVersionId);
         Map<String, Object> template = rows.getTemplate();
         if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         if (!admin && !candidate && (!"published".equals(RowUtils.str(template, "status"))

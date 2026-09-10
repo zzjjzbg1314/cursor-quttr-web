@@ -194,6 +194,26 @@ class MusicMvTemplateCatalogRepositoryTest {
         }
     }
 
+    @Test
+    void customerDetailRestrictsEveryVersionScopedRead() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        for (String version : Arrays.asList(null, "accepted-old")) {
+            repository.templateDetail("tpl_1", version);
+            assertEquals(8, client.statements.size());
+            for (int i = 0; i < 8; i++) {
+                D1Statement statement = client.statements.get(i);
+                assertEquals(i < 4 ? 1 : 2, placeholders(statement.getSql()));
+                if (i >= 4) {
+                    assertEquals(Arrays.<Object>asList("tpl_1", version == null ? "tpl_1" : version), statement.getParams());
+                    assertTrue(statement.getSql().contains(version == null
+                            ? "v.version_id=(SELECT current_version_id FROM templates WHERE template_id=?)"
+                            : "v.version_id=?"));
+                }
+            }
+        }
+    }
+
     private int placeholders(String sql) {
         int count = 0;
         for (int index = 0; index < sql.length(); index++) if (sql.charAt(index) == '?') count++;

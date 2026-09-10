@@ -631,7 +631,7 @@ class MusicMvTemplateCatalogServiceTest {
                 Collections.<Map<String, Object>>emptyList(),
                 Collections.<Map<String, Object>>emptyList(),
                 Collections.<Map<String, Object>>emptyList());
-        when(repository.templateDetail("tpl_1")).thenReturn(rows);
+        when(repository.templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(rows);
 
         when(repository.publicVersionStatus("tpl_1", "tplver_1")).thenAnswer(invocation -> publicVersionState(template, version));
         Map<String, Object> first = service.detail("tpl_1", false);
@@ -640,11 +640,11 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("tplver_1", first.get("currentVersionId"));
         assertTrue(first == second);
         assertTrue(first == service.publishedVersionDetail("tpl_1", "tplver_1"));
-        verify(repository).templateDetail("tpl_1");
+        verify(repository).templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class));
         ((com.github.benmanes.caffeine.cache.Cache<?, ?>) org.springframework.test.util.ReflectionTestUtils
                 .getField(service, "publicDetailCache")).invalidateAll();
         service.publishedVersionDetail("tpl_1", "tplver_1");
-        verify(repository, org.mockito.Mockito.times(2)).templateDetail("tpl_1");
+        verify(repository, org.mockito.Mockito.times(2)).templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class));
     }
 
     @Test
@@ -655,7 +655,7 @@ class MusicMvTemplateCatalogServiceTest {
         template.put("current_version_id", "new");
         Map<String, Object> old = row("version_id", "old"); old.put("status", "published");
         Map<String, Object> current = row("version_id", "new"); current.put("status", "published");
-        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
+        when(repository.templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
                 Collections.emptyList(), Arrays.asList(current, old), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         when(repository.publicVersionStatus("tpl_1", "old")).thenAnswer(invocation -> publicVersionState(template, old));
         Map<String, Object> historical = service.publishedVersionDetail("tpl_1", "old");
@@ -663,12 +663,12 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("old", ((Map<?, ?>)((List<?>)historical.get("versions")).get(0)).get("versionId"));
         assertEquals("new", ((Map<?, ?>)((List<?>)latest.get("versions")).get(0)).get("versionId"));
         assertTrue(historical == service.publishedVersionDetail("tpl_1", "old"));
-        verify(repository, org.mockito.Mockito.times(2)).templateDetail("tpl_1");
+        verify(repository, org.mockito.Mockito.times(2)).templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class));
         old.put("status", "draft"); service.invalidateDetail("tpl_1");
         assertThrows(ApiException.class, () -> service.publishedVersionDetail("tpl_1", "old"));
         old.put("status", "published");
         service.publishedVersionDetail("tpl_1", "old");
-        verify(repository, org.mockito.Mockito.times(4)).templateDetail("tpl_1");
+        verify(repository, org.mockito.Mockito.times(4)).templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class));
     }
 
     @Test
@@ -686,7 +686,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.browserScene("candidate")).thenReturn(scene);
         when(repository.browserParity("candidate")).thenReturn(parity);
         when(repository.mediaByRole("candidate", "browser_parity_reference")).thenReturn(reference);
-        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
+        when(repository.templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
                 Collections.emptyList(), Collections.singletonList(version), Collections.emptyList(), Collections.emptyList(), Collections.singletonList(scene)));
         Map<String, Object> detail = service.candidateVersionDetail("tpl_1", "candidate");
         assertEquals("old", detail.get("currentVersionId"));
@@ -715,7 +715,7 @@ class MusicMvTemplateCatalogServiceTest {
         TemplateDetailRows rows = new TemplateDetailRows(template, Collections.emptyList(), null,
                 Collections.emptyList(), Arrays.asList(latest, old, draft),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        when(repository.templateDetail("tpl_1")).thenReturn(rows);
+        when(repository.templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(rows);
         when(repository.publicVersionStatus("tpl_1", "accepted")).thenAnswer(invocation -> publicVersionState(template, old));
         Map<String, Object> detail = service.publishedVersionDetail("tpl_1", "accepted");
         assertEquals("new", detail.get("currentVersionId"));
@@ -782,7 +782,7 @@ class MusicMvTemplateCatalogServiceTest {
         download.put("objectKey", "private/runtime.zip");
         download.put("errorMessage", null);
         when(runtimePackages.downloadForScene(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.eq("tplver_1"), org.mockito.ArgumentMatchers.anyMap())).thenReturn(download);
-        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template,
+        when(repository.templateDetail(org.mockito.ArgumentMatchers.eq("tpl_1"), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(new TemplateDetailRows(template,
                 Collections.<Map<String, Object>>emptyList(), null,
                 Collections.<Map<String, Object>>emptyList(),
                 Collections.singletonList(version),
