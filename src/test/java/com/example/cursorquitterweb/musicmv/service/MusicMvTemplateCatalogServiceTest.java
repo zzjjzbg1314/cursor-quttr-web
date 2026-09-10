@@ -67,6 +67,37 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void publishedSceneAllowsOnlyIdenticalReplayWithoutWriting() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        Map<String, Object> version = row("version_id", "tplver_1");
+        version.put("status", "published");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> scene = mapper.readValue(getClass().getResourceAsStream(
+                "/musicmv/browser-color-correct-scene.json"), Map.class);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setScene(scene);
+        request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        Map<String, Object> stored = row("status", "ready");
+        stored.put("schema_version", request.getSchemaVersion());
+        stored.put("manifest_sha256", request.getManifestSha256());
+        when(repository.browserScene("tplver_1")).thenReturn(stored);
+        assertEquals("ready", service.synchronizeBrowserScene("tpl_1", "tplver_1", request).get("status"));
+        scene.put("name", "changed scene");
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_PUBLISHED_SCENE_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+        when(repository.browserScene("tplver_1")).thenReturn(null);
+        assertEquals("TEMPLATE_PUBLISHED_SCENE_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+        verify(repository, never()).upsertBrowserScene(anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString());
+        verify(runtimePackages, never()).downloadForScene(anyString(), anyString(), any());
+        verify(runtimePackages, never()).downloadExactImage(any());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void preservesColorCorrectBindingEvidenceAndRawFramesInStoredScene() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));

@@ -500,7 +500,7 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> synchronizeBrowserScene(
             String templateId, String versionId, TemplateBrowserSceneRequest request) {
-        requireVersion(templateId, versionId);
+        Map<String, Object> version = requireVersion(templateId, versionId);
         Map<String, Object> scene = request.getScene();
         if (!templateId.equals(String.valueOf(scene.get("templateId")))
                 || !versionId.equals(String.valueOf(scene.get("versionId")))) {
@@ -512,15 +512,28 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene schema does not match its envelope");
         }
         requireSanitizedBrowserScene(scene);
-        if (scene.containsKey("runtimeDelivery")) runtimePackages.downloadForScene(templateId, versionId, scene);
-        if (scene.get("resources") instanceof List) for (Object raw : (List<?>) scene.get("resources")) {
-            if (raw instanceof Map && ((Map<?, ?>) raw).containsKey("sourceAsset")) runtimePackages.downloadExactImage((Map<String, Object>) raw);
-        }
         String sceneJson = json(scene);
         String actualSha256 = sha256(sceneJson);
         if (!actualSha256.equalsIgnoreCase(request.getManifestSha256())) {
             throw badRequest("TEMPLATE_BROWSER_SCENE_HASH_MISMATCH",
                     "Browser scene SHA-256 does not match its content");
+        }
+        boolean published = "published".equals(RowUtils.str(version, "status"));
+        if (published) {
+            Map<String, Object> stored = repository.browserScene(versionId);
+            if (stored == null || !"ready".equals(RowUtils.str(stored, "status"))
+                    || !actualSha256.equalsIgnoreCase(RowUtils.str(stored, "manifest_sha256"))
+                    || !request.getSchemaVersion().equals(RowUtils.str(stored, "schema_version"))) {
+                throw conflict("TEMPLATE_PUBLISHED_SCENE_IMMUTABLE",
+                        "Published browser scene is immutable; synchronize changed content to a new version");
+            }
+        }
+        // 先拒绝已发布版本的内容变更，避免校验过程中提前修改资源缓存。
+        if (!published) {
+            if (scene.containsKey("runtimeDelivery")) runtimePackages.downloadForScene(templateId, versionId, scene);
+            if (scene.get("resources") instanceof List) for (Object raw : (List<?>) scene.get("resources")) {
+                if (raw instanceof Map && ((Map<?, ?>) raw).containsKey("sourceAsset")) runtimePackages.downloadExactImage((Map<String, Object>) raw);
+            }
         }
         Map<String, Object> capability = scene.get("capability") instanceof Map
                 ? (Map<String, Object>) scene.get("capability")
@@ -547,9 +560,11 @@ public class MusicMvTemplateCatalogService {
         if ("browser-template-scene-v6".equals(request.getSchemaVersion())) {
             requireValidBrowserRenderIr(scene);
         }
-        repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
-                actualSha256, "ready", sceneJson);
-        invalidateDetail(templateId);
+        if (!published) {
+            repository.upsertBrowserScene(templateId, versionId, request.getSchemaVersion(),
+                    actualSha256, "ready", sceneJson);
+            invalidateDetail(templateId);
+        }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("templateId", templateId);
         result.put("versionId", versionId);
