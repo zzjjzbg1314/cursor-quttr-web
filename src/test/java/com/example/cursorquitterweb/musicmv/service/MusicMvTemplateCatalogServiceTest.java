@@ -2142,6 +2142,84 @@ class MusicMvTemplateCatalogServiceTest {
         verify(repository, never()).replaceSlots(anyString(), anyString(), any());
     }
 
+    @Test
+    void publishedMediaReplaysWithoutReplacingProviderAssetOrEvidence() {
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("status", "published"));
+        Map<String, Object> media = publishedCover();
+        when(repository.mediaByRole("tplver_1", "cover")).thenReturn(media);
+        Map<String, Object> result = service.createMediaSession("tpl_1", "tplver_1", false, publishedCoverRequest());
+        assertEquals("media_original", result.get("mediaId"));
+        assertEquals(Boolean.TRUE, result.get("idempotentReplay"));
+        verify(mediaProvider, never()).createImageUpload(anyString(), any());
+        verify(repository, never()).markMediaReady(anyString(), anyString());
+    }
+
+    @Test
+    void publishedMediaRejectsReplacementMissingAssetAndChangedMetadata() {
+        Map<String, Object> version = row("status", "offline");
+        version.put("published_at", "2026-09-10T00:00:00Z");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        for (String change : Arrays.asList("hash", "size", "width", "height", "force", "evidence", "missing", "pending")) {
+            TemplateMediaUploadSessionRequest request = publishedCoverRequest();
+            Map<String, Object> media = publishedCover();
+            if ("hash".equals(change)) request.setSourceSha256(hash('b'));
+            if ("size".equals(change)) request.setSourceSizeBytes(101L);
+            if ("width".equals(change)) request.setWidth(2);
+            if ("height".equals(change)) request.setHeight(2);
+            if ("force".equals(change)) request.setForceReplace(true);
+            if ("evidence".equals(change)) request.setSourceType("replacement");
+            if ("pending".equals(change)) media.put("status", "awaiting_upload");
+            when(repository.mediaByRole("tplver_1", "cover")).thenReturn("missing".equals(change) ? null : media);
+            assertEquals("TEMPLATE_PUBLISHED_MEDIA_IMMUTABLE", assertThrows(ApiException.class,
+                    () -> service.createMediaSession("tpl_1", "tplver_1", false, request)).getCode(), change);
+        }
+        verify(mediaProvider, never()).createImageUpload(anyString(), any());
+        verify(mediaProvider, never()).createStreamUpload(anyString(), any());
+        verify(repository, never()).markMediaReady(anyString(), anyString());
+    }
+
+    @Test
+    void publishedSynchronizationCannotPruneRollbackMedia() {
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("status", "published"));
+        when(repository.browserScene("tplver_1")).thenReturn(row("manifest_sha256", hash('a')));
+        Map<String, Object> cover = row("media_role", "cover");
+        cover.put("status", "ready");
+        Map<String, Object> reference = row("media_role", "browser_parity_reference");
+        reference.put("status", "ready");
+        Map<String, Object> full = row("media_role", "full_mv");
+        full.put("status", "ready");
+        when(repository.media("tplver_1")).thenReturn(Arrays.asList(cover, reference, full));
+        com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest request =
+                new com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest();
+        request.setManifestSha256(hash('a'));
+        request.setMediaRoles(Arrays.asList("cover", "browser_parity_reference"));
+        assertEquals("TEMPLATE_PUBLISHED_MEDIA_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.completeSynchronization("tpl_1", "tplver_1", request)).getCode());
+        request.setMediaRoles(Arrays.asList("full_mv", "cover", "browser_parity_reference"));
+        assertEquals("synchronized", service.completeSynchronization("tpl_1", "tplver_1", request).get("status"));
+        verify(repository, never()).retainSynchronizedMedia(anyString(), anyString(), anyList());
+    }
+
+    private TemplateMediaUploadSessionRequest publishedCoverRequest() {
+        TemplateMediaUploadSessionRequest request = new TemplateMediaUploadSessionRequest();
+        request.setRole("cover");
+        request.setSourceSha256(hash('a'));
+        request.setSourceSizeBytes(100L);
+        return request;
+    }
+
+    private Map<String, Object> publishedCover() {
+        Map<String, Object> media = row("media_id", "media_original");
+        media.put("status", "ready");
+        media.put("source_sha256", hash('a'));
+        media.put("source_size_bytes", 100L);
+        media.put("width", 1);
+        media.put("height", 1);
+        media.put("provider_asset_id", "asset_original");
+        media.put("provider_details_json", "{}");
+        return media;
+    }
+
     private Map<String, Object> publishedSlot() {
         Map<String, Object> slot = row("slot_id", "slot_original");
         slot.put("slot_key", "photo_1");

@@ -487,7 +487,7 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> completeSynchronization(String templateId, String versionId,
             com.example.cursorquitterweb.musicmv.dto.TemplateSyncCompleteRequest request) {
-        requireVersion(templateId, versionId);
+        Map<String, Object> version = requireVersion(templateId, versionId);
         Map<String, Object> scene = repository.browserScene(versionId);
         if (scene == null || !request.getManifestSha256().equalsIgnoreCase(RowUtils.str(scene, "manifest_sha256"))) {
             throw conflict("TEMPLATE_SYNC_SCENE_CHANGED", "Template scene changed during synchronization");
@@ -505,14 +505,23 @@ public class MusicMvTemplateCatalogService {
                 throw badRequest("TEMPLATE_SYNC_MEDIA_REQUIRED", "Synchronization omitted a current photo slot");
             }
         }
+        Set<String> existingRoles = new HashSet<String>();
         for (Map<String, Object> media : repository.media(versionId)) {
+            existingRoles.add(RowUtils.str(media, "media_role"));
             if ("ready".equals(RowUtils.str(media, "status"))) ready.add(RowUtils.str(media, "media_role"));
         }
         if (!ready.containsAll(roles)) {
             throw conflict("TEMPLATE_SYNC_MEDIA_NOT_READY", "Latest template media are not ready");
         }
-        repository.retainSynchronizedMedia(templateId, versionId, roles);
-        invalidateDetail(templateId);
+        if (wasPublished(version)) {
+            if (!existingRoles.equals(new HashSet<String>(roles))) {
+                throw conflict("TEMPLATE_PUBLISHED_MEDIA_IMMUTABLE",
+                        "Published template media cannot be removed during synchronization");
+            }
+        } else {
+            repository.retainSynchronizedMedia(templateId, versionId, roles);
+            invalidateDetail(templateId);
+        }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("status", "synchronized");
         result.put("versionId", versionId);
@@ -530,8 +539,7 @@ public class MusicMvTemplateCatalogService {
                     "Slot reconciliation source does not match the immutable template version");
         }
         requireUniqueSlots(request.getSlots());
-        boolean published = "published".equals(RowUtils.str(version, "status"))
-                || version.get("published_at") != null;
+        boolean published = wasPublished(version);
         if (published) {
             // 已验收回退版本只接受内容相同的重放，保留原有槽位标识和素材绑定。
             if (!samePublishedSlots(repository.slots(versionId), request.getSlots())) {
@@ -574,6 +582,10 @@ public class MusicMvTemplateCatalogService {
             }
         }
         return byKey.isEmpty();
+    }
+
+    private boolean wasPublished(Map<String, Object> version) {
+        return "published".equals(RowUtils.str(version, "status")) || version.get("published_at") != null;
     }
 
     public Map<String, Object> synchronizeBrowserScene(
@@ -1543,7 +1555,7 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> createMediaSession(String templateId, String versionId,
                                                    boolean video,
                                                    TemplateMediaUploadSessionRequest request) {
-        requireVersion(templateId, versionId);
+        Map<String, Object> version = requireVersion(templateId, versionId);
         String expectedRole = request.getRole();
         boolean slotDefault = !video && expectedRole != null
                 && expectedRole.startsWith("slot_default:");
@@ -1585,6 +1597,32 @@ public class MusicMvTemplateCatalogService {
         }
         Map<String, Object> existing = repository.mediaByRole(versionId, expectedRole);
         boolean forceReplace = Boolean.TRUE.equals(request.getForceReplace());
+        if (wasPublished(version)) {
+            // 不为已发布回退版本创建替换上传，也不改写原有验收元数据。
+            if (forceReplace || existing == null || !"ready".equals(RowUtils.str(existing, "status"))
+                    || !request.getSourceSha256().equalsIgnoreCase(RowUtils.str(existing, "source_sha256"))
+                    || !Objects.equals(request.getSourceSizeBytes(), RowUtils.lng(existing, "source_size_bytes"))
+                    || (request.getWidth() != null && !Objects.equals(request.getWidth(), RowUtils.integer(existing, "width")))
+                    || (request.getHeight() != null && !Objects.equals(request.getHeight(), RowUtils.integer(existing, "height")))
+                    || (request.getDurationSeconds() != null && !Objects.equals(request.getDurationSeconds(), RowUtils.dbl(existing, "duration_seconds")))) {
+                throw conflict("TEMPLATE_PUBLISHED_MEDIA_IMMUTABLE",
+                        "Published template media is immutable; synchronize changed content to a new version");
+            }
+            Map<String, Object> details = parseObject(RowUtils.str(existing, "provider_details_json"));
+            Object[][] metadata = {{"sourceType", request.getSourceType()}, {"displayLabel", request.getDisplayLabel()},
+                    {"officialTemplateId", request.getOfficialTemplateId()}, {"officialPageUrl", request.getOfficialPageUrl()},
+                    {"loopDurationSeconds", request.getLoopDurationSeconds()}, {"visualQuality", request.getVisualQuality()}};
+            for (Object[] field : metadata) {
+                if (field[1] != null && !objectMapper.valueToTree(field[1]).equals(
+                        objectMapper.valueToTree(details.get(field[0])))) {
+                    throw conflict("TEMPLATE_PUBLISHED_MEDIA_IMMUTABLE",
+                            "Published template media evidence cannot be changed");
+                }
+            }
+            Map<String, Object> ready = mediaSessionView(RowUtils.str(existing, "media_id"), null, "ready", details);
+            ready.put("idempotentReplay", Boolean.TRUE);
+            return ready;
+        }
         if (!forceReplace && video && existing != null
                 && request.getSourceSha256().equalsIgnoreCase(RowUtils.str(existing, "source_sha256"))
                 && !"ready".equals(RowUtils.str(existing, "status"))) {
