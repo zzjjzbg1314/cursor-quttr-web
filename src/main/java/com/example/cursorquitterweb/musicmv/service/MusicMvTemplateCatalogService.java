@@ -202,7 +202,28 @@ public class MusicMvTemplateCatalogService {
         return loadDetail(templateId, false, versionId);
     }
 
+    public Map<String, Object> candidateVersionDetail(String templateId, String versionId) {
+        Map<String, Object> version = requireVersion(templateId, versionId);
+        Map<String, Object> scene = repository.browserScene(versionId);
+        Map<String, Object> parity = repository.browserParity(versionId);
+        Map<String, Object> reference = repository.mediaByRole(versionId, "browser_parity_reference");
+        if (!"validated".equals(RowUtils.str(version, "status")) || scene == null || parity == null
+                || !"ready".equals(RowUtils.str(scene, "status")) || !ready(reference)
+                || !"passed".equals(RowUtils.str(parity, "status"))
+                || RowUtils.str(scene, "manifest_sha256") == null
+                || !RowUtils.str(scene, "manifest_sha256").equals(RowUtils.str(parity, "scene_manifest_sha256"))
+                || RowUtils.str(reference, "source_sha256") == null
+                || !RowUtils.str(reference, "source_sha256").equals(RowUtils.str(parity, "reference_sha256"))) {
+            throw conflict("TEMPLATE_CANDIDATE_NOT_READY", "Candidate requires matching accepted scene and reference");
+        }
+        return loadDetail(templateId, false, versionId, true);
+    }
+
     private Map<String, Object> loadDetail(String templateId, boolean admin, String requestedVersionId) {
+        return loadDetail(templateId, admin, requestedVersionId, false);
+    }
+
+    private Map<String, Object> loadDetail(String templateId, boolean admin, String requestedVersionId, boolean candidate) {
         TemplateDetailRows rows = repository.templateDetail(templateId);
         Map<String, Object> template = rows.getTemplate();
         if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
@@ -235,7 +256,7 @@ public class MusicMvTemplateCatalogService {
             if (requestedVersionId != null) {
                 // 历史版本必须仍为已发布状态，不能借版本参数读取草稿或撤回版本。
                 if (!requestedVersionId.equals(RowUtils.str(row, "version_id"))
-                        || !"published".equals(RowUtils.str(row, "status"))) continue;
+                        || !(candidate ? "validated" : "published").equals(RowUtils.str(row, "status"))) continue;
             } else if (!admin && !String.valueOf(currentVersionId).equals(RowUtils.str(row, "version_id"))) continue;
             Map<String, Object> version = versionView(row, admin);
             String versionId = RowUtils.str(row, "version_id");

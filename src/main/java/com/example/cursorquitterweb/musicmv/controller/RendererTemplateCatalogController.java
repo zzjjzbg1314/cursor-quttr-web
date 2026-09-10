@@ -95,6 +95,14 @@ public class RendererTemplateCatalogController {
         return service.synchronizeBrowserScene(templateId, versionId, request);
     }
 
+    @GetMapping("/{templateId}/versions/{versionId}/candidate-preview")
+    public Map<String, Object> candidatePreview(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable("templateId") String templateId, @PathVariable("versionId") String versionId) {
+        authentication.requireAuthorized(token);
+        return service.candidateVersionDetail(templateId, versionId);
+    }
+
     @GetMapping("/{templateId}/versions/{versionId}/browser-parity")
     public Map<String, Object> browserParity(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,

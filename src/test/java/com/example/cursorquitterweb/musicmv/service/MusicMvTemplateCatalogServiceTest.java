@@ -570,6 +570,35 @@ class MusicMvTemplateCatalogServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void candidatePreviewRequiresMatchingEvidenceAndLeavesPublishedPointerUnchanged() {
+        Map<String, Object> template = row("template_id", "tpl_1");
+        template.put("status", "published"); template.put("visibility", "public"); template.put("current_version_id", "old");
+        Map<String, Object> version = row("version_id", "candidate"); version.put("status", "validated");
+        Map<String, Object> scene = row("version_id", "candidate"); scene.put("status", "ready");
+        scene.put("manifest_sha256", hash('a')); scene.put("scene_json", "{\"canvas\":{\"width\":1080,\"height\":1920,\"fps\":30},\"slots\":[],\"resources\":[]}");
+        Map<String, Object> parity = row("status", "passed"); parity.put("scene_manifest_sha256", hash('a')); parity.put("reference_sha256", hash('b'));
+        Map<String, Object> reference = row("status", "ready"); reference.put("source_sha256", hash('b'));
+        when(repository.template("tpl_1")).thenReturn(template);
+        when(repository.version("tpl_1", "candidate")).thenReturn(version);
+        when(repository.browserScene("candidate")).thenReturn(scene);
+        when(repository.browserParity("candidate")).thenReturn(parity);
+        when(repository.mediaByRole("candidate", "browser_parity_reference")).thenReturn(reference);
+        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
+                Collections.emptyList(), Collections.singletonList(version), Collections.emptyList(), Collections.emptyList(), Collections.singletonList(scene)));
+        Map<String, Object> detail = service.candidateVersionDetail("tpl_1", "candidate");
+        assertEquals("old", detail.get("currentVersionId"));
+        Map<String, Object> render = (Map<String, Object>) ((List<Map<String, Object>>) detail.get("versions")).get(0).get("browserRender");
+        assertTrue(render.containsKey("slotBindings"));
+        assertThrows(ApiException.class, () -> service.publishedVersionDetail("tpl_1", "candidate"));
+        parity.put("reference_sha256", hash('c'));
+        assertEquals("TEMPLATE_CANDIDATE_NOT_READY", assertThrows(ApiException.class,
+                () -> service.candidateVersionDetail("tpl_1", "candidate")).getCode());
+        parity.put("reference_sha256", hash('b')); version.put("status", "draft");
+        assertThrows(ApiException.class, () -> service.candidateVersionDetail("tpl_1", "candidate"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void historicalDetailSelectsOnlyPublishedVersionAndPreservesCatalogPointer() {
         Map<String, Object> template = row("template_id", "tpl_1");
         template.put("status", "published"); template.put("visibility", "public");
