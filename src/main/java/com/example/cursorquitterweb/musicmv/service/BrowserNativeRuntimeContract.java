@@ -42,7 +42,7 @@ final class BrowserNativeRuntimeContract {
             if(!(value instanceof Map))throw invalid();Map<String,Object> item=(Map<String,Object>)value;
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
-                    || !Arrays.asList("filter","video_effect","adjustment","animation","transition").contains(item.get("kind"))
+                    || !Arrays.asList("filter","video_effect","adjustment","animation","transition","blend").contains(item.get("kind"))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
             Map<String,Object> binding=new LinkedHashMap<>();binding.put("resourceId",id);binding.put("path",id+"/");binding.put("kind",item.get("kind"));
             if(item.containsKey("models")) {

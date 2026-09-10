@@ -13,6 +13,15 @@ class BrowserNativeRuntimeContractTest {
         value.put("schemaVersion","browser-native-photo-runtime-v1");value.put("layerMode",0);value.put("assets",assets);
         value.put("files",Collections.singletonList("effect/config.json"));value.put("bindings",Collections.singletonList(binding));return value;
     }
+    @Test @SuppressWarnings("unchecked") void blendRequiresDeliveredResourceAndSafePath() {
+        Map<String,Object> value=descriptor();
+        Map<String,Object> binding=((List<Map<String,Object>>)value.get("bindings")).get(0);
+        binding.put("kind","blend");
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+        binding.put("kind","unknown_blend");
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     @Test void acceptsDeliveredResourcesAndPreservesInput(){
         Map<String,Object> value=descriptor();assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
     }
