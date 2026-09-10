@@ -19,6 +19,8 @@ final class BrowserNativeRuntimeContract {
         if(ownsVideo&&!"external_music_only".equals(source.get("videoAudioPolicy")))throw invalid();
         boolean ownsTemplates="original_attachments_v1".equals(source.get("textTemplatePolicy"));
         if(source.containsKey("textTemplatePolicy")&&(!ownsTemplates||!ownsVideo))throw invalid();
+        boolean ownsGlobals="original_tracks_v1".equals(source.get("globalEffectPolicy"));
+        if(source.containsKey("globalEffectPolicy")&&(!ownsGlobals||!ownsVideo))throw invalid();
         Map<String,Object> assets=(Map<String,Object>)source.get("assets");
         Map<String,Object> safeAssets=new LinkedHashMap<>(); String root=null;
         String[][] roles={{"loaderUrl","loader.js"},{"mainWasmUrl","main.wasm"},{"mediaWasmUrl","media.wasm"},
@@ -75,6 +77,7 @@ final class BrowserNativeRuntimeContract {
         }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion",source.get("schemaVersion"));
         if(ownsVideo)result.put("videoAudioPolicy","external_music_only");
+        if(ownsGlobals)result.put("globalEffectPolicy","original_tracks_v1");
         if(ownsTemplates)result.put("textTemplatePolicy","original_attachments_v1");
         result.put("layerMode",((Number)source.get("layerMode")).intValue());result.put("assets",safeAssets);
         result.put("files",files);result.put("bindings",bindings);return result;

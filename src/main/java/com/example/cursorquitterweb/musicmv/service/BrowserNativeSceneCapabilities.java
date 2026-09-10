@@ -19,6 +19,7 @@ final class BrowserNativeSceneCapabilities {
                 if (!delivered.add(id)) return false;
             }
             Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(map(delivery.get("nativeEngine")), delivered);
+            Set<String> globalEffects=BrowserNativeGlobalEffectContract.validate(scene,descriptor);
             Set<String> bindings = new HashSet<>();
             for (Object value : list(descriptor.get("bindings"))) bindings.add(string(map(value).get("resourceId")));
             String schema = string(descriptor.get("schemaVersion"));
@@ -52,6 +53,11 @@ final class BrowserNativeSceneCapabilities {
                     Map<?, ?> effect = map(raw);
                     if (effectId.equals(effect.get("effectId")) && resourceId.equals(effect.get("resourceId"))
                             && "unsupported".equals(effect.get("fidelity"))) matches++;
+                }
+                if(!globalEffects.isEmpty())for(Object raw:list(scene.get("postEffects"))) {
+                    Map<?,?> effect=map(raw);
+                    if(globalEffects.contains(effectId)&&effectId.equals(effect.get("effectId"))
+                            &&resourceId.equals(effect.get("resourceId")))matches++;
                 }
                 if (matches != 1) return false;
                 count++;

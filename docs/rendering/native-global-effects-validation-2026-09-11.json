@@ -1,0 +1,63 @@
+{
+  "render": {
+    "status": "completed",
+    "jobId": "0827-global-native-20260911-attempt-1",
+    "totalSeconds": 32.23471000003815,
+    "validation": {
+      "semanticIntegrity": "exact",
+      "videoEncodeCount": 1,
+      "materializedIntermediateVideoCount": 0,
+      "completedFrameCount": 1003,
+      "elapsedSeconds": 25.082519999980928
+    },
+    "rendererFingerprint": "d0d1ba3b022f9918a792cac1e68a2393f5ff77693e448c3980baf29085f49712",
+    "sizeBytes": 42284619,
+    "sha256": "a67b307e4f76bde079efb71be2bb66ef83be59dd21801a8b84cf9f12e3b92781",
+    "ffprobe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920,
+          "duration": "33.433333",
+          "nb_frames": "1003"
+        },
+        {
+          "codec_type": "audio",
+          "duration": "33.493333",
+          "nb_frames": "1570"
+        }
+      ],
+      "format": {
+        "duration": "33.493333",
+        "size": "42284619"
+      }
+    },
+    "cleanup": {
+      "opfsFiles": 0,
+      "writerOrRawResidues": []
+    }
+  },
+  "ssim": {
+    "status": "passed",
+    "averageSsim": 0.945103,
+    "minSsim": 0.82862,
+    "averageMae": 7.9929,
+    "maxMae": 15.1722,
+    "criticalFrameCount": 3,
+    "criticalAverageSsim": 0.961313,
+    "criticalMinSsim": 0.910789,
+    "criticalAverageMae": 3.3402
+  },
+  "scope": "Local production renderer and dependency planner; published website pointer unchanged",
+  "tests": {
+    "frontend": 22,
+    "researchSource": 3,
+    "researchService": 50,
+    "dependencyCompiler": 13,
+    "backendNativeContracts": 15,
+    "backendRuntimeDelivery": 7
+  }
+}
