@@ -227,7 +227,7 @@ public class MusicMvTemplateCatalogService {
         TemplateDetailRows rows = repository.templateDetail(templateId);
         Map<String, Object> template = rows.getTemplate();
         if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
-        if (!admin && (!"published".equals(RowUtils.str(template, "status"))
+        if (!admin && !candidate && (!"published".equals(RowUtils.str(template, "status"))
                 || !"public".equals(RowUtils.str(template, "visibility")))) {
             throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         }
@@ -2676,12 +2676,22 @@ public class MusicMvTemplateCatalogService {
     }
 
     private void requireSanitizedBrowserScene(Object value) {
+        requireSanitizedBrowserScene(value, "");
+    }
+
+    private void requireSanitizedBrowserScene(Object value, String location) {
         if (value instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
                 String key = String.valueOf(entry.getKey()).toLowerCase();
                 if (key.equals("path") || key.endsWith("path") || key.contains("localkey")
                         || key.contains("sourcedraft") || key.equals("materials")) {
-                    if (isSafeBrowserPackagePath(key, entry.getValue())) {
+                    // 原生绑定只允许资源标识对应的包内根目录；资源存在性仍由原生契约验证。
+                    Object resourceId = ((Map<?, ?>) value).get("resourceId");
+                    boolean nativeBindingPath = "/runtimeDelivery/nativeEngine/bindings/*".equals(location)
+                            && "path".equals(key) && resourceId instanceof String
+                            && ((String) resourceId).matches("[A-Za-z0-9_-]{1,160}")
+                            && (resourceId + "/").equals(entry.getValue());
+                    if (nativeBindingPath || isSafeBrowserPackagePath(key, entry.getValue())) {
                         continue;
                     }
                     throw badRequest("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA",
@@ -2694,10 +2704,11 @@ public class MusicMvTemplateCatalogService {
                     }
                     continue;
                 }
-                requireSanitizedBrowserScene(entry.getValue());
+                requireSanitizedBrowserScene(entry.getValue(), location + "/"
+                        + String.valueOf(entry.getKey()).replace("~", "~0").replace("/", "~1"));
             }
         } else if (value instanceof List) {
-            for (Object item : (List<?>) value) requireSanitizedBrowserScene(item);
+            for (Object item : (List<?>) value) requireSanitizedBrowserScene(item, location + "/*");
         } else if (value instanceof String) {
             String text = ((String) value).toLowerCase();
             if (text.startsWith("file:") || text.contains("/users/")

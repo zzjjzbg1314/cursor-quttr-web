@@ -67,6 +67,39 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void nativeBindingRelativePathsAreAllowedOnlyInRuntimeDelivery() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> scene = mapper.readValue(getClass().getResourceAsStream(
+                "/musicmv/browser-color-correct-scene.json"), Map.class);
+        Map<String, Object> binding = row("resourceId", "effect_resource");
+        binding.put("path", "effect_resource/");
+        Map<String, Object> delivery = row("nativeEngine", row("bindings", Collections.singletonList(binding)));
+        scene.put("runtimeDelivery", delivery);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setScene(scene); request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("ready", service.synchronizeBrowserScene("tpl_1", "tplver_1", request).get("status"));
+        verify(runtimePackages).downloadForScene("tpl_1", "tplver_1", scene);
+        for (String path : Arrays.asList("/Users/private/file", "../effect_resource/", "other_resource/", "file:secret", "effect_resource/../")) {
+            binding.put("path", path);
+            request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+            assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", assertThrows(ApiException.class,
+                    () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+        }
+        binding.put("path", "effect_resource/");
+        scene.remove("runtimeDelivery");
+        scene.put("runtimeDelivery/nativeEngine", row("bindings", Collections.singletonList(binding)));
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+        scene.remove("runtimeDelivery/nativeEngine"); scene.put("binding", binding);
+        assertEquals("TEMPLATE_BROWSER_SCENE_PRIVATE_DATA", assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+    }
+
+    @Test
     void publishedSceneAllowsOnlyIdenticalReplayWithoutWriting() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("version_id", "tplver_1");
@@ -620,6 +653,9 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("old", detail.get("currentVersionId"));
         Map<String, Object> render = (Map<String, Object>) ((List<Map<String, Object>>) detail.get("versions")).get(0).get("browserRender");
         assertTrue(render.containsKey("slotBindings"));
+        template.put("status", "draft"); template.put("visibility", "private");
+        assertFalse(((List<?>) service.candidateVersionDetail("tpl_1", "candidate").get("versions")).isEmpty());
+        assertThrows(ApiException.class, () -> service.detail("tpl_1", false));
         assertThrows(ApiException.class, () -> service.publishedVersionDetail("tpl_1", "candidate"));
         parity.put("reference_sha256", hash('c'));
         assertEquals("TEMPLATE_CANDIDATE_NOT_READY", assertThrows(ApiException.class,
