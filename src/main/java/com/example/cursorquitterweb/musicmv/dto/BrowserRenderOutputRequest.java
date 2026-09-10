@@ -1,5 +1,6 @@
 package com.example.cursorquitterweb.musicmv.dto;
 
+import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -15,6 +16,13 @@ public class BrowserRenderOutputRequest {
     @NotNull @Positive private Long sizeBytes;
     @NotBlank @Size(max = 100) private String contentType;
     @NotNull @DecimalMin("0.1") private Double durationSeconds;
+
+    @Pattern(regexp="^[0-9a-f]{64}$") private String rendererFingerprint;
+    @Valid private BrowserRenderTelemetry renderValidation;
+    public String getRendererFingerprint() { return rendererFingerprint; }
+    public void setRendererFingerprint(String value) { rendererFingerprint=value; }
+    public BrowserRenderTelemetry getRenderValidation() { return renderValidation; }
+    public void setRenderValidation(BrowserRenderTelemetry value) { renderValidation=value; }
 
     public String getAttemptId() { return attemptId; }
     public void setAttemptId(String value) { attemptId = value; }

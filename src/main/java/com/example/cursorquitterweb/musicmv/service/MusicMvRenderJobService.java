@@ -341,6 +341,13 @@ public class MusicMvRenderJobService {
         evidence.put("verificationStatus", "missing_runtime_evidence");
         evidence.put("sceneManifestSha256", browserSceneHash(row));
         evidence.put("outputSha256", stored.getSha256());
+        if (request.getRenderValidation() != null) {
+            evidence.put("verificationStatus", "client_reported_runtime_evidence");
+            evidence.put("renderValidation", request.getRenderValidation());
+            evidence.put("rendererFingerprint", request.getRendererFingerprint());
+            resultPayload.put("renderValidation", request.getRenderValidation());
+            resultPayload.put("rendererFingerprint", request.getRendererFingerprint());
+        }
         Map<String, Object> completed = repository.completeBrowser(jobId, ownerId,
                 request.getAttemptId(), request.getLeaseToken(),
                 stored.getStorageKey(), stored.getContentType(), stored.getSizeBytes(),
