@@ -1,6 +1,8 @@
 package com.example.cursorquitterweb.musicmv.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
@@ -60,6 +62,11 @@ public class MusicMvTemplateCatalogService {
     private final ObjectMapper objectMapper;
     private final Cache<String, Map<String, Object>> publicDetailCache = Caffeine.newBuilder()
             .maximumSize(500)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .build();
+
+    private final Cache<List<String>, Map<String, Object>> publicVersionDetailCache = Caffeine.newBuilder()
+            .maximumSize(32)
             .expireAfterWrite(Duration.ofMinutes(10))
             .build();
 
@@ -199,7 +206,40 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> publishedVersionDetail(String templateId, String versionId) {
         if (versionId == null || versionId.trim().isEmpty())
             throw notFound("TEMPLATE_VERSION_NOT_FOUND", "Published template version was not found");
-        return loadDetail(templateId, false, versionId);
+        Map<String, Object> current = publicDetailCache.getIfPresent(templateId);
+        if (current != null && versionId.equals(current.get("currentVersionId"))) {
+            Object versions = current.get("versions");
+            if (versions instanceof List && ((List<?>) versions).size() == 1) {
+                Object item = ((List<?>) versions).get(0);
+                if (item instanceof Map && versionId.equals(((Map<?, ?>) item).get("versionId"))
+                        && "published".equals(((Map<?, ?>) item).get("status"))) {
+                    // 直接复用原缓存寿命，不能重新缓存而延长资源签名的有效时间。
+                    if (cachedPublishedVersionIsCurrent(templateId, versionId, current)) return current;
+                }
+            }
+        }
+        List<String> key = Arrays.asList(templateId, versionId);
+        Map<String, Object> cached = publicVersionDetailCache.getIfPresent(key);
+        if (cached != null && cachedPublishedVersionIsCurrent(templateId, versionId, cached)) return cached;
+        return publicVersionDetailCache.get(key, identity -> loadDetail(identity.get(0), false, identity.get(1)));
+    }
+
+    private boolean cachedPublishedVersionIsCurrent(String templateId, String versionId, Map<String, Object> cached) {
+        // 缓存命中仍读取轻量发布状态，撤回或转私有不能等待大场景缓存过期。
+        Map<String, Object> state = repository.publicVersionStatus(templateId, versionId);
+        if (state == null || !"published".equals(state.get("template_status")) || !"public".equals(state.get("visibility"))) {
+            invalidateDetail(templateId);
+            throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
+        }
+        if (!"published".equals(state.get("version_status"))) {
+            invalidateDetail(templateId);
+            throw notFound("TEMPLATE_VERSION_NOT_FOUND", "Published template version was not found");
+        }
+        if (!Objects.equals(state.get("current_version_id"), cached.get("currentVersionId"))) {
+            invalidateDetail(templateId);
+            return false;
+        }
+        return true;
     }
 
     public Map<String, Object> candidateVersionDetail(String templateId, String versionId) {
@@ -313,7 +353,10 @@ public class MusicMvTemplateCatalogService {
     }
 
     public void invalidateDetail(String templateId) {
-        if (templateId != null) publicDetailCache.invalidate(templateId);
+        if (templateId != null) {
+            publicDetailCache.invalidate(templateId);
+            publicVersionDetailCache.asMap().keySet().removeIf(key -> templateId.equals(key.get(0)));
+        }
     }
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
@@ -2153,6 +2196,7 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> migrateCurrentTemplatesToBrowserRendering() {
         int updated = repository.migrateCurrentTemplatesToBrowserRendering();
         publicDetailCache.invalidateAll();
+        publicVersionDetailCache.invalidateAll();
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("updatedVersionCount", Integer.valueOf(updated));
         result.put("validationStatus", "browser_ready");

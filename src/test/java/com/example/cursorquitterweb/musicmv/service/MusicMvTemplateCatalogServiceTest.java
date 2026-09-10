@@ -66,6 +66,14 @@ class MusicMvTemplateCatalogServiceTest {
         }
     }
 
+    private Map<String, Object> publicVersionState(Map<String, Object> template, Map<String, Object> version) {
+        Map<String, Object> state = row("template_status", template.get("status"));
+        state.put("visibility", template.get("visibility"));
+        state.put("current_version_id", template.get("current_version_id"));
+        state.put("version_status", version.get("status"));
+        return state;
+    }
+
     @Test
     void nativeBindingRelativePathsAreAllowedOnlyInRuntimeDelivery() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
@@ -615,6 +623,7 @@ class MusicMvTemplateCatalogServiceTest {
         template.put("current_version_id", "tplver_1");
         template.put("revision", Integer.valueOf(3));
         Map<String, Object> version = row("version_id", "tplver_1");
+        version.put("status", "published");
         TemplateDetailRows rows = new TemplateDetailRows(template,
                 Collections.<Map<String, Object>>emptyList(), null,
                 Collections.<Map<String, Object>>emptyList(),
@@ -624,12 +633,42 @@ class MusicMvTemplateCatalogServiceTest {
                 Collections.<Map<String, Object>>emptyList());
         when(repository.templateDetail("tpl_1")).thenReturn(rows);
 
+        when(repository.publicVersionStatus("tpl_1", "tplver_1")).thenAnswer(invocation -> publicVersionState(template, version));
         Map<String, Object> first = service.detail("tpl_1", false);
         Map<String, Object> second = service.detail("tpl_1", false);
 
         assertEquals("tplver_1", first.get("currentVersionId"));
         assertTrue(first == second);
+        assertTrue(first == service.publishedVersionDetail("tpl_1", "tplver_1"));
         verify(repository).templateDetail("tpl_1");
+        ((com.github.benmanes.caffeine.cache.Cache<?, ?>) org.springframework.test.util.ReflectionTestUtils
+                .getField(service, "publicDetailCache")).invalidateAll();
+        service.publishedVersionDetail("tpl_1", "tplver_1");
+        verify(repository, org.mockito.Mockito.times(2)).templateDetail("tpl_1");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void cachesPinnedVersionsWithoutChangingTheirIdentityAndInvalidatesWithdrawals() {
+        Map<String, Object> template = row("template_id", "tpl_1");
+        template.put("status", "published"); template.put("visibility", "public");
+        template.put("current_version_id", "new");
+        Map<String, Object> old = row("version_id", "old"); old.put("status", "published");
+        Map<String, Object> current = row("version_id", "new"); current.put("status", "published");
+        when(repository.templateDetail("tpl_1")).thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
+                Collections.emptyList(), Arrays.asList(current, old), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        when(repository.publicVersionStatus("tpl_1", "old")).thenAnswer(invocation -> publicVersionState(template, old));
+        Map<String, Object> historical = service.publishedVersionDetail("tpl_1", "old");
+        Map<String, Object> latest = service.publishedVersionDetail("tpl_1", "new");
+        assertEquals("old", ((Map<?, ?>)((List<?>)historical.get("versions")).get(0)).get("versionId"));
+        assertEquals("new", ((Map<?, ?>)((List<?>)latest.get("versions")).get(0)).get("versionId"));
+        assertTrue(historical == service.publishedVersionDetail("tpl_1", "old"));
+        verify(repository, org.mockito.Mockito.times(2)).templateDetail("tpl_1");
+        old.put("status", "draft"); service.invalidateDetail("tpl_1");
+        assertThrows(ApiException.class, () -> service.publishedVersionDetail("tpl_1", "old"));
+        old.put("status", "published");
+        service.publishedVersionDetail("tpl_1", "old");
+        verify(repository, org.mockito.Mockito.times(4)).templateDetail("tpl_1");
     }
 
     @Test
@@ -677,6 +716,7 @@ class MusicMvTemplateCatalogServiceTest {
                 Collections.emptyList(), Arrays.asList(latest, old, draft),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         when(repository.templateDetail("tpl_1")).thenReturn(rows);
+        when(repository.publicVersionStatus("tpl_1", "accepted")).thenAnswer(invocation -> publicVersionState(template, old));
         Map<String, Object> detail = service.publishedVersionDetail("tpl_1", "accepted");
         assertEquals("new", detail.get("currentVersionId"));
         List<Map<String, Object>> versions = (List<Map<String, Object>>) detail.get("versions");

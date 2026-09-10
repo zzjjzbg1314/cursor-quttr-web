@@ -19,6 +19,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
     @Test
+    void readsOnlyFreshPublicVersionStateForCachedDetails() {
+        CapturingD1 client = new CapturingD1();
+        new MusicMvTemplateCatalogRepository(client).publicVersionStatus("template", "version");
+        assertEquals(Arrays.asList("version", "template"), client.params);
+        assertTrue(client.sql.contains("t.deleted_at IS NULL"));
+        assertTrue(client.sql.contains("v.template_id=t.template_id AND v.version_id=?"));
+        assertTrue(client.sql.contains("template_status") && client.sql.contains("version_status"));
+        assertFalse(client.sql.contains("scene_json"));
+    }
+
+    @Test
     void batchesExactResourceQueriesAndPreservesMissingRows() {
         int[] calls = {0};
         D1DatabaseClient client = new D1DatabaseClient(new ObjectMapper()) {

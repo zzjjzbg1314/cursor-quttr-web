@@ -426,6 +426,12 @@ public class MusicMvTemplateCatalogRepository {
                 + "WHERE v.template_id=? ORDER BY v.version_number DESC", templateId).getRows();
     }
 
+    public Map<String, Object> publicVersionStatus(String templateId, String versionId) {
+        return d1.query("SELECT t.status AS template_status,t.visibility,t.current_version_id,v.status AS version_status "
+                        + "FROM templates t LEFT JOIN template_versions v ON v.template_id=t.template_id AND v.version_id=? "
+                        + "WHERE t.template_id=? AND t.deleted_at IS NULL LIMIT 1", versionId, templateId).firstRow();
+    }
+
     public Map<String, Object> version(String templateId, String versionId) {
         return d1.query("SELECT v.*,v.source_availability AS effective_source_availability "
                         + "FROM template_versions v "
