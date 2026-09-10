@@ -132,7 +132,8 @@ class TemplateRuntimePackageServiceTest {
         Map<String, Object> asset = new LinkedHashMap<>();
         asset.put("status", "ready"); asset.put("source_size_bytes", 1234L);
         asset.put("object_key", "shared.zip"); asset.put("content_type", "application/zip");
-        when(repository.templateResourceAsset("sha_" + hash(), hash())).thenReturn(asset);
+        when(repository.templateResourceAssets(Collections.singletonMap("sha_" + hash(), hash())))
+                .thenReturn(Collections.singletonMap("sha_" + hash(), asset));
         when(r2.presignedGetUrl("shared.zip", Duration.ofMinutes(15))).thenReturn("https://r2.example/shared.zip");
         Map<String, Object> dependency = new LinkedHashMap<>();
         dependency.put("resourceId", "arbitrary"); dependency.put("assetId", "sha_" + hash());
@@ -156,6 +157,14 @@ class TemplateRuntimePackageServiceTest {
         binding.put("kind","animation");
         binding.remove("models");
         assertEquals(nativeEngine,service.downloadForScene("tpl_1","tplver_1",scene).get("nativeEngine"));
+        delivery.remove("nativeEngine");
+        Map<String, Object> second = new LinkedHashMap<>(dependency); second.put("resourceId", "another");
+        delivery.put("resources", java.util.Arrays.asList(dependency, second)); delivery.put("totalSizeBytes", 2468L);
+        java.util.List<?> shared = (java.util.List<?>) service.downloadForScene("tpl_1", "tplver_1", scene).get("resources");
+        assertEquals("arbitrary", ((Map<?, ?>) shared.get(0)).get("resourceId"));
+        assertEquals("another", ((Map<?, ?>) shared.get(1)).get("resourceId"));
+        org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).templateResourceAsset(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
         dependency.put("sourceSizeBytes", 1235L);
         assertThrows(ApiException.class, () -> service.downloadForScene("tpl_1", "tplver_1", scene));
     }

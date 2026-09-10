@@ -123,6 +123,8 @@ public class TemplateRuntimePackageService {
         java.util.Set<String> ids = new java.util.HashSet<>();
         long total = 0;
         TemplateResourceAssetService assets = new TemplateResourceAssetService(repository, r2);
+        Map<String, String> requestedAssets = new LinkedHashMap<>();
+        java.util.List<Map<String, Object>> dependencies = new java.util.ArrayList<>();
         for (Object item : (java.util.List<?>) manifest.get("resources")) {
             if (!(item instanceof Map)) throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖条目无效");
             Map<String, Object> dependency = (Map<String, Object>) item;
@@ -131,7 +133,14 @@ public class TemplateRuntimePackageService {
             if (!id.matches("[A-Za-z0-9_-]{1,160}") || !ids.add(id)
                     || !sha.matches("[a-f0-9]{64}") || !("sha_" + sha).equals(dependency.get("assetId")))
                 throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖标识无效或重复");
-            Map<String, Object> download = assets.downloadSession("sha_" + sha, sha);
+            requestedAssets.put("sha_" + sha, sha);
+            dependencies.add(dependency);
+        }
+        Map<String, Map<String, Object>> assetDownloads = assets.downloadSessions(requestedAssets);
+        for (Map<String, Object> dependency : dependencies) {
+            String id = String.valueOf(dependency.get("resourceId"));
+            String sha = String.valueOf(dependency.get("sourceSha256"));
+            Map<String, Object> download = new LinkedHashMap<>(assetDownloads.get("sha_" + sha));
             if (number(download.get("sourceSizeBytes")) != number(dependency.get("sourceSizeBytes")))
                 throw error(HttpStatus.CONFLICT, "RUNTIME_DELIVERY_INVALID", "运行依赖大小与已发布资产不一致");
             download.put("resourceId", id);

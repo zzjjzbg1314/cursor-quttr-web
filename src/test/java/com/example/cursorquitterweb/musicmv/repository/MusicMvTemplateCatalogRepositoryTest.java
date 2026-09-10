@@ -19,6 +19,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
     @Test
+    void batchesExactResourceQueriesAndPreservesMissingRows() {
+        int[] calls = {0};
+        D1DatabaseClient client = new D1DatabaseClient(new ObjectMapper()) {
+            @Override public List<D1QueryResult> batch(List<D1Statement> statements) {
+                calls[0]++;
+                assertTrue(statements.size() <= 50);
+                List<D1QueryResult> results = new ArrayList<>();
+                for (D1Statement statement : statements) {
+                    assertTrue(statement.getSql().contains("resource_id=? AND source_sha256=?"));
+                    assertEquals(2, statement.getParams().size());
+                    String id = String.valueOf(statement.getParams().get(0));
+                    assertEquals("hash_" + id, statement.getParams().get(1));
+                    results.add(new D1QueryResult(id.equals("r_50") ? java.util.Collections.emptyList()
+                            : java.util.Collections.singletonList(java.util.Collections.singletonMap("resource_id", id)), null));
+                }
+                return results;
+            }
+        };
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        Map<String, String> requested = new java.util.LinkedHashMap<>();
+        assertTrue(repository.templateResourceAssets(requested).isEmpty()); assertEquals(0, calls[0]);
+        for (int i = 0; i < 51; i++) requested.put("r_" + i, "hash_r_" + i);
+        Map<String, Map<String, Object>> result = repository.templateResourceAssets(requested);
+        assertEquals(2, calls[0]); assertEquals(51, result.size());
+        assertEquals("r_49", result.get("r_49").get("resource_id"));
+        org.junit.jupiter.api.Assertions.assertNull(result.get("r_50"));
+    }
+
+    @Test
     void cleanupIsDelayedBoundedAndFailsClosedWithoutReferenceEvidence() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

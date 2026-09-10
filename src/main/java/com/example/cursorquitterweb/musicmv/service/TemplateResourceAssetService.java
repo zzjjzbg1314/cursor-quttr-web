@@ -111,7 +111,24 @@ public class TemplateResourceAssetService {
         requireStorage();
         String safeResourceId = safeId(resourceId);
         String normalizedSha = normalizedSha256(sha256);
-        Map<String, Object> row = requireAsset(safeResourceId, normalizedSha);
+        return downloadSession(safeResourceId, normalizedSha, requireAsset(safeResourceId, normalizedSha));
+    }
+
+    public Map<String, Map<String, Object>> downloadSessions(Map<String, String> requested) {
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+        if (requested.isEmpty()) return result;
+        requireStorage();
+        Map<String, String> normalized = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : requested.entrySet())
+            normalized.put(safeId(entry.getKey()), normalizedSha256(entry.getValue()));
+        Map<String, Map<String, Object>> rows = repository.templateResourceAssets(normalized);
+        for (Map.Entry<String, String> entry : normalized.entrySet())
+            result.put(entry.getKey(), downloadSession(entry.getKey(), entry.getValue(), rows.get(entry.getKey())));
+        return result;
+    }
+
+    private Map<String, Object> downloadSession(String safeResourceId, String normalizedSha, Map<String, Object> row) {
+        if (row == null) throw error(HttpStatus.NOT_FOUND, "TEMPLATE_RESOURCE_NOT_FOUND", "模板资源不存在");
         if (!"ready".equals(RowUtils.str(row, "status"))) {
             throw error(HttpStatus.CONFLICT, "TEMPLATE_RESOURCE_NOT_READY",
                     "模板资源尚未完成上传校验");

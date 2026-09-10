@@ -582,6 +582,23 @@ public class MusicMvTemplateCatalogRepository {
                 resourceId, sha256.toLowerCase()).firstRow();
     }
 
+    public Map<String, Map<String, Object>> templateResourceAssets(Map<String, String> requested) {
+        Map<String, Map<String, Object>> rows = new java.util.LinkedHashMap<>();
+        List<Map.Entry<String, String>> entries = new ArrayList<>(requested.entrySet());
+        // 按资源与哈希精确查询，分批减少远程往返并限制每次请求大小。
+        for (int start = 0; start < entries.size(); start += 50) {
+            List<Map.Entry<String, String>> batch = entries.subList(start, Math.min(start + 50, entries.size()));
+            List<D1Statement> statements = new ArrayList<>();
+            for (Map.Entry<String, String> entry : batch) statements.add(D1Statement.of(
+                    "SELECT * FROM template_resource_assets WHERE resource_id=? AND source_sha256=? LIMIT 1",
+                    entry.getKey(), entry.getValue()));
+            List<D1QueryResult> results = d1.batch(statements);
+            if (results.size() != batch.size()) throw new IllegalStateException("Resource asset batch result count differs");
+            for (int i = 0; i < batch.size(); i++) rows.put(batch.get(i).getKey(), results.get(i).firstRow());
+        }
+        return rows;
+    }
+
     public void upsertTemplateResourceAsset(
             String resourceId,
             String sha256,

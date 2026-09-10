@@ -35,6 +35,22 @@ class TemplateResourceAssetServiceTest {
     }
 
     @Test
+    void batchDownloadsKeepMissingAndUnverifiedAssetsBlocked() {
+        Map<String, String> requested = Collections.singletonMap(resourceId(), hash());
+        Map<String, Object> asset = new LinkedHashMap<>();
+        asset.put("status", "ready"); asset.put("source_size_bytes", 1234L);
+        asset.put("object_key", objectKey()); asset.put("content_type", "application/zip");
+        when(repository.templateResourceAssets(requested)).thenReturn(Collections.singletonMap(resourceId(), asset));
+        when(r2.presignedGetUrl(objectKey(), Duration.ofMinutes(15))).thenReturn("https://download.example/resource");
+        assertEquals("https://download.example/resource", service.downloadSessions(requested).get(resourceId()).get("downloadUrl"));
+        verify(repository, never()).templateResourceAsset(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+        asset.put("status", "awaiting_upload");
+        assertEquals("TEMPLATE_RESOURCE_NOT_READY", assertThrows(ApiException.class, () -> service.downloadSessions(requested)).getCode());
+        when(repository.templateResourceAssets(requested)).thenReturn(Collections.emptyMap());
+        assertEquals("TEMPLATE_RESOURCE_NOT_FOUND", assertThrows(ApiException.class, () -> service.downloadSessions(requested)).getCode());
+    }
+
+    @Test
     void preservesGifEncodingInContentAddressedUpload() {
         TemplateResourceAssetUploadRequest request = request();request.setFilename("motion.gif");request.setContentType("image/gif");
         String key="music-mv-template-resources/"+resourceId()+"/"+hash()+".gif";
