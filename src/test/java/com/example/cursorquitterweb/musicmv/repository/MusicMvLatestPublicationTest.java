@@ -42,6 +42,40 @@ class MusicMvLatestPublicationTest {
         }
     }
 
+    @Test void cleanupTracksSpecificContentAndExplicitReferences() throws Exception {
+        try (Connection c = database()) {
+            c.createStatement().execute("CREATE TABLE template_media(provider VARCHAR,provider_asset_id VARCHAR,version_id VARCHAR,status VARCHAR)");
+            c.createStatement().execute("CREATE TABLE template_browser_scenes(scene_json VARCHAR)");
+            c.createStatement().execute("CREATE TABLE music_mv_projects(template_id VARCHAR,template_version_id VARCHAR,draft_json VARCHAR)");
+            c.createStatement().execute("CREATE TABLE music_mv_render_jobs(template_id VARCHAR,version_id VARCHAR,request_json VARCHAR,result_json VARCHAR,evidence_json VARCHAR)");
+            c.createStatement().execute("INSERT INTO music_mv_projects VALUES('t','v3','{}')");
+            c.createStatement().execute("INSERT INTO music_mv_render_jobs VALUES('t','v3','{}','{}','{}')");
+            MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(c));
+            assertFalse(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", null));
+            c.createStatement().execute("UPDATE music_mv_projects SET template_version_id='v1'");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("UPDATE music_mv_projects SET template_version_id=NULL");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("UPDATE music_mv_projects SET template_version_id='v3',draft_json='asset-old'");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("UPDATE music_mv_projects SET draft_json='{}'");
+            for (String column : Arrays.asList("request_json", "result_json", "evidence_json")) {
+                c.createStatement().execute("UPDATE music_mv_render_jobs SET "+column+"='asset-old'");
+                assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+                c.createStatement().execute("UPDATE music_mv_render_jobs SET "+column+"='{}'");
+            }
+            c.createStatement().execute("UPDATE music_mv_render_jobs SET version_id='v1'");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("UPDATE music_mv_render_jobs SET version_id='v3'");
+            c.createStatement().execute("INSERT INTO template_browser_scenes VALUES('asset-old')");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("DELETE FROM template_browser_scenes");
+            c.createStatement().execute("INSERT INTO template_media VALUES('cloudflare_images','asset-old','v3','ready')");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+        }
+    }
+
     private Connection database() throws Exception {
         Connection c = DriverManager.getConnection("jdbc:h2:mem:" + UUID.randomUUID() + ";DATABASE_TO_LOWER=TRUE");
         c.createStatement().execute("CREATE TABLE templates(template_id VARCHAR PRIMARY KEY,status VARCHAR,current_version_id VARCHAR,revision INT DEFAULT 0,published_at TIMESTAMP,updated_at TIMESTAMP,deleted_at TIMESTAMP)");
@@ -58,6 +92,9 @@ class MusicMvLatestPublicationTest {
     private static class SqlD1 extends D1DatabaseClient {
         private final Connection connection;
         SqlD1(Connection connection) { super(new ObjectMapper());this.connection=connection; }
+        @Override public D1QueryResult query(String sql, Object... params) {
+            return batch(Collections.singletonList(D1Statement.of(sql, params))).get(0);
+        }
         @Override public List<D1QueryResult> batch(List<D1Statement> statements) {
             try {
                 connection.setAutoCommit(false);
