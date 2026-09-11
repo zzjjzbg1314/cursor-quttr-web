@@ -174,6 +174,30 @@ public class TemplateRuntimePackageService {
     }
 
     public Map<String, Object> downloadExactImage(Map<String, Object> descriptor) {
+        Map<?, ?> source = exactImageSource(descriptor);
+        String sha = String.valueOf(source.get("sourceSha256"));
+        Map<String, Object> download = new TemplateResourceAssetService(repository, r2).downloadSession("sha_" + sha, sha);
+        return exactImageView(descriptor, source, download);
+    }
+
+    // 精确图片共用一次资产查询，仍逐项验证类型、哈希与大小。
+    public java.util.List<Map<String, Object>> downloadExactImages(java.util.List<Map<String, Object>> descriptors) {
+        Map<String, String> requested = new LinkedHashMap<>();
+        for (Map<String, Object> descriptor : descriptors) {
+            Map<?, ?> source = exactImageSource(descriptor);
+            String sha = String.valueOf(source.get("sourceSha256"));
+            requested.put("sha_" + sha, sha);
+        }
+        Map<String, Map<String, Object>> downloads = new TemplateResourceAssetService(repository, r2).downloadSessions(requested);
+        java.util.List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Map<String, Object> descriptor : descriptors) {
+            Map<?, ?> source = exactImageSource(descriptor);
+            result.add(exactImageView(descriptor, source, downloads.get(String.valueOf(source.get("assetId")))));
+        }
+        return result;
+    }
+
+    private Map<?, ?> exactImageSource(Map<String, Object> descriptor) {
         Object raw = descriptor.get("sourceAsset");
         if (!(raw instanceof Map) || !(descriptor.get("spriteAtlas") instanceof Map || "lut_2d_png".equals(descriptor.get("kind")) || "animated_image".equals(descriptor.get("kind"))))
             throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片绑定类型无效");
@@ -182,7 +206,12 @@ public class TemplateRuntimePackageService {
         String expectedType = "animated_image".equals(descriptor.get("kind")) ? "image/gif" : "image/png";
         if (!sha.matches("[a-f0-9]{64}") || !("sha_" + sha).equals(source.get("assetId")) || !expectedType.equals(source.get("contentType")))
             throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片内容标识无效");
-        Map<String, Object> download = new TemplateResourceAssetService(repository, r2).downloadSession("sha_" + sha, sha);
+        return source;
+    }
+
+    private Map<String, Object> exactImageView(Map<String, Object> descriptor, Map<?, ?> source, Map<String, Object> download) {
+        String sha = String.valueOf(source.get("sourceSha256"));
+        String expectedType = "animated_image".equals(descriptor.get("kind")) ? "image/gif" : "image/png";
         if (!expectedType.equals(download.get("contentType")) || number(source.get("sourceSizeBytes")) != number(download.get("sourceSizeBytes")))
             throw error(HttpStatus.CONFLICT, "BROWSER_EXACT_IMAGE_INVALID", "精确图片大小或类型不一致");
         Map<String, Object> asset = new LinkedHashMap<>();

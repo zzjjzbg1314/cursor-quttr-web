@@ -829,6 +829,11 @@ class MusicMvTemplateCatalogServiceTest {
                 + "\"resources\":[{\"resourceKey\":\"effect_1\",\"role\":\"browser_resource:effect_1\",\"kind\":\"image\"}]}");
         browserScene.put("scene_json", String.valueOf(browserScene.get("scene_json")).replaceFirst("\\{",
                 "{\"runtimeDelivery\":{\"schemaVersion\":\"browser-runtime-delivery-v1\",\"totalSizeBytes\":1234,\"resources\":[]},"));
+        browserScene.put("scene_json", String.valueOf(browserScene.get("scene_json")).replace(
+                "\"kind\":\"image\"}]", "\"kind\":\"image\"},{\"resourceKey\":\"lut\",\"kind\":\"lut_2d_png\",\"sourceAsset\":{}}]"));
+        Map<String, Object> exactLut = row("kind", "lut_2d_png");
+        exactLut.put("url", "https://cdn.example/lut.png");
+        when(runtimePackages.downloadExactImages(any())).thenReturn(Collections.singletonList(exactLut));
         Map<String, Object> packageRow = row("status", "ready");
         when(repository.runtimePackage("tplver_1")).thenReturn(packageRow);
         Map<String, Object> download = new LinkedHashMap<String, Object>();
@@ -850,6 +855,7 @@ class MusicMvTemplateCatalogServiceTest {
                 Collections.singletonList(browserScene)));
 
         Map<String, Object> detail = service.detail("tpl_1", false);
+        verify(repository, never()).runtimePackage("tplver_1");
         List<Map<String, Object>> versions = (List<Map<String, Object>>) detail.get("versions");
         Map<String, Object> browserRender =
                 (Map<String, Object>) versions.get(0).get("browserRender");
@@ -870,6 +876,10 @@ class MusicMvTemplateCatalogServiceTest {
                 ((Map<String, Object>) slotBindings.get(0).get("asset")).get("url"));
         assertEquals("https://cdn.example/effect.png",
                 ((Map<String, Object>) resources.get(0).get("asset")).get("url"));
+        assertEquals("https://cdn.example/lut.png", ((Map<?, ?>) resources.get(1).get("asset")).get("url"));
+        verify(runtimePackages).downloadExactImages(org.mockito.ArgumentMatchers.argThat(items ->
+                items.size() == 1 && "lut".equals(items.get(0).get("resourceKey"))));
+        verify(runtimePackages, never()).downloadExactImage(any());
         assertEquals(Collections.emptyMap(), browserRender.get("textOverrides"));
         Map<String, Object> outputVideo = (Map<String, Object>) browserRender.get("outputVideo");
         assertEquals(Integer.valueOf(1080), outputVideo.get("width"));
@@ -2382,7 +2392,7 @@ class MusicMvTemplateCatalogServiceTest {
         slot.setTimelineOrder(Integer.valueOf(0));
         slot.setCropPolicy("fill");
         slot.setRepeatPolicy("cycle");
-        request.getSlots().add(slot);
+        request.setSlots(new java.util.ArrayList<>(Collections.singletonList(slot)));
         return request;
     }
 
@@ -2434,7 +2444,7 @@ class MusicMvTemplateCatalogServiceTest {
         slot.setTimelineOrder(Integer.valueOf(0));
         slot.setCropPolicy("fill");
         slot.setRepeatPolicy("cycle");
-        request.getSlots().add(slot);
+        request.setSlots(new java.util.ArrayList<>(Collections.singletonList(slot)));
         return request;
     }
 

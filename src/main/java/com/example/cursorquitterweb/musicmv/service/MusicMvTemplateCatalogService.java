@@ -308,7 +308,8 @@ public class MusicMvTemplateCatalogService {
             Map<String, Object> browserScene = scenesByVersion.get(versionId);
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
                 Map<String, Object> browserRender = browserSceneView(browserScene, admin);
-                Map<String, Object> runtimePackage = repository.runtimePackage(versionId);
+                Map<String, Object> runtimePackage = ((Map<?, ?>) browserRender.get("scene")).containsKey("runtimeDelivery")
+                        ? null : repository.runtimePackage(versionId);
                 if (!admin && ((runtimePackage != null && "ready".equals(RowUtils.str(runtimePackage, "status")))
                         || ((Map<?, ?>) browserRender.get("scene")).containsKey("runtimeDelivery"))) {
                     Map<String, Object> download = new LinkedHashMap<String, Object>(
@@ -2746,6 +2747,14 @@ public class MusicMvTemplateCatalogService {
         List<Map<String, Object>> resources = new ArrayList<Map<String, Object>>();
         Object rawResources = scene.get("resources");
         if (rawResources instanceof List) {
+            List<Map<String, Object>> exactDescriptors = new ArrayList<>();
+            for (Object raw : (List<?>) rawResources) {
+                if (raw instanceof Map && ((Map<?, ?>) raw).containsKey("sourceAsset"))
+                    exactDescriptors.add((Map<String, Object>) raw);
+            }
+            java.util.Iterator<Map<String, Object>> exactAssets = (exactDescriptors.isEmpty()
+                    ? Collections.<Map<String, Object>>emptyList()
+                    : runtimePackages.downloadExactImages(exactDescriptors)).iterator();
             for (Object raw : (List<?>) rawResources) {
                 if (!(raw instanceof Map)) continue;
                 Map<String, Object> descriptor = (Map<String, Object>) raw;
@@ -2756,7 +2765,7 @@ public class MusicMvTemplateCatalogService {
                 String inlineData = descriptor.get("inlineData") == null
                         ? null : String.valueOf(descriptor.get("inlineData"));
                 if (descriptor.containsKey("sourceAsset")) {
-                    asset = runtimePackages.downloadExactImage(descriptor);
+                    asset = exactAssets.next();
                 } else if (inlineData != null && !inlineData.trim().isEmpty()) {
                     asset = new LinkedHashMap<String, Object>();
                     asset.put("kind", kind);

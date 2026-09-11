@@ -36,6 +36,37 @@ class TemplateRuntimePackageServiceTest {
     }
 
     @Test
+    void batchesExactImagesAndPreservesDuplicateBindingsAndValidation() {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("status", "ready"); row.put("object_key", "atlas.png");
+        row.put("source_size_bytes", 123L); row.put("content_type", "image/png");
+        Map<String, String> requested = Collections.singletonMap("sha_" + hash(), hash());
+        when(repository.templateResourceAssets(requested))
+                .thenReturn(Collections.singletonMap("sha_" + hash(), row));
+        when(r2.presignedGetUrl("atlas.png", Duration.ofMinutes(15))).thenReturn("https://download.example/atlas");
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("assetId", "sha_" + hash()); source.put("sourceSha256", hash());
+        source.put("sourceSizeBytes", 123L); source.put("contentType", "image/png");
+        Map<String, Object> atlas = new LinkedHashMap<>();
+        atlas.put("sourceAsset", source); atlas.put("kind", "image"); atlas.put("spriteAtlas", Collections.emptyMap());
+        Map<String, Object> lut = new LinkedHashMap<>();
+        lut.put("sourceAsset", source); lut.put("kind", "lut_2d_png");
+        java.util.List<Map<String, Object>> result = service.downloadExactImages(java.util.Arrays.asList(atlas, lut));
+        assertEquals(2, result.size());
+        assertEquals("image", result.get(0).get("kind"));
+        assertEquals("lut_2d_png", result.get(1).get("kind"));
+        assertEquals(result.get(0).get("url"), result.get(1).get("url"));
+        verify(repository).templateResourceAssets(requested);
+        verify(repository, org.mockito.Mockito.never()).templateResourceAsset(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+        source.put("sourceSizeBytes", 124L);
+        assertThrows(ApiException.class, () -> service.downloadExactImages(Collections.singletonList(atlas)));
+        source.put("sourceSizeBytes", 123L);
+        when(repository.templateResourceAssets(requested)).thenReturn(Collections.emptyMap());
+        assertEquals("TEMPLATE_RESOURCE_NOT_FOUND", assertThrows(ApiException.class,
+                () -> service.downloadExactImages(Collections.singletonList(atlas))).getCode());
+    }
+
+    @Test
     void deliversOriginalGifFromR2AndRejectsChangedSize() {
         Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
         row.put("object_key", "motion.gif"); row.put("source_size_bytes", 123L); row.put("content_type", "image/gif");

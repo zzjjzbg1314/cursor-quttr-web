@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-11",
+  "scope": "模板详情读取与资源签发查询，渲染执行代码未修改",
+  "templateId": "tpl_be24db7091a02332",
+  "versionId": "tplver_d2f3259ed84647af8b7580d9c236f96f",
+  "baselineSingleRequestSeconds": 9.54,
+  "finalServiceColdRequest": {
+    "coldSeconds": 4.563,
+    "bytes": 5233876,
+    "httpStatus": 200,
+    "contractEqualExceptExpiringSignatures": true
+  },
+  "otherColdObservationsSeconds": [
+    9.673,
+    4.946
+  ],
+  "remoteQueryCount": {
+    "before": 6,
+    "after": 4
+  },
+  "tests": {
+    "TemplateRuntimePackageServiceTest": 8,
+    "MusicMvTemplateCatalogServiceTest": 76,
+    "TemplateResourceAssetServiceTest": 6,
+    "failures": 0
+  },
+  "limitations": [
+    "请求耗时受远程网络影响，不是控制网络条件的性能对照实验",
+    "接口耗时不是编辑页总准备时间",
+    "未运行完整视频渲染或SSIM：本次仅合并元数据读取，未改变渲染场景或执行逻辑"
+  ]
+}
