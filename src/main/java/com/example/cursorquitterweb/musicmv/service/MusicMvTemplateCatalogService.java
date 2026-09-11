@@ -1824,7 +1824,10 @@ public class MusicMvTemplateCatalogService {
                         true, details);
             }
         }
-        repository.publish(templateId, versionId);
+        if (!repository.publish(templateId, versionId)) {
+            invalidateDetail(templateId);
+            throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");
+        }
         invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
     }

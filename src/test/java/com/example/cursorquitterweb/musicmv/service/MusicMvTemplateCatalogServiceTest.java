@@ -891,6 +891,7 @@ class MusicMvTemplateCatalogServiceTest {
 
     @Test
     void publishesBrowserReadyVersionAfterMatchingVisualParity() {
+        when(repository.publish("tpl_1", "tplver_1")).thenReturn(true);
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("validation_status", "browser_ready");
         version.put("source_availability", "unavailable");
@@ -916,6 +917,9 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "tplver_1"));
         assertEquals("published", service.publish("tpl_1", "tplver_1").get("status"));
         verify(repository, org.mockito.Mockito.times(3)).publish("tpl_1", "tplver_1");
+        when(repository.publish("tpl_1", "tplver_1")).thenReturn(false);
+        ApiException superseded = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+        assertEquals("TEMPLATE_PUBLICATION_SUPERSEDED", superseded.getCode());
     }
 
     @Test

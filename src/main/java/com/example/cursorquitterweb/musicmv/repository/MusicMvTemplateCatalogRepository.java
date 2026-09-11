@@ -909,16 +909,28 @@ public class MusicMvTemplateCatalogRepository {
                 providerDetailsJson, mediaId);
     }
 
-    public void publish(String templateId, String versionId) {
-        d1.batch(Arrays.asList(
-                statement("UPDATE template_versions SET status='published',published_at=CURRENT_TIMESTAMP "
-                        + "WHERE template_id=? AND version_id=? "
-                        + "AND (validation_status='browser_ready' OR "
-                        + "(validation_status='exact' AND source_availability='available'))",
-                        templateId, versionId),
+    public boolean publish(String templateId, String versionId) {
+        List<D1QueryResult> result = d1.batch(Arrays.asList(
                 statement("UPDATE templates SET status='published',current_version_id=?,revision=revision+1,"
                         + "published_at=COALESCE(published_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE template_id=? AND deleted_at IS NULL", versionId, templateId)));
+                        + "WHERE template_id=? AND deleted_at IS NULL AND EXISTS ("
+                        + "SELECT 1 FROM template_versions target WHERE target.template_id=templates.template_id "
+                        + "AND target.version_id=? AND target.validation_status='browser_ready' AND ("
+                        + "templates.current_version_id IS NULL OR templates.current_version_id=target.version_id OR EXISTS ("
+                        + "SELECT 1 FROM template_versions previous WHERE previous.template_id=templates.template_id "
+                        + "AND previous.version_id=templates.current_version_id "
+                        + "AND previous.version_number<target.version_number)))", versionId, templateId, versionId),
+                statement("UPDATE template_versions SET status='published',published_at=CURRENT_TIMESTAMP "
+                        + "WHERE template_id=? AND version_id=? AND validation_status='browser_ready' AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND current_version_id=? "
+                        + "AND status='published' AND deleted_at IS NULL)", templateId, versionId, templateId, versionId),
+                statement("SELECT current_version_id FROM templates WHERE template_id=? "
+                        + "AND status='published' AND deleted_at IS NULL AND EXISTS ("
+                        + "SELECT 1 FROM template_versions current_content WHERE current_content.template_id=templates.template_id "
+                        + "AND current_content.version_id=templates.current_version_id "
+                        + "AND current_content.validation_status='browser_ready')", templateId)));
+        Map<String, Object> current = result.get(2).firstRow();
+        return current != null && versionId.equals(current.get("current_version_id"));
     }
 
     public int migrateCurrentTemplatesToBrowserRendering() {
