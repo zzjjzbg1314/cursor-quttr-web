@@ -1743,6 +1743,17 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> publish(String templateId, String versionId) {
         Map<String, Object> version = requireVersion(templateId, versionId);
+        Map<String, Object> template = requireTemplate(templateId);
+        String currentId = RowUtils.str(template, "current_version_id");
+        if (currentId != null && !currentId.equals(versionId)) {
+            Map<String, Object> current = requireVersion(templateId, currentId);
+            Integer currentNumber = RowUtils.integer(current, "version_number");
+            Integer targetNumber = RowUtils.integer(version, "version_number");
+            if (currentNumber == null || targetNumber == null || targetNumber <= currentNumber) {
+                throw conflict("TEMPLATE_NEWER_CONTENT_REQUIRED",
+                        "Only newer accepted content can replace the current template");
+            }
+        }
         Map<String, Object> runtimePackage = repository.runtimePackage(versionId);
         if (runtimePackage != null && !runtimePackage.isEmpty()
                 && !"ready".equals(RowUtils.str(runtimePackage, "status"))) {

@@ -878,6 +878,18 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void refusesReplacingCurrentTemplateWithOlderOrUnorderedContent() {
+        when(repository.template("tpl_1")).thenReturn(row("current_version_id", "current"));
+        when(repository.version("tpl_1", "current")).thenReturn(row("version_number", 3));
+        for (Integer number : java.util.Arrays.asList(2, 3, null)) {
+            when(repository.version("tpl_1", "old")).thenReturn(row("version_number", number));
+            ApiException error = assertThrows(ApiException.class, () -> service.publish("tpl_1", "old"));
+            assertEquals("TEMPLATE_NEWER_CONTENT_REQUIRED", error.getCode());
+        }
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
     void publishesBrowserReadyVersionAfterMatchingVisualParity() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("validation_status", "browser_ready");
@@ -896,9 +908,14 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.browserParity("tplver_1")).thenReturn(parity);
 
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
-
         assertEquals("published", result.get("status"));
-        verify(repository).publish("tpl_1", "tplver_1");
+        when(repository.template("tpl_1")).thenReturn(row("current_version_id", "older"));
+        when(repository.version("tpl_1", "older")).thenReturn(row("version_number", 1));
+        version.put("version_number", 2);
+        assertEquals("published", service.publish("tpl_1", "tplver_1").get("status"));
+        when(repository.template("tpl_1")).thenReturn(row("current_version_id", "tplver_1"));
+        assertEquals("published", service.publish("tpl_1", "tplver_1").get("status"));
+        verify(repository, org.mockito.Mockito.times(3)).publish("tpl_1", "tplver_1");
     }
 
     @Test
