@@ -597,11 +597,11 @@ class MusicMvRenderJobServiceTest {
         videoMedia.put("provider_details_json", "{}");
         when(repository.byId("mvr_browser")).thenReturn(active);
         when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
-        when(repository.slotDefaultMedia("tplver_1", "photo_01")).thenReturn(media);
-        when(repository.mediaByRole("tplver_1", "browser_resource:lut_background"))
-                .thenReturn(media);
-        when(repository.mediaByRole("tplver_1", "browser_resource:video_background"))
-                .thenReturn(videoMedia);
+        Map<String, Map<String, Object>> mediaRows = new LinkedHashMap<String, Map<String, Object>>();
+        mediaRows.put("slot_default:photo_01", media);
+        mediaRows.put("browser_resource:lut_background", media);
+        mediaRows.put("browser_resource:video_background", videoMedia);
+        when(repository.browserMediaByRole(eq("tplver_1"), anySet())).thenReturn(mediaRows);
         when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
         when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
         when(templateMedia.resolveDeliveryDetails(eq("cloudflare_images"), eq("image_1"),
@@ -647,12 +647,29 @@ class MusicMvRenderJobServiceTest {
         assertEquals("https://r2.example/runtime.zip", issuedRuntimePackage.get("downloadUrl"));
         assertEquals(null, issuedRuntimePackage.get("objectKey"));
         assertEquals(null, browserRender.get("sourceVideo"));
+        verify(repository).browserMediaByRole("tplver_1", new java.util.LinkedHashSet<String>(Arrays.asList(
+                "slot_default:photo_01", "browser_resource:lut_background", "browser_resource:video_background")));
+        verify(repository, never()).slotDefaultMedia(anyString(), anyString());
+        verify(repository, never()).mediaByRole(anyString(), anyString());
+
         Map<String, Object> outputVideo =
                 (Map<String, Object>) browserRender.get("outputVideo");
         assertEquals(1080, ((Number) outputVideo.get("width")).intValue());
         assertEquals(1920, ((Number) outputVideo.get("height")).intValue());
         assertEquals(30, ((Number) outputVideo.get("fps")).intValue());
         assertEquals(0.5011872336272722d, ((Number) browserRender.get("volume")).doubleValue());
+        mediaRows.remove("slot_default:photo_01");
+        assertEquals("MV_BROWSER_DEFAULT_ASSET_UNAVAILABLE", assertThrows(ApiException.class,
+                () -> service.get("usr_owner", "mvr_browser")).getCode());
+        mediaRows.put("slot_default:photo_01", media);
+        videoMedia.put("status", "uploading");
+        assertEquals("MV_BROWSER_RESOURCE_UNAVAILABLE", assertThrows(ApiException.class,
+                () -> service.get("usr_owner", "mvr_browser")).getCode());
+        videoMedia.put("status", "ready");
+        mediaRows.remove("browser_resource:lut_background");
+        assertEquals("MV_BROWSER_RESOURCE_UNAVAILABLE", assertThrows(ApiException.class,
+                () -> service.get("usr_owner", "mvr_browser")).getCode());
+
     }
 
     @Test

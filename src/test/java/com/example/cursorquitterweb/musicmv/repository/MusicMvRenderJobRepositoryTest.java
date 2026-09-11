@@ -134,6 +134,28 @@ class MusicMvRenderJobRepositoryTest {
         assertTrue(d1.statements.get(1).getSql().contains("music_mv_render_job_events"));
     }
 
+    @Test
+    void browserMediaUsesOneBatchAndBoundsStatementParameters() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+        LinkedHashSet<String> roles = new LinkedHashSet<String>();
+        repository.browserMediaByRole("version_a", roles);
+        assertTrue(d1.statements.isEmpty());
+        for (int index = 0; index < 161; index++) roles.add("browser_resource:" + index);
+        repository.browserMediaByRole("version_a", roles);
+        assertEquals(3, d1.statements.size());
+        assertEquals(1, d1.batchCalls);
+        List<Object> queried = new ArrayList<Object>();
+        for (D1Statement statement : d1.statements) {
+            assertTrue(statement.getSql().contains("WHERE version_id=? AND media_role IN ("));
+            assertEquals("version_a", statement.getParams().get(0));
+            assertTrue(statement.getParams().size() <= 81);
+            assertEquals(placeholders(statement.getSql()), statement.getParams().size());
+            queried.addAll(statement.getParams().subList(1, statement.getParams().size()));
+        }
+        assertEquals(new ArrayList<String>(roles), queried);
+    }
+
     private int placeholders(String sql) {
         int count = 0;
         for (int index = 0; index < sql.length(); index++) {
@@ -149,6 +171,7 @@ class MusicMvRenderJobRepositoryTest {
     }
 
     private static class CapturingD1 extends D1DatabaseClient {
+        private int batchCalls;
         private String sql;
         private List<Object> params = new ArrayList<Object>();
         private List<D1Statement> statements = new ArrayList<D1Statement>();
@@ -173,6 +196,7 @@ class MusicMvRenderJobRepositoryTest {
 
         @Override
         public List<D1QueryResult> batch(List<D1Statement> statements) {
+            this.batchCalls++;
             this.statements = statements;
             List<D1QueryResult> results = new ArrayList<D1QueryResult>();
             for (int index = 0; index < statements.size(); index++) {

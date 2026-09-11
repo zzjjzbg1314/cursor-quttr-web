@@ -811,6 +811,10 @@ public class MusicMvRenderJobService {
         }
         music.put("url", browserAssetUrl(music.get("url")));
         music.put("durationSeconds", candidate == null ? null : candidate.get("duration_seconds"));
+        Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
+        requireBrowserSceneExportReady(scene);
+        Map<String, Map<String, Object>> mediaByRole = repository.browserMediaByRole(
+                RowUtils.str(row, "version_id"), browserMediaRoles(request, scene));
         List<Map<String, Object>> bindings = new ArrayList<Map<String, Object>>();
         Object rawBindings = request.get("slotBindings");
         if (rawBindings instanceof List) {
@@ -823,8 +827,8 @@ public class MusicMvRenderJobService {
                 item.put("useTemplateDefault", Boolean.valueOf(useDefault));
                 item.put("crop", source.get("crop"));
                 if (useDefault) {
-                    item.put("asset", templateSlotAsset(RowUtils.str(row, "version_id"),
-                            String.valueOf(source.get("slotKey"))));
+                    item.put("asset", templateSlotAsset(mediaByRole.get(
+                            "slot_default:" + String.valueOf(source.get("slotKey")))));
                     bindings.add(item);
                     continue;
                 }
@@ -836,10 +840,7 @@ public class MusicMvRenderJobService {
                 bindings.add(item);
             }
         }
-        Map<String, Object> scene = parseObject(RowUtils.str(sceneRow, "scene_json"));
-        requireBrowserSceneExportReady(scene);
-        List<Map<String, Object>> resources = templateBrowserResources(
-                RowUtils.str(row, "version_id"), scene);
+        List<Map<String, Object>> resources = templateBrowserResources(mediaByRole, scene);
 
         Map<String, Object> runtimePackage = null;
         if (runtimePackages != null) {
@@ -938,9 +939,35 @@ public class MusicMvRenderJobService {
         }
     }
 
+    private Set<String> browserMediaRoles(Map<String, Object> request, Map<String, Object> scene) {
+        Set<String> roles = new java.util.LinkedHashSet<String>();
+        Object bindings = request.get("slotBindings");
+        if (bindings instanceof List) {
+            for (Object raw : (List<?>) bindings) {
+                if (raw instanceof Map && Boolean.TRUE.equals(((Map<?, ?>) raw).get("useTemplateDefault"))) {
+                    roles.add("slot_default:" + String.valueOf(((Map<?, ?>) raw).get("slotKey")));
+                }
+            }
+        }
+        Object resources = scene.get("resources");
+        if (resources instanceof List) {
+            for (Object raw : (List<?>) resources) {
+                if (!(raw instanceof Map)) continue;
+                Map<?, ?> descriptor = (Map<?, ?>) raw;
+                Object inline = descriptor.get("inlineData");
+                if (!descriptor.containsKey("sourceAsset")
+                        && (inline == null || String.valueOf(inline).trim().isEmpty())
+                        && descriptor.get("role") != null) {
+                    roles.add(String.valueOf(descriptor.get("role")));
+                }
+            }
+        }
+        return roles;
+    }
+
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> templateBrowserResources(
-            String versionId, Map<String, Object> scene) {
+            Map<String, Map<String, Object>> mediaByRole, Map<String, Object> scene) {
         List<Map<String, Object>> resolved = new ArrayList<Map<String, Object>>();
         Object rawResources = scene.get("resources");
         if (!(rawResources instanceof List)) return resolved;
@@ -975,7 +1002,7 @@ public class MusicMvRenderJobService {
                 resolved.add(item);
                 continue;
             }
-            Map<String, Object> media = repository.mediaByRole(versionId, role);
+            Map<String, Object> media = mediaByRole.get(role);
             if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
                 throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",
                         "A browser scene resource is unavailable");
@@ -1002,8 +1029,7 @@ public class MusicMvRenderJobService {
         return resolved;
     }
 
-    private Map<String, Object> templateSlotAsset(String versionId, String slotKey) {
-        Map<String, Object> media = repository.slotDefaultMedia(versionId, slotKey);
+    private Map<String, Object> templateSlotAsset(Map<String, Object> media) {
         if (media == null || !"ready".equals(RowUtils.str(media, "status"))) {
             throw conflict("MV_BROWSER_DEFAULT_ASSET_UNAVAILABLE",
                     "A default template photo is unavailable for browser rendering");

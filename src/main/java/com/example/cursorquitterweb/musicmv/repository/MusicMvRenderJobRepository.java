@@ -99,6 +99,30 @@ public class MusicMvRenderJobRepository {
                 versionId, role).firstRow();
     }
 
+    public Map<String, Map<String, Object>> browserMediaByRole(String versionId, Set<String> roles) {
+        Map<String, Map<String, Object>> media = new LinkedHashMap<String, Map<String, Object>>();
+        if (roles.isEmpty()) return media;
+        List<String> keys = new ArrayList<String>(roles);
+        List<D1Statement> statements = new ArrayList<D1Statement>();
+        // 分块控制绑定参数数量，所有资源查询仍通过一次数据库批请求完成。
+        for (int start = 0; start < keys.size(); start += 80) {
+            List<String> chunk = keys.subList(start, Math.min(start + 80, keys.size()));
+            List<Object> params = new ArrayList<Object>();
+            params.add(versionId);
+            params.addAll(chunk);
+            String placeholders = String.join(",", java.util.Collections.nCopies(chunk.size(), "?"));
+            statements.add(D1Statement.of("SELECT media_role,provider,provider_asset_id,provider_details_json,status "
+                    + "FROM template_media WHERE version_id=? AND media_role IN (" + placeholders + ")",
+                    params.toArray()));
+        }
+        for (D1QueryResult result : d1.batch(statements)) {
+            for (Map<String, Object> row : result.getRows()) {
+                media.put(String.valueOf(row.get("media_role")), row);
+            }
+        }
+        return media;
+    }
+
     public Map<String, Map<String, Object>> slotDefaultMedia(String versionId,
                                                              Set<String> slotKeys) {
         Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();

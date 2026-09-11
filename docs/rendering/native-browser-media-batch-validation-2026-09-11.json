@@ -1,0 +1,68 @@
+{
+  "databaseLookupProbe": {
+    "oldPid": 82667,
+    "pid": 89089,
+    "ready": true,
+    "catalogCount": 8,
+    "publishedVersionsUnchanged": true,
+    "code": "browser-media-batch-working-tree"
+  },
+  "render": {
+    "status": "completed",
+    "jobId": "mvr_77053b84bcf94713a44a9dc261493182",
+    "output": {
+      "sha256": "336cb7f8e1f8382e1f107ad927976276c9f8cadd8df0143004ce755593fb1b9d",
+      "sizeBytes": 187649347,
+      "durationSeconds": 183.84,
+      "rendererFingerprint": "f8752b0dc231f69f9cd8a5626da1ff574d9bb8558b7c6725ed733a3cebdd7383",
+      "validation": {
+        "semanticIntegrity": "exact",
+        "videoEncodeCount": 1,
+        "materializedIntermediateVideoCount": 0,
+        "completedFrameCount": 5516,
+        "elapsedSeconds": 143.146125,
+        "phaseSeconds": {
+          "prepare": 21.434719999969005,
+          "scene": 141.48288999915124,
+          "encode": 0.6254600008726011,
+          "finalize": 0.3194750000238419,
+          "total": 163.86258999997378
+        }
+      }
+    },
+    "steps": {
+      "projectLoaded": 1.1753050000071525,
+      "templateLoaded": 5.038310000002384,
+      "jobCreated": 6.534189999997616,
+      "jobPrepared": 15.180990000009537,
+      "attemptClaimed": 21.61525,
+      "firstFramePhase": 43.05369499999285,
+      "renderCompleted": 185.48336500000954,
+      "outputSaved": 228.7181999999881
+    },
+    "frames": 5516,
+    "cleanup": "completed",
+    "opfsFiles": 0,
+    "failure": "",
+    "totalSeconds": 229.85129000002146
+  },
+  "serverReadback": {
+    "job_id": "mvr_77053b84bcf94713a44a9dc261493182",
+    "status": "completed",
+    "semantic_integrity": "unverified",
+    "video_encode_count": null,
+    "intermediate_video_count": null,
+    "writer_sidecar_count": null,
+    "evidence_status": "client_reported_runtime_evidence",
+    "client_validation": "{\"semanticIntegrity\":\"exact\",\"videoEncodeCount\":1,\"materializedIntermediateVideoCount\":0,\"completedFrameCount\":5516,\"elapsedSeconds\":143.146125,\"phaseSeconds\":{\"prepare\":21.434719999969005,\"scene\":141.48288999915124,\"encode\":0.6254600008726011,\"finalize\":0.3194750000238419,\"total\":163.86258999997378}}",
+    "output_size_bytes": 187649347,
+    "output_sha256": "336cb7f8e1f8382e1f107ad927976276c9f8cadd8df0143004ce755593fb1b9d",
+    "output_duration_seconds": 183.84
+  },
+  "tests": {
+    "backendFocused": 37,
+    "repositoryAfterAssertionRefinement": 10,
+    "frontendTypecheck": true
+  },
+  "ssim": "not_run_no_render_semantics_changed"
+}
