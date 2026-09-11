@@ -600,6 +600,74 @@ class MusicMvRenderJobServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void deliversZeroPhotoStickerSessionWithOriginalSourceAndMinimalDependencies() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+        CloudflareTemplateMediaProvider media = mock(CloudflareTemplateMediaProvider.class);
+        TemplateRuntimePackageService packages = mock(TemplateRuntimePackageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                mock(MusicMvRenderArtifactStorageService.class), inputAssets(), media, packages, mapper, true, 2);
+        Map<String,Object> scene;
+        try (java.io.InputStream stream = getClass().getResourceAsStream("/musicmv/native-zero-slot-sticker-scene.json")) {
+            scene = mapper.readValue(stream, Map.class);
+        }
+        scene.put("capability", browserCapability(true, Collections.emptyList()));
+        scene.put("canvas", Collections.singletonMap("durationSeconds", 16.133333d));
+        Map<String,Object> sourceAsset = new LinkedHashMap<>();
+        sourceAsset.put("sourceSha256", "14e1687cb1bc6f0a68e7cd359ff77b2bf888292ed0a4a35cd8cbc1c7f4f76b1b");
+        sourceAsset.put("sourceSizeBytes", 479738);
+        Map<String,Object> resource = new LinkedHashMap<>();
+        String resourceKey = (String) ((List<Map<String,Object>>) scene.get("layers")).get(0).get("resourceKey");
+        resource.put("resourceKey", resourceKey);
+        resource.put("role", "browser_resource:" + resourceKey);
+        resource.put("kind", "image");
+        resource.put("sourceAsset", sourceAsset);
+        scene.put("resources", Collections.singletonList(resource));
+        Map<String,Object> active = row("sticker-session", null);
+        active.put("template_id", "tpl_1");
+        active.put("client_id", "usr_owner");
+        active.put("request_json", "{\"musicCandidateId\":\"song_1\",\"music\":{},\"slotBindings\":[]}");
+        when(repository.byId("sticker-session")).thenReturn(active);
+        Map<String,Object> sceneRow = new LinkedHashMap<>();
+        sceneRow.put("status", "ready"); sceneRow.put("scene_json", mapper.writeValueAsString(scene));
+        when(repository.browserScene("tplver_1")).thenReturn(sceneRow);
+        when(repository.events("sticker-session")).thenReturn(Collections.emptyList());
+        when(repository.browserMediaByRole(eq("tplver_1"), anySet())).thenReturn(Collections.emptyMap());
+        when(music.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
+        Map<String,Object> exactImage = new LinkedHashMap<>(sourceAsset);
+        exactImage.put("url", "https://assets.example/original-sticker.png");
+        when(packages.downloadExactImage(org.mockito.ArgumentMatchers.anyMap())).thenReturn(exactImage);
+        Map<String,Object> runtime = new LinkedHashMap<>();
+        runtime.put("status", "ready");runtime.put("downloadUrl", "https://assets.example/minimal-runtime.zip");
+        runtime.put("nativeEngine", ((Map<?,?>) scene.get("runtimeDelivery")).get("nativeEngine"));
+        runtime.put("objectKey", "private/runtime.zip");runtime.put("errorMessage", "private provider detail");
+        when(packages.downloadForScene(eq("tpl_1"), eq("tplver_1"), org.mockito.ArgumentMatchers.anyMap())).thenReturn(runtime);
+
+        Map<String,Object> result = service.get("usr_owner", "sticker-session");
+        Map<String,Object> contract = (Map<String,Object>) result.get("browserRender");
+        assertEquals("browser", result.get("renderMode"));
+        assertEquals(Collections.emptyList(), contract.get("slotBindings"));
+        assertEquals(scene, contract.get("scene"));
+        assertEquals(exactImage, ((List<Map<String,Object>>) contract.get("resources")).get(0).get("asset"));
+        Map<String,Object> delivered = (Map<String,Object>) contract.get("runtimePackage");
+        assertEquals(runtime.get("nativeEngine"), delivered.get("nativeEngine"));
+        assertEquals(runtime.get("downloadUrl"), delivered.get("downloadUrl"));
+        assertEquals(null, delivered.get("objectKey"));assertEquals(null, delivered.get("errorMessage"));
+        assertEquals(null, contract.get("sourceVideo"));
+        verify(repository, never()).slotDefaultMedia(anyString(), anySet());
+        verify(repository, never()).slotDefaultMedia(anyString(), anyString());
+        verify(packages).downloadExactImage(resource);
+        verify(packages).downloadForScene("tpl_1", "tplver_1", scene);
+        assertThrows(ApiException.class, () -> service.get("another-owner", "sticker-session"));
+        ApiException unavailable = new ApiException(org.springframework.http.HttpStatus.CONFLICT,
+                "TEMPLATE_EXACT_IMAGE_UNAVAILABLE", "Original resource is unavailable");
+        when(packages.downloadExactImage(org.mockito.ArgumentMatchers.anyMap())).thenThrow(unavailable);
+        assertEquals(unavailable, assertThrows(ApiException.class, () -> service.get("usr_owner", "sticker-session")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void publishesDefaultTemplatePhotosWithoutUsingAFlattenedVideo() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository aiMusicJobs = mock(AiMusicJobRepository.class);
