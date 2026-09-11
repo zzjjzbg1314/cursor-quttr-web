@@ -75,15 +75,24 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void preservesNativeNonlinearSceneThroughSyncAndPublicDetail() throws Exception {
+        assertNativeSceneRoundTrip("/musicmv/browser-native-nonlinear-scene.json");
+    }
+
+    @Test
+    void preservesVerifiedNativeCurveSceneThroughSyncAndPublicDetail() throws Exception {
+        assertNativeSceneRoundTrip("/musicmv/browser-native-curve-scene.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertNativeSceneRoundTrip(String resource) throws Exception {
         Map<String,Object> template=row("template_id","tpl_1"), version=row("version_id","tplver_1");
         template.put("status","published");template.put("visibility","public");template.put("current_version_id","tplver_1");
         version.put("width",1080);version.put("height",1920);version.put("fps",30);
         when(repository.template("tpl_1")).thenReturn(template);
         when(repository.version("tpl_1","tplver_1")).thenReturn(version);
         ObjectMapper mapper=new ObjectMapper();
-        Map<String,Object> scene=mapper.readValue(getClass().getResourceAsStream("/musicmv/browser-native-nonlinear-scene.json"),Map.class);
+        Map<String,Object> scene=mapper.readValue(getClass().getResourceAsStream(resource),Map.class);
         TemplateBrowserSceneRequest request=new TemplateBrowserSceneRequest();
         request.setScene(scene);request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
         String original=mapper.writeValueAsString(scene);request.setManifestSha256(sha256(original));
