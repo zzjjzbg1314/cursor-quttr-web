@@ -56,7 +56,12 @@ public class MusicMvProjectDraftRepository {
         statements.add(D1Statement.of("INSERT INTO music_mv_projects "
                         + "(project_id,user_id,name,status,current_step,song_candidate_id,template_id,"
                         + "template_version_id,draft_json,revision,created_at,updated_at) "
-                        + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
+                        + "SELECT ?,?,?,?,?,?,?,?,?,?,?,? WHERE ((? IS NULL AND ? IS NULL) OR EXISTS ("
+                        + "SELECT 1 FROM template_versions v JOIN templates t ON t.template_id=v.template_id "
+                        + "WHERE v.template_id=? AND v.version_id=? AND t.deleted_at IS NULL AND ("
+                        + "t.current_version_id=v.version_id OR EXISTS (SELECT 1 FROM music_mv_projects bound "
+                        + "WHERE bound.project_id=? AND bound.user_id=? AND bound.template_id=v.template_id "
+                        + "AND bound.template_version_id=v.version_id AND bound.deleted_at IS NULL)))) "
                         + "ON CONFLICT(project_id) DO UPDATE SET "
                         + "name=excluded.name,status=excluded.status,current_step=excluded.current_step,"
                         + "song_candidate_id=excluded.song_candidate_id,template_id=excluded.template_id,"
@@ -65,7 +70,8 @@ public class MusicMvProjectDraftRepository {
                         + "WHERE music_mv_projects.user_id=excluded.user_id "
                         + "AND excluded.revision>music_mv_projects.revision",
                 projectId, userId, name, status, currentStep, songCandidateId, templateId,
-                templateVersionId, draftJson, Integer.valueOf(revision), writeMarker, writeMarker));
+                templateVersionId, draftJson, Integer.valueOf(revision), writeMarker, writeMarker,
+                templateId, templateVersionId, templateId, templateVersionId, projectId, userId));
         statements.add(D1Statement.of("DELETE FROM music_mv_project_assets WHERE project_id=? "
                         + "AND EXISTS (SELECT 1 FROM music_mv_projects p WHERE p.project_id=? "
                         + "AND p.user_id=? AND p.updated_at=? AND p.revision=?)",
