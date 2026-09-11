@@ -48,7 +48,7 @@ public class MusicMvTemplateCatalogRepository {
         Map<String, Object> result = d1.query("SELECT (SELECT COUNT(*) FROM template_media WHERE provider=? AND provider_asset_id=?) "
                 + "+ (SELECT COUNT(*) FROM template_browser_scenes WHERE instr(scene_json,?)>0) "
                 + "+ (SELECT COUNT(*) FROM music_mv_projects WHERE (template_id=? "
-                + "AND (template_version_id=? OR template_version_id IS NULL)) OR instr(draft_json,?)>0) "
+                + "AND (template_version_id=? OR template_version_id IS NULL OR trim(template_version_id)='')) OR instr(draft_json,?)>0) "
                 + "+ (SELECT COUNT(*) FROM music_mv_render_jobs WHERE (template_id=? AND version_id=?) "
                 + "OR instr(request_json,?)>0 OR instr(result_json,?)>0 OR instr(evidence_json,?)>0) "
                 + "+ (SELECT COUNT(*) FROM template_media WHERE version_id=? AND status<>'ready') AS total",
@@ -56,6 +56,19 @@ public class MusicMvTemplateCatalogRepository {
                 templateId, versionId, assetId, assetId, assetId, versionId).firstRow();
         if (result == null || result.get("total") == null) {
             throw new IllegalStateException("无法确认旧素材引用状态");
+        }
+        return Long.parseLong(String.valueOf(result.get("total"))) > 0;
+    }
+
+    public boolean cleanupRuntimeReferenced(String objectKey, String templateId, String versionId) {
+        if (cleanupAssetReferenced("r2", objectKey, templateId, versionId)) return true;
+        Map<String, Object> result = d1.query("SELECT "
+                + "(SELECT COUNT(*) FROM template_runtime_packages WHERE object_key=?) "
+                + "+ (SELECT COUNT(*) FROM template_resource_assets WHERE object_key=?) "
+                + "+ (SELECT COUNT(*) FROM music_mv_user_assets WHERE instr(asset_url,?)>0) AS total",
+                objectKey, objectKey, objectKey).firstRow();
+        if (result == null || result.get("total") == null) {
+            throw new IllegalStateException("无法确认旧运行包引用状态");
         }
         return Long.parseLong(String.valueOf(result.get("total"))) > 0;
     }
@@ -935,6 +948,36 @@ public class MusicMvTemplateCatalogRepository {
                         + "AND current_content.validation_status='browser_ready')", templateId)));
         Map<String, Object> current = result.get(2).firstRow();
         return current != null && versionId.equals(current.get("current_version_id"));
+    }
+
+    public void retireUnusedTemplateContents() {
+        ensureCleanupQueue();
+        String candidates = "SELECT old.version_id FROM template_versions old "
+                + "JOIN templates t ON t.template_id=old.template_id "
+                + "JOIN template_versions current_content ON current_content.version_id=t.current_version_id "
+                + "AND current_content.template_id=t.template_id "
+                + "WHERE t.status='published' AND t.deleted_at IS NULL "
+                + "AND current_content.status='published' AND current_content.validation_status='browser_ready' "
+                + "AND old.version_number<current_content.version_number "
+                + "AND NOT EXISTS (SELECT 1 FROM music_mv_projects p WHERE p.template_version_id=old.version_id "
+                + "OR (p.template_id=old.template_id AND (p.template_version_id IS NULL OR trim(p.template_version_id)='')) OR instr(p.draft_json,old.version_id)>0) "
+                + "AND NOT EXISTS (SELECT 1 FROM music_mv_render_jobs j WHERE j.version_id=old.version_id "
+                + "OR instr(j.request_json,old.version_id)>0 OR instr(j.result_json,old.version_id)>0 "
+                + "OR instr(j.evidence_json,old.version_id)>0) "
+                + "AND NOT EXISTS (SELECT 1 FROM template_media m WHERE m.version_id=old.version_id AND m.status<>'ready') "
+                + "AND NOT EXISTS (SELECT 1 FROM template_runtime_packages r WHERE r.version_id=old.version_id AND r.status<>'ready') "
+                + "ORDER BY old.version_id LIMIT 20";
+        List<D1Statement> statements = new ArrayList<>();
+        statements.add(statement(enqueueCleanup("version_id IN (" + candidates + ")")));
+        statements.add(statement("INSERT OR IGNORE INTO template_media_cleanup "
+                + "(provider,provider_asset_id,template_id,version_id) SELECT 'r2',object_key,template_id,version_id "
+                + "FROM template_runtime_packages WHERE version_id IN (" + candidates + ")"));
+        for (String table : Arrays.asList("template_version_resource_refs", "template_runtime_packages", "template_media",
+                "template_slots", "template_validation_records", "template_browser_parity_validations", "template_browser_scenes")) {
+            statements.add(statement("DELETE FROM " + table + " WHERE version_id IN (" + candidates + ")"));
+        }
+        statements.add(statement("DELETE FROM template_versions WHERE version_id IN (" + candidates + ")"));
+        d1.batch(statements);
     }
 
     public int migrateCurrentTemplatesToBrowserRendering() {

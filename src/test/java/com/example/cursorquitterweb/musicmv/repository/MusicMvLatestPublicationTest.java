@@ -51,6 +51,15 @@ class MusicMvLatestPublicationTest {
             c.createStatement().execute("INSERT INTO music_mv_projects VALUES('t','v3','{}')");
             c.createStatement().execute("INSERT INTO music_mv_render_jobs VALUES('t','v3','{}','{}','{}')");
             MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(c));
+            c.createStatement().execute("CREATE TABLE template_runtime_packages(object_key VARCHAR)");
+            c.createStatement().execute("CREATE TABLE template_resource_assets(object_key VARCHAR)");
+            c.createStatement().execute("CREATE TABLE music_mv_user_assets(asset_url VARCHAR)");
+            assertFalse(repository.cleanupRuntimeReferenced("old-package", "t", "v1"));
+            for (String table : Arrays.asList("template_runtime_packages", "template_resource_assets", "music_mv_user_assets")) {
+                c.createStatement().execute("INSERT INTO " + table + " VALUES('old-package')");
+                assertTrue(repository.cleanupRuntimeReferenced("old-package", "t", "v1"));
+                c.createStatement().execute("DELETE FROM " + table);
+            }
             assertFalse(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", null));
             c.createStatement().execute("UPDATE music_mv_projects SET template_version_id='v1'");
