@@ -43,16 +43,17 @@ public class MusicMvTemplateCatalogRepository {
     }
 
     public boolean cleanupAssetReferenced(String provider, String assetId, String templateId, String versionId) {
-        // 核对具体内容和显式素材引用；来源内容未知时仍保留。
+        // 未绑定内容的项目读取当前模板；仅明确内容绑定或实际素材引用占用旧依赖。
         if (versionId == null || versionId.trim().isEmpty()) return true;
         Map<String, Object> result = d1.query("SELECT (SELECT COUNT(*) FROM template_media WHERE provider=? AND provider_asset_id=?) "
                 + "+ (SELECT COUNT(*) FROM template_browser_scenes WHERE instr(scene_json,?)>0) "
                 + "+ (SELECT COUNT(*) FROM music_mv_projects WHERE (template_id=? "
-                + "AND (template_version_id=? OR template_version_id IS NULL OR trim(template_version_id)='')) OR instr(draft_json,?)>0) "
+                + "AND template_version_id=?) OR instr(draft_json,?)>0) "
+                + "+ (SELECT COUNT(*) FROM music_mv_user_assets WHERE instr(asset_url,?)>0) "
                 + "+ (SELECT COUNT(*) FROM music_mv_render_jobs WHERE (template_id=? AND version_id=?) "
                 + "OR instr(request_json,?)>0 OR instr(result_json,?)>0 OR instr(evidence_json,?)>0) "
                 + "+ (SELECT COUNT(*) FROM template_media WHERE version_id=? AND status<>'ready') AS total",
-                provider, assetId, assetId, templateId, versionId, assetId,
+                provider, assetId, assetId, templateId, versionId, assetId, assetId,
                 templateId, versionId, assetId, assetId, assetId, versionId).firstRow();
         if (result == null || result.get("total") == null) {
             throw new IllegalStateException("无法确认旧素材引用状态");
@@ -65,8 +66,8 @@ public class MusicMvTemplateCatalogRepository {
         Map<String, Object> result = d1.query("SELECT "
                 + "(SELECT COUNT(*) FROM template_runtime_packages WHERE object_key=?) "
                 + "+ (SELECT COUNT(*) FROM template_resource_assets WHERE object_key=?) "
-                + "+ (SELECT COUNT(*) FROM music_mv_user_assets WHERE instr(asset_url,?)>0) AS total",
-                objectKey, objectKey, objectKey).firstRow();
+                + "AS total",
+                objectKey, objectKey).firstRow();
         if (result == null || result.get("total") == null) {
             throw new IllegalStateException("无法确认旧运行包引用状态");
         }
@@ -960,7 +961,7 @@ public class MusicMvTemplateCatalogRepository {
                 + "AND current_content.status='published' AND current_content.validation_status='browser_ready' "
                 + "AND old.version_number<current_content.version_number "
                 + "AND NOT EXISTS (SELECT 1 FROM music_mv_projects p WHERE p.template_version_id=old.version_id "
-                + "OR (p.template_id=old.template_id AND (p.template_version_id IS NULL OR trim(p.template_version_id)='')) OR instr(p.draft_json,old.version_id)>0) "
+                + "OR instr(p.draft_json,old.version_id)>0) "
                 + "AND NOT EXISTS (SELECT 1 FROM music_mv_render_jobs j WHERE j.version_id=old.version_id "
                 + "OR instr(j.request_json,old.version_id)>0 OR instr(j.result_json,old.version_id)>0 "
                 + "OR instr(j.evidence_json,old.version_id)>0) "

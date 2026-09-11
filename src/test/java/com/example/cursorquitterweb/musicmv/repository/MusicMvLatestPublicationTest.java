@@ -65,6 +65,11 @@ class MusicMvLatestPublicationTest {
             c.createStatement().execute("UPDATE music_mv_projects SET template_version_id='v1'");
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
             c.createStatement().execute("UPDATE music_mv_projects SET template_version_id=NULL");
+            assertFalse(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("INSERT INTO music_mv_user_assets VALUES('https://example.invalid/asset-old/image')");
+            assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
+            c.createStatement().execute("DELETE FROM music_mv_user_assets");
+            c.createStatement().execute("UPDATE music_mv_projects SET draft_json='asset-old'");
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
             c.createStatement().execute("UPDATE music_mv_projects SET template_version_id='v3',draft_json='asset-old'");
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));

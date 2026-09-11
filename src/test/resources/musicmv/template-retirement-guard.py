@@ -16,6 +16,7 @@ preparations = {
     "unfinished_runtime": "UPDATE template_runtime_packages SET status='uploading' WHERE version_id='v1'",
     "unfinished_media": "UPDATE template_media SET status='uploading' WHERE version_id='v1'",
 }
+retired = {"unused", "unknown_project", "empty_project"}
 for name, prepare in preparations.items():
     db = sqlite3.connect(":memory:")
     db.execute("PRAGMA foreign_keys=ON")
@@ -44,9 +45,9 @@ for name, prepare in preparations.items():
         for statement in statements:
             db.execute(statement["sql"], statement["params"])
     remaining = [r[0] for r in db.execute("SELECT version_id FROM template_versions ORDER BY version_id")]
-    assert remaining == (["v2", "v3"] if name == "unused" else ["v1", "v2", "v3"]), (name, remaining)
+    assert remaining == (["v2", "v3"] if name in retired else ["v1", "v2", "v3"]), (name, remaining)
     queue = list(db.execute("SELECT provider,provider_asset_id FROM template_media_cleanup ORDER BY provider"))
-    assert queue == ([("cloudflare_images", "old-image"), ("r2", "old-package")] if name == "unused" else []), (name, queue)
+    assert queue == ([("cloudflare_images", "old-image"), ("r2", "old-package")] if name in retired else []), (name, queue)
     assert db.execute("SELECT * FROM music_mv_user_assets").fetchall() == [("user-photo",)]
     assert db.execute("SELECT current_version_id FROM templates").fetchone()[0] == "v2"
     assert db.execute("PRAGMA foreign_key_check").fetchall() == []
