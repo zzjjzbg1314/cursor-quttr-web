@@ -37,14 +37,15 @@ final class BrowserNativeGlobalEffectContract {
             safe(start+duration);safe(offset+sourceStart);safe(offset+sourceStart+sourceDuration);
             long index=index(source.get("renderIndex")),track=index(source.get("trackRenderIndex"));
             if(((Number)descriptor.get("layerMode")).intValue()==1)safe(track*100);
-            if(!(source.get("visible") instanceof Boolean)||!finite(source.get("value"))
-                    ||!list(source.get("commonKeyframes")).isEmpty())throw invalid();
+            if(!(source.get("visible") instanceof Boolean)||!finite(source.get("value")))throw invalid();
             Set<String> params=new HashSet<>();
             for(Object value:list(source.get("adjustParams"))) {
                 Map<?,?> param=map(value);String name=id(param.get("name"));
                 if(!params.add(name)||Arrays.asList("__proto__","constructor","prototype").contains(name)
                         ||!finite(param.get("value")))throw invalid();
             }
+            try { BrowserNativeEffectKeyframes.validate(source.get("commonKeyframes"),params); }
+            catch(java.io.IOException error) { throw invalid(); }
         }
         return owned;
     }
