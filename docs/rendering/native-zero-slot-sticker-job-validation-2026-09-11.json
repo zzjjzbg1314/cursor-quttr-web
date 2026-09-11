@@ -22,5 +22,13 @@
   "newTestVariants": 14,
   "oldCodeReproducesFailure": true,
   "ssimRun": false,
-  "actualCloudRoundtrip": false
+  "actualCloudRoundtrip": false,
+  "localServiceRollout": {
+    "oldPid": 17202,
+    "pid": 21922,
+    "ready": true,
+    "catalogCount": 8,
+    "publishedVersionsUnchanged": true,
+    "commit": "dc3f10a"
+  }
 }
