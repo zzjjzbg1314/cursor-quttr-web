@@ -16,6 +16,15 @@ for case in json.load(sys.stdin):
     if name in ("bound_old", "deleted_bound"):
         db.execute("INSERT INTO music_mv_projects(project_id,user_id,template_id,template_version_id,revision,updated_at) VALUES('p','u','t','v1',1,'before')")
         db.execute("INSERT INTO music_mv_project_assets VALUES('p','photo')")
+    if name.startswith("unbound_"):
+        db.execute("INSERT INTO music_mv_projects(project_id,user_id,template_id,template_version_id,revision,updated_at) VALUES('p','u','t',NULL,1,'before')")
+        db.execute("INSERT INTO music_mv_project_assets VALUES('p','photo')")
+        if name == "unbound_other_owner":
+            db.execute("UPDATE music_mv_projects SET user_id='other'")
+        if name == "unbound_other_template":
+            db.execute("UPDATE music_mv_projects SET template_id='other'")
+        if name == "unbound_deleted":
+            db.execute("UPDATE templates SET deleted_at='deleted'")
     if name == "deleted_bound":
         db.execute("DELETE FROM template_versions WHERE version_id='v1'")
     db.commit()
@@ -23,10 +32,10 @@ for case in json.load(sys.stdin):
         for statement in case["statements"]:
             db.execute(statement["sql"], statement["params"])
     row = db.execute("SELECT updated_at FROM music_mv_projects WHERE project_id='p'").fetchone()
-    expected = name in ("current", "bound_old", "none")
+    expected = name in ("current", "bound_old", "none", "unbound_existing")
     assert bool(row and row[0] == "marker") == expected, name
-    if name == "deleted_bound":
+    if name in ("deleted_bound", "unbound_other_owner", "unbound_other_template", "unbound_deleted"):
         assert row[0] == "before"
         assert db.execute("SELECT COUNT(*) FROM music_mv_project_assets").fetchone()[0] == 1
     db.close()
-print("7 cases passed")
+print("11 cases passed")
