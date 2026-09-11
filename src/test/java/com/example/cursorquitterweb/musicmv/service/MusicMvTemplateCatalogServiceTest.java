@@ -75,6 +75,56 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void preservesNativeNonlinearSceneThroughSyncAndPublicDetail() throws Exception {
+        Map<String,Object> template=row("template_id","tpl_1"), version=row("version_id","tplver_1");
+        template.put("status","published");template.put("visibility","public");template.put("current_version_id","tplver_1");
+        version.put("width",1080);version.put("height",1920);version.put("fps",30);
+        when(repository.template("tpl_1")).thenReturn(template);
+        when(repository.version("tpl_1","tplver_1")).thenReturn(version);
+        ObjectMapper mapper=new ObjectMapper();
+        Map<String,Object> scene=mapper.readValue(getClass().getResourceAsStream("/musicmv/browser-native-nonlinear-scene.json"),Map.class);
+        TemplateBrowserSceneRequest request=new TemplateBrowserSceneRequest();
+        request.setScene(scene);request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
+        String original=mapper.writeValueAsString(scene);request.setManifestSha256(sha256(original));
+        assertEquals("ready",service.synchronizeBrowserScene("tpl_1","tplver_1",request).get("status"));
+        ArgumentCaptor<String> json=ArgumentCaptor.forClass(String.class);
+        verify(repository).upsertBrowserScene(eq("tpl_1"),eq("tplver_1"),eq(request.getSchemaVersion()),eq(request.getManifestSha256()),eq("ready"),json.capture());
+        assertEquals(mapper.readTree(original),mapper.readTree(json.getValue()));
+        Map<String,Object> stored=row("version_id","tplver_1");stored.put("status","ready");
+        stored.put("schema_version",request.getSchemaVersion());stored.put("manifest_sha256",request.getManifestSha256());stored.put("scene_json",json.getValue());
+        when(repository.templateDetail(eq("tpl_1"),org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(new TemplateDetailRows(template,
+                Collections.emptyList(),null,Collections.emptyList(),Collections.singletonList(version),Collections.emptyList(),Collections.emptyList(),Collections.singletonList(stored)));
+        Map<String,Object> detail=service.detail("tpl_1",false);
+        Map<String,Object> resultVersion=((List<Map<String,Object>>)detail.get("versions")).get(0);
+        Map<String,Object> browser=(Map<String,Object>)resultVersion.get("browserRender");
+        assertEquals(request.getManifestSha256(),browser.get("sceneManifestSha256"));
+        assertEquals(mapper.readTree(original),mapper.valueToTree(browser.get("scene")));
+        Map<String,Object> layer=((List<Map<String,Object>>)((Map<String,Object>)browser.get("scene")).get("layers")).get(0);
+        assertEquals(((List<?>)scene.get("layers")).get(0),layer);
+        assertEquals("motion-graph",((Map<?,?>)((List<?>)layer.get("keyframe_graph_list")).get(0)).get("id"));
+        assertTrue(layer.containsKey("nativeSpeedBinding"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void rejectsNativeCurveSceneWithoutVerifiedKeyframeClockBeforeSaving() throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> scene = mapper.readValue(getClass().getResourceAsStream(
+                "/musicmv/browser-native-curve-clock-missing-scene.json"), Map.class);
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setScene(scene);
+        request.setSchemaVersion(String.valueOf(scene.get("schemaVersion")));
+        request.setManifestSha256(sha256(mapper.writeValueAsString(scene)));
+        assertEquals("TEMPLATE_BROWSER_SCENE_ANIMATION_NOT_READY", assertThrows(ApiException.class,
+                () -> service.synchronizeBrowserScene("tpl_1", "tplver_1", request)).getCode());
+        verify(repository, never()).upsertBrowserScene(anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString());
+    }
+
+    @Test
     void nativeBindingRelativePathsAreAllowedOnlyInRuntimeDelivery() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));

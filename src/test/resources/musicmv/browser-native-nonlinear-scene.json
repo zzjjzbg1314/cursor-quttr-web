@@ -1,0 +1,692 @@
+{
+  "schemaVersion": "browser-template-scene-v6",
+  "templateId": "tpl_1",
+  "versionId": "tplver_1",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "ratio": "original",
+    "fps": 30.0,
+    "durationRaw": 600000,
+    "durationSeconds": 0.6
+  },
+  "slots": [],
+  "timelineSegments": [],
+  "textLayers": [],
+  "layers": [
+    {
+      "segmentId": "video-segment",
+      "targetStartSeconds": 0.0,
+      "targetDurationSeconds": 0.6,
+      "sourceStartSeconds": 0.2,
+      "sourceDurationSeconds": 1.2,
+      "speed": 2.0,
+      "renderIndex": 0,
+      "trackRenderIndex": 0,
+      "originalTimeline": {
+        "trackId": "video-track",
+        "speed": 2.0,
+        "targetStartRaw": "0",
+        "targetDurationRaw": "600000",
+        "sourceStartRaw": "200000",
+        "sourceDurationRaw": "1200000"
+      },
+      "nativeSpeedBinding": {
+        "schemaVersion": "native-segment-speed-v1",
+        "status": "source_bound",
+        "materialId": "CD70D753-2DB0-4AFC-A455-7F2CBA7A27FA",
+        "source": {
+          "schemaVersion": "native-speed-source-v1",
+          "speedDeclared": true,
+          "speed": 2,
+          "modeDeclared": true,
+          "mode": 0,
+          "curve_speedDeclared": true,
+          "curve_speed": null
+        }
+      },
+      "nativeVideoSourceSelection": {
+        "schemaVersion": "native-video-source-selection-v1",
+        "status": "original_source"
+      },
+      "resourceKey": "video_video-source",
+      "sourceWidth": 1024,
+      "sourceHeight": 512,
+      "sourceCrop": {
+        "left": 0.0,
+        "top": 0.0,
+        "right": 1.0,
+        "bottom": 1.0
+      },
+      "videoCrop": {
+        "upper_left_x": 0,
+        "upper_left_y": 0,
+        "upper_right_x": 1,
+        "upper_right_y": 0,
+        "lower_left_x": 0,
+        "lower_left_y": 1,
+        "lower_right_x": 1,
+        "lower_right_y": 1,
+        "cropScale": 1,
+        "cropRatio": "free",
+        "coordinateSpace": "normalized_texture_quad",
+        "executionContract": "capcut_web_video_crop_filter_v1"
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {
+          "x": 1,
+          "y": 1
+        },
+        "transform": {
+          "x": 0,
+          "y": 0
+        },
+        "flip": {
+          "horizontal": false,
+          "vertical": false
+        },
+        "rotation": 0,
+        "alpha": 1
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [
+        {
+          "id": "motion",
+          "property_type": "KFTypePositionX",
+          "material_id": "",
+          "keyframe_list": [
+            {
+              "time_offset": 200000,
+              "values": [
+                -0.15
+              ],
+              "curveType": "CurveInOut",
+              "graphID": "",
+              "string_value": "",
+              "left_control": {
+                "x": 0,
+                "y": 0
+              },
+              "right_control": {
+                "x": 20000,
+                "y": 0.05
+              }
+            },
+            {
+              "time_offset": 1400000,
+              "values": [
+                0.15
+              ],
+              "curveType": "CurveInOut",
+              "graphID": "motion-graph",
+              "string_value": "",
+              "left_control": {
+                "x": -20000,
+                "y": -0.05
+              },
+              "right_control": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          ]
+        }
+      ],
+      "keyframe_graph_list": [
+        {
+          "id": "motion-graph",
+          "graph_points": [
+            {
+              "type": 0,
+              "point": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "type": 1,
+              "point": {
+                "x": 0.25,
+                "y": 0.1
+              }
+            },
+            {
+              "type": 1,
+              "point": {
+                "x": 0.75,
+                "y": 0.9
+              }
+            },
+            {
+              "type": 0,
+              "point": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          ]
+        }
+      ],
+      "draft_keyframe_clock": {
+        "mode": "source",
+        "start": 200000,
+        "speed": 2.0
+      },
+      "draft_keyframe_bindings": {
+        "contractVersion": "draft-keyframe-bindings-v3",
+        "absentProperties": []
+      },
+      "layerId": "video-segment",
+      "type": "video"
+    }
+  ],
+  "postEffects": [],
+  "resources": [
+    {
+      "resourceKey": "video_video-source",
+      "kind": "video",
+      "resourceId": "video-source",
+      "role": "browser_resource:video_video-source",
+      "fontFamily": null,
+      "inlineData": null,
+      "contentType": "video/mp4",
+      "contentSha256": null,
+      "spriteAtlas": null
+    }
+  ],
+  "renderIr": {
+    "version": "browser-render-ir-v2",
+    "canvas": {
+      "width": 1080,
+      "height": 1920,
+      "ratio": "original",
+      "fps": 30.0,
+      "durationRaw": 600000,
+      "durationSeconds": 0.6
+    },
+    "layers": [
+      {
+        "id": "video-segment",
+        "kind": "video",
+        "startSeconds": 0.0,
+        "durationSeconds": 0.6,
+        "trackRenderIndex": 0,
+        "renderIndex": 0,
+        "source": {
+          "slotKey": null,
+          "resourceKey": "video_video-source",
+          "speed": 2.0,
+          "videoCrop": {
+            "upper_left_x": 0,
+            "upper_left_y": 0,
+            "upper_right_x": 1,
+            "upper_right_y": 0,
+            "lower_left_x": 0,
+            "lower_left_y": 1,
+            "lower_right_x": 1,
+            "lower_right_y": 1,
+            "cropScale": 1,
+            "cropRatio": "free",
+            "coordinateSpace": "normalized_texture_quad",
+            "executionContract": "capcut_web_video_crop_filter_v1"
+          },
+          "width": 1024,
+          "height": 512,
+          "startSeconds": 0.2,
+          "durationSeconds": 1.2,
+          "crop": {
+            "left": 0.0,
+            "top": 0.0,
+            "right": 1.0,
+            "bottom": 1.0
+          }
+        },
+        "originalTimeline": {
+          "trackId": "video-track",
+          "speed": 2.0,
+          "targetStartRaw": "0",
+          "targetDurationRaw": "600000",
+          "sourceStartRaw": "200000",
+          "sourceDurationRaw": "1200000"
+        },
+        "nativeStickerSource": null,
+        "nativeSpeedBinding": {
+          "schemaVersion": "native-segment-speed-v1",
+          "status": "source_bound",
+          "materialId": "CD70D753-2DB0-4AFC-A455-7F2CBA7A27FA",
+          "source": {
+            "schemaVersion": "native-speed-source-v1",
+            "speedDeclared": true,
+            "speed": 2,
+            "modeDeclared": true,
+            "mode": 0,
+            "curve_speedDeclared": true,
+            "curve_speed": null
+          }
+        },
+        "nativeVideoSourceSelection": {
+          "schemaVersion": "native-video-source-selection-v1",
+          "status": "original_source"
+        },
+        "clip": {
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
+          "transform": {
+            "x": 0,
+            "y": 0
+          },
+          "flip": {
+            "horizontal": false,
+            "vertical": false
+          },
+          "rotation": 0,
+          "alpha": 1
+        },
+        "keyframes": [],
+        "animations": [],
+        "transitionIn": null,
+        "effects": [],
+        "blendMode": "source-over",
+        "nativeBlendResourceId": null,
+        "mask": null,
+        "common_keyframes": [
+          {
+            "id": "motion",
+            "property_type": "KFTypePositionX",
+            "material_id": "",
+            "keyframe_list": [
+              {
+                "time_offset": 200000,
+                "values": [
+                  -0.15
+                ],
+                "curveType": "CurveInOut",
+                "graphID": "",
+                "string_value": "",
+                "left_control": {
+                  "x": 0,
+                  "y": 0
+                },
+                "right_control": {
+                  "x": 20000,
+                  "y": 0.05
+                }
+              },
+              {
+                "time_offset": 1400000,
+                "values": [
+                  0.15
+                ],
+                "curveType": "CurveInOut",
+                "graphID": "motion-graph",
+                "string_value": "",
+                "left_control": {
+                  "x": -20000,
+                  "y": -0.05
+                },
+                "right_control": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            ]
+          }
+        ],
+        "keyframe_graph_list": [
+          {
+            "id": "motion-graph",
+            "graph_points": [
+              {
+                "type": 0,
+                "point": {
+                  "x": 0,
+                  "y": 0
+                }
+              },
+              {
+                "type": 1,
+                "point": {
+                  "x": 0.25,
+                  "y": 0.1
+                }
+              },
+              {
+                "type": 1,
+                "point": {
+                  "x": 0.75,
+                  "y": 0.9
+                }
+              },
+              {
+                "type": 0,
+                "point": {
+                  "x": 1,
+                  "y": 1
+                }
+              }
+            ]
+          }
+        ],
+        "draft_keyframe_clock": {
+          "mode": "source",
+          "start": 200000,
+          "speed": 2.0
+        },
+        "draft_keyframe_bindings": {
+          "contractVersion": "draft-keyframe-bindings-v3",
+          "absentProperties": []
+        }
+      }
+    ],
+    "postEffects": [],
+    "resources": [
+      {
+        "resourceKey": "video_video-source",
+        "kind": "video",
+        "resourceId": "video-source",
+        "role": "browser_resource:video_video-source",
+        "fontFamily": null,
+        "inlineData": null,
+        "contentType": "video/mp4",
+        "contentSha256": null,
+        "spriteAtlas": null
+      }
+    ],
+    "policy": {
+      "coordinateSpace": "canvas_center_normalized_y_up",
+      "timeUnit": "seconds",
+      "transitionClock": "dual_input_ab_v1",
+      "unsupported": "block_export"
+    }
+  },
+  "layerModel": "original_draft_scene_graph_v2",
+  "capability": {
+    "formalPhotoSlotCount": 0,
+    "resolvedPhotoSlotCount": 0,
+    "photoReplacementReady": true,
+    "privateEffectsMode": "browser_scene_layers",
+    "privateEffectsEditable": false,
+    "photoAnimationReady": true,
+    "photoAnimationContract": "timeline_keyframes_v1",
+    "animatedPhotoSegmentCount": 0,
+    "photoKeyframeCount": 0,
+    "unsupportedPhotoKeyframeCount": 0,
+    "draftPhotoSegmentCount": 0,
+    "publishedPhotoSegmentCount": 0,
+    "browserFixedPhotoLayerCount": 0,
+    "unmappedDraftPhotoSegmentCount": 0,
+    "unsupportedBrowserAnimationCount": 0,
+    "browserAnimationApproximationCount": 0,
+    "unsupportedBrowserTransitionCount": 0,
+    "browserTransitionApproximationCount": 0,
+    "browserLayerEffectApproximationCount": 0,
+    "unsupportedBrowserLayerEffectCount": 0,
+    "browserLayerCompositionReady": true,
+    "browserTextLayerCount": 0,
+    "browserTextTemplateApproximationCount": 0,
+    "declaredTextTemplateDecorationCount": 0,
+    "browserTextTemplateDecorationCount": 0,
+    "browserPostEffectApproximationCount": 0,
+    "unsupportedBrowserPostEffectCount": 0,
+    "unsupportedBrowserMaskCount": 0,
+    "browserMaskApproximationCount": 0,
+    "unsupportedBrowserBlendModeCount": 0,
+    "declaredBrowserVideoCropCount": 0,
+    "unsupportedBrowserVideoCropCount": 0,
+    "browserFontFallbackCount": 0,
+    "draftVideoLayerCount": 1,
+    "browserVideoLayerCount": 1,
+    "draftStickerLayerCount": 0,
+    "browserStickerLayerCount": 0,
+    "unsupportedVisualLayerCount": 0,
+    "executionCapabilities": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 2,
+        "executableCount": 2,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "blockingFeatures": [],
+    "resourceDiagnostics": [],
+    "browserExportReady": true,
+    "browserSceneExactReady": true
+  },
+  "capabilityReport": {
+    "schemaVersion": "browser-scene-capability-report-v1",
+    "effectRegistryContract": "browser_effect_registry_v1",
+    "features": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 2,
+        "executableCount": 2,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "effectImplementations": [
+      {
+        "kind": "blend_mode",
+        "implementationKey": "source-over",
+        "renderer": "canvas_composite_v1",
+        "usageCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      }
+    ],
+    "summary": {
+      "declaredItemCount": 3,
+      "executableItemCount": 3,
+      "exactFeatureCount": 4,
+      "approximateFeatureCount": 0,
+      "unsupportedFeatureCount": 0,
+      "effectImplementationCount": 1
+    }
+  },
+  "renderStrategy": "browser_scene_graph_composition_v2",
+  "runtimeDelivery": {
+    "schemaVersion": "browser-runtime-delivery-v1",
+    "paths": [],
+    "nativeEngine": {
+      "schemaVersion": "browser-native-scene-runtime-v4",
+      "assets": {
+        "loaderUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/loader.js",
+        "mainWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/main.wasm",
+        "mediaWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/media.wasm",
+        "workerUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worker.mjs",
+        "workletUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worklet.js"
+      },
+      "videoAudioPolicy": "external_music_only",
+      "layerMode": 0,
+      "files": [],
+      "bindings": []
+    }
+  }
+}
