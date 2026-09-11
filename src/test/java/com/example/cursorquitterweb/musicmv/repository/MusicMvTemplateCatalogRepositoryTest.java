@@ -236,7 +236,7 @@ class MusicMvTemplateCatalogRepositoryTest {
         TemplatePromotionRequest.Slot slot = new TemplatePromotionRequest.Slot();
         slot.setSlotKey("photo_1"); slot.setSlotType("image"); slot.setDisplayName("Photo");
         slot.setTimelineOrder(0); slot.setCropPolicy("fill"); slot.setRepeatPolicy("cycle");
-        request.getSlots().add(slot);
+        request.setSlots(java.util.Collections.singletonList(slot));
         return request;
     }
 

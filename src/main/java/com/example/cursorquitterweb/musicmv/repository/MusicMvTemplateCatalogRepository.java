@@ -198,6 +198,7 @@ public class MusicMvTemplateCatalogRepository {
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
+        if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
         if (categoryKey != null) {
             sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
                     + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("
@@ -240,6 +241,7 @@ public class MusicMvTemplateCatalogRepository {
                 + "WHERE t.deleted_at IS NULL ");
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
+        if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
         if (categoryKey != null) {
             sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
                     + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("

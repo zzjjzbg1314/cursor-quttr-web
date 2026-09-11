@@ -30,8 +30,8 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(13);
-        assertThat(result.get("categoryCount")).isEqualTo(25L);
+        assertThat(result.get("schemaVersion")).isEqualTo(14);
+        assertThat(result.get("categoryCount")).isEqualTo(11L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "CREATE TABLE IF NOT EXISTS music_mv_schema_metadata"));
@@ -77,6 +77,20 @@ class MusicMvD1SchemaInitializerTest {
                         assertThat(exception.getCode()).isEqualTo("MUSIC_MV_D1_DATABASE_ID_MISMATCH"));
     }
 
+    @Test
+    void migratesRealSqliteWithoutLosingTemplatesAndKeepsHistoryOnRepeat() throws Exception {
+        CapturingD1 d1 = new CapturingD1(DATABASE_ID, CapturingD1.knownTables());
+        initializer(d1).initialize(DATABASE_ID);
+        java.nio.file.Path payload = java.nio.file.Files.createTempFile("topic-migration", ".json");
+        try {
+            new ObjectMapper().writeValue(payload.toFile(), d1.boundQueries);
+            Process process = new ProcessBuilder("python3", "src/test/resources/musicmv/topic-migration-check.py", payload.toString()).redirectErrorStream(true).start();
+            assertThat(process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(process.exitValue()).withFailMessage(output).isZero();
+        } finally { java.nio.file.Files.deleteIfExists(payload); }
+    }
+
     private MusicMvD1SchemaInitializer initializer(CapturingD1 d1) {
         return new MusicMvD1SchemaInitializer(d1,
                 new ClassPathResource("db/music-mv-d1-schema.sql"));
@@ -87,6 +101,7 @@ class MusicMvD1SchemaInitializerTest {
         private final List<String> initialTables;
         private final List<String> statements = new ArrayList<String>();
         private final List<String> queries = new ArrayList<String>();
+        private final List<Map<String, Object>> boundQueries = new ArrayList<>();
         private boolean applied;
         private String metadataSha256;
 
@@ -109,6 +124,7 @@ class MusicMvD1SchemaInitializerTest {
         @Override
         public D1QueryResult query(String sql, Object... params) {
             queries.add(sql);
+            Map<String, Object> bound = new LinkedHashMap<>(); bound.put("sql", sql); bound.put("params", Arrays.asList(params)); boundQueries.add(bound);
             if (sql.contains("sqlite_master")) {
                 return rows(tableRows(applied ? knownTables() : initialTables));
             }
@@ -138,8 +154,13 @@ class MusicMvD1SchemaInitializerTest {
             if (sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
-            if (sql.startsWith("UPDATE templates SET category_key=?")
-                    || sql.startsWith("UPDATE template_categories SET parent_key=?")
+            if (sql.startsWith("DELETE FROM template_category_items WHERE category_key IN")
+                    || sql.startsWith("CREATE TABLE IF NOT EXISTS template_taxonomy_history")
+                    || sql.startsWith("INSERT OR IGNORE INTO template_taxonomy_history")
+                    || sql.startsWith("SELECT t.template_id,t.category_key,t.status,h.old_category_key")
+                    || sql.startsWith("UPDATE template_category_items SET is_primary=")
+                    || sql.startsWith("UPDATE templates SET category_key=?")
+                    || sql.startsWith("UPDATE template_categories SET parent_key=NULL")
                     || sql.startsWith("UPDATE template_categories SET enabled=0")
                     || sql.startsWith("DELETE FROM template_collection_items")
                     || sql.startsWith("INSERT OR IGNORE INTO template_collection_items")
@@ -148,11 +169,11 @@ class MusicMvD1SchemaInitializerTest {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
             if (sql.contains("COUNT(*) AS category_count")) {
-                return row("category_count", Long.valueOf(applied ? 25L : 0L));
+                return row("category_count", Long.valueOf(applied ? 11L : 0L));
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(13));
+                metadata.put("schema_version", Integer.valueOf(14));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }
@@ -163,6 +184,8 @@ class MusicMvD1SchemaInitializerTest {
         public List<D1QueryResult> batch(List<D1Statement> batch) {
             for (D1Statement statement : batch) {
                 statements.add(statement.getSql());
+                queries.add(statement.getSql());
+                Map<String, Object> bound = new LinkedHashMap<>(); bound.put("sql", statement.getSql()); bound.put("params", statement.getParams()); boundQueries.add(bound);
             }
             applied = true;
             return Collections.emptyList();

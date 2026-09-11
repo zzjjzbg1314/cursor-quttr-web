@@ -413,7 +413,7 @@ class MusicMvTemplateCatalogServiceTest {
 
         Set<String> keys = capturedCategoryKeys("family");
         assertEquals(new HashSet<String>(Arrays.asList(
-                "family", "holidays-parties", "love-thanks")), keys);
+                "family")), keys);
     }
 
     @Test
@@ -429,7 +429,7 @@ class MusicMvTemplateCatalogServiceTest {
 
         Set<String> keys = capturedCategoryKeys("family");
         assertTrue(keys.containsAll(Arrays.asList(
-                "family", "fathers-day", "holidays-parties", "love-thanks")));
+                "family")));
     }
 
     @Test
@@ -443,10 +443,8 @@ class MusicMvTemplateCatalogServiceTest {
 
         service.promote(request);
 
-        Set<String> keys = capturedCategoryKeys("family");
-        assertTrue(keys.containsAll(Arrays.asList(
-                "family", "baby-kids", "growing-up", "recap")));
-        assertEquals(Integer.valueOf(4), Integer.valueOf(keys.size()));
+        Set<String> keys = capturedCategoryKeys("baby-kids");
+        assertEquals(Collections.singleton("baby-kids"), keys);
     }
 
     @Test
@@ -479,16 +477,51 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void birthdayContentOverridesBroadAnniversarySource() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("anniversary"); request.setSourceCategory("Anniversary");
+        request.setSourceTitle("Happy Birthday Baby");
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(1);
+        service.promote(request);
+        assertEquals(new HashSet<>(Arrays.asList("birthday", "baby-kids")), capturedCategoryKeys("birthday"));
+    }
+
+    @Test
+    void weddingAnniversaryUsesAnniversaryAsPrimary() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("wedding"); request.setSourceTitle("Happy wedding anniversary");
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(1);
+        service.promote(request);
+        assertTrue(capturedCategoryKeys("anniversary").contains("anniversary"));
+    }
+
+    @Test
+    void memorialRequiresManualReviewInsteadOfAutomaticAnniversary() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("anniversary"); request.setSourceTitle("Memorial anniversary for dad");
+        assertEquals("TEMPLATE_CLASSIFICATION_REVIEW_REQUIRED", assertThrows(ApiException.class, () -> service.promote(request)).getCode());
+    }
+
+    @Test
+    void graduationUsesSchoolTopic() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCategoryKey("school-life"); request.setSourceTitle("Graduation day");
+        when(repository.nextVersionNumber("tpl_1")).thenReturn(1);
+        service.promote(request);
+        assertEquals(Collections.singleton("school-life"), capturedCategoryKeys("school-life"));
+    }
+
+    @Test
     void doesNotTreatMomentsAsTheShortFamilyKeywordMom() {
         TemplatePromotionRequest request = validPromotion();
-        request.setCategoryKey("recap");
+        request.setCategoryKey("daily-life");
         request.setSourceTitle("Summer moments");
         request.setSourceHashtags(Collections.singletonList("moments"));
         when(repository.nextVersionNumber("tpl_1")).thenReturn(Integer.valueOf(1));
 
         service.promote(request);
 
-        Set<String> keys = capturedCategoryKeys("recap");
+        Set<String> keys = capturedCategoryKeys("daily-life");
         assertFalse(keys.contains("family"));
     }
 

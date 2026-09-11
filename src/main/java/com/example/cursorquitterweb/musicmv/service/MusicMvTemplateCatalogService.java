@@ -363,6 +363,15 @@ public class MusicMvTemplateCatalogService {
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
         requirePromotionEvidence(request);
+        Map<String, Object> previousSource = repository.templateSourceMetadata(request.getTemplateId());
+        if (previousSource != null && RowUtils.bool(previousSource, "classification_locked")) {
+            Map<String, Object> previous = repository.template(request.getTemplateId());
+            if (previous != null) {
+                request.setCategoryKey(RowUtils.str(previous, "category_key"));
+                request.setCategoryKeys(categoryKeys(request.getTemplateId()));
+                request.setClassificationLocked(Boolean.TRUE);
+            }
+        }
         requireLeafCategory(request.getCategoryKey());
         List<String> sourceHashtags = rawHashtags(request.getSourceHashtags());
         List<Map<String, Object>> categoryAssignments = categoryAssignments(
@@ -2358,6 +2367,12 @@ public class MusicMvTemplateCatalogService {
             String primary, List<String> selected, String title, String description,
             String sourceCategory, String searchKeyword, List<String> hashtags,
             boolean locked) {
+        if (!locked) {
+            String content = (safe(title) + " " + safe(description) + " " + joinLower(hashtags == null ? Collections.<String>emptyList() : hashtags)).toLowerCase(java.util.Locale.ROOT);
+            for (String term : Arrays.asList("memorial", "rest in peace", "in memory of", "passed away", "缅怀", "追思", "逝世")) {
+                if (content.contains(term)) throw badRequest("TEMPLATE_CLASSIFICATION_REVIEW_REQUIRED", "This template needs a manually confirmed topic before publishing");
+            }
+        }
         Map<String, Map<String, Object>> automatic = locked
                 ? Collections.<String, Map<String, Object>>emptyMap()
                 : classifySource(title, description, sourceCategory, searchKeyword, hashtags);
@@ -2424,54 +2439,17 @@ public class MusicMvTemplateCatalogService {
             String searchKeyword, List<String> hashtags) {
         String hashtagText = hashtags == null ? "" : joinLower(hashtags);
         String[][] rules = new String[][] {
-                {"birthday", "birthday", "birth day", "bday", "happybirthday",
-                        "cumpleaños", "cumpleanos", "生日"},
-                {"wedding", "wedding", "bride", "groom", "婚礼", "结婚"},
+                {"birthday", "birthday", "birth day", "bday", "hbd", "happybirthday", "cumpleaños", "cumpleanos", "生日", "周岁"},
                 {"anniversary", "anniversary", "纪念日", "周年"},
-                {"graduation", "graduation", "graduate", "毕业"},
-                {"fathers-day", "father's day", "fathers day", "fathersday", "父亲节"},
-                {"holidays-parties", "christmas", "holiday", "party", "festival",
-                        "mother's day", "mothers day", "mothersday", "father's day",
-                        "fathers day", "fathersday", "thanksgiving", "母亲节", "父亲节",
-                        "节日", "派对"},
-                {"family", "family", "familia", "família", "mom", "mommy", "mama",
-                        "mum", "mother", "dad", "daddy", "papa", "father", "parent",
-                        "grandparent", "grandma", "grandpa", "daughter", "brother", "sister",
-                        "son", "sons", "sibling", "cousin", "aunt", "uncle", "niece",
-                        "nephew", "bestmom", "bestdad", "momlife", "dadlife", "家庭",
-                        "家人", "亲情", "妈妈", "母亲",
-                        "爸爸", "父亲", "爷爷", "奶奶", "外公", "外婆", "女儿",
-                        "儿子", "兄弟", "姐妹"},
-                {"baby-kids", "baby", "babies", "kid", "kids", "child", "children",
-                        "newborn", "toddler", "infant", "baby girl", "baby boy", "宝宝",
-                        "婴儿", "孩子", "儿童", "幼儿"},
-                {"couples", "couple", "relationship", "boyfriend", "girlfriend", "情侣", "恋爱"},
+                {"wedding", "wedding", "bride", "groom", "proposal", "婚礼", "求婚"},
+                {"family", "family", "familia", "mom", "mommy", "mother", "dad", "father", "parent", "grandma", "grandpa", "mother's day", "mothersday", "father's day", "fathersday", "bestmom", "bestdad", "家庭", "亲情", "妈妈", "爸爸", "父亲节", "母亲节"},
+                {"baby-kids", "baby", "babies", "kid", "kids", "child", "children", "newborn", "toddler", "first year", "firstyear", "childhood", "宝宝", "婴儿", "孩子", "儿童", "满月", "百天"},
+                {"couples", "couple", "relationship", "boyfriend", "girlfriend", "romance", "love story", "情侣", "恋爱", "告白", "爱情"},
                 {"friendship", "friendship", "friends", "bestfriend", "友情", "朋友", "闺蜜"},
-                {"daily-life", "daily", "vlog", "dayinmylife", "day in my life",
-                        "family time", "familytime", "home life", "weekend", "日常", "生活"},
-                {"travel", "travel", "trip", "vacation", "family vacation", "roadtrip",
-                        "road trip", "journey", "旅行", "旅游", "度假"},
-                {"school-life", "school", "campus", "classmate", "校园", "同学"},
-                {"growing-up", "growth", "growing", "growing up", "growup", "milestone",
-                        "first year", "firstyear", "1st year", "month old", "monthold",
-                        "months old", "monthsold", "childhood", "first steps", "first smile",
-                        "baby growth", "babygrowth", "mêsversário",
-                        "mesversario", "成长", "月龄", "满月", "百天", "周岁"},
-                {"recap", "recap", "review", "year in review", "memory", "memories",
-                        "family memories", "photo dump", "photodump", "album", "montage",
-                        "回顾", "总结", "回忆", "相册"},
-                {"hobbies-interests", "sports", "gaming", "anime", "hobby", "运动", "游戏", "兴趣"},
-                {"motivation", "motivation", "inspiration", "励志", "鼓励"},
-                {"healing", "healing", "comfort", "疗愈", "治愈"},
-                {"love-thanks", "grateful", "gratitude", "thank", "appreciate", "love",
-                        "love you", "best mom", "bestmom", "best mum", "best dad", "bestdad",
-                        "ilovemom", "ilovedad", "mother's day",
-                        "mothers day", "mothersday", "father's day", "fathers day", "fathersday",
-                        "感谢", "感恩", "爱", "最好的妈妈", "最好的爸爸"},
-                {"farewell-breakup", "farewell", "goodbye", "breakup", "告别", "分手"},
-                {"memorial", "memorial", "remembering", "remembrance", "deceased",
-                        "in memory of", "in heaven", "heavenly", "rest in peace", "passed away",
-                        "缅怀", "追思", "怀念", "已故", "逝世"}
+                {"school-life", "school", "campus", "classmate", "graduation", "graduate", "校园", "同学", "毕业"},
+                {"travel", "travel", "trip", "vacation", "roadtrip", "旅行", "旅游", "度假"},
+                {"daily-life", "daily", "vlog", "dayinmylife", "weekend", "日常", "生活记录"},
+                {"motivation", "motivation", "inspiration", "励志", "奋斗", "突破", "重新出发"}
         };
         Map<String, Map<String, Object>> result = new LinkedHashMap<String, Map<String, Object>>();
         for (String[] rule : rules) {
@@ -2480,10 +2458,10 @@ public class MusicMvTemplateCatalogService {
             System.arraycopy(rule, 1, terms, 0, terms.length);
             List<Map<String, Object>> evidence = new ArrayList<Map<String, Object>>();
             double confidence = 0.0;
-            confidence = Math.max(confidence, evidence(evidence, "sourceCategory", sourceCategory, 1.0, terms));
-            confidence = Math.max(confidence, evidence(evidence, "sourceHashtags", hashtagText, 0.9, terms));
-            confidence = Math.max(confidence, evidence(evidence, "sourceTitle", title, 0.8, terms));
-            confidence = Math.max(confidence, evidence(evidence, "sourceDescription", description, 0.65, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceCategory", sourceCategory, 0.45, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceHashtags", hashtagText, 0.85, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceTitle", title, 0.95, terms));
+            confidence = Math.max(confidence, evidence(evidence, "sourceDescription", description, 0.8, terms));
             confidence = Math.max(confidence, evidence(evidence, "sourceSearchKeyword", searchKeyword, 0.55, terms));
             if (confidence >= 0.75) {
                 Map<String, Object> item = new LinkedHashMap<String, Object>();
@@ -2671,6 +2649,7 @@ public class MusicMvTemplateCatalogService {
     }
 
     private void requireCategory(String categoryKey) {
+        if (TemplateTopics.key(categoryKey) == null || !categoryKey.equals(TemplateTopics.key(categoryKey))) throw badRequest("TEMPLATE_CATEGORY_INVALID", "Choose one of the 11 template topics");
         Map<String, Object> category = repository.category(categoryKey);
         if (category == null || !RowUtils.bool(category, "enabled")) {
             throw badRequest("TEMPLATE_CATEGORY_INVALID", "Template category is not enabled");

@@ -36,8 +36,8 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 13;
-    static final long ENABLED_CATEGORY_COUNT = 25L;
+    static final int SCHEMA_VERSION = 14;
+    static final long ENABLED_CATEGORY_COUNT = 11L;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -120,6 +120,9 @@ public class MusicMvD1SchemaInitializer {
         response.put("categoryCount", verification.get("categoryCount"));
         response.put("coexistingProjectTableCount",
                 Integer.valueOf(existingTables.size() - existingOwnedTables.size()));
+        response.put("taxonomyReview", d1.query("SELECT t.template_id,t.category_key,t.status,h.old_category_key "
+                + "FROM templates t LEFT JOIN template_taxonomy_history h ON h.template_id=t.template_id "
+                + "WHERE t.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM template_categories c WHERE c.category_key=t.category_key AND c.enabled=1)").getRows());
         response.put("ready", Boolean.TRUE);
         return response;
     }
@@ -214,41 +217,30 @@ public class MusicMvD1SchemaInitializer {
 
     private void reconcileTemplateTaxonomyData(Set<String> existingTables) {
         if (!existingTables.contains("template_categories")) return;
+        List<D1Statement> migration = new ArrayList<>();
+        migration.add(D1Statement.of("CREATE TABLE IF NOT EXISTS template_taxonomy_history ("
+                + "template_id TEXT PRIMARY KEY, old_category_key TEXT NOT NULL, assignments_json TEXT NOT NULL, captured_at TEXT NOT NULL)"));
         if (existingTables.contains("templates")) {
-            String[][] migrations = new String[][] {
-                    {"baby-growth", "baby-kids"},
-                    {"love", "couples"},
-                    {"wedding-anniversary", "anniversary"},
-                    {"inspiration", "motivation"},
-                    {"breakup", "farewell-breakup"},
-                    {"party-festival", "holidays-parties"},
-                    {"gaming-anime", "hobbies-interests"}
-            };
-            for (String[] migration : migrations) {
-                d1.query("UPDATE templates SET category_key=?,updated_at=CURRENT_TIMESTAMP "
-                                + "WHERE category_key=?",
-                        migration[1], migration[0]);
-            }
+            migration.add(D1Statement.of("INSERT OR IGNORE INTO template_taxonomy_history "
+                    + "SELECT t.template_id,t.category_key,COALESCE((SELECT json_group_array(json_object('categoryKey',i.category_key,'primary',i.is_primary,'source',i.source,'evidence',i.evidence_json)) "
+                    + "FROM template_category_items i WHERE i.template_id=t.template_id),'[]'),CURRENT_TIMESTAMP FROM templates t"));
         }
-        String[][] reused = new String[][] {
-                {"birthday", "celebrations", "celebrations/birthday", "生日", "Birthday", "11"},
-                {"family", "relationships", "relationships/family", "家庭", "Family", "21"},
-                {"friendship", "relationships", "relationships/friendship", "友情", "Friendship", "24"},
-                {"school-life", "life-stories", "life-stories/school-life", "校园生活", "School Life", "33"},
-                {"healing", "emotions-messages", "emotions-messages/healing", "疗愈", "Healing", "42"}
-        };
-        for (String[] category : reused) {
-            d1.query("UPDATE template_categories SET parent_key=?,level=2,slug_path=?,"
-                            + "is_selectable=1,name_zh=?,name_en=?,sort_order=?,enabled=1,"
-                            + "updated_at=CURRENT_TIMESTAMP WHERE category_key=?",
-                    category[1], category[2], category[3], category[4],
-                    Integer.valueOf(category[5]), category[0]);
+        migration.add(D1Statement.of("UPDATE template_categories SET enabled=0,is_selectable=0 WHERE enabled=1"));
+        for (Map<String, Object> item : TemplateTopics.items()) {
+            migration.add(D1Statement.of("UPDATE template_categories SET parent_key=NULL,level=1,slug_path=?,is_selectable=1,"
+                    + "name_zh=?,name_en=?,sort_order=?,enabled=1,updated_at=CURRENT_TIMESTAMP WHERE category_key=?",
+                    item.get("key"), item.get("nameZh"), item.get("nameEn"), item.get("sortOrder"), item.get("key")));
         }
-        d1.query("UPDATE template_categories SET enabled=0,is_selectable=0,updated_at=CURRENT_TIMESTAMP "
-                + "WHERE category_key IN ('baby-growth','love','wedding-anniversary','inspiration',"
-                + "'breakup','party-festival','gaming-anime')");
-        // Collection tables remain dormant for backward compatibility. New
-        // catalog code uses template_category_items instead.
+        for (Map.Entry<String, String> alias : TemplateTopics.aliases().entrySet()) {
+            migration.add(D1Statement.of("INSERT OR IGNORE INTO template_category_items "
+                    + "(template_id,category_key,is_primary,source,confidence,evidence_json,created_at,updated_at) "
+                    + "SELECT template_id,?,is_primary,'topic-migration-v1',confidence,evidence_json,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP "
+                    + "FROM template_category_items WHERE category_key=?", alias.getValue(), alias.getKey()));
+            migration.add(D1Statement.of("UPDATE templates SET category_key=?,updated_at=CURRENT_TIMESTAMP WHERE category_key=?", alias.getValue(), alias.getKey()));
+        }
+        migration.add(D1Statement.of("DELETE FROM template_category_items WHERE category_key IN (SELECT category_key FROM template_categories WHERE enabled=0)"));
+        migration.add(D1Statement.of("UPDATE template_category_items SET is_primary=CASE WHEN category_key=(SELECT category_key FROM templates t WHERE t.template_id=template_category_items.template_id) THEN 1 ELSE 0 END"));
+        d1.batch(migration);
     }
 
     private void backfillTemplateCategoryItems(Set<String> existingTables) {
@@ -257,7 +249,7 @@ public class MusicMvD1SchemaInitializer {
         d1.query("INSERT OR IGNORE INTO template_category_items "
                         + "(template_id,category_key,is_primary,source,confidence,evidence_json,created_at,updated_at) "
                         + "SELECT template_id,category_key,1,'legacy',1.0,'[{\"field\":\"legacyCategory\"}]',"
-                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM templates WHERE deleted_at IS NULL");
+                        + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM templates WHERE deleted_at IS NULL AND category_key IN (SELECT category_key FROM template_categories WHERE enabled=1)");
         if (existingTables.contains("template_source_metadata")) {
             d1.query("INSERT OR IGNORE INTO template_source_metadata "
                             + "(template_id,source_title,source_description,source_category,source_search_keyword,"

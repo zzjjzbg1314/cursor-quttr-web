@@ -1,0 +1,93 @@
+{
+  "version": "storyai-topics-v1",
+  "items": [
+    {
+      "key": "birthday",
+      "nameZh": "生日",
+      "nameEn": "Birthday",
+      "sortOrder": 1
+    },
+    {
+      "key": "couples",
+      "nameZh": "爱情",
+      "nameEn": "Love",
+      "sortOrder": 2
+    },
+    {
+      "key": "family",
+      "nameZh": "家庭",
+      "nameEn": "Family",
+      "sortOrder": 3
+    },
+    {
+      "key": "baby-kids",
+      "nameZh": "宝宝",
+      "nameEn": "Baby & Kids",
+      "sortOrder": 4
+    },
+    {
+      "key": "friendship",
+      "nameZh": "友情",
+      "nameEn": "Friendship",
+      "sortOrder": 5
+    },
+    {
+      "key": "anniversary",
+      "nameZh": "纪念日",
+      "nameEn": "Anniversary",
+      "sortOrder": 6
+    },
+    {
+      "key": "wedding",
+      "nameZh": "婚礼",
+      "nameEn": "Wedding",
+      "sortOrder": 7
+    },
+    {
+      "key": "school-life",
+      "nameZh": "校园",
+      "nameEn": "School Life",
+      "sortOrder": 8
+    },
+    {
+      "key": "travel",
+      "nameZh": "旅行",
+      "nameEn": "Travel",
+      "sortOrder": 9
+    },
+    {
+      "key": "daily-life",
+      "nameZh": "日常",
+      "nameEn": "Daily Life",
+      "sortOrder": 10
+    },
+    {
+      "key": "motivation",
+      "nameZh": "励志",
+      "nameEn": "Motivation",
+      "sortOrder": 11
+    }
+  ],
+  "aliases": {
+    "生日祝福": "birthday",
+    "亲情家庭": "family",
+    "宝宝成长": "baby-kids",
+    "宝宝与孩子": "baby-kids",
+    "baby-growth": "baby-kids",
+    "恋爱告白": "couples",
+    "情侣": "couples",
+    "love": "couples",
+    "友情纪念": "friendship",
+    "婚礼与纪念日": "anniversary",
+    "wedding-anniversary": "anniversary",
+    "毕业": "school-life",
+    "graduation": "school-life",
+    "毕业青春": "school-life",
+    "校园生活": "school-life",
+    "父亲节": "family",
+    "fathers-day": "family",
+    "日常生活": "daily-life",
+    "励志成长": "motivation",
+    "inspiration": "motivation"
+  }
+}
