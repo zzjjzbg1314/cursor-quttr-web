@@ -1,0 +1,27 @@
+{
+  "recordsBefore": 22,
+  "recordsAfter": 15,
+  "publishedUnchanged": true,
+  "projectDataUnchanged": true,
+  "projectPhotosUnchanged": true,
+  "userPhotosUnchanged": true,
+  "queue": [
+    {
+      "provider": "cloudflare_images",
+      "total": 121
+    },
+    {
+      "provider": "cloudflare_stream",
+      "total": 7
+    }
+  ],
+  "cleanupFailures": 0,
+  "deletedCloudAssets": 0,
+  "errorCount": 0,
+  "codeCommit": "df26243",
+  "backendPid": 82667,
+  "publishedTemplates": 8,
+  "retiredContentRecords": 7,
+  "remainingReferencedOlderContents": 7,
+  "renderOrSsimStarted": false
+}
