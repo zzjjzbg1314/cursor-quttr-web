@@ -17,13 +17,14 @@
 
 改造前通过本地管理 API 读取到 9 个公开模板：纪念日 2、情侣 1、宝宝与孩子 1、生日 3、父亲节 1、家庭 1。按已有分类均能确定映射；父亲节并入家庭。该盘点只确认分类映射，不冒充逐个视频内容复审。
 
-## 运行环境启用步骤
-代码和测试完成不等于已切换云端数据。当前 Java 服务由 IDE 启动，读取盘点时网站后端仍返回旧的 25 个分类节点。本次未重启 IDE 服务、未调用云端数据库初始化或发布接口、未 push。
-1. 使用新代码启动网站后端及模板管理服务。
-2. 对配置的专用 Music MV D1 调用已有 POST /internal/music-mv/v1/templates/schema/initialize，携带既有同步认证和匹配的 expectedDatabaseId。
-3. 保存初始化响应，确认 schemaVersion=14、categoryCount=11、ready=true，逐条处理 taxonomyReview。
-4. 核对迁移前后模板数量、ID、currentVersionId 相同；确认父亲节模板归家庭，目录无旧类别。发布前清理分类目录缓存。
-5. 网站部署前使用其正常部署流程；本地开发页已验证 12 个导航入口。
+## 运行环境迁移结果
+用户重启 Java 服务后，已通过专用数据库的显式初始化接口执行分类迁移。返回 status=reconciled、schemaVersion=14、categoryCount=11、ready=true、taxonomyReview=[]。
+
+迁移后核对：模板 9 个、版本 16 个、槽位 181 个、就绪媒体 315 个，均与迁移前一致；模板 ID 和 currentVersionId 全部保持不变。管理端及网站接口均返回 11 个平级主题。父亲节模板已归家庭，家庭目录共 2 个模板。
+
+当前主分类分布：生日 3、纪念日 2、家庭 2、爱情 1、宝宝 1。此次迁移按已有分类确定映射，不替代对每个视频实际内容的人工审核。专用数据库中的历史归属记录独立保留，未重做渲染或改动运行包。
+
+详细迁移响应与前后数量记录保存在模板管理项目 docs/template-topic-migration-result.json。代码未 push，也未执行远程应用部署；本地重启的服务及其连接的专用 D1 已生效。
 
 ## 验证
 - 网站后端：97 项聚焦 Java 测试通过，含真实 SQLite 迁移与重复执行检查；迁移测试 Python 已通过 py_compile。
