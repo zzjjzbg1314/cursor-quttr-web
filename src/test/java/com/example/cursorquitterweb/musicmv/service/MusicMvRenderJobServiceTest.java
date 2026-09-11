@@ -120,6 +120,57 @@ class MusicMvRenderJobServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void emptyBindingsRequireVerifiedNativeStickerOwnership() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        for (String variant : Arrays.asList("valid", "missingPolicy", "legacy", "missingSource", "unbound", "mismatch",
+                "missingBinding", "wrongKind", "missingDependency", "missingLua", "effect", "photo", "extraBinding", "notReady")) {
+            MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+            AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+            MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                    mock(MusicMvRenderArtifactStorageService.class), inputAssets(), mapper, true, 2);
+            MusicMvRenderJobCreateRequest request = request();
+            if (!"extraBinding".equals(variant)) request.setSlotBindings(Collections.emptyList());
+            when(music.ownedCandidate("owner", "song_1")).thenReturn(candidate());
+            when(repository.claimBrowserPreparation("sticker-job")).thenReturn(preparingRow("sticker-job", request));
+            when(repository.updateBrowserPreparation("sticker-job", "preparing_template", 0.55d))
+                    .thenReturn(preparingRow("sticker-job", request));
+            when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(new RenderContract(version(), Collections.emptyList()));
+            Map<String,Object> scene;
+            try (java.io.InputStream stream = getClass().getResourceAsStream("/musicmv/native-zero-slot-sticker-scene.json")) {
+                scene = mapper.readValue(stream, Map.class);
+            }
+            Map<String,Object> delivery = (Map<String,Object>) scene.get("runtimeDelivery");
+            Map<String,Object> descriptor = (Map<String,Object>) delivery.get("nativeEngine");
+            Map<String,Object> layer = ((List<Map<String,Object>>) scene.get("layers")).get(0);
+            Map<String,Object> source = (Map<String,Object>) layer.get("nativeStickerSource");
+            if ("missingPolicy".equals(variant)) descriptor.remove("stickerPolicy");
+            if ("legacy".equals(variant)) descriptor.put("schemaVersion", "browser-native-scene-runtime-v3");
+            if ("missingSource".equals(variant)) layer.remove("nativeStickerSource");
+            if ("unbound".equals(variant)) source.put("attachmentStatus", "unresolved");
+            if ("mismatch".equals(variant)) source.put("segmentId", "another-segment");
+            if ("missingBinding".equals(variant)) descriptor.put("bindings", Collections.emptyList());
+            if ("wrongKind".equals(variant)) ((List<Map<String,Object>>) descriptor.get("bindings")).get(0).put("kind", "filter");
+            if ("missingDependency".equals(variant)) delivery.put("resources", Collections.emptyList());
+            if ("missingLua".equals(variant)) ((List<String>) descriptor.get("files")).removeIf(file -> file.endsWith("/infoSticker.lua"));
+            if ("effect".equals(variant)) layer.put("effects", Collections.singletonList(Collections.emptyMap()));
+            if ("photo".equals(variant)) layer.put("type", "photo");
+            Map<String,Object> stored = new LinkedHashMap<>();
+            stored.put("status", "notReady".equals(variant) ? "pending" : "ready");
+            stored.put("scene_json", mapper.writeValueAsString(scene));
+            when(repository.browserScene("tplver_1")).thenReturn(stored);
+            service.prepareBrowserAsync("owner", "sticker-job");
+            if ("valid".equals(variant)) {
+                verify(repository).completeBrowserPreparation(eq("sticker-job"), anyString());
+                verify(repository, never()).slotDefaultMedia(anyString(), anySet());
+            } else {
+                verify(repository, never()).completeBrowserPreparation(anyString(), anyString());
+                verify(repository).failBrowserPreparation(eq("sticker-job"), eq("MV_RENDER_TEMPLATE_HAS_NO_SLOTS"), anyString(), eq(false));
+            }
+        }
+    }
+
+    @Test
     void completedLibraryUsesExtraRowOnlyForHasMore() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderJobService service = new MusicMvRenderJobService(repository,

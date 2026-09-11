@@ -525,6 +525,9 @@ public class MusicMvRenderJobService {
             if (!(layer.get("layerId") instanceof String) || ((String) layer.get("layerId")).isEmpty()
                     || !identities.add((String) layer.get("layerId"))) return false;
             if ("text".equals(layer.get("type"))) layers.add((String) layer.get("layerId"));
+            else if ("sticker".equals(layer.get("type"))) {
+                if (!ownsVideo || !verifiedNoPhotoSticker(layer, scene)) return false;
+            }
             else if (!ownsFixed || !("static_image".equals(layer.get("type")) || (ownsVideo && "video".equals(layer.get("type"))))
                     || !layer.get("layerId").equals(layer.get("segmentId"))
                     || !("video".equals(layer.get("type")) ? videoResources : fixedResources).contains(layer.get("resourceKey"))
@@ -543,6 +546,37 @@ public class MusicMvRenderJobService {
                     || !"material_projected".equals(source.get("status"))) return false;
         }
         return layers.equals(texts);
+    }
+
+    // 只确认贴纸具有原始源与已交付的原生资源归属，完整时钟和合成仍由生产规划器检查。
+    private boolean verifiedNoPhotoSticker(Map<?, ?> layer, Map<String, Object> scene) {
+        Map<?, ?> delivery = (Map<?, ?>) scene.get("runtimeDelivery");
+        Map<?, ?> descriptor = (Map<?, ?>) delivery.get("nativeEngine");
+        if (!"original_resources_v1".equals(descriptor.get("stickerPolicy"))
+                || !layer.get("layerId").equals(layer.get("segmentId"))
+                || !(layer.get("nativeStickerSource") instanceof Map)) return false;
+        Map<?, ?> source = (Map<?, ?>) layer.get("nativeStickerSource");
+        if (!"native-sticker-source-v1".equals(source.get("schemaVersion"))
+                || !"source_projected".equals(source.get("status"))
+                || !layer.get("layerId").equals(source.get("segmentId"))
+                || !"bound".equals(source.get("attachmentStatus"))
+                || !"sticker".equals(source.get("materialType")) || !"".equals(source.get("unicode"))
+                || !(source.get("materialId") instanceof String) || ((String) source.get("materialId")).isEmpty()
+                || !(source.get("trackId") instanceof String) || ((String) source.get("trackId")).isEmpty()
+                || !(source.get("resourceId") instanceof String) || ((String) source.get("resourceId")).isEmpty()
+                || !(source.get("visible") instanceof Boolean) || !(source.get("clip") instanceof Map)
+                || !(source.get("commonKeyframes") instanceof List)
+                || !(source.get("animationMaterialIds") instanceof List) || !(source.get("animations") instanceof List)
+                || !(layer.get("animations") instanceof List) || !(layer.get("effects") instanceof List)
+                || !((List<?>) layer.get("effects")).isEmpty()
+                || layer.get("mask") != null || layer.get("transitionIn") != null
+                || (layer.get("blendMode") != null && !"source-over".equals(layer.get("blendMode")))) return false;
+        for (Object value : (List<?>) descriptor.get("bindings")) {
+            Map<?, ?> binding = (Map<?, ?>) value;
+            if (source.get("resourceId").equals(binding.get("resourceId"))
+                    && "sticker".equals(binding.get("kind"))) return true;
+        }
+        return false;
     }
 
     private String verifiedNativeVisualVersion(Map<String, Object> scene) {

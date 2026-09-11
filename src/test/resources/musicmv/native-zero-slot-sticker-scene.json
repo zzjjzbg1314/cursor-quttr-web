@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "browser-template-scene-v6",
+  "slots": [],
+  "timelineSegments": [],
+  "layers": [
+    {
+      "segmentId": "5B78BC2C-9659-410B-A528-568397855350",
+      "targetStartSeconds": 0.0,
+      "targetDurationSeconds": 16.133333,
+      "renderIndex": 14000,
+      "trackRenderIndex": 0,
+      "sourceStartSeconds": 0.0,
+      "sourceDurationSeconds": 0.0,
+      "speed": 1.0,
+      "originalTimeline": {
+        "trackId": "037313B5-63D5-4923-A808-3254A5CF6265",
+        "speed": 1.0,
+        "targetStartRaw": "0",
+        "targetDurationRaw": "16133333",
+        "sourceStartRaw": "0",
+        "sourceDurationRaw": "0"
+      },
+      "nativeStickerSource": {
+        "schemaVersion": "native-sticker-source-v1",
+        "status": "source_projected",
+        "segmentId": "5B78BC2C-9659-410B-A528-568397855350",
+        "materialId": "1D54B7BA-3072-4F71-A1A7-B266D7C1C8D4",
+        "resourceId": "7233770040691002629",
+        "materialType": "sticker",
+        "unicode": "",
+        "trackId": "037313B5-63D5-4923-A808-3254A5CF6265",
+        "startRaw": "0",
+        "durationRaw": "16133333",
+        "offsetRaw": "0",
+        "renderIndex": 14000,
+        "trackRenderIndex": 0,
+        "visible": true,
+        "clip": {
+          "scale": {
+            "x": 0.742577254772186,
+            "y": 0.742577254772186
+          },
+          "transform": {
+            "x": -0.049105525016785,
+            "y": 0.0
+          },
+          "flip": {
+            "vertical": false,
+            "horizontal": false
+          },
+          "rotation": 0.0,
+          "alpha": 1.0
+        },
+        "commonKeyframes": [],
+        "animations": [],
+        "animationMaterialIds": [
+          "7D8BB4E7-45DF-44F7-B462-F2DC85C080D5"
+        ],
+        "attachmentStatus": "bound"
+      },
+      "resourceKey": "sticker_1D54B7BA-3072-4F71-A1A7-B266D7C1C8D4",
+      "sourceWidth": 0,
+      "sourceHeight": 0,
+      "sourceCrop": {
+        "left": 0.0,
+        "top": 0.0,
+        "right": 1.0,
+        "bottom": 1.0
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {
+          "x": 0.742577254772186,
+          "y": 0.742577254772186
+        },
+        "transform": {
+          "x": -0.049105525016785,
+          "y": 0.0
+        },
+        "flip": {
+          "vertical": false,
+          "horizontal": false
+        },
+        "rotation": 0.0,
+        "alpha": 1.0
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [],
+      "draft_keyframe_clock": {
+        "mode": "segment"
+      },
+      "draft_keyframe_bindings": {
+        "contractVersion": "draft-keyframe-bindings-v3",
+        "absentProperties": []
+      },
+      "layerId": "5B78BC2C-9659-410B-A528-568397855350",
+      "type": "sticker"
+    }
+  ],
+  "textLayers": [],
+  "resources": [],
+  "runtimeDelivery": {
+    "schemaVersion": "browser-runtime-delivery-v1",
+    "nativeEngine": {
+      "schemaVersion": "browser-native-scene-runtime-v4",
+      "assets": {
+        "loaderUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/loader.js",
+        "mainWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/main.wasm",
+        "mediaWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/media.wasm",
+        "workerUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worker.mjs",
+        "workletUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worklet.js"
+      },
+      "stickerPolicy": "original_resources_v1",
+      "videoAudioPolicy": "external_music_only",
+      "layerMode": 0,
+      "files": [
+        "7233770040691002629/SequenceMap.png",
+        "7233770040691002629/ani_info.json",
+        "7233770040691002629/config.json",
+        "7233770040691002629/infoSticker.lua"
+      ],
+      "bindings": [
+        {
+          "resourceId": "7233770040691002629",
+          "kind": "sticker",
+          "path": "7233770040691002629/"
+        }
+      ]
+    },
+    "resources": [
+      {
+        "resourceId": "7233770040691002629"
+      }
+    ]
+  }
+}
