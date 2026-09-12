@@ -19,6 +19,8 @@ final class BrowserNativeRuntimeContract {
         if(ownsVideo&&!"external_music_only".equals(source.get("videoAudioPolicy")))throw invalid();
         boolean ownsTemplates="original_attachments_v1".equals(source.get("textTemplatePolicy"));
         if(source.containsKey("textTemplatePolicy")&&(!ownsTemplates||!ownsVideo))throw invalid();
+        boolean ownsScriptTemplates="dynamic_text_v1".equals(source.get("scriptTemplatePolicy"));
+        if(source.containsKey("scriptTemplatePolicy")&&(!ownsScriptTemplates||!ownsVideo))throw invalid();
         boolean ownsStickers="original_resources_v1".equals(source.get("stickerPolicy"));
         if(source.containsKey("stickerPolicy")&&(!ownsStickers||!ownsVideo))throw invalid();
         boolean ownsGlobals="original_tracks_v1".equals(source.get("globalEffectPolicy"));
@@ -50,10 +52,14 @@ final class BrowserNativeRuntimeContract {
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
                     || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend").contains(item.get("kind"))
                         ||(ownsTemplates&&"text_template".equals(item.get("kind")))
+                        ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
                         ||(ownsStickers&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
             if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/infoSticker.lua")))throw invalid();
             if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
+            if("script_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")
+                    ||!uniqueFiles.contains(id+"/js/main.js")||!uniqueFiles.contains(id+"/js/template/template.js")
+                    ||files.stream().noneMatch(file->file.matches(java.util.regex.Pattern.quote(id)+"/templates/[A-Za-z0-9_-]{1,160}/content\\.json"))))throw invalid();
             Map<String,Object> binding=new LinkedHashMap<>();binding.put("resourceId",id);binding.put("path",id+"/");binding.put("kind",item.get("kind"));
             if(item.containsKey("models")) {
                 if(!(item.get("models") instanceof Map))throw invalid();
@@ -83,6 +89,7 @@ final class BrowserNativeRuntimeContract {
         if(ownsVideo)result.put("videoAudioPolicy","external_music_only");
         if(ownsStickers)result.put("stickerPolicy","original_resources_v1");
         if(ownsGlobals)result.put("globalEffectPolicy","original_tracks_v1");
+        if(ownsScriptTemplates)result.put("scriptTemplatePolicy","dynamic_text_v1");
         if(ownsTemplates)result.put("textTemplatePolicy","original_attachments_v1");
         result.put("layerMode",((Number)source.get("layerMode")).intValue());result.put("assets",safeAssets);
         result.put("files",files);result.put("bindings",bindings);return result;
