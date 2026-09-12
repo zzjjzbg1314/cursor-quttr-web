@@ -55,7 +55,7 @@ final class BrowserNativeRuntimeContract {
                         ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
                         ||(ownsStickers&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
-            if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/infoSticker.lua")))throw invalid();
+            if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||(!uniqueFiles.contains(id+"/infoSticker.lua")&&files.stream().noneMatch(file->file.startsWith(id+"/")&&file.toLowerCase(Locale.ROOT).endsWith(".gif")))))throw invalid();
             if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
             if("script_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")
                     ||!uniqueFiles.contains(id+"/js/main.js")||!uniqueFiles.contains(id+"/js/template/template.js")
