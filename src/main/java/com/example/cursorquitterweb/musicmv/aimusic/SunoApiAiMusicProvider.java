@@ -57,7 +57,7 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
             @Value("${music-mv.ai-music.sunoapi.api-key:}") String apiKey,
             @Value("${music-mv.ai-music.sunoapi.callback-token-secret:}")
                     String callbackTokenSecret,
-            @Value("${music-mv.ai-music.sunoapi.model:V5_5}") String model
+            @Value("${music-mv.ai-music.sunoapi.model:V6}") String model
     ) {
         this(createRestTemplate(), objectMapper, baseUrl, apiKey, callbackTokenSecret, model);
     }
@@ -70,7 +70,7 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
         this.baseUrl = trimTrailingSlash(baseUrl);
         this.apiKey = trim(apiKey);
         this.callbackTokenSecret = trim(callbackTokenSecret);
-        this.model = blank(model) ? "V5_5" : model.trim();
+        this.model = blank(model) ? "V6" : model.trim();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.cursorquitterweb.musicmv.aimusic;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -24,7 +25,7 @@ class AiMusicProviderRegistrySpringTest {
             context.refresh();
 
             AiMusicProviderRegistry registry = context.getBean(AiMusicProviderRegistry.class);
-            assertNotNull(registry.require("sunoapi"));
+            assertEquals("V6", registry.require("sunoapi").defaultModel());
             assertNotNull(registry.require("kie"));
         }
     }

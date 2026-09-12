@@ -30,7 +30,7 @@ public class AiMusicSongCreateRequest {
     private String vocalGender;
     @Pattern(regexp = "(?i)^(simple|advanced)$")
     private String mode = "simple";
-    @Pattern(regexp = "(?i)^(V4|V4_5|V4_5PLUS|V4_5ALL|V5|V5_5)?$")
+    @Pattern(regexp = "(?i)^(V4|V4_5|V4_5PLUS|V4_5ALL|V5|V5_5|V6)?$")
     private String model;
     @DecimalMin("0.00")
     @DecimalMax("1.00")

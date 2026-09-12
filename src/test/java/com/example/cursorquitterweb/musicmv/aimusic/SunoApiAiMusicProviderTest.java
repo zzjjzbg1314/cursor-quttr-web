@@ -40,7 +40,7 @@ class SunoApiAiMusicProviderTest {
                 .andExpect(jsonPath("$.callBackUrl").value(
                         org.hamcrest.Matchers.startsWith(
                                 "https://app.test/api/music-mv/v1/provider-webhooks/sunoapi/music?")))
-                .andExpect(jsonPath("$.model").value("V5_5"))
+                .andExpect(jsonPath("$.model").value("V6"))
                 .andExpect(jsonPath("$.styleWeight").value(0.72d))
                 .andExpect(jsonPath("$.weirdnessConstraint").value(0.41d))
                 .andExpect(jsonPath("$.negativeTags").value("heavy metal"))
@@ -52,7 +52,7 @@ class SunoApiAiMusicProviderTest {
         command.setPrompt("A birthday song");
         command.setStyle("Pop");
         command.setTitle("Happy Day");
-        command.setModel("V5_5");
+        command.setModel("V6");
         command.setCustomMode(true);
         command.setNegativeTags("heavy metal");
         command.setVocalGender("f");
@@ -72,6 +72,24 @@ class SunoApiAiMusicProviderTest {
                         exception -> assertThat(exception.getCode())
                                 .isEqualTo("SUNOAPI_WEBHOOK_TOKEN_INVALID"));
         server.verify();
+    }
+
+    @Test
+    void acceptsV6RequestAndDefaultsBlankProviderModelToV6() {
+        com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest request =
+                new com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest();
+        request.setRequestId("request-v6");
+        request.setModel("V6");
+        try (javax.validation.ValidatorFactory factory =
+                javax.validation.Validation.buildDefaultValidatorFactory()) {
+            assertThat(factory.getValidator().validate(request)).isEmpty();
+            request.setModel("V6_UNKNOWN");
+            assertThat(factory.getValidator().validate(request)).isNotEmpty();
+        }
+        SunoApiAiMusicProvider provider = new SunoApiAiMusicProvider(new RestTemplate(),
+                new ObjectMapper(), "https://api.sunoapi.test", "suno-secret",
+                "callback-secret", " ");
+        assertThat(provider.defaultModel()).isEqualTo("V6");
     }
 
     @Test
@@ -165,7 +183,7 @@ class SunoApiAiMusicProviderTest {
 
     private SunoApiAiMusicProvider provider(RestTemplate restTemplate) {
         return new SunoApiAiMusicProvider(restTemplate, new ObjectMapper(),
-                "https://api.sunoapi.test", "suno-secret", "callback-secret", "V5_5");
+                "https://api.sunoapi.test", "suno-secret", "callback-secret", "V6");
     }
 
     private Map<String, String> queryParameters(URI uri) {
