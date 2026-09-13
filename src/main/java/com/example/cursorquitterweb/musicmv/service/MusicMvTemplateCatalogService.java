@@ -2783,6 +2783,11 @@ public class MusicMvTemplateCatalogService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> browserRuntimeAsset(Map<String, Object> media, String kind) {
         if (media == null || !"ready".equals(String.valueOf(media.get("status")))) return null;
+        if ("video".equals(kind)) {
+            Map<String, Object> original = runtimePackages.downloadRegisteredVideo(
+                    RowUtils.str(media, "sourceSha256"), media.get("sourceSizeBytes"));
+            if (original != null && !original.isEmpty()) return original;
+        }
         Map<String, Object> details = media.get("providerDetails") instanceof Map
                 ? (Map<String, Object>) media.get("providerDetails")
                 : Collections.<String, Object>emptyMap();

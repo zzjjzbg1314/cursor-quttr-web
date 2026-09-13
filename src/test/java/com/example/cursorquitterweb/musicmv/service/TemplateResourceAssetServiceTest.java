@@ -51,6 +51,15 @@ class TemplateResourceAssetServiceTest {
     }
 
     @Test
+    void preservesVideoEncodingInContentAddressedUpload() {
+        TemplateResourceAssetUploadRequest request = request();request.setFilename("original.mp4");request.setContentType("video/mp4");
+        String key="music-mv-template-resources/"+resourceId()+"/"+hash()+".mp4";
+        when(r2.presignedPutUrl(eq(key),eq("video/mp4"),eq(1234L),anyMap(),eq(Duration.ofMinutes(30)))).thenReturn("https://upload.example/gif");
+        assertEquals("https://upload.example/gif",service.createUploadSession("tpl_1","tplver_1",resourceId(),request).get("uploadUrl"));
+        verify(repository).upsertTemplateResourceAsset(resourceId(),hash(),key,1234L,"video/mp4","awaiting_upload");
+    }
+
+    @Test
     void preservesGifEncodingInContentAddressedUpload() {
         TemplateResourceAssetUploadRequest request = request();request.setFilename("motion.gif");request.setContentType("image/gif");
         String key="music-mv-template-resources/"+resourceId()+"/"+hash()+".gif";

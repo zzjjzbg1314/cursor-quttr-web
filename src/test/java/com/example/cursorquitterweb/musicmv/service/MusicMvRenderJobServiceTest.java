@@ -777,6 +777,12 @@ class MusicMvRenderJobServiceTest {
         assertEquals(1920, ((Number) outputVideo.get("height")).intValue());
         assertEquals(30, ((Number) outputVideo.get("fps")).intValue());
         assertEquals(0.5011872336272722d, ((Number) browserRender.get("volume")).doubleValue());
+        videoMedia.put("source_sha256", "original-hash"); videoMedia.put("source_size_bytes", 123L);
+        Map<String, Object> exactVideo = new LinkedHashMap<>();
+        exactVideo.put("kind", "video"); exactVideo.put("url", "https://r2.example/original.mp4");
+        when(runtimePackages.downloadRegisteredVideo("original-hash", 123L)).thenReturn(exactVideo);
+        Map<String, Object> repaired = (Map<String, Object>) service.get("usr_owner", "mvr_browser").get("browserRender");
+        assertEquals(exactVideo, ((List<Map<String, Object>>) repaired.get("resources")).get(2).get("asset"));
         mediaRows.remove("slot_default:photo_01");
         assertEquals("MV_BROWSER_DEFAULT_ASSET_UNAVAILABLE", assertThrows(ApiException.class,
                 () -> service.get("usr_owner", "mvr_browser")).getCode());

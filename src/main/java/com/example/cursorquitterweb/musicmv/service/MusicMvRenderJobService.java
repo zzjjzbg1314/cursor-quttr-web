@@ -1041,6 +1041,15 @@ public class MusicMvRenderJobService {
                 throw conflict("MV_BROWSER_RESOURCE_UNAVAILABLE",
                         "A browser scene resource is unavailable");
             }
+            if ("video".equals(descriptor.get("kind"))) {
+                Map<String, Object> original = runtimePackages.downloadRegisteredVideo(
+                        RowUtils.str(media, "source_sha256"), media.get("source_size_bytes"));
+                if (original != null && !original.isEmpty()) {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("resourceKey", resourceKey); item.put("kind", "video"); item.put("asset", original);
+                    resolved.add(item); continue;
+                }
+            }
             Map<String, Object> delivery = templateMedia.resolveDeliveryDetails(
                     RowUtils.str(media, "provider"), RowUtils.str(media, "provider_asset_id"),
                     parseObject(RowUtils.str(media, "provider_details_json")));

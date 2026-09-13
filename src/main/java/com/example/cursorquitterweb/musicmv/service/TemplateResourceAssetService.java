@@ -221,7 +221,7 @@ public class TemplateResourceAssetService {
 
     private String extension(String filename) {
         String value = filename == null ? "" : filename.toLowerCase(Locale.ROOT);
-        for (String extension : new String[]{".png", ".gif", ".zip", ".bin", ".ttf", ".otf", ".woff2", ".woff"}) {
+        for (String extension : new String[]{".mp4", ".png", ".gif", ".zip", ".bin", ".ttf", ".otf", ".woff2", ".woff"}) {
             if (value.endsWith(extension)) return extension;
         }
         return ".bin";
@@ -229,7 +229,7 @@ public class TemplateResourceAssetService {
 
     private String contentType(String value) {
         String result = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
-        if (result.equals("image/png") || result.equals("image/gif") || result.equals("application/zip") || result.equals("application/octet-stream")
+        if (result.equals("video/mp4") || result.equals("image/png") || result.equals("image/gif") || result.equals("application/zip") || result.equals("application/octet-stream")
                 || result.equals("font/ttf") || result.equals("font/otf")
                 || result.equals("font/woff") || result.equals("font/woff2")) return result;
         throw error(HttpStatus.BAD_REQUEST, "TEMPLATE_RESOURCE_CONTENT_TYPE_INVALID",

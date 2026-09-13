@@ -67,6 +67,26 @@ class TemplateRuntimePackageServiceTest {
     }
 
     @Test
+    void deliversOriginalVideoFromR2AndRejectsChangedSize() {
+        Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
+        row.put("object_key", "original.mp4"); row.put("source_size_bytes", 123L); row.put("content_type", "video/mp4");
+        when(repository.templateResourceAsset("sha_" + hash(), hash())).thenReturn(row);
+        when(r2.presignedGetUrl("original.mp4", Duration.ofMinutes(15))).thenReturn("https://download.example/atlas");
+        Map<String, Object> source = new LinkedHashMap<>(); source.put("assetId", "sha_" + hash());
+        source.put("sourceSha256", hash()); source.put("sourceSizeBytes", 123L); source.put("contentType", "video/mp4");
+        Map<String, Object> descriptor = new LinkedHashMap<>(); descriptor.put("sourceAsset", source);
+        descriptor.put("kind", "video");
+        assertEquals("https://download.example/atlas", service.downloadExactImage(descriptor).get("url"));
+        assertEquals("https://download.example/atlas", service.downloadRegisteredVideo(hash(), 123L).get("url"));
+        assertThrows(ApiException.class, () -> service.downloadRegisteredVideo(hash(), 124L));
+        assertEquals(null, service.downloadRegisteredVideo("missing", 123L));
+        source.put("sourceSizeBytes", 124L);
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+        source.put("sourceSizeBytes", 123L); source.put("contentType", "image/png");
+        assertThrows(ApiException.class, () -> service.downloadExactImage(descriptor));
+    }
+
+    @Test
     void deliversOriginalGifFromR2AndRejectsChangedSize() {
         Map<String, Object> row = new LinkedHashMap<>(); row.put("status", "ready");
         row.put("object_key", "motion.gif"); row.put("source_size_bytes", 123L); row.put("content_type", "image/gif");
