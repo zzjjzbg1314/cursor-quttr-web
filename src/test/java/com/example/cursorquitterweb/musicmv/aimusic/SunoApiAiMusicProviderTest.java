@@ -15,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -30,8 +32,9 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class SunoApiAiMusicProviderTest {
-    @Test
-    void submitsNeutralCommandUsingSunoApiContractAndProtectedCallback() {
+    @ParameterizedTest
+    @ValueSource(strings = {"V6", "V6_WILD", "V6_MINI"})
+    void submitsNeutralCommandUsingSunoApiContractAndProtectedCallback(String model) {
         RestTemplate restTemplate = new RestTemplate();
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
         server.expect(once(), requestTo("https://api.sunoapi.test/api/v1/generate"))
@@ -40,7 +43,7 @@ class SunoApiAiMusicProviderTest {
                 .andExpect(jsonPath("$.callBackUrl").value(
                         org.hamcrest.Matchers.startsWith(
                                 "https://app.test/api/music-mv/v1/provider-webhooks/sunoapi/music?")))
-                .andExpect(jsonPath("$.model").value("V6"))
+                .andExpect(jsonPath("$.model").value(model))
                 .andExpect(jsonPath("$.styleWeight").value(0.72d))
                 .andExpect(jsonPath("$.weirdnessConstraint").value(0.41d))
                 .andExpect(jsonPath("$.negativeTags").value("heavy metal"))
@@ -52,7 +55,7 @@ class SunoApiAiMusicProviderTest {
         command.setPrompt("A birthday song");
         command.setStyle("Pop");
         command.setTitle("Happy Day");
-        command.setModel("V6");
+        command.setModel(model);
         command.setCustomMode(true);
         command.setNegativeTags("heavy metal");
         command.setVocalGender("f");
@@ -82,7 +85,10 @@ class SunoApiAiMusicProviderTest {
         request.setModel("V6");
         try (javax.validation.ValidatorFactory factory =
                 javax.validation.Validation.buildDefaultValidatorFactory()) {
-            assertThat(factory.getValidator().validate(request)).isEmpty();
+            for (String model : new String[] {"V6", "V6_WILD", "V6_MINI", "v6_wild", "v6_mini", "V5", "V5_5"}) {
+                request.setModel(model);
+                assertThat(factory.getValidator().validate(request)).isEmpty();
+            }
             request.setModel("V6_UNKNOWN");
             assertThat(factory.getValidator().validate(request)).isNotEmpty();
         }
