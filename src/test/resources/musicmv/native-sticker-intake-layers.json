@@ -1,0 +1,186 @@
+[
+  {
+    "segmentId": "0ACD08DD-FF1A-44D1-AE99-C1A8C7FE9BE3",
+    "targetStartSeconds": 0.0,
+    "targetDurationSeconds": 21.866666,
+    "renderIndex": 14000,
+    "trackRenderIndex": 11,
+    "sourceStartSeconds": 0.0,
+    "sourceDurationSeconds": 0.0,
+    "speed": 1.0,
+    "originalTimeline": {
+      "trackId": "AE1A8644-5C77-4C97-B75D-290BE2DC2D3E",
+      "speed": 1.0,
+      "targetStartRaw": "0",
+      "targetDurationRaw": "21866666",
+      "sourceStartRaw": "0",
+      "sourceDurationRaw": "0"
+    },
+    "nativeStickerSource": {
+      "schemaVersion": "native-sticker-source-v1",
+      "status": "source_projected",
+      "segmentId": "0ACD08DD-FF1A-44D1-AE99-C1A8C7FE9BE3",
+      "materialId": "AA1FC510-41F4-4012-A402-33A7046D396C",
+      "resourceId": "7262983760193375493",
+      "materialType": "sticker",
+      "unicode": "",
+      "trackId": "AE1A8644-5C77-4C97-B75D-290BE2DC2D3E",
+      "startRaw": "0",
+      "durationRaw": "21866666",
+      "offsetRaw": "0",
+      "renderIndex": 14000,
+      "trackRenderIndex": 11,
+      "visible": true,
+      "clip": {
+        "scale": {
+          "x": 0.267253875732422,
+          "y": 0.267253875732422
+        },
+        "transform": {
+          "x": 0.58702027797699,
+          "y": -0.63992714881897
+        },
+        "flip": {
+          "vertical": false,
+          "horizontal": false
+        },
+        "rotation": 23.0,
+        "alpha": 1.0
+      },
+      "commonKeyframes": [],
+      "animations": [],
+      "animationMaterialIds": [],
+      "attachmentStatus": "bound"
+    },
+    "resourceKey": "sticker_AA1FC510-41F4-4012-A402-33A7046D396C",
+    "sourceWidth": 0,
+    "sourceHeight": 0,
+    "sourceCrop": {
+      "left": 0.0,
+      "top": 0.0,
+      "right": 1.0,
+      "bottom": 1.0
+    },
+    "animations": [],
+    "effects": [],
+    "clip": {
+      "scale": {
+        "x": 0.267253875732422,
+        "y": 0.267253875732422
+      },
+      "transform": {
+        "x": 0.58702027797699,
+        "y": -0.63992714881897
+      },
+      "flip": {
+        "vertical": false,
+        "horizontal": false
+      },
+      "rotation": 23.0,
+      "alpha": 1.0
+    },
+    "blendMode": "source-over",
+    "common_keyframes": [],
+    "draft_keyframe_clock": {
+      "mode": "segment"
+    },
+    "draft_keyframe_bindings": {
+      "contractVersion": "draft-keyframe-bindings-v3",
+      "absentProperties": []
+    },
+    "layerId": "0ACD08DD-FF1A-44D1-AE99-C1A8C7FE9BE3",
+    "type": "sticker"
+  },
+  {
+    "segmentId": "5323E0E0-646E-40FF-9EDE-602BF06862B7",
+    "targetStartSeconds": 0.0,
+    "targetDurationSeconds": 21.866666,
+    "renderIndex": 14001,
+    "trackRenderIndex": 12,
+    "sourceStartSeconds": 0.0,
+    "sourceDurationSeconds": 0.0,
+    "speed": 1.0,
+    "originalTimeline": {
+      "trackId": "F150A5B6-D3EA-402D-AE4F-BB72F0264963",
+      "speed": 1.0,
+      "targetStartRaw": "0",
+      "targetDurationRaw": "21866666",
+      "sourceStartRaw": "0",
+      "sourceDurationRaw": "0"
+    },
+    "nativeStickerSource": {
+      "schemaVersion": "native-sticker-source-v1",
+      "status": "source_projected",
+      "segmentId": "5323E0E0-646E-40FF-9EDE-602BF06862B7",
+      "materialId": "7412D1BB-D072-423C-B699-F21B304D4809",
+      "resourceId": "7233794419802066182",
+      "materialType": "sticker",
+      "unicode": "",
+      "trackId": "F150A5B6-D3EA-402D-AE4F-BB72F0264963",
+      "startRaw": "0",
+      "durationRaw": "21866666",
+      "offsetRaw": "0",
+      "renderIndex": 14001,
+      "trackRenderIndex": 12,
+      "visible": true,
+      "clip": {
+        "scale": {
+          "x": 1.195646524429321,
+          "y": 1.195646524429321
+        },
+        "transform": {
+          "x": -0.710374057292938,
+          "y": 0.769371032714844
+        },
+        "flip": {
+          "vertical": false,
+          "horizontal": false
+        },
+        "rotation": 350.0,
+        "alpha": 1.0
+      },
+      "commonKeyframes": [],
+      "animations": [],
+      "animationMaterialIds": [],
+      "attachmentStatus": "bound"
+    },
+    "resourceKey": null,
+    "sourceWidth": 0,
+    "sourceHeight": 0,
+    "sourceCrop": {
+      "left": 0.0,
+      "top": 0.0,
+      "right": 1.0,
+      "bottom": 1.0
+    },
+    "animations": [],
+    "effects": [],
+    "clip": {
+      "scale": {
+        "x": 1.195646524429321,
+        "y": 1.195646524429321
+      },
+      "transform": {
+        "x": -0.710374057292938,
+        "y": 0.769371032714844
+      },
+      "flip": {
+        "vertical": false,
+        "horizontal": false
+      },
+      "rotation": 350.0,
+      "alpha": 1.0
+    },
+    "blendMode": "source-over",
+    "common_keyframes": [],
+    "draft_keyframe_clock": {
+      "mode": "segment"
+    },
+    "draft_keyframe_bindings": {
+      "contractVersion": "draft-keyframe-bindings-v3",
+      "absentProperties": []
+    },
+    "layerId": "5323E0E0-646E-40FF-9EDE-602BF06862B7",
+    "type": "sticker"
+  }
+]

@@ -740,6 +740,23 @@ public class MusicMvTemplateCatalogService {
 
     @SuppressWarnings("unchecked")
     private void requireValidBrowserSceneGraph(Map<String, Object> scene) {
+        Set<String> nativeStickers = Collections.emptySet();
+        Object rawDelivery = scene.get("runtimeDelivery");
+        boolean hasNativeSticker = scene.get("layers") instanceof List
+                && ((List<?>) scene.get("layers")).stream().anyMatch(raw -> raw instanceof Map
+                    && "sticker".equals(((Map<?, ?>) raw).get("type"))
+                    && ((Map<?, ?>) raw).containsKey("nativeStickerSource"));
+        if (hasNativeSticker && rawDelivery instanceof Map && ((Map<?, ?>) rawDelivery).containsKey("nativeEngine")) {
+            Map<?, ?> delivery = (Map<?, ?>) rawDelivery;
+            Set<String> deliveredIds = new HashSet<>();
+            if (delivery.get("resources") instanceof List) for (Object raw : (List<?>) delivery.get("resources")) {
+                if (raw instanceof Map && ((Map<?, ?>) raw).get("resourceId") instanceof String)
+                    deliveredIds.add((String) ((Map<?, ?>) raw).get("resourceId"));
+            }
+            // 只有通过原始源、入口文件及最小依赖绑定校验的贴纸才使用原生资源归属。
+            Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(delivery.get("nativeEngine"), deliveredIds);
+            nativeStickers = BrowserNativeStickerContract.validate(scene, descriptor);
+        }
         Object rawLayers = scene.get("layers");
         if (!(rawLayers instanceof List) || ((List<?>) rawLayers).isEmpty()) {
             throw badRequest("TEMPLATE_BROWSER_SCENE_GRAPH_REQUIRED",
@@ -798,8 +815,9 @@ public class MusicMvTemplateCatalogService {
                 String resourceKey = blankToNull(layer.get("resourceKey") == null
                         ? null : String.valueOf(layer.get("resourceKey")));
                 String requiredKind = "video".equals(type) ? "video" : "image";
-                if (resourceKey == null || !(requiredKind.equals(resourceKinds.get(resourceKey))
-                        || ("sticker".equals(type) && "animated_image".equals(resourceKinds.get(resourceKey))))) {
+                if (!("sticker".equals(type) && nativeStickers.contains(layerId))
+                        && (resourceKey == null || !(requiredKind.equals(resourceKinds.get(resourceKey))
+                        || ("sticker".equals(type) && "animated_image".equals(resourceKinds.get(resourceKey)))))) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
                             "Image, sticker, and video layers must reference a matching resource");
                 }

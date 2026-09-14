@@ -39,6 +39,82 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    private Map<String,Object> nativeStickerScene() {
+        Map<String,Object> scene = BrowserNativeStickerContractTest.scene(BrowserNativeStickerContractTest.source());
+        scene.put("schemaVersion", "browser-template-scene-v4");
+        scene.put("templateId", "tpl_1"); scene.put("versionId", "tplver_1");
+        scene.put("slots", Collections.emptyList()); scene.put("resources", Collections.emptyList());
+        scene.put("capability", BrowserNativeStickerContractTest.map("photoReplacementReady", true,
+                "browserLayerCompositionReady", true, "browserExportReady", true,
+                "blockingFeatures", Collections.emptyList(), "executionCapabilities", Collections.singletonList(
+                        executionCapability("sticker_layers", 1, 1, "exact", false))));
+        Map<String,Object> descriptor = BrowserNativeRuntimeContractTest.descriptor();
+        descriptor.putAll(BrowserNativeStickerContractTest.descriptor());
+        descriptor.put("videoAudioPolicy", "external_music_only");
+        descriptor.put("files", Arrays.asList("sticker/config.json", "sticker/infoSticker.lua", "animation/config.json"));
+        scene.put("runtimeDelivery", BrowserNativeStickerContractTest.map("schemaVersion", "browser-runtime-delivery-v1",
+                "resources", Arrays.asList(row("resourceId", "sticker"), row("resourceId", "animation")), "nativeEngine", descriptor));
+        return scene;
+    }
+
+    private Map<String,Object> syncStickerScene(Map<String,Object> scene) throws Exception {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("version_id", "tplver_1"));
+        TemplateBrowserSceneRequest request = new TemplateBrowserSceneRequest();
+        request.setSchemaVersion("browser-template-scene-v4"); request.setScene(scene);
+        request.setManifestSha256(sha256(new ObjectMapper().writeValueAsString(scene)));
+        return service.synchronizeBrowserScene("tpl_1", "tplver_1", request);
+    }
+
+    @Test
+    void acceptsBoundNativeStickerWithoutLegacyImageAndPreservesScene() throws Exception {
+        Map<String,Object> scene = nativeStickerScene(); String before = new ObjectMapper().writeValueAsString(scene);
+        assertEquals("ready", syncStickerScene(scene).get("status"));
+        assertEquals(before, new ObjectMapper().writeValueAsString(scene));
+        verify(runtimePackages).downloadForScene("tpl_1", "tplver_1", scene);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void acceptsBothOriginalStickerLayersFromFailedIntake() throws Exception {
+        Map<String,Object> scene = nativeStickerScene();
+        List<Map<String,Object>> layers = new ObjectMapper().readValue(
+                getClass().getResourceAsStream("/musicmv/native-sticker-intake-layers.json"), List.class);
+        scene.put("layers", layers);
+        Map<String,Object> delivery = (Map<String,Object>) scene.get("runtimeDelivery");
+        Map<String,Object> descriptor = (Map<String,Object>) delivery.get("nativeEngine");
+        List<Map<String,Object>> resources = new java.util.ArrayList<>(), bindings = new java.util.ArrayList<>();
+        List<String> files = new java.util.ArrayList<>();
+        for (Map<String,Object> layer : layers) {
+            String id = (String) ((Map<String,Object>) layer.get("nativeStickerSource")).get("resourceId");
+            resources.add(row("resourceId", id));
+            bindings.add(BrowserNativeStickerContractTest.map("resourceId", id, "path", id + "/", "kind", "sticker"));
+            files.add(id + "/config.json"); files.add(id + "/infoSticker.lua");
+        }
+        delivery.put("resources", resources); descriptor.put("bindings", bindings); descriptor.put("files", files);
+        ((Map<String,Object>) scene.get("capability")).put("executionCapabilities", Collections.singletonList(
+                executionCapability("sticker_layers", 2, 2, "exact", false)));
+        assertEquals("ready", syncStickerScene(scene).get("status"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void nativeStickerCannotBypassMissingDeliveryBindingSourceOrImageChecks() throws Exception {
+        for (int mutation = 0; mutation < 6; mutation++) {
+            Map<String,Object> scene = nativeStickerScene();
+            Map<String,Object> delivery = (Map<String,Object>) scene.get("runtimeDelivery");
+            Map<String,Object> descriptor = (Map<String,Object>) delivery.get("nativeEngine");
+            Map<String,Object> layer = ((List<Map<String,Object>>) scene.get("layers")).get(0);
+            if (mutation == 0) scene.remove("runtimeDelivery");
+            if (mutation == 1) delivery.put("resources", Collections.emptyList());
+            if (mutation == 2) descriptor.put("bindings", Collections.emptyList());
+            if (mutation == 3) layer.remove("nativeStickerSource");
+            if (mutation == 4) layer.put("type", "static_image");
+            if (mutation == 5) layer.put("type", "video");
+            assertThrows(ApiException.class, () -> syncStickerScene(scene));
+        }
+    }
+
     private MusicMvTemplateCatalogRepository repository;
     private CloudflareTemplateMediaProvider mediaProvider;
     private TemplateRuntimePackageService runtimePackages;
