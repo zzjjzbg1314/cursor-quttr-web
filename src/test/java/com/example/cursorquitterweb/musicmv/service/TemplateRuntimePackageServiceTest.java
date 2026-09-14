@@ -35,6 +35,18 @@ class TemplateRuntimePackageServiceTest {
         when(r2.isConfigured()).thenReturn(Boolean.TRUE);
     }
 
+    @Test void deliversSharedFontBytesAndRejectsDifferentHashOrType() {
+        Map<String,Object> row=new LinkedHashMap<>();row.put("status","ready");row.put("object_key","font.otf");row.put("source_size_bytes",123L);row.put("content_type","font/otf");
+        when(repository.templateResourceAssets(Collections.singletonMap("sha_"+hash(),hash()))).thenReturn(Collections.singletonMap("sha_"+hash(),row));
+        when(r2.presignedGetUrl("font.otf",Duration.ofMinutes(15))).thenReturn("https://download.example/font");
+        Map<String,Object> source=new LinkedHashMap<>();source.put("assetId","sha_"+hash());source.put("sourceSha256",hash());source.put("sourceSizeBytes",123L);source.put("contentType","font/otf");
+        Map<String,Object> font=new LinkedHashMap<>();font.put("kind","font");font.put("contentType","font/otf");font.put("contentSha256",hash());font.put("sourceAsset",source);
+        java.util.List<Map<String,Object>> result=service.downloadExactImages(java.util.Arrays.asList(font,font));
+        assertEquals(2,result.size());assertEquals("font",result.get(0).get("kind"));assertEquals(result.get(0).get("url"),result.get(1).get("url"));
+        font.put("contentSha256","changed");assertThrows(ApiException.class,()->service.downloadExactImages(Collections.singletonList(font)));
+        font.put("contentSha256",hash());font.put("contentType","image/png");assertThrows(ApiException.class,()->service.downloadExactImages(Collections.singletonList(font)));
+    }
+
     @Test
     void batchesExactImagesAndPreservesDuplicateBindingsAndValidation() {
         Map<String, Object> row = new LinkedHashMap<>();

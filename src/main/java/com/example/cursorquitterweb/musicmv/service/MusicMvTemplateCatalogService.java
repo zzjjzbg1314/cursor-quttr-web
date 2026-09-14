@@ -1239,6 +1239,12 @@ public class MusicMvTemplateCatalogService {
                 ? null : String.valueOf(resource.get("fontFamily")));
         String inlineData = blankToNull(resource.get("inlineData") == null
                 ? null : String.valueOf(resource.get("inlineData")));
+        if (family != null && inlineData == null && resource.get("sourceAsset") instanceof Map) {
+            Map<?,?> source=(Map<?,?>)resource.get("sourceAsset");
+            if (Arrays.asList("font/ttf","font/otf","font/woff","font/woff2").contains(source.get("contentType"))
+                    && Objects.equals(resource.get("contentType"),source.get("contentType"))
+                    && Objects.equals(resource.get("contentSha256"),source.get("sourceSha256"))) return;
+        }
         if (family == null || inlineData == null || !inlineData.startsWith("data:font/")) {
             throw badRequest("TEMPLATE_BROWSER_SCENE_FONT_RESOURCE_INVALID",
                     "Inline browser fonts require a family and a font data URL");

@@ -66,6 +66,16 @@ class MusicMvTemplateCatalogServiceTest {
         return service.synchronizeBrowserScene("tpl_1", "tplver_1", request);
     }
 
+    @Test void acceptsExternalFontAndRetainsLegacyInlineFontValidation() throws Exception {
+        Map<String,Object> font=new LinkedHashMap<>();font.put("fontFamily","same-family");font.put("kind","font");
+        font.put("inlineData","data:font/otf;base64,T1RUTw==");
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserFontResource",font);
+        font.remove("inlineData");font.put("contentType","font/otf");font.put("contentSha256","abc");
+        Map<String,Object> asset=row("contentType","font/otf");asset.put("sourceSha256","abc");font.put("sourceAsset",asset);
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserFontResource",font);
+        font.put("contentSha256","changed");assertThrows(ApiException.class,()->org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserFontResource",font));
+    }
+
     @Test
     void acceptsBoundNativeStickerWithoutLegacyImageAndPreservesScene() throws Exception {
         Map<String,Object> scene = nativeStickerScene(); String before = new ObjectMapper().writeValueAsString(scene);
