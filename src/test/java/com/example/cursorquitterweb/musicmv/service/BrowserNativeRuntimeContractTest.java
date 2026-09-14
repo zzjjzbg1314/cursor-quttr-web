@@ -11,6 +11,14 @@ class BrowserNativeRuntimeContractTest {
         assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
     }
+    @Test @SuppressWarnings("unchecked") void textStyleRequiresOriginalConfiguration() {
+        Map<String,Object> value=descriptor();
+        ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","text_style");
+        value.put("files",Arrays.asList("effect/config.json","effect/effectStyle.json","effect/fill.png"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("files",Collections.singletonList("effect/config.json"));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     static Map<String,Object> descriptor(){
         Map<String,Object> value=new LinkedHashMap<>(),assets=new LinkedHashMap<>(),binding=new LinkedHashMap<>();
         String root="/native-runtime/"+String.join("",Collections.nCopies(64,"a"))+"/";

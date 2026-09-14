@@ -50,12 +50,13 @@ final class BrowserNativeRuntimeContract {
             if(!(value instanceof Map))throw invalid();Map<String,Object> item=(Map<String,Object>)value;
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
-                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma").contains(item.get("kind"))
+                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma","text_style").contains(item.get("kind"))
                         ||(ownsTemplates&&"text_template".equals(item.get("kind")))
                         ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
                         ||(ownsStickers&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
             if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||(!uniqueFiles.contains(id+"/infoSticker.lua")&&files.stream().noneMatch(file->file.startsWith(id+"/")&&file.toLowerCase(Locale.ROOT).endsWith(".gif")))))throw invalid();
+            if("text_style".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/effectStyle.json")))throw invalid();
             if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
             if("script_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")
                     ||!uniqueFiles.contains(id+"/js/main.js")||!uniqueFiles.contains(id+"/js/template/template.js")
