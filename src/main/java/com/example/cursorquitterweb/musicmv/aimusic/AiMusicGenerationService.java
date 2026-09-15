@@ -355,6 +355,15 @@ public class AiMusicGenerationService {
         command.setVocalGender(advanced && !instrumental ? trim(request.getVocalGender()) : null);
         command.setStyleWeight(advanced ? request.getStyleWeight() : null);
         command.setWeirdnessConstraint(advanced ? request.getWeirdnessConstraint() : null);
+        if (request.getDuration() != null) {
+            if (!advanced || !"sunoapi".equals(provider.providerCode())
+                    || !java.util.Arrays.asList("V5_5", "V6", "V6_WILD", "V6_MINI").contains(command.getModel())
+                    || request.getDuration() < 10 || request.getDuration() > 360) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_DURATION_UNSUPPORTED",
+                        "Custom duration requires Advanced mode with a supported Suno model (10–360 seconds)");
+            }
+            command.setDuration(request.getDuration());
+        }
         return command;
     }
 
@@ -413,7 +422,7 @@ public class AiMusicGenerationService {
         if (blank(requestJson)) return details;
         try {
             com.fasterxml.jackson.databind.JsonNode input = objectMapper.readTree(requestJson);
-            for (String key : java.util.Arrays.asList("story", "style", "title", "mode", "model", "language", "lyricsMode", "instrumental", "negativeTags", "vocalGender", "styleWeight", "weirdnessConstraint")) {
+            for (String key : java.util.Arrays.asList("story", "style", "title", "mode", "model", "language", "lyricsMode", "instrumental", "negativeTags", "vocalGender", "styleWeight", "weirdnessConstraint", "duration")) {
                 if (input.hasNonNull(key)) details.put(key, objectMapper.convertValue(input.get(key), Object.class));
             }
         } catch (java.io.IOException ignored) {

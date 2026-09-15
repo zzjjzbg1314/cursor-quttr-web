@@ -40,6 +40,12 @@ public class AiMusicSongCreateRequest {
     @DecimalMax("1.00")
     @Digits(integer = 1, fraction = 2)
     private Double weirdnessConstraint;
+    @javax.validation.constraints.Min(10)
+    @javax.validation.constraints.Max(360)
+    private Integer duration;
+
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer value) { duration = value; }
 
     public String getRequestId() { return requestId; }
     public void setRequestId(String value) { requestId = value; }

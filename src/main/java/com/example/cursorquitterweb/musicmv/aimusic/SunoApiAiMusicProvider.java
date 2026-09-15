@@ -146,6 +146,7 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
             put(body, "vocalGender", command.getVocalGender());
             put(body, "styleWeight", command.getStyleWeight());
             put(body, "weirdnessConstraint", command.getWeirdnessConstraint());
+            if (command.getDuration() != null) body.put("duration", command.getDuration());
         }
 
         Map<String, Object> response = exchange(HttpMethod.POST, "/api/v1/generate", body);

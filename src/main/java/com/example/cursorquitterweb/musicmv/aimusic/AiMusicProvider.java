@@ -49,7 +49,10 @@ public interface AiMusicProvider {
         private String vocalGender;
         private Double styleWeight;
         private Double weirdnessConstraint;
+        private Integer duration;
 
+        public Integer getDuration() { return duration; }
+        public void setDuration(Integer value) { duration = value; }
         public String getPrompt() { return prompt; }
         public void setPrompt(String value) { prompt = value; }
         public String getStyle() { return style; }

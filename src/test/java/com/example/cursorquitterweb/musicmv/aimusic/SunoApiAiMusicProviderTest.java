@@ -44,6 +44,7 @@ class SunoApiAiMusicProviderTest {
                         org.hamcrest.Matchers.startsWith(
                                 "https://app.test/api/music-mv/v1/provider-webhooks/sunoapi/music?")))
                 .andExpect(jsonPath("$.model").value(model))
+                .andExpect(jsonPath("$.duration").value(180))
                 .andExpect(jsonPath("$.styleWeight").value(0.72d))
                 .andExpect(jsonPath("$.weirdnessConstraint").value(0.41d))
                 .andExpect(jsonPath("$.negativeTags").value("heavy metal"))
@@ -57,6 +58,7 @@ class SunoApiAiMusicProviderTest {
         command.setTitle("Happy Day");
         command.setModel(model);
         command.setCustomMode(true);
+        command.setDuration(180);
         command.setNegativeTags("heavy metal");
         command.setVocalGender("f");
         command.setStyleWeight(Double.valueOf(0.72d));

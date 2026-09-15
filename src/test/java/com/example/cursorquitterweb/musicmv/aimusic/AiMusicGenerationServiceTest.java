@@ -24,6 +24,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void customDurationRequiresSupportedProviderModelAndMode() {
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        when(provider.providerCode()).thenReturn("sunoapi");
+        when(provider.defaultModel()).thenReturn("V6");
+        AiMusicSongCreateRequest request = new AiMusicSongCreateRequest();
+        request.setMode("advanced");
+        request.setInstrumental(true);
+        request.setDuration(180);
+        assertThat(service().command(request, "https://app.test", provider, "job").getDuration()).isEqualTo(180);
+        request.setDuration(361);
+        assertThatThrownBy(() -> service().command(request, "https://app.test", provider, "job")).isInstanceOf(ApiException.class);
+        request.setDuration(180);
+        request.setModel("V5");
+        assertThatThrownBy(() -> service().command(request, "https://app.test", provider, "job")).isInstanceOf(ApiException.class);
+        request.setModel("V6");
+        when(provider.providerCode()).thenReturn("kie");
+        assertThatThrownBy(() -> service().command(request, "https://app.test", provider, "job")).isInstanceOf(ApiException.class);
+    }
+
+    @Test
     void exposesOnlyUserFacingGenerationSettingsAndToleratesLegacyRows() {
         assertThat(service().generationDetails("{\"story\":\"For mom\",\"model\":\"V6\",\"instrumental\":false,\"secret\":\"hidden\"}"))
                 .containsEntry("story", "For mom").containsEntry("model", "V6").containsEntry("instrumental", false).doesNotContainKey("secret");
