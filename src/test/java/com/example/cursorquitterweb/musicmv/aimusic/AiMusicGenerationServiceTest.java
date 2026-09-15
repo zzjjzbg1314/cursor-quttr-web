@@ -24,6 +24,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void extensionCanReuseOriginalLyricsButCoverRequiresExactLyrics() {
+        AiMusicSongCreateRequest request = new AiMusicSongCreateRequest();
+        request.setMode("advanced");request.setTitle("Extension");request.setStyle("Acoustic");request.setLyricsMode("provided");
+        request.setAudio(new com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest.Asset());
+        request.setAudioAction("extend");request.setContinueAt(20.0);
+        service().validate(request);
+        request.setAudioAction("cover");
+        assertThatThrownBy(() -> service().validate(request)).isInstanceOf(ApiException.class);
+    }
+
+    @Test
     void customDurationRequiresSupportedProviderModelAndMode() {
         AiMusicProvider provider = mock(AiMusicProvider.class);
         when(provider.providerCode()).thenReturn("sunoapi");

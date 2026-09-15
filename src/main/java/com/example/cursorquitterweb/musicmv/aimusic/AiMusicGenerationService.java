@@ -429,7 +429,7 @@ public class AiMusicGenerationService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_TITLE_TOO_LONG",
                     "This music model supports titles up to 80 characters");
         }
-        if (advanced && !instrumental && blank(request.getLyrics())) {
+        if (advanced && !instrumental && !"extend".equals(request.getAudioAction()) && blank(request.getLyrics())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LYRICS_REQUIRED",
                     "Lyrics are required for a vocal song in Advanced mode");
         }
