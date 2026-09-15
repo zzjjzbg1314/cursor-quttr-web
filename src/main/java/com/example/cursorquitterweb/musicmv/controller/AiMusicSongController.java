@@ -31,13 +31,16 @@ public class AiMusicSongController {
     private final MusicMvRenderClientAuthenticationService authentication;
     private final MusicMvAuthService auth;
     private final AiMusicGenerationService service;
+    private final com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService inputStorage;
 
     public AiMusicSongController(MusicMvRenderClientAuthenticationService authentication,
                                  MusicMvAuthService auth,
-                                 AiMusicGenerationService service) {
+                                 AiMusicGenerationService service,
+                                 com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService inputStorage) {
         this.authentication = authentication;
         this.auth = auth;
         this.service = service;
+        this.inputStorage = inputStorage;
     }
 
     @PostMapping
@@ -50,6 +53,7 @@ public class AiMusicSongController {
     ) {
         authentication.requireAuthorized(token);
         String ownerId = auth.requireUserId(servletRequest);
+        if (request.getAudio() != null) inputStorage.requireOwnedCloudAsset(ownerId, request.getAudio(), "music");
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();

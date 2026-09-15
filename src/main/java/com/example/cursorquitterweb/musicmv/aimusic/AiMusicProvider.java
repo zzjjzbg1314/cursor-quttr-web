@@ -50,6 +50,18 @@ public interface AiMusicProvider {
         private Double styleWeight;
         private Double weirdnessConstraint;
         private Integer duration;
+        private String uploadUrl;
+        private String audioAction;
+        private Double continueAt;
+        private Double audioWeight;
+        public String getUploadUrl() { return uploadUrl; }
+        public void setUploadUrl(String value) { uploadUrl = value; }
+        public String getAudioAction() { return audioAction; }
+        public void setAudioAction(String value) { audioAction = value; }
+        public Double getContinueAt() { return continueAt; }
+        public void setContinueAt(Double value) { continueAt = value; }
+        public Double getAudioWeight() { return audioWeight; }
+        public void setAudioWeight(Double value) { audioWeight = value; }
 
         public Integer getDuration() { return duration; }
         public void setDuration(Integer value) { duration = value; }

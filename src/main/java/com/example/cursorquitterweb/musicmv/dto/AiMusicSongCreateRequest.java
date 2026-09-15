@@ -44,6 +44,24 @@ public class AiMusicSongCreateRequest {
     @javax.validation.constraints.Max(360)
     private Integer duration;
 
+    @javax.validation.Valid
+    private MusicMvRenderJobCreateRequest.Asset audio;
+    @Pattern(regexp = "^(cover|extend)$")
+    private String audioAction;
+    @DecimalMin("0.01")
+    private Double continueAt;
+    @DecimalMin("0.00")
+    @DecimalMax("1.00")
+    private Double audioWeight;
+    public MusicMvRenderJobCreateRequest.Asset getAudio() { return audio; }
+    public void setAudio(MusicMvRenderJobCreateRequest.Asset value) { audio = value; }
+    public String getAudioAction() { return audioAction; }
+    public void setAudioAction(String value) { audioAction = value; }
+    public Double getContinueAt() { return continueAt; }
+    public void setContinueAt(Double value) { continueAt = value; }
+    public Double getAudioWeight() { return audioWeight; }
+    public void setAudioWeight(Double value) { audioWeight = value; }
+
     public Integer getDuration() { return duration; }
     public void setDuration(Integer value) { duration = value; }
 

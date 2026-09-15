@@ -149,7 +149,20 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
             if (command.getDuration() != null) body.put("duration", command.getDuration());
         }
 
-        Map<String, Object> response = exchange(HttpMethod.POST, "/api/v1/generate", body);
+        String path = "/api/v1/generate";
+        if (command.getUploadUrl() != null) {
+            body.put("uploadUrl", command.getUploadUrl());
+            put(body, "audioWeight", command.getAudioWeight());
+            if ("extend".equals(command.getAudioAction())) {
+                path = "/api/v1/generate/upload-extend";
+                body.remove("customMode");
+                body.put("defaultParamFlag", command.isCustomMode());
+                put(body, "continueAt", command.getContinueAt());
+            } else {
+                path = "/api/v1/generate/upload-cover";
+            }
+        }
+        Map<String, Object> response = exchange(HttpMethod.POST, path, body);
         String taskId = text(node(response).path("data"), "taskId", "task_id");
         if (blank(taskId)) {
             throw providerError("SUNOAPI_RESPONSE_INVALID",

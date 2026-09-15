@@ -364,6 +364,15 @@ public class AiMusicGenerationService {
             }
             command.setDuration(request.getDuration());
         }
+        if (request.getAudio() != null) {
+            if (!"sunoapi".equals(provider.providerCode())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_AUDIO_UNSUPPORTED", "Audio generation is unavailable with this provider");
+            }
+            command.setUploadUrl(request.getAudio().getUrl());
+            command.setAudioAction(request.getAudioAction());
+            command.setContinueAt(request.getContinueAt());
+            command.setAudioWeight(request.getAudioWeight());
+        }
         return command;
     }
 
@@ -374,15 +383,29 @@ public class AiMusicGenerationService {
             prompt.append(" in ").append(request.getLanguage().trim());
         }
         if (!blank(request.getStyle())) prompt.append(" with a ").append(request.getStyle().trim()).append(" style");
-        prompt.append(". Story: ").append(request.getStory().trim());
+        if (!blank(request.getStory())) prompt.append(". Story: ").append(request.getStory().trim());
         return prompt.toString();
     }
 
     void validate(AiMusicSongCreateRequest request) {
+        if (request.getAudio() != null) {
+            if (!java.util.Arrays.asList("cover", "extend").contains(request.getAudioAction())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_AUDIO_ACTION_REQUIRED", "Choose Cover or Extend for your audio");
+            }
+            if ("extend".equals(request.getAudioAction()) && (request.getContinueAt() == null
+                    || !Double.isFinite(request.getContinueAt()) || request.getContinueAt() <= 0 || request.getContinueAt() >= 480)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_CONTINUE_AT_INVALID", "Choose a continuation point within your audio (under 8 minutes)");
+            }
+            if ("extend".equals(request.getAudioAction()) && request.getDuration() != null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_EXTEND_DURATION_UNSUPPORTED", "Use automatic duration when extending audio");
+            }
+        } else if (request.getAudioAction() != null || request.getContinueAt() != null || request.getAudioWeight() != null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_AUDIO_REQUIRED", "Select audio before setting audio controls");
+        }
         boolean instrumental = Boolean.TRUE.equals(request.getInstrumental());
         boolean advanced = "advanced".equalsIgnoreCase(request.getMode())
                 || "provided".equalsIgnoreCase(request.getLyricsMode());
-        if (!advanced && blank(request.getStory())) {
+        if (!advanced && request.getAudio() == null && blank(request.getStory())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_STORY_REQUIRED",
                     "Describe the song you want to create");
         }

@@ -33,6 +33,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class SunoApiAiMusicProviderTest {
     @ParameterizedTest
+    @ValueSource(strings = {"cover", "extend"})
+    void routesUploadedAudioWithCorrectProviderContract(String action) {
+        RestTemplate client = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(client).build();
+        org.springframework.test.web.client.ResponseActions expectation = server.expect(requestTo("https://api.sunoapi.test/api/v1/generate/upload-" + action))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(jsonPath("$.uploadUrl").value("https://app.test/audio"))
+                .andExpect(jsonPath("$.audioWeight").value(0.65));
+        if ("extend".equals(action)) {
+            expectation.andExpect(jsonPath("$.defaultParamFlag").value(true))
+                    .andExpect(jsonPath("$.customMode").doesNotExist())
+                    .andExpect(jsonPath("$.continueAt").value(30.0));
+        } else expectation.andExpect(jsonPath("$.customMode").value(true));
+        expectation.andRespond(withSuccess("{\"code\":200,\"data\":{\"taskId\":\"audio-task\"}}", MediaType.APPLICATION_JSON));
+        GenerateSongCommand command = new GenerateSongCommand();
+        command.setCustomMode(true);
+        command.setModel("V6");
+        command.setUploadUrl("https://app.test/audio");
+        command.setAudioAction(action);
+        command.setContinueAt(30.0);
+        command.setAudioWeight(0.65);
+        assertThat(provider(client).submit(command).getProviderTaskId()).isEqualTo("audio-task");
+        server.verify();
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"V6", "V6_WILD", "V6_MINI"})
     void submitsNeutralCommandUsingSunoApiContractAndProtectedCallback(String model) {
         RestTemplate restTemplate = new RestTemplate();
