@@ -2286,6 +2286,33 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void emptySlotReplayCannotErasePublishedPhotoSlots() {
+        Map<String, Object> version = row("status", "published");
+        version.put("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        TemplateSlotReconcileRequest request = reconcileRequest();
+        request.setSlots(Collections.emptyList());
+        when(repository.slots("tplver_1")).thenReturn(Collections.singletonList(publishedSlot()));
+        assertEquals("TEMPLATE_PUBLISHED_SLOTS_IMMUTABLE", assertThrows(ApiException.class,
+                () -> service.reconcileSlots("tpl_1", "tplver_1", request)).getCode());
+        when(repository.slots("tplver_1")).thenReturn(Collections.emptyList());
+        assertEquals(Integer.valueOf(0), service.reconcileSlots("tpl_1", "tplver_1", request).get("slotCount"));
+        verify(repository, never()).replaceSlots(anyString(), anyString(), any());
+    }
+
+    @Test
+    void reconcilesExplicitEmptySlotsForUnpublishedSource() {
+        Map<String, Object> version = row("source_node_id", "mac-1");
+        version.put("source_local_key", "templates/tpl_1/tplver_1");
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
+        TemplateSlotReconcileRequest request = reconcileRequest();
+        request.setSlots(Collections.emptyList());
+        assertEquals(Integer.valueOf(0), service.reconcileSlots("tpl_1", "tplver_1", request).get("slotCount"));
+        verify(repository).replaceSlots("tpl_1", "tplver_1", request.getSlots());
+    }
+
+    @Test
     void rejectsSlotReconciliationFromAnotherSourceSnapshot() {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("source_node_id", "mac-1");

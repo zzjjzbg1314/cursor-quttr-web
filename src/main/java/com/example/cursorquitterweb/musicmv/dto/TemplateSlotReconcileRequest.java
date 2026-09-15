@@ -1,6 +1,5 @@
 package com.example.cursorquitterweb.musicmv.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -18,8 +17,8 @@ public class TemplateSlotReconcileRequest {
 
     @NotNull
     @Valid
-    @Size(min = 1, max = 200)
-    private List<TemplatePromotionRequest.Slot> slots = new ArrayList<TemplatePromotionRequest.Slot>();
+    @Size(max = 200)
+    private List<TemplatePromotionRequest.Slot> slots;
 
     public String getSourceNodeId() { return sourceNodeId; }
     public void setSourceNodeId(String sourceNodeId) { this.sourceNodeId = sourceNodeId; }
