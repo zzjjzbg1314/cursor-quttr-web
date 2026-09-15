@@ -408,10 +408,25 @@ public class AiMusicGenerationService {
 
     private String trim(String value) { return value == null ? null : value.trim(); }
 
+    Map<String, Object> generationDetails(String requestJson) {
+        Map<String, Object> details = new LinkedHashMap<String, Object>();
+        if (blank(requestJson)) return details;
+        try {
+            com.fasterxml.jackson.databind.JsonNode input = objectMapper.readTree(requestJson);
+            for (String key : java.util.Arrays.asList("story", "style", "title", "mode", "model", "language", "lyricsMode", "instrumental", "negativeTags", "vocalGender", "styleWeight", "weirdnessConstraint")) {
+                if (input.hasNonNull(key)) details.put(key, objectMapper.convertValue(input.get(key), Object.class));
+            }
+        } catch (java.io.IOException ignored) {
+            // 旧记录无法解析时仍可正常查看歌曲。
+        }
+        return details;
+    }
+
     private Map<String, Object> view(Map<String, Object> row, boolean replay) {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("jobId", RowUtils.str(row, "job_id"));
         result.put("requestId", RowUtils.str(row, "request_id"));
+        result.put("generation", generationDetails(RowUtils.str(row, "request_json")));
         result.put("status", RowUtils.str(row, "status"));
         result.put("stage", RowUtils.str(row, "stage"));
         result.put("progress", RowUtils.dbl(row, "progress"));

@@ -24,6 +24,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void exposesOnlyUserFacingGenerationSettingsAndToleratesLegacyRows() {
+        assertThat(service().generationDetails("{\"story\":\"For mom\",\"model\":\"V6\",\"instrumental\":false,\"secret\":\"hidden\"}"))
+                .containsEntry("story", "For mom").containsEntry("model", "V6").containsEntry("instrumental", false).doesNotContainKey("secret");
+        assertThat(service().generationDetails("invalid")).isEmpty();
+        assertThat(service().generationDetails(null)).isEmpty();
+    }
+
+    @Test
     void mapsAdvancedModeToCustomProviderCommandWithExactLyricsAndControls() {
         AiMusicProvider provider = mock(AiMusicProvider.class);
         when(provider.defaultModel()).thenReturn("V5_5");
