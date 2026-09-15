@@ -21,7 +21,7 @@ final class BrowserNativeGlobalEffectContract {
             String effectId=id(effect.get("effectId"));Map<?,?> binding=bindings.get(id(effect.get("resourceId")));
             if(!owned.add(effectId)||!effectId.equals(source.get("segmentId"))
                     ||!"native-global-effect-source-v1".equals(source.get("schemaVersion"))
-                    ||!Arrays.asList("filter","video_effect").contains(source.get("type"))
+                    ||!Arrays.asList("filter","video_effect","adjustment").contains(source.get("type"))
                     ||binding==null||!source.get("type").equals(binding.get("kind")))throw invalid();
             id(source.get("materialId"));id(binding.get("path"));
             long start=integer(source.get("targetStartRaw")),duration=integer(source.get("targetDurationRaw"));
@@ -44,6 +44,9 @@ final class BrowserNativeGlobalEffectContract {
                 if(!params.add(name)||Arrays.asList("__proto__","constructor","prototype").contains(name)
                         ||!finite(param.get("value")))throw invalid();
             }
+            if("adjustment".equals(source.get("type")) && (((Number)source.get("value")).doubleValue()!=1
+                    ||!list(source.get("commonKeyframes")).isEmpty()||params.isEmpty()
+                    ||!Arrays.asList("brightness","contrast","saturation","sharpen","clear","tone","fade","light_sensation","vignetting","particle").containsAll(params)))throw invalid();
             try { BrowserNativeEffectKeyframes.validate(source.get("commonKeyframes"),params); }
             catch(java.io.IOException error) { throw invalid(); }
         }

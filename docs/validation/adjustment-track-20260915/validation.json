@@ -1,0 +1,55 @@
+{
+  "template": "0915 (13)",
+  "labId": "cclab_cfd170336161c897",
+  "runtimePackageId": "ccruntime_42ca0ba7ef926728",
+  "nativeReference": {
+    "jobId": "f08939dd-5e41-4d66-a2fc-5e5266f462ac",
+    "elapsedMs": 16532,
+    "status": "success"
+  },
+  "browser": {
+    "run": "bparrun_302f40b2b0c1f504",
+    "status": "rendered",
+    "semanticIntegrity": "exact",
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0,
+    "completedFrameCount": 485,
+    "elapsedSeconds": 8.707609999895096,
+    "totalSeconds": 10.479465000033379,
+    "writerSidecarCount": 0
+  },
+  "parity": {
+    "status": "passed",
+    "averageSsim": 0.997482,
+    "minSsim": 0.995497,
+    "ssimThreshold": 0.9,
+    "frameCount": 10,
+    "reportJsonPath": "/Users/zongjei/Documents/code/pengyouquan-web/storage/data/browser-template-parity/runs/bparrun_302f40b2b0c1f504/evidence/vpar_6ca363c84c8bc148/visual-parity-report.json",
+    "referenceSha256": "462c8c016f408d291163aeddfeaf5625ba5c212105a7c53eb540e349c237a228",
+    "outputSha256": "50f38257a36ea9f2b5108bb7b8e456bbf28824ce4f21e67c51bd345f14f4b984"
+  },
+  "regression": {
+    "baseline": "bparrun_5cbe0c8d49a6e384",
+    "run": "bparrun_ab98012ad3558526",
+    "baselineFrameCount": 546,
+    "frameCount": 546,
+    "identicalFrameCount": 546,
+    "allFramesIdentical": true,
+    "template": "0915 (4)",
+    "elapsedSeconds": 5.380330000042916,
+    "totalSeconds": 6.292059999942779,
+    "semanticIntegrity": "exact",
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0,
+    "writerSidecarCount": 0
+  },
+  "tests": {
+    "frontendTypecheck": "passed",
+    "frontendNativeTests": 322,
+    "adminFocusedTests": 88,
+    "backendFocusedTests": 21
+  },
+  "scope": "仅原始独立调整层，同目录已验证控制器，保留现有照片/滤镜/文字路径；未知参数、跨目录组合和调整关键帧仍阻塞。",
+  "officialEditorSha256": "db04b75acd1ca40830e55e607237b1b4ae93a0b1a473a931f7e051e485aa6229",
+  "controllerSha256": "1897e6e750a306d1e19a16db8fed6e48cec6ee8bec087eb4ae533cde5d8ee444"
+}

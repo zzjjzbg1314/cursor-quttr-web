@@ -22,4 +22,15 @@ class BrowserNativeGlobalEffectContractTest {
         Map<String,Object> e=effect();assertThrows(RuntimeException.class,()->BrowserNativeGlobalEffectContract.validate(Collections.singletonMap("postEffects",Arrays.asList(e,e)),descriptor()));
         e.put("resourceId","missing");assertThrows(RuntimeException.class,()->BrowserNativeGlobalEffectContract.validate(Collections.singletonMap("postEffects",Collections.singletonList(e)),descriptor()));
     }
+    @Test void validatesIndependentAdjustmentAndRejectsUnknownParameter()throws Exception {
+        Map<String,Object> e=effect(),d=descriptor();
+        Map<String,Object> source=(Map<String,Object>)e.get("nativeGlobalSource");
+        source.put("type","adjustment");source.put("value",1);
+        Map<String,Object> param=new HashMap<>();param.put("name","tone");param.put("value",-.2);
+        source.put("adjustParams",Collections.singletonList(param));
+        for(Object raw:(List<?>)d.get("bindings"))((Map<String,Object>)raw).put("kind","adjustment");
+        Map<String,Object> scene=Collections.singletonMap("postEffects",Collections.singletonList(e));
+        assertEquals(Collections.singleton("s"),BrowserNativeGlobalEffectContract.validate(scene,d));
+        param.put("name","unverified");assertThrows(RuntimeException.class,()->BrowserNativeGlobalEffectContract.validate(scene,d));
+    }
 }
