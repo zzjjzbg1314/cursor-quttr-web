@@ -50,7 +50,7 @@ final class BrowserNativeRuntimeContract {
             if(!(value instanceof Map))throw invalid();Map<String,Object> item=(Map<String,Object>)value;
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
-                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma","text_style").contains(item.get("kind"))
+                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma","mask","text_style").contains(item.get("kind"))
                         ||(ownsTemplates&&"text_template".equals(item.get("kind")))
                         ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
                         ||(ownsStickers&&"sticker".equals(item.get("kind"))))

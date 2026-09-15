@@ -5,6 +5,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class BrowserNativeRuntimeContractTest {
+    @Test @SuppressWarnings("unchecked") void maskRequiresDeliveredDependency() {
+        Map<String,Object> value=descriptor();
+        ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","mask");
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+    }
     @Test @SuppressWarnings("unchecked") void chromaRequiresDeliveredDependency() {
         Map<String,Object> value=descriptor();
         ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","chroma");
