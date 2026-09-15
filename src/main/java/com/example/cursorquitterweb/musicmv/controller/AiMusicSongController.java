@@ -30,17 +30,20 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderClientAuthentic
 public class AiMusicSongController {
     private final MusicMvRenderClientAuthenticationService authentication;
     private final MusicMvAuthService auth;
+    private final com.example.cursorquitterweb.musicmv.aimusic.AiVoiceService voices;
     private final AiMusicGenerationService service;
     private final com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService inputStorage;
 
     public AiMusicSongController(MusicMvRenderClientAuthenticationService authentication,
                                  MusicMvAuthService auth,
                                  AiMusicGenerationService service,
-                                 com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService inputStorage) {
+                                 com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageService inputStorage,
+                                 com.example.cursorquitterweb.musicmv.aimusic.AiVoiceService voices) {
         this.authentication = authentication;
         this.auth = auth;
         this.service = service;
         this.inputStorage = inputStorage;
+        this.voices = voices;
     }
 
     @PostMapping
@@ -54,6 +57,7 @@ public class AiMusicSongController {
         authentication.requireAuthorized(token);
         String ownerId = auth.requireUserId(servletRequest);
         if (request.getAudio() != null) inputStorage.requireOwnedCloudAsset(ownerId, request.getAudio(), "music");
+        if (request.getVoiceId() != null && !request.getVoiceId().isEmpty()) request.setResolvedVoiceId(voices.resolve(ownerId, request.getVoiceId()));
         String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
                 .replacePath(servletRequest.getContextPath()).replaceQuery(null)
                 .build().toUriString();

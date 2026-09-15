@@ -49,6 +49,9 @@ public interface AiMusicProvider {
         private String vocalGender;
         private Double styleWeight;
         private Double weirdnessConstraint;
+        private String voiceId;
+        public String getVoiceId() { return voiceId; }
+        public void setVoiceId(String value) { voiceId = value; }
         private Integer duration;
         private String uploadUrl;
         private String audioAction;

@@ -336,6 +336,12 @@ public class AiMusicGenerationService {
                 || "provided".equalsIgnoreCase(request.getLyricsMode());
         GenerateSongCommand command = new GenerateSongCommand();
         command.setCustomMode(advanced);
+        if (!blank(request.getVoiceId())) {
+            if (!advanced || instrumental || !"sunoapi".equals(provider.providerCode()) || blank(request.getResolvedVoiceId())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_VOICE_UNSUPPORTED", "Choose a verified voice in Advanced vocal mode");
+            }
+            command.setVoiceId(request.getResolvedVoiceId());
+        }
         command.setInstrumental(instrumental);
         String prompt = advanced
                 ? (instrumental ? null : trim(request.getLyrics()))

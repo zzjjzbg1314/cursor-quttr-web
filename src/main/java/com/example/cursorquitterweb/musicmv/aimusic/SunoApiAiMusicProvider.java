@@ -141,6 +141,10 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
         body.put("callBackUrl", command.getCallbackUrl());
         if (command.isCustomMode()) {
             put(body, "style", command.getStyle());
+            if (command.getVoiceId() != null) {
+                body.put("personaId", command.getVoiceId());
+                body.put("personaModel", "voice_persona");
+            }
             put(body, "title", command.getTitle());
             put(body, "negativeTags", command.getNegativeTags());
             put(body, "vocalGender", command.getVocalGender());
@@ -229,6 +233,11 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to protect SunoAPI callback", exception);
         }
+    }
+
+    Map<String, Object> voiceRequest(HttpMethod method, String operation, Map<String, Object> body) {
+        ensureConfigured();
+        return exchange(method, "/api/v1/voice/" + operation, body);
     }
 
     private Map<String, Object> exchange(HttpMethod method, String path, Map<String, Object> body) {

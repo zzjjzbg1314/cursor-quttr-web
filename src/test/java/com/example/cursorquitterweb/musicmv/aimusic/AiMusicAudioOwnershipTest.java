@@ -25,7 +25,7 @@ class AiMusicAudioOwnershipTest {
         doThrow(new ApiException(HttpStatus.NOT_FOUND, "MV_INPUT_ASSET_NOT_FOUND", "Not found"))
                 .when(storage).requireOwnedCloudAsset("owner", asset, "music");
         AiMusicSongController controller = new AiMusicSongController(
-                mock(MusicMvRenderClientAuthenticationService.class), auth, service, storage);
+                mock(MusicMvRenderClientAuthenticationService.class), auth, service, storage, mock(AiVoiceService.class));
         assertThatThrownBy(() -> controller.create(null, null, request, servlet)).isInstanceOf(ApiException.class);
         verifyNoInteractions(service);
     }

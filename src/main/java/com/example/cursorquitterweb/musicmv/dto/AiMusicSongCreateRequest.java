@@ -62,6 +62,16 @@ public class AiMusicSongCreateRequest {
     public Double getAudioWeight() { return audioWeight; }
     public void setAudioWeight(Double value) { audioWeight = value; }
 
+    @Size(max = 128)
+    private String voiceId;
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String resolvedVoiceId;
+    public String getVoiceId() { return voiceId; }
+    public void setVoiceId(String value) { voiceId = value; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getResolvedVoiceId() { return resolvedVoiceId; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public void setResolvedVoiceId(String value) { resolvedVoiceId = value; }
     public Integer getDuration() { return duration; }
     public void setDuration(Integer value) { duration = value; }
 
