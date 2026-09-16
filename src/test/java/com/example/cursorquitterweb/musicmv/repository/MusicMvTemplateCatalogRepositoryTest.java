@@ -18,6 +18,17 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void listAndCountShareSearchAndTechnicalPredicates() {
+        CapturingD1 client=new CapturingD1();
+        MusicMvTemplateCatalogRepository repository=new MusicMvTemplateCatalogRepository(client);
+        repository.templates("en","published","public","wedding",null,"婚礼",1,10,1d,60d,"9:16",2,0);
+        String list=client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL"),client.sql.indexOf("ORDER BY t.sort_order"));
+        List<Object> params=new ArrayList<>(client.params.subList(1,client.params.size()-2));
+        assertTrue(client.sql.contains("t.template_id ASC"));
+        repository.templateCount("published","public","wedding",null,"婚礼",1,10,1d,60d,"9:16");
+        assertEquals(list,client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL")));
+        assertEquals(params,client.params);
+    }
     @Test
     void readsOnlyFreshPublicVersionStateForCachedDetails() {
         CapturingD1 client = new CapturingD1();

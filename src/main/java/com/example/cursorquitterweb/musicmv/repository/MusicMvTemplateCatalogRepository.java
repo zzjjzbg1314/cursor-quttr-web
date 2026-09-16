@@ -212,19 +212,9 @@ public class MusicMvTemplateCatalogRepository {
                     + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
             params.add(collectionKey);
         }
-        if (keyword != null) {
-            sql.append("AND (lower(t.slug) LIKE ? OR lower(COALESCE(req.name,en.name,zh.name,'')) LIKE ? ")
-                    .append("OR lower(COALESCE(req.description,en.description,zh.description,'')) LIKE ? ")
-                    .append("OR EXISTS (SELECT 1 FROM template_source_metadata sm WHERE sm.template_id=t.template_id ")
-                    .append("AND (lower(sm.source_title) LIKE ? OR lower(sm.source_description) LIKE ? ")
-                    .append("OR lower(sm.source_category) LIKE ? OR lower(sm.source_search_keyword) LIKE ? ")
-                    .append("OR lower(sm.source_hashtags_json) LIKE ?))) ");
-            String like = "%" + keyword.toLowerCase() + "%";
-            params.add(like); params.add(like); params.add(like); params.add(like);
-            params.add(like); params.add(like); params.add(like); params.add(like);
-        }
+        TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
-        sql.append("ORDER BY t.sort_order DESC, t.published_at DESC, t.updated_at DESC ")
+        sql.append("ORDER BY t.sort_order DESC, t.published_at DESC, t.updated_at DESC, t.template_id ASC ")
                 .append("LIMIT ? OFFSET ?");
         params.add(Integer.valueOf(limit));
         params.add(Integer.valueOf(offset));
@@ -255,17 +245,7 @@ public class MusicMvTemplateCatalogRepository {
                     + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
             params.add(collectionKey);
         }
-        if (keyword != null) {
-            sql.append("AND (lower(t.slug) LIKE ? OR EXISTS (")
-                    .append("SELECT 1 FROM template_translations x WHERE x.template_id=t.template_id ")
-                    .append("AND lower(x.name) LIKE ?) OR EXISTS (SELECT 1 FROM template_source_metadata sm ")
-                    .append("WHERE sm.template_id=t.template_id AND (lower(sm.source_title) LIKE ? ")
-                    .append("OR lower(sm.source_description) LIKE ? OR lower(sm.source_category) LIKE ? ")
-                    .append("OR lower(sm.source_search_keyword) LIKE ? OR lower(sm.source_hashtags_json) LIKE ?))) ");
-            String like = "%" + keyword.toLowerCase() + "%";
-            params.add(like); params.add(like); params.add(like); params.add(like);
-            params.add(like); params.add(like); params.add(like);
-        }
+        TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
         Map<String, Object> row = d1.query(sql.toString(), params).firstRow();
         Object value = row == null ? null : row.get("total");

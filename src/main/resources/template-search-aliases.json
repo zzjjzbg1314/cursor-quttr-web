@@ -1,0 +1,13 @@
+{
+  "birthday": ["birthdays", "happy birthday", "生日快乐", "生日快樂", "cumpleaños", "cumpleanos", "aniversário", "ulang tahun"],
+  "couples": ["couple", "romance", "爱情", "愛情", "恋爱", "戀愛", "amor", "pareja", "casal", "cinta", "pasangan"],
+  "family": ["families", "家庭", "家人", "familia", "família", "keluarga"],
+  "baby-kids": ["baby", "babies", "kids", "children", "宝宝", "寶寶", "儿童", "兒童", "bebé", "bebe", "niños", "ninos", "bebê", "crianças", "criancas", "bayi", "anak"],
+  "friendship": ["friends", "friend", "朋友", "友谊", "友誼", "amistad", "amigos", "amizade", "persahabatan", "sahabat"],
+  "anniversary": ["anniversaries", "纪念日", "紀念日", "wedding anniversary", "结婚纪念日", "結婚紀念日", "aniversario de bodas", "aniversário de casamento", "ulang tahun pernikahan"],
+  "wedding": ["weddings", "marriage", "婚礼", "婚禮", "结婚", "結婚", "boda", "bodas", "casamento", "pernikahan"],
+  "school-life": ["school", "graduation", "校园", "校園", "毕业", "畢業", "escuela", "graduación", "graduacion", "escola", "formatura", "sekolah", "wisuda"],
+  "travel": ["travels", "trip", "vacation", "旅行", "旅游", "旅遊", "viaje", "viajes", "viagem", "viajar", "perjalanan", "liburan"],
+  "daily-life": ["daily", "日常", "生活", "vida diaria", "cotidiano", "kehidupan sehari-hari"],
+  "motivation": ["motivational", "励志", "勵志", "激励", "激勵", "motivación", "motivacion", "motivação", "motivacao", "motivasi"]
+}
