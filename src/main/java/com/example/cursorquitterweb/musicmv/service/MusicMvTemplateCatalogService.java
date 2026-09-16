@@ -1301,10 +1301,39 @@ public class MusicMvTemplateCatalogService {
         String type = blankToNull(mask.get("type") == null
                 ? null : String.valueOf(mask.get("type")));
         Set<String> supportedTypes = new HashSet<String>(java.util.Arrays.asList(
-                "ellipse", "rectangle", "heart", "linear", "mirror", "unsupported"));
+                "ellipse", "rectangle", "heart", "linear", "mirror", "geometric_shape", "unsupported"));
         if (type == null || !supportedTypes.contains(type)) {
             throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
                     "Browser scene masks must declare a recognized shape");
+        }
+        // 几何蒙版必须保留原资源和比例，不能通过缺省值绕过原生参数校验。
+        if ("geometric_shape".equals(type)) {
+            if (!(mask.get("resourceId") instanceof String)
+                    || blankToNull((String) mask.get("resourceId")) == null
+                    || !(mask.get("aspectRatio") instanceof Number)
+                    || !Double.isFinite(((Number) mask.get("aspectRatio")).doubleValue())
+                    || ((Number) mask.get("aspectRatio")).doubleValue() <= 0
+                    || !(mask.get("invert") instanceof Boolean)) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                        "Geometric masks require an original resource and positive aspect ratio");
+            }
+            for (String field : java.util.Arrays.asList("centerX", "centerY", "width", "height",
+                    "rotation", "feather", "expansion", "roundCorner")) {
+                if (!(mask.get(field) instanceof Number)) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                            "Geometric masks require complete original geometry");
+                }
+            }
+            double width = ((Number) mask.get("width")).doubleValue();
+            double height = ((Number) mask.get("height")).doubleValue();
+            double feather = ((Number) mask.get("feather")).doubleValue();
+            double roundCorner = ((Number) mask.get("roundCorner")).doubleValue();
+            if (width <= 0 || height <= 0 || feather < 0 || feather > 1
+                    || roundCorner < 0 || roundCorner > 1
+                    || ((Number) mask.get("expansion")).doubleValue() != 0) {
+                throw badRequest("TEMPLATE_BROWSER_SCENE_MASK_INVALID",
+                        "Geometric mask geometry is outside the supported native range");
+            }
         }
         for (String field : java.util.Arrays.asList(
                 "centerX", "centerY", "width", "height", "rotation", "feather",

@@ -1735,6 +1735,35 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void geometricMasksRequireOriginalIdentityAndFiniteCompleteGeometry() throws Exception {
+        java.lang.reflect.Method method = MusicMvTemplateCatalogService.class
+                .getDeclaredMethod("requireValidBrowserLayerMask", Map.class);
+        method.setAccessible(true);
+        Map<String, Object> mask = row("type", "geometric_shape");
+        mask.put("resourceId", "original-shape"); mask.put("aspectRatio", 1.1);
+        mask.put("width", 0.8); mask.put("height", 0.6);
+        mask.put("centerX", 0.0); mask.put("centerY", 0.0); mask.put("rotation", 0.0);
+        mask.put("feather", 0.3); mask.put("expansion", 0.0); mask.put("roundCorner", 0.0);
+        mask.put("invert", false);
+        method.invoke(service, row("mask", mask));
+        for (String field : java.util.Arrays.asList("resourceId", "aspectRatio", "width", "invert")) {
+            Map<String, Object> invalid = new LinkedHashMap<>(mask);
+            invalid.remove(field);
+            assertThrows(java.lang.reflect.InvocationTargetException.class,
+                    () -> method.invoke(service, row("mask", invalid)));
+        }
+        for (Object value : java.util.Arrays.asList(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
+            Map<String, Object> invalid = new LinkedHashMap<>(mask);
+            invalid.put("aspectRatio", value);
+            assertThrows(java.lang.reflect.InvocationTargetException.class,
+                    () -> method.invoke(service, row("mask", invalid)));
+        }
+        for (String type : java.util.Arrays.asList("ellipse", "rectangle", "heart", "linear", "mirror")) {
+            method.invoke(service, row("mask", row("type", type)));
+        }
+    }
+
+    @Test
     void rejectsVersionFourLayerWithUnknownMaskShape() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))
