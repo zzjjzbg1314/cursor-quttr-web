@@ -22,7 +22,7 @@ final class BrowserNativeStickerContract {
                     ||!"native-sticker-source-v1".equals(source.get("schemaVersion"))||!"source_projected".equals(source.get("status"))
                     ||!"bound".equals(source.get("attachmentStatus"))||!"sticker".equals(source.get("materialType"))
                     ||!"".equals(source.get("unicode"))||!(source.get("visible") instanceof Boolean)
-                    ||!list(source.get("commonKeyframes")).isEmpty()||!list(layer.get("effects")).isEmpty()
+                    ||!list(layer.get("effects")).isEmpty()
                     ||layer.containsKey("mask")||layer.containsKey("transitionIn")
                     ||(layer.containsKey("blendMode")&&!"source-over".equals(layer.get("blendMode"))))throw invalid();
             id(source.get("materialId"));id(source.get("trackId"));bind(bindings,id(source.get("resourceId")),"sticker");
@@ -33,6 +33,7 @@ final class BrowserNativeStickerContract {
             for(String key:Arrays.asList("renderIndex","trackRenderIndex"))if(index(source.get(key))!=index(layer.get(key)))throw invalid();
             if(((Number)descriptor.get("layerMode")).intValue()==1)safe(index(source.get("trackRenderIndex"))*100);
             transform(map(source.get("clip")));
+            keyframes(source.get("commonKeyframes"));
             Set<String> materialIds=new HashSet<>();
             for(Object value:list(source.get("animationMaterialIds")))if(!materialIds.add(id(value)))throw invalid();
             if(materialIds.size()>1)throw invalid();
@@ -53,6 +54,26 @@ final class BrowserNativeStickerContract {
         }
         return owned;
     }
+    // 发布契约与浏览器共同限定普通资源贴纸的线性、局部时钟变换。
+    private static void keyframes(Object raw) {
+        Set<String> properties=new HashSet<>(),ids=new HashSet<>();
+        for(Object value:list(raw)) {
+            Map<?,?> group=map(value);String property=id(group.get("property_type"));
+            if(!Arrays.asList("KFTypePositionX","KFTypePositionY","KFTypeScaleX","KFTypeScaleY","KFTypeRotation").contains(property)
+                    ||!properties.add(property)||!ids.add(id(group.get("id")))||!empty(group.get("material_id")))throw invalid();
+            List<?> points=list(group.get("keyframe_list"));if(points.isEmpty())throw invalid();
+            long previous=-1;
+            for(Object item:points) {
+                Map<?,?> point=map(item);List<?> values=list(point.get("values"));
+                if(!"Line".equals(point.get("curveType"))||!empty(point.get("graphID"))||!empty(point.get("graph"))
+                        ||!empty(point.get("string_value"))||values.size()!=1||!finite(values.get(0)))throw invalid();
+                Object time=point.get("time_offset");
+                long current=time instanceof String?integer(time):index(time);
+                if(current<0||current<=previous)throw invalid();previous=current;
+            }
+        }
+    }
+    private static boolean empty(Object value){return value==null||"".equals(value);}
     private static void transform(Map<?,?> clip) {
         if(!Arrays.asList("alpha","rotation","scale","transform","flip").containsAll(clip.keySet())
                 ||!finite(clip.get("alpha"))||((Number)clip.get("alpha")).doubleValue()!=1||!finite(clip.get("rotation")))throw invalid();

@@ -42,4 +42,28 @@ class BrowserNativeStickerContractTest {
         animation.put("resourceId","animation");animation.remove("nativeTextAnimationParameters");
         assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
     }
+    static Map<String,Object> group() {return map("id","g","property_type","KFTypePositionY","material_id","",
+        "keyframe_list",Arrays.asList(map("curveType","Line","time_offset",0,"values",Collections.singletonList(.7)),
+        map("curveType","Line","time_offset","1000000","values",Collections.singletonList(.66))));}
+    @Test void linearStickerTransformRetainsSourceAndRejectsUnknownSemantics() {
+        Map<String,Object> source=source(),group=group();source.put("commonKeyframes",Collections.singletonList(group));
+        String before=source.toString();assertEquals(Collections.singleton("s"),BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        assertEquals(before,source.toString());
+        for(String property:Arrays.asList("KFTypePositionX","KFTypePositionY","KFTypeScaleX","KFTypeScaleY","KFTypeRotation")) {
+            group.put("property_type",property);assertEquals(Collections.singleton("s"),BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        }
+        for(String property:Arrays.asList("KFTypeAlpha","KFTypeMaskSizeY","KFTypeScale")) {
+            group.put("property_type",property);assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        }
+        group.put("property_type","KFTypePositionY");group.put("material_id","unexpected");
+        assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        group.put("material_id","");source.put("commonKeyframes",Arrays.asList(group,group));
+        assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        source.put("commonKeyframes",Collections.singletonList(group));
+        Map<String,Object> point=(Map<String,Object>)((List<?>)group.get("keyframe_list")).get(1);
+        point.put("curveType","Cubic");assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        point.put("curveType","Line");point.put("time_offset",0);assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        point.put("time_offset",1);point.put("values",Collections.singletonList(Double.NaN));
+        assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+    }
 }
