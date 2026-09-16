@@ -25,6 +25,32 @@ class BrowserNativeRuntimeContractTest {
         value.put("files",Collections.singletonList("effect/config.json"));
         assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
     }
+    @Test @SuppressWarnings("unchecked") void prefabTextStyleRequiresCompleteSameResourceEntrypoint() {
+        Map<String,Object> value=descriptor();
+        ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","text_style");
+        value.put("files",Arrays.asList("effect/config.json","effect/content.json","effect/prefabs/text.prefab"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        for(List<String> files:Arrays.asList(
+                Arrays.asList("effect/config.json","effect/content.json"),
+                Arrays.asList("effect/config.json","effect/prefabs/text.prefab"),
+                Arrays.asList("effect/content.json","effect/prefabs/text.prefab"),
+                Arrays.asList("effect/config.json","effect/content.json","other/text.prefab"),
+                Arrays.asList("effect/config.json","effect/content.json","effect/text.prefab","effect/infoSticker.lua"),
+                Arrays.asList("effect/config.json","effect/content.json","effect/text.prefab","effect/effectStyle.json"))) {
+            value.put("files",files);
+            assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,new HashSet<>(Arrays.asList("effect","other"))));
+        }
+    }
+    @Test @SuppressWarnings("unchecked") void acceptedPrefabTextDeliveryRoundTripsWithoutMutation() throws Exception {
+        Map<String,Object> value;
+        try(java.io.InputStream input=getClass().getResourceAsStream("/musicmv/prefab-text-native-engine.json")) {
+            assertNotNull(input);
+            value=new com.fasterxml.jackson.databind.ObjectMapper().readValue(input,Map.class);
+        }
+        Set<String> ids=new HashSet<>();
+        for(Map<String,Object> item:(List<Map<String,Object>>)value.get("bindings"))ids.add((String)item.get("resourceId"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,ids));
+    }
     static Map<String,Object> descriptor(){
         Map<String,Object> value=new LinkedHashMap<>(),assets=new LinkedHashMap<>(),binding=new LinkedHashMap<>();
         String root="/native-runtime/"+String.join("",Collections.nCopies(64,"a"))+"/";

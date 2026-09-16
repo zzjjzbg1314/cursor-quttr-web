@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "browser-native-scene-runtime-v4",
+  "assets": {
+    "loaderUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/loader.js",
+    "mainWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/main.wasm",
+    "mediaWasmUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/media.wasm",
+    "workerUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worker.mjs",
+    "workletUrl": "/native-runtime/f69fd126450285afd91454446b40b29eb76859195efe860c9df8536dff4f5fa3/worklet.js"
+  },
+  "videoAudioPolicy": "external_music_only",
+  "globalEffectPolicy": "original_tracks_v1",
+  "layerMode": 1,
+  "files": [
+    "6724916044072227332/Appear.lua",
+    "6724916044072227332/anim.prefab",
+    "6724916044072227332/config.json",
+    "6724916044072227332/content.json",
+    "7040020396136993282/TextWave.lua",
+    "7040020396136993282/anim.prefab",
+    "7040020396136993282/config.json",
+    "7040020396136993282/content.json",
+    "7267828535375434301/AmazingFeature/LuaRTTI.MarkGen.lua",
+    "7267828535375434301/AmazingFeature/algorithmConfig.json",
+    "7267828535375434301/AmazingFeature/content.json",
+    "7267828535375434301/AmazingFeature/lua/SeekModeScript.lua",
+    "7267828535375434301/AmazingFeature/main.scene",
+    "7267828535375434301/AmazingFeature/material/Filter.material",
+    "7267828535375434301/AmazingFeature/mesh/Quad.mesh",
+    "7267828535375434301/AmazingFeature/rt/outputTex.rt",
+    "7267828535375434301/AmazingFeature/sticker.config",
+    "7267828535375434301/AmazingFeature/texture/filter.cube.texture",
+    "7267828535375434301/AmazingFeature/texture/filter.cube.vf",
+    "7267828535375434301/AmazingFeature/xshader/Filter.xshader",
+    "7267828535375434301/AmazingFeature/xshader/filter.frag",
+    "7267828535375434301/AmazingFeature/xshader/filter.vert",
+    "7267828535375434301/algorithmConfig.json",
+    "7267828535375434301/config.json",
+    "7331666553760451846/config.json",
+    "7331666553760451846/content.json",
+    "7331666553760451846/effect.prefab",
+    "7331666553760451846/material/effect.material",
+    "7331666553760451846/sticker.config",
+    "7331666553760451846/xshader/effect.xshader"
+  ],
+  "bindings": [
+    {
+      "resourceId": "7267828535375434301",
+      "kind": "filter",
+      "path": "7267828535375434301/"
+    },
+    {
+      "resourceId": "7331666553760451846",
+      "kind": "text_style",
+      "path": "7331666553760451846/"
+    },
+    {
+      "resourceId": "7040020396136993282",
+      "kind": "animation",
+      "path": "7040020396136993282/"
+    },
+    {
+      "resourceId": "6724916044072227332",
+      "kind": "animation",
+      "path": "6724916044072227332/"
+    }
+  ]
+}

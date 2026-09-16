@@ -56,7 +56,14 @@ final class BrowserNativeRuntimeContract {
                         ||(ownsStickers&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
             if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||(!uniqueFiles.contains(id+"/infoSticker.lua")&&files.stream().noneMatch(file->file.startsWith(id+"/")&&file.toLowerCase(Locale.ROOT).endsWith(".gif")))))throw invalid();
-            if("text_style".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/effectStyle.json")))throw invalid();
+            if("text_style".equals(item.get("kind"))) {
+                // 交付清单支持两种原始花字入口，具体配置与依赖内容仍由资源编译器和浏览器核验。
+                boolean style=uniqueFiles.contains(id+"/effectStyle.json");
+                boolean prefab=uniqueFiles.contains(id+"/content.json")
+                        &&files.stream().anyMatch(file->file.startsWith(id+"/")&&file.endsWith(".prefab"));
+                if(!uniqueFiles.contains(id+"/config.json")||(!style&&!prefab)
+                        ||(prefab&&(style||uniqueFiles.contains(id+"/infoSticker.lua"))))throw invalid();
+            }
             if("text_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||!uniqueFiles.contains(id+"/content.json")))throw invalid();
             if("script_template".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")
                     ||!uniqueFiles.contains(id+"/js/main.js")||!uniqueFiles.contains(id+"/js/template/template.js")
