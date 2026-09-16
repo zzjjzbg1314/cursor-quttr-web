@@ -62,26 +62,35 @@ public class AiMusicJobRepository {
     public void markSubmitted(String jobId, String attemptId, String providerTaskId,
                               String responseJson) {
         d1.query("UPDATE ai_music_provider_attempts SET provider_task_id=?,status='queued',"
-                        + "response_json=?,updated_at=CURRENT_TIMESTAMP WHERE attempt_id=?",
+                        + "response_json=?,updated_at=CURRENT_TIMESTAMP WHERE attempt_id=? AND status IN ('submitting','submission_unknown')",
                 providerTaskId, responseJson, attemptId);
         d1.query("UPDATE ai_music_jobs SET status='queued',stage='provider_queued',progress=0.05,"
                         + "error_code=NULL,error_message=NULL,retryable=0,updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND active_attempt_id=?", jobId, attemptId);
+                        + "WHERE job_id=? AND active_attempt_id=? AND status IN ('submitting','submission_unknown')", jobId, attemptId);
     }
 
     public void markSubmissionFailed(String jobId, String attemptId, String code,
                                      String message, boolean retryable, boolean unknown) {
         d1.query("UPDATE ai_music_provider_attempts SET status=?,submission_unknown=?,error_code=?,"
                         + "error_message=?,updated_at=CURRENT_TIMESTAMP,completed_at=CURRENT_TIMESTAMP "
-                        + "WHERE attempt_id=?",
+                        + "WHERE attempt_id=? AND status='submitting'",
                 unknown ? "submission_unknown" : "failed", Integer.valueOf(unknown ? 1 : 0),
                 code, message, attemptId);
         d1.query("UPDATE ai_music_jobs SET status=?,stage=?,error_code=?,error_message=?,retryable=?,"
                         + "updated_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN ?=1 THEN NULL "
-                        + "ELSE CURRENT_TIMESTAMP END WHERE job_id=?",
+                        + "ELSE CURRENT_TIMESTAMP END WHERE job_id=? AND status='submitting'",
                 unknown ? "submission_unknown" : "failed",
                 unknown ? "provider_submission_unknown" : "failed", code, message,
                 Integer.valueOf(retryable ? 1 : 0), Integer.valueOf(unknown ? 1 : 0), jobId);
+    }
+
+    // 仅允许签名回调为同一任务尚未关联的提交补全上游编号。
+    public Map<String, Object> bindCallbackTask(String jobId, String provider, String taskId) {
+        return d1.query("UPDATE ai_music_provider_attempts SET provider_task_id=?,submission_unknown=0 "
+                + "WHERE attempt_id=(SELECT active_attempt_id FROM ai_music_jobs WHERE job_id=?) "
+                + "AND provider_code=? AND (provider_task_id IS NULL OR provider_task_id='') "
+                + "AND status IN ('submitting','submission_unknown') RETURNING *",
+                taskId, jobId, provider).firstRow();
     }
 
     public Map<String, Object> attemptByProviderTask(String providerCode, String providerTaskId) {

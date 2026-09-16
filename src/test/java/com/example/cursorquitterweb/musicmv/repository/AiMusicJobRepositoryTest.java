@@ -16,6 +16,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicJobRepositoryTest {
     @Test
+    void callbackBindingCannotReplaceExistingProviderTask() {
+        CapturingD1 d1 = new CapturingD1();
+        new AiMusicJobRepository(d1).bindCallbackTask("job", "sunoapi", "task");
+        assertThat(d1.sql).contains("provider_task_id IS NULL", "active_attempt_id", "provider_code=?", "status IN ('submitting','submission_unknown')", "RETURNING *");
+        assertThat(d1.params).containsExactly("task", "job", "sunoapi");
+    }
+
+    @Test
     void refreshableJobsOnlySelectsStaleAlreadySubmittedProviderTasks() {
         CapturingD1 d1 = new CapturingD1();
         AiMusicJobRepository repository = new AiMusicJobRepository(d1);

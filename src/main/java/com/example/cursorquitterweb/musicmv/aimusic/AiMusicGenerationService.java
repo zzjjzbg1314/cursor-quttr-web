@@ -288,7 +288,11 @@ public class AiMusicGenerationService {
         }
         Map<String, Object> attempt = repository.attemptByProviderTask(provider,
                 snapshot.getProviderTaskId());
-        if (attempt == null) {
+        if ((attempt == null || attempt.isEmpty()) && "sunoapi".equals(provider) && !blank(expectedJobId)) {
+            attempt = repository.bindCallbackTask(expectedJobId, provider, snapshot.getProviderTaskId());
+            if (attempt == null || attempt.isEmpty()) attempt = repository.attemptByProviderTask(provider, snapshot.getProviderTaskId());
+        }
+        if (attempt == null || attempt.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "AI_MUSIC_PROVIDER_TASK_NOT_FOUND",
                     "Provider task is not associated with an AI music job");
         }

@@ -24,6 +24,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void signedCallbackRecoversUnknownSubmissionWithoutSubmittingAgain() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        Map<String,Object> attempt = new LinkedHashMap<>();
+        attempt.put("job_id", "job"); attempt.put("attempt_id", "attempt"); attempt.put("status", "submission_unknown");
+        when(repository.bindCallbackTask("job", "sunoapi", "task")).thenReturn(attempt);
+        AiMusicGenerationService service = new AiMusicGenerationService(repository,
+            new AiMusicProviderRegistry(Collections.<AiMusicProvider>emptyList()),
+            mock(AiMusicCandidateStorageService.class), new ObjectMapper(), "sunoapi", "https://app.test");
+        TaskSnapshot snapshot = new TaskSnapshot();
+        snapshot.setProviderTaskId("task"); snapshot.setStatus("completed");
+        service.acceptProviderCallback("sunoapi", "job", snapshot);
+        verify(repository).bindCallbackTask("job", "sunoapi", "task");
+    }
+
+    @Test
+    void callbackWithoutProtectedJobCannotBindUnknownTask() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicGenerationService service = new AiMusicGenerationService(repository,
+            new AiMusicProviderRegistry(Collections.<AiMusicProvider>emptyList()),
+            mock(AiMusicCandidateStorageService.class), new ObjectMapper(), "sunoapi", "https://app.test");
+        TaskSnapshot snapshot = new TaskSnapshot(); snapshot.setProviderTaskId("task");
+        assertThatThrownBy(() -> service.acceptProviderCallback("sunoapi", null, snapshot)).isInstanceOf(ApiException.class);
+        verify(repository, org.mockito.Mockito.never()).bindCallbackTask(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
     void extensionCanReuseOriginalLyricsButCoverRequiresExactLyrics() {
         AiMusicSongCreateRequest request = new AiMusicSongCreateRequest();
         request.setMode("advanced");request.setTitle("Extension");request.setStyle("Acoustic");request.setLyricsMode("provided");
