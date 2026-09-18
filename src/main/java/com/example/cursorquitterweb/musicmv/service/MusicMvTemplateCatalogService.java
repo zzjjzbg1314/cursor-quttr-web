@@ -2096,7 +2096,8 @@ public class MusicMvTemplateCatalogService {
                 String schemaSha256 = String.valueOf(counts.get("schemaSha256"));
                 d1Reachable = true;
                 schemaReady = categoryCount == MusicMvD1SchemaInitializer.ENABLED_CATEGORY_COUNT
-                        && schemaVersion == MusicMvD1SchemaInitializer.SCHEMA_VERSION
+                        && schemaVersion >= 14
+                        && schemaVersion <= MusicMvD1SchemaInitializer.SCHEMA_VERSION
                         && schemaSha256.matches("[0-9a-f]{64}");
             } catch (RuntimeException exception) {
                 result.put("d1Error", "Independent Music MV D1 is not reachable or schema is incomplete");

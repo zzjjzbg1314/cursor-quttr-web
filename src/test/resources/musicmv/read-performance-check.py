@@ -14,6 +14,14 @@ for _ in range(2):
     db.executescript(schema)
     assert [row['name'] for row in db.execute('PRAGMA index_info(idx_ai_music_jobs_user_library)')] == ['user_id', 'status', 'job_id']
     assert [row['name'] for row in db.execute('PRAGMA index_info(idx_ai_music_jobs_library)')] == ['client_id', 'status', 'job_id']
+db.execute("INSERT INTO music_mv_schema_metadata(schema_key,schema_version,schema_sha256,applied_at,updated_at) VALUES ('core',14,?,'initial','initial')", ('a' * 64,))
+migration = Path('src/main/resources/db/migrations/music-mv-v15-song-library-index.sql').read_text()
+for _ in range(2):
+    db.executescript(migration)
+    metadata = db.execute("SELECT * FROM music_mv_schema_metadata WHERE schema_key='core'").fetchone()
+    assert metadata['schema_version'] == 15
+    assert metadata['schema_sha256'] == 'a' * 64
+    assert metadata['applied_at'] == 'initial'
 db.execute("INSERT INTO music_mv_users(user_id,display_name,handle,status,last_login_at,created_at,updated_at) VALUES ('user','Test','test','active',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)")
 db.execute("INSERT INTO music_mv_user_sessions(session_id,user_id,token_sha256,expires_at,last_seen_at,created_at) VALUES ('session','user','hash',datetime('now','+1 day'),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)")
 queries = json.loads(Path(sys.argv[1]).read_text())

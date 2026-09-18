@@ -152,6 +152,34 @@ class MusicMvTemplateCatalogServiceTest {
         }
     }
 
+    @Test
+    void additiveSongIndexMigrationDoesNotBlockTemplatePublication() {
+        D1DatabaseClient d1 = mock(D1DatabaseClient.class);
+        when(d1.isConfigured()).thenReturn(true);
+        service = new MusicMvTemplateCatalogService(repository, mediaProvider, runtimePackages, d1, new ObjectMapper());
+        when(mediaProvider.imagesConfigured()).thenReturn(true);
+        when(mediaProvider.streamConfigured()).thenReturn(true);
+        when(mediaProvider.imagesDeliveryValid()).thenReturn(true);
+        when(mediaProvider.streamDeliveryValid()).thenReturn(true);
+        Map<String, Object> counts = row("category_count", 11);
+        counts.put("schema_sha256", String.join("", Collections.nCopies(64, "a")));
+        when(repository.readiness()).thenReturn(counts);
+        for (int version : Arrays.asList(14, 15)) {
+            counts.put("schema_version", version);
+            assertEquals(Boolean.TRUE, service.readiness().get("ready"));
+        }
+        for (int version : Arrays.asList(13, 16)) {
+            counts.put("schema_version", version);
+            assertEquals(Boolean.FALSE, service.readiness().get("ready"));
+        }
+        counts.put("schema_version", 15);
+        counts.put("category_count", 10);
+        assertEquals(Boolean.FALSE, service.readiness().get("ready"));
+        counts.put("category_count", 11);
+        counts.put("schema_sha256", "invalid");
+        assertEquals(Boolean.FALSE, service.readiness().get("ready"));
+    }
+
     private Map<String, Object> publicVersionState(Map<String, Object> template, Map<String, Object> version) {
         Map<String, Object> state = row("template_status", template.get("status"));
         state.put("visibility", template.get("visibility"));
