@@ -514,6 +514,10 @@ CREATE TABLE IF NOT EXISTS ai_music_jobs (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   completed_at TEXT,
+  provider_synced_at TEXT,
+  status_refresh_at TEXT,
+  status_refresh_until TEXT,
+  status_refresh_token TEXT,
   UNIQUE (client_id, request_id),
   UNIQUE (user_id, request_id),
   FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)

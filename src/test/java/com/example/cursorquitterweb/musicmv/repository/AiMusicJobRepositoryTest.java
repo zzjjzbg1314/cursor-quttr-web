@@ -16,6 +16,62 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicJobRepositoryTest {
     @Test
+    void sqliteLeaseProtectsPollingAndCompletedSnapshots() throws Exception {
+        CapturingD1 d1 = new CapturingD1();
+        AiMusicJobRepository repository = new AiMusicJobRepository(d1);
+        List<Map<String, Object>> statements = new ArrayList<>();
+        repository.claimStatusRefresh("job", "token"); statements.add(captured(d1));
+        repository.finishStatusRefresh("job", "wrong"); statements.add(captured(d1));
+        repository.finishStatusRefresh("job", "token"); statements.add(captured(d1));
+        repository.markProviderSynced("job", "token"); statements.add(captured(d1));
+        repository.acceptsRefreshedSnapshot("job", "token", "attempt", "generating"); statements.add(captured(d1));
+        repository.applySnapshot("job", "attempt", "generating", "{}", null, null, false); statements.add(captured(d1));
+        repository.refreshableJobs(8, 20); statements.add(captured(d1));
+        repository.candidates("job"); statements.add(captured(d1));
+        repository.libraryCandidates("usr", "Second", "all", "newest", 1, null, null, null); statements.add(captured(d1));
+        String script = String.join("\n",
+                "import sqlite3,json,sys,pathlib",
+                "db=sqlite3.connect(':memory:')",
+                "db.executescript(pathlib.Path('src/main/resources/db/music-mv-d1-schema.sql').read_text())",
+                "db.execute(\"INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,active_attempt_id,request_fingerprint,request_json,created_at,updated_at) VALUES('job','usr','usr','req','queued','queued','sunoapi','attempt','fp','{}','2020-01-01','2020-01-01')\")",
+                "db.execute(\"INSERT INTO ai_music_provider_attempts(attempt_id,job_id,provider_code,provider_task_id,status,attempt_number,request_json,created_at,updated_at) VALUES('attempt','job','sunoapi','task','queued',1,'{}','2020-01-01','2020-01-01')\")",
+                "statements=json.loads(sys.argv[1])",
+                "def run(i): return db.execute(statements[i]['sql'],statements[i]['params']).fetchall()",
+                "assert len(run(6))==1",
+                "assert run(0)==[('job',)]",
+                "assert run(0)==[]",
+                "assert db.execute('SELECT provider_synced_at,updated_at FROM ai_music_jobs').fetchone()==(None,'2020-01-01')",
+                "run(1); assert run(0)==[]",
+                "assert run(4)==[('job',)]",
+                "run(3); assert db.execute('SELECT provider_synced_at FROM ai_music_jobs').fetchone()[0].endswith('Z')",
+                "run(2); assert run(0)==[]",
+                "db.execute(\"UPDATE ai_music_jobs SET status_refresh_at='2020-01-01'\")",
+                "assert run(0)==[('job',)]",
+                "db.execute(\"UPDATE ai_music_jobs SET status='completed',completed_at='first'\")",
+                "assert run(4)==[]",
+                "run(5); assert db.execute('SELECT status,completed_at FROM ai_music_jobs').fetchone()==('completed','first')",
+                "run(2); db.execute(\"UPDATE ai_music_jobs SET status_refresh_at='2020-01-01'\")",
+                "assert len(run(6))==1",
+                "assert run(0)==[('job',)]",
+                "assert run(7)==[]",
+                "db.execute(\"INSERT INTO ai_music_candidates(candidate_id,job_id,attempt_id,provider_code,provider_task_id,provider_audio_id,status,title,created_at,updated_at) VALUES('one','job','attempt','sunoapi','task','one','ready','First','2020-01-01','2020-01-01'),('two','job','attempt','sunoapi','task','two','ready','Second','2020-01-02','2020-01-02')\")",
+                "assert [row[-1] for row in run(7)]==[1,2]",
+                "assert run(8)[0][-1]==2");
+        Process process = new ProcessBuilder("python3", "-c", script,
+                new ObjectMapper().writeValueAsString(statements)).redirectErrorStream(true).start();
+        assertThat(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),
+                java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(process.exitValue()).withFailMessage(output).isZero();
+    }
+
+    private Map<String, Object> captured(CapturingD1 d1) {
+        Map<String, Object> statement = new java.util.LinkedHashMap<>();
+        statement.put("sql", d1.sql); statement.put("params", d1.params);
+        return statement;
+    }
+
+    @Test
     void callbackBindingCannotReplaceExistingProviderTask() {
         CapturingD1 d1 = new CapturingD1();
         new AiMusicJobRepository(d1).bindCallbackTask("job", "sunoapi", "task");
@@ -32,7 +88,7 @@ class AiMusicJobRepositoryTest {
 
         assertThat(d1.sql).contains("j.status IN ('queued','generating')");
         assertThat(d1.sql).contains("a.provider_task_id IS NOT NULL");
-        assertThat(d1.sql).contains("j.updated_at<=datetime('now',?)");
+        assertThat(d1.sql).contains("COALESCE(j.status_refresh_at,j.created_at)<=datetime('now',?)");
         assertThat(d1.params).containsExactly("-8 seconds", Integer.valueOf(20));
     }
 
@@ -43,10 +99,11 @@ class AiMusicJobRepositoryTest {
 
         repository.claimStatusRefresh("aimusic_1", "2026-08-13 16:17:17");
 
-        assertThat(d1.sql).contains("updated_at=?");
+        assertThat(d1.sql).contains("status_refresh_until=datetime('now','+180 seconds')", "-8 seconds", "status_refresh_token=?");
+        assertThat(d1.sql).doesNotContain("SET updated_at");
         assertThat(d1.sql).contains("status IN ('queued','generating')");
         assertThat(d1.sql).contains("RETURNING job_id");
-        assertThat(d1.params).containsExactly("aimusic_1", "2026-08-13 16:17:17");
+        assertThat(d1.params).containsExactly("2026-08-13 16:17:17", "aimusic_1");
     }
 
     @Test

@@ -9,6 +9,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
+import javax.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,6 +49,19 @@ public class AiMusicGenerationService {
     private final ObjectMapper objectMapper;
     private final String defaultProvider;
     private final String publicBaseUrl;
+
+    private final Set<String> pendingRefreshes = ConcurrentHashMap.newKeySet();
+    private final ThreadPoolExecutor refreshExecutor = new ThreadPoolExecutor(0, 2, 30L,
+            TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), runnable -> {
+                Thread thread = new Thread(runnable, "ai-music-status-refresh");
+                thread.setDaemon(true);
+                return thread;
+            });
+
+    @PreDestroy
+    public void close() {
+        refreshExecutor.shutdownNow();
+    }
 
     public AiMusicGenerationService(
             AiMusicJobRepository repository,
@@ -106,12 +129,15 @@ public class AiMusicGenerationService {
         String owner = requireId(clientId, "AI_MUSIC_CLIENT_ID_INVALID");
         Map<String, Object> row = requireOwned(repository.owned(owner,
                 requireId(jobId, "AI_MUSIC_JOB_ID_INVALID")));
-        if (refresh && canRefresh(RowUtils.str(row, "status"))) {
-            refresh(row);
-            row = requireOwned(repository.owned(owner, jobId));
-        }
+        List<Map<String, Object>> candidates = repository.candidates(jobId);
+        boolean recoverable = canRefresh(RowUtils.str(row, "status"))
+                || ("completed".equals(RowUtils.str(row, "status")) && needsCandidates(candidates));
+        if (recoverable) scheduleRefresh(row);
         Map<String, Object> result = view(row, false);
-        result.put("candidates", candidateViews(repository.candidates(jobId)));
+        result.put("candidates", candidateViews(candidates));
+        result.put("syncDelayed", recoverable && ("completed".equals(RowUtils.str(row, "status"))
+                || olderThan(first(RowUtils.str(row, "provider_synced_at"),
+                        RowUtils.str(row, "created_at")), 30)));
         result.put("events", eventViews(repository.events(jobId)));
         return result;
     }
@@ -252,25 +278,65 @@ public class AiMusicGenerationService {
         return result;
     }
 
-    /**
-     * Refreshes stale active jobs independently of browser polling. Provider queries are
-     * idempotent and use the already persisted provider task id, so this cannot create a second
-     * paid generation request.
-     */
+    private boolean needsCandidates(List<Map<String, Object>> candidates) {
+        return candidates.isEmpty() || candidates.stream().anyMatch(candidate ->
+                blank(RowUtils.str(candidate, "storage_url"))
+                        && blank(RowUtils.str(candidate, "provider_audio_url"))
+                        && blank(RowUtils.str(candidate, "provider_stream_url")));
+    }
+
+    private boolean olderThan(String timestamp, int seconds) {
+        if (blank(timestamp)) return true;
+        try {
+            Instant time = timestamp.endsWith("Z") ? Instant.parse(timestamp)
+                    : LocalDateTime.parse(timestamp.replace(' ', 'T')).toInstant(ZoneOffset.UTC);
+            return time.isBefore(Instant.now().minusSeconds(seconds));
+        } catch (RuntimeException exception) {
+            return true;
+        }
+    }
+
+    private void scheduleRefresh(Map<String, Object> job) {
+        String jobId = RowUtils.str(job, "job_id");
+        if (!olderThan(first(RowUtils.str(job, "status_refresh_at"),
+                RowUtils.str(job, "created_at")), 8) || !pendingRefreshes.add(jobId)) return;
+        try {
+            refreshExecutor.execute(() -> {
+                try { refreshClaimed(job); }
+                finally { pendingRefreshes.remove(jobId); }
+            });
+        } catch (RejectedExecutionException exception) {
+            // 无排队容量时交给下一次轮询，不占用请求线程或提前获取数据库租约。
+            pendingRefreshes.remove(jobId);
+        }
+    }
+
+    private boolean refreshClaimed(Map<String, Object> job) {
+        String jobId = RowUtils.str(job, "job_id");
+        String token = IdUtils.token("sync");
+        boolean claimed = false;
+        try {
+            claimed = repository.claimStatusRefresh(jobId, token);
+            if (!claimed) return false;
+            refresh(job, token);
+            return true;
+        } catch (RuntimeException exception) {
+            LOGGER.warn("AI music status sync failed for job {}: {}", jobId, exception.getMessage());
+            return false;
+        } finally {
+            if (claimed) {
+                try { repository.finishStatusRefresh(jobId, token); }
+                catch (RuntimeException exception) {
+                    LOGGER.warn("AI music status lease release failed for job {}", jobId);
+                }
+            }
+        }
+    }
+
     public int synchronizeActiveJobs(int staleAfterSeconds, int limit) {
         int synchronizedCount = 0;
         for (Map<String, Object> job : repository.refreshableJobs(staleAfterSeconds, limit)) {
-            try {
-                if (!repository.claimStatusRefresh(RowUtils.str(job, "job_id"),
-                        RowUtils.str(job, "updated_at"))) {
-                    continue;
-                }
-                refresh(job);
-                synchronizedCount++;
-            } catch (RuntimeException exception) {
-                LOGGER.warn("AI music status sync failed for job {}: {}",
-                        RowUtils.str(job, "job_id"), exception.getMessage());
-            }
+            if (refreshClaimed(job)) synchronizedCount++;
         }
         return synchronizedCount;
     }
@@ -309,19 +375,20 @@ public class AiMusicGenerationService {
         applySnapshot(jobId, RowUtils.str(attempt, "attempt_id"), provider, snapshot);
     }
 
-    private void refresh(Map<String, Object> job) {
+    private void refresh(Map<String, Object> job, String token) {
         Map<String, Object> attempt = repository.activeAttempt(RowUtils.str(job, "job_id"));
         if (attempt == null || blank(RowUtils.str(attempt, "provider_task_id"))) return;
         AiMusicProvider provider = providers.require(RowUtils.str(attempt, "provider_code"));
         TaskSnapshot snapshot = provider.query(RowUtils.str(attempt, "provider_task_id"));
+        if (!repository.acceptsRefreshedSnapshot(RowUtils.str(job, "job_id"), token,
+                RowUtils.str(attempt, "attempt_id"), snapshot.getStatus())) return;
         applySnapshot(RowUtils.str(job, "job_id"), RowUtils.str(attempt, "attempt_id"),
                 provider.providerCode(), snapshot);
+        repository.markProviderSynced(RowUtils.str(job, "job_id"), token);
     }
 
     private void applySnapshot(String jobId, String attemptId, String providerCode,
                                TaskSnapshot snapshot) {
-        repository.applySnapshot(jobId, attemptId, snapshot.getStatus(), json(snapshot.getRaw()),
-                snapshot.getErrorCode(), snapshot.getErrorMessage(), snapshot.isRetryable());
         for (Candidate candidate : snapshot.getCandidates()) {
             repository.upsertCandidate(IdUtils.token("song"), jobId, attemptId, providerCode,
                     snapshot.getProviderTaskId(), candidate.getProviderAudioId(), candidate.getTitle(),
@@ -329,6 +396,8 @@ public class AiMusicGenerationService {
                     candidate.getAudioUrl(), candidate.getStreamUrl(), candidate.getImageUrl(),
                     json(candidate.getRaw()));
         }
+        repository.applySnapshot(jobId, attemptId, snapshot.getStatus(), json(snapshot.getRaw()),
+                snapshot.getErrorCode(), snapshot.getErrorMessage(), snapshot.isRetryable());
         addEvent(jobId, "provider_status", snapshot.getStatus(), providerCode,
                 singleton("providerTaskId", snapshot.getProviderTaskId()));
     }
@@ -478,6 +547,7 @@ public class AiMusicGenerationService {
         result.put("retryable", Boolean.valueOf(RowUtils.bool(row, "retryable")));
         result.put("createdAt", RowUtils.str(row, "created_at"));
         result.put("updatedAt", RowUtils.str(row, "updated_at"));
+        result.put("providerSyncedAt", RowUtils.str(row, "provider_synced_at"));
         result.put("completedAt", RowUtils.str(row, "completed_at"));
         result.put("idempotentReplay", Boolean.valueOf(replay));
         return result;
@@ -488,6 +558,7 @@ public class AiMusicGenerationService {
         for (Map<String, Object> row : rows) {
             Map<String, Object> value = new LinkedHashMap<String, Object>();
             value.put("candidateId", RowUtils.str(row, "candidate_id"));
+            value.put("versionNumber", RowUtils.lng(row, "version_number"));
             value.put("jobId", RowUtils.str(row, "job_id"));
             value.put("status", RowUtils.str(row, "status"));
             value.put("title", RowUtils.str(row, "title"));

@@ -94,6 +94,7 @@ public class MusicMvD1SchemaInitializer {
         existingOwnedTables.retainAll(KNOWN_TABLES);
 
         reconcileAiMusicOwnership(existingTables);
+        reconcileAiMusicSyncColumns(existingTables);
         reconcileCapCutTemplateIdentity(existingTables);
         reconcileTemplateTaxonomyColumns(existingTables);
         int batches = applyStatements(source.statements);
@@ -185,6 +186,18 @@ public class MusicMvD1SchemaInitializer {
         }
         d1.query("UPDATE ai_music_jobs SET user_id=client_id "
                 + "WHERE user_id IS NULL AND client_id LIKE 'usr\\_%' ESCAPE '\\'");
+    }
+
+    private void reconcileAiMusicSyncColumns(Set<String> existingTables) {
+        if (!existingTables.contains("ai_music_jobs")) return;
+        Set<String> columns = new LinkedHashSet<String>();
+        for (Map<String, Object> row : d1.query("PRAGMA table_info(ai_music_jobs)").getRows()) {
+            columns.add(RowUtils.str(row, "name"));
+        }
+        for (String column : Arrays.asList("provider_synced_at", "status_refresh_at",
+                "status_refresh_until", "status_refresh_token")) {
+            if (!columns.contains(column)) d1.query("ALTER TABLE ai_music_jobs ADD COLUMN " + column + " TEXT");
+        }
     }
 
     private void reconcileCapCutTemplateIdentity(Set<String> existingTables) {

@@ -17,7 +17,7 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 public class AiMusicJobRepository {
     private static final String JOB_COLUMNS = "job_id,user_id,client_id,request_id,status,stage,progress,"
             + "primary_provider_code,active_attempt_id,selected_candidate_id,request_fingerprint,"
-            + "request_json,error_code,error_message,retryable,created_at,updated_at,completed_at";
+            + "request_json,error_code,error_message,retryable,created_at,updated_at,completed_at,provider_synced_at,status_refresh_at,status_refresh_until,status_refresh_token";
 
     private final D1DatabaseClient d1;
 
@@ -104,28 +104,54 @@ public class AiMusicJobRepository {
                         + "ON j.active_attempt_id=a.attempt_id WHERE j.job_id=? LIMIT 1", jobId).firstRow();
     }
 
-    /**
-     * Returns provider-backed jobs whose browser polling has gone quiet. The stale cutoff lets
-     * browser polling remain the fast path while the server takes over whenever the page is
-     * hidden, closed, offline, or suspended.
-     */
+    private String refreshableCondition(String alias) {
+        return "(" + alias + ".status IN ('queued','generating') OR (" + alias
+                + ".status='completed' AND NOT EXISTS (SELECT 1 FROM ai_music_candidates c WHERE c.job_id="
+                + alias + ".job_id) OR " + alias + ".status='completed' AND EXISTS ("
+                + "SELECT 1 FROM ai_music_candidates c WHERE c.job_id=" + alias + ".job_id "
+                + "AND COALESCE(NULLIF(TRIM(c.storage_url),''),NULLIF(TRIM(c.provider_audio_url),''),"
+                + "NULLIF(TRIM(c.provider_stream_url),'')) IS NULL)))";
+    }
+
     public List<Map<String, Object>> refreshableJobs(int staleAfterSeconds, int limit) {
-        String staleModifier = "-" + Math.max(1, staleAfterSeconds) + " seconds";
+        String staleModifier = "-" + Math.max(8, staleAfterSeconds) + " seconds";
         return d1.query("SELECT " + prefixedJobColumns("j") + " FROM ai_music_jobs j "
                         + "JOIN ai_music_provider_attempts a ON a.attempt_id=j.active_attempt_id "
-                        + "WHERE j.status IN ('queued','generating') "
-                        + "AND a.provider_task_id IS NOT NULL AND a.provider_task_id<>'' "
-                        + "AND j.updated_at<=datetime('now',?) "
-                        + "ORDER BY j.updated_at,j.created_at LIMIT ?",
+                        + "WHERE " + refreshableCondition("j")
+                        + " AND a.provider_task_id IS NOT NULL AND a.provider_task_id<>'' "
+                        + "AND COALESCE(j.status_refresh_at,j.created_at)<=datetime('now',?) "
+                        + "AND (j.status_refresh_until IS NULL OR j.status_refresh_until<=CURRENT_TIMESTAMP) "
+                        + "ORDER BY COALESCE(j.status_refresh_at,j.created_at) LIMIT ?",
                 staleModifier, Integer.valueOf(Math.max(1, limit))).getRows();
     }
 
-    /** Atomically leases one stale row so only one application instance queries the provider. */
-    public boolean claimStatusRefresh(String jobId, String expectedUpdatedAt) {
-        return d1.query("UPDATE ai_music_jobs SET updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE job_id=? AND updated_at=? AND status IN ('queued','generating') "
-                        + "RETURNING job_id",
-                jobId, expectedUpdatedAt).firstRow() != null;
+    // 查询租约与业务更新时间分离，多个服务实例共用限频与在途保护。
+    public boolean claimStatusRefresh(String jobId, String token) {
+        return d1.query("UPDATE ai_music_jobs SET status_refresh_at=CURRENT_TIMESTAMP,"
+                        + "status_refresh_until=datetime('now','+180 seconds'),status_refresh_token=? "
+                        + "WHERE job_id=? AND " + refreshableCondition("ai_music_jobs")
+                        + " AND COALESCE(status_refresh_at,created_at)<=datetime('now','-8 seconds') "
+                        + "AND (status_refresh_until IS NULL OR status_refresh_until<=CURRENT_TIMESTAMP) "
+                        + "AND EXISTS (SELECT 1 FROM ai_music_provider_attempts a "
+                        + "WHERE a.attempt_id=active_attempt_id AND a.provider_task_id IS NOT NULL "
+                        + "AND a.provider_task_id<>'') RETURNING job_id",
+                token, jobId).firstRow() != null;
+    }
+
+    public void finishStatusRefresh(String jobId, String token) {
+        d1.query("UPDATE ai_music_jobs SET status_refresh_until=NULL,status_refresh_token=NULL "
+                + "WHERE job_id=? AND status_refresh_token=?", jobId, token);
+    }
+
+    public boolean acceptsRefreshedSnapshot(String jobId, String token, String attemptId, String status) {
+        return d1.query("SELECT job_id FROM ai_music_jobs WHERE job_id=? AND status_refresh_token=? "
+                + "AND active_attempt_id=? AND (status NOT IN ('completed','failed') OR status=?)",
+                jobId, token, attemptId, status).firstRow() != null;
+    }
+
+    public void markProviderSynced(String jobId, String token) {
+        d1.query("UPDATE ai_music_jobs SET provider_synced_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') "
+                + "WHERE job_id=? AND status_refresh_token=?", jobId, token);
     }
 
     public void applySnapshot(String jobId, String attemptId, String status, String rawJson,
@@ -133,18 +159,20 @@ public class AiMusicJobRepository {
         String attemptStatus = status;
         d1.query("UPDATE ai_music_provider_attempts SET status=?,response_json=?,error_code=?,"
                         + "error_message=?,updated_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN ? IN "
-                        + "('completed','failed') THEN CURRENT_TIMESTAMP ELSE completed_at END WHERE attempt_id=?",
-                attemptStatus, rawJson, errorCode, errorMessage, status, attemptId);
+                        + "('completed','failed') THEN COALESCE(completed_at,CURRENT_TIMESTAMP) ELSE completed_at END WHERE attempt_id=? "
+                        + "AND (status NOT IN ('completed','failed') OR status=?)",
+                attemptStatus, rawJson, errorCode, errorMessage, status, attemptId, status);
         String stage = "completed".equals(status) ? "candidates_ready"
                 : ("failed".equals(status) ? "failed" : "provider_generating");
         double progress = "completed".equals(status) ? 1.0d
                 : ("generating".equals(status) ? 0.5d : 0.1d);
         d1.query("UPDATE ai_music_jobs SET status=?,stage=?,progress=?,error_code=?,error_message=?,"
                         + "retryable=?,updated_at=CURRENT_TIMESTAMP,completed_at=CASE WHEN ? IN "
-                        + "('completed','failed') THEN CURRENT_TIMESTAMP ELSE completed_at END "
-                        + "WHERE job_id=? AND active_attempt_id=?",
+                        + "('completed','failed') THEN COALESCE(completed_at,CURRENT_TIMESTAMP) ELSE completed_at END "
+                        + "WHERE job_id=? AND active_attempt_id=? "
+                        + "AND (status NOT IN ('completed','failed') OR status=?)",
                 status, stage, Double.valueOf(progress), errorCode, errorMessage,
-                Integer.valueOf(retryable ? 1 : 0), status, jobId, attemptId);
+                Integer.valueOf(retryable ? 1 : 0), status, jobId, attemptId, status);
     }
 
     public void upsertCandidate(String candidateId, String jobId, String attemptId,
@@ -156,9 +184,9 @@ public class AiMusicJobRepository {
                         + "provider_audio_url,provider_stream_url,provider_image_url,raw_json,created_at,updated_at) "
                         + "VALUES (?,?,?,?,?,?,'ready',?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
                         + "ON CONFLICT(provider_code,provider_task_id,provider_audio_id) DO UPDATE SET "
-                        + "status='ready',title=excluded.title,lyrics=excluded.lyrics,style=excluded.style,"
-                        + "duration_seconds=excluded.duration_seconds,provider_audio_url=excluded.provider_audio_url,"
-                        + "provider_stream_url=excluded.provider_stream_url,provider_image_url=excluded.provider_image_url,"
+                        + "status='ready',title=COALESCE(NULLIF(excluded.title,''),ai_music_candidates.title),lyrics=COALESCE(NULLIF(excluded.lyrics,''),ai_music_candidates.lyrics),style=COALESCE(NULLIF(excluded.style,''),ai_music_candidates.style),"
+                        + "duration_seconds=COALESCE(excluded.duration_seconds,ai_music_candidates.duration_seconds),provider_audio_url=COALESCE(NULLIF(excluded.provider_audio_url,''),ai_music_candidates.provider_audio_url),"
+                        + "provider_stream_url=COALESCE(NULLIF(excluded.provider_stream_url,''),ai_music_candidates.provider_stream_url),provider_image_url=COALESCE(NULLIF(excluded.provider_image_url,''),ai_music_candidates.provider_image_url),"
                         + "raw_json=excluded.raw_json,updated_at=CURRENT_TIMESTAMP",
                 candidateId, jobId, attemptId, providerCode, providerTaskId, providerAudioId,
                 title, lyrics, style, durationSeconds, audioUrl, streamUrl, imageUrl, rawJson);
@@ -167,8 +195,9 @@ public class AiMusicJobRepository {
     public List<Map<String, Object>> candidates(String jobId) {
         return d1.query("SELECT candidate_id,job_id,status,title,lyrics,style,duration_seconds,"
                         + "provider_audio_url,provider_stream_url,provider_image_url,storage_url,storage_sha256,"
-                        + "storage_size_bytes,storage_file_name,storage_content_type,selected,created_at,updated_at "
-                        + "FROM ai_music_candidates "
+                        + "storage_size_bytes,storage_file_name,storage_content_type,selected,created_at,updated_at,"
+                        + candidateVersionColumn() + " "
+                        + "FROM ai_music_candidates c "
                 + "WHERE job_id=? ORDER BY created_at,candidate_id", jobId).getRows();
     }
 
@@ -197,10 +226,17 @@ public class AiMusicJobRepository {
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_url,c.storage_sha256,c.storage_size_bytes,"
                         + "c.storage_file_name,c.storage_content_type,c.selected,c.created_at,c.updated_at,"
-                        + "j.status AS job_status,j.completed_at AS job_completed_at "
+                        + "j.status AS job_status,j.completed_at AS job_completed_at,"
+                        + candidateVersionColumn() + " "
                         + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                         + where + " ORDER BY " + orderBy + " LIMIT ?",
                 params).getRows();
+    }
+
+    private String candidateVersionColumn() {
+        return "(SELECT COUNT(*) FROM ai_music_candidates sibling WHERE sibling.job_id=c.job_id "
+                + "AND (sibling.created_at<c.created_at OR (sibling.created_at=c.created_at "
+                + "AND sibling.candidate_id<=c.candidate_id))) AS version_number";
     }
 
     private void appendLibraryCursor(StringBuilder where, List<Object> params, String sort,

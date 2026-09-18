@@ -24,6 +24,136 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void staleWorkerDiscardsEntireSnapshotAfterAnotherWorkerCompletes() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        when(repository.refreshableJobs(8, 20)).thenReturn(Collections.singletonList(syncJob("queued")));
+        when(repository.claimStatusRefresh(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        when(repository.activeAttempt("job")).thenReturn(syncAttempt());
+        when(provider.providerCode()).thenReturn("sunoapi");
+        TaskSnapshot snapshot = new TaskSnapshot(); snapshot.setStatus("generating");
+        snapshot.setCandidates(Collections.singletonList(new AiMusicProvider.Candidate()));
+        when(provider.query("task")).thenReturn(snapshot);
+        when(repository.acceptsRefreshedSnapshot(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("attempt"), org.mockito.ArgumentMatchers.eq("generating"))).thenReturn(false);
+        AiMusicGenerationService service = syncService(repository, provider);
+        try {
+            service.synchronizeActiveJobs(8, 20);
+            verify(repository, org.mockito.Mockito.never()).applySnapshot(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
+            verify(repository, org.mockito.Mockito.never()).markProviderSynced(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+            verify(repository, org.mockito.Mockito.never()).upsertCandidate(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        } finally { service.close(); }
+    }
+
+    @Test
+    void ordinaryPollingReturnsWhileProviderIsBlockedAndDoesNotResubmit() throws Exception {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        Map<String, Object> job = syncJob("queued");
+        when(repository.owned("owner", "job")).thenReturn(job);
+        when(repository.activeAttempt("job")).thenReturn(syncAttempt());
+        when(repository.acceptsRefreshedSnapshot(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("attempt"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        when(repository.claimStatusRefresh(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        when(provider.providerCode()).thenReturn("sunoapi");
+        java.util.concurrent.CountDownLatch entered = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        when(provider.query("task")).thenAnswer(invocation -> {
+            entered.countDown();
+            release.await(3, java.util.concurrent.TimeUnit.SECONDS);
+            TaskSnapshot snapshot = new TaskSnapshot(); snapshot.setStatus("queued");
+            return snapshot;
+        });
+        AiMusicGenerationService service = syncService(repository, provider);
+        try {
+            Map<String, Object> result = org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(
+                    java.time.Duration.ofSeconds(1), () -> service.get("owner", "job", false));
+            assertThat(result).containsEntry("providerSyncedAt", null).containsEntry("syncDelayed", true);
+            assertThat(entered.await(1, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            service.get("owner", "job", true);
+            verify(provider, org.mockito.Mockito.times(1)).query("task");
+            verify(provider, org.mockito.Mockito.never()).submit(org.mockito.ArgumentMatchers.any());
+            release.countDown();
+            verify(repository, org.mockito.Mockito.timeout(2000)).markProviderSynced(
+                    org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString());
+        } finally { release.countDown(); service.close(); }
+    }
+
+    @Test
+    void failedQueryDoesNotAdvanceSuccessfulSyncTimestampAndReleasesLease() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        Map<String, Object> job = syncJob("generating");
+        job.put("provider_synced_at", "2020-01-01T00:00:00Z");
+        when(repository.owned("owner", "job")).thenReturn(job);
+        when(repository.activeAttempt("job")).thenReturn(syncAttempt());
+        when(repository.acceptsRefreshedSnapshot(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("attempt"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        when(repository.claimStatusRefresh(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        when(provider.providerCode()).thenReturn("sunoapi");
+        when(provider.query("task")).thenThrow(new IllegalStateException("offline"));
+        AiMusicGenerationService service = syncService(repository, provider);
+        try {
+            assertThat(service.get("owner", "job", true)).containsEntry("providerSyncedAt", "2020-01-01T00:00:00Z").containsEntry("syncDelayed", true);
+            verify(repository, org.mockito.Mockito.timeout(2000)).finishStatusRefresh(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString());
+            verify(repository, org.mockito.Mockito.never()).markProviderSynced(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+        } finally { service.close(); }
+    }
+
+    @Test
+    void recentClaimThrottlesManualRefreshWithoutPretendingProviderWasChecked() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        Map<String, Object> job = syncJob("queued");
+        job.put("status_refresh_at", java.time.Instant.now().toString());
+        when(repository.owned("owner", "job")).thenReturn(job);
+        AiMusicGenerationService service = syncService(repository, provider);
+        try {
+            assertThat(service.get("owner", "job", true)).containsEntry("providerSyncedAt", null).containsEntry("syncDelayed", true);
+            verify(repository, org.mockito.Mockito.never()).claimStatusRefresh(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+        } finally { service.close(); }
+    }
+
+    @Test
+    void completedMissingAudioStillSchedulesRecoveryButReadySongsDoNot() {
+        for (boolean missingCandidate : new boolean[] {true, false}) {
+            AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+            AiMusicProvider provider = mock(AiMusicProvider.class);
+            when(repository.owned("owner", "job")).thenReturn(syncJob("completed"));
+            Map<String, Object> candidate = new LinkedHashMap<>();
+            if (!missingCandidate) when(repository.candidates("job")).thenReturn(Collections.singletonList(candidate));
+            AiMusicGenerationService service = syncService(repository, provider);
+            try {
+                assertThat(service.get("owner", "job", true)).containsEntry("syncDelayed", true);
+                verify(repository, org.mockito.Mockito.timeout(2000)).claimStatusRefresh(org.mockito.ArgumentMatchers.eq("job"), org.mockito.ArgumentMatchers.anyString());
+            } finally { service.close(); }
+        }
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        when(repository.owned("owner", "job")).thenReturn(syncJob("completed"));
+        Map<String, Object> candidate = new LinkedHashMap<>(); candidate.put("provider_audio_url", "https://test/audio");
+        when(repository.candidates("job")).thenReturn(Collections.singletonList(candidate));
+        AiMusicGenerationService service = syncService(repository, mock(AiMusicProvider.class));
+        try {
+            assertThat(service.get("owner", "job", true)).containsEntry("syncDelayed", false);
+            verify(repository, org.mockito.Mockito.never()).claimStatusRefresh(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+        } finally { service.close(); }
+    }
+
+    private Map<String, Object> syncJob(String status) {
+        Map<String, Object> job = new LinkedHashMap<>();
+        job.put("job_id", "job"); job.put("status", status); job.put("created_at", "2020-01-01 00:00:00");
+        return job;
+    }
+
+    private Map<String, Object> syncAttempt() {
+        Map<String, Object> attempt = new LinkedHashMap<>();
+        attempt.put("attempt_id", "attempt"); attempt.put("provider_code", "sunoapi"); attempt.put("provider_task_id", "task");
+        return attempt;
+    }
+
+    private AiMusicGenerationService syncService(AiMusicJobRepository repository, AiMusicProvider provider) {
+        return new AiMusicGenerationService(repository, new AiMusicProviderRegistry(Collections.singletonList(provider)),
+                mock(AiMusicCandidateStorageService.class), new ObjectMapper(), "sunoapi", "https://app.test");
+    }
+
+    @Test
     void signedCallbackRecoversUnknownSubmissionWithoutSubmittingAgain() {
         AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
         Map<String,Object> attempt = new LinkedHashMap<>();
@@ -175,8 +305,9 @@ class AiMusicGenerationServiceTest {
         snapshot.setStatus("completed");
         snapshot.setCandidates(Collections.<AiMusicProvider.Candidate>emptyList());
         when(repository.refreshableJobs(8, 20)).thenReturn(Collections.singletonList(job));
-        when(repository.claimStatusRefresh("aimusic_1", null)).thenReturn(true);
+        when(repository.claimStatusRefresh(org.mockito.ArgumentMatchers.eq("aimusic_1"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
         when(repository.activeAttempt("aimusic_1")).thenReturn(attempt);
+        when(repository.acceptsRefreshedSnapshot(org.mockito.ArgumentMatchers.eq("aimusic_1"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("attempt_1"), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
         when(provider.providerCode()).thenReturn("sunoapi");
         when(provider.query("provider_task_1")).thenReturn(snapshot);
         AiMusicGenerationService service = new AiMusicGenerationService(repository,

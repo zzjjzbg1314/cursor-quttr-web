@@ -51,6 +51,10 @@ class MusicMvD1SchemaInitializerTest {
 
         Map<String, Object> result = initializer.initialize(DATABASE_ID);
 
+        assertThat(d1.queries).contains("ALTER TABLE ai_music_jobs ADD COLUMN provider_synced_at TEXT",
+                "ALTER TABLE ai_music_jobs ADD COLUMN status_refresh_at TEXT",
+                "ALTER TABLE ai_music_jobs ADD COLUMN status_refresh_until TEXT",
+                "ALTER TABLE ai_music_jobs ADD COLUMN status_refresh_token TEXT");
         assertThat(result.get("status")).isEqualTo("reconciled");
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
     }
@@ -151,7 +155,8 @@ class MusicMvD1SchemaInitializerTest {
                 }
                 return rows(columns);
             }
-            if (sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
+            if (sql.startsWith("ALTER TABLE ai_music_jobs ADD COLUMN ")
+                    || sql.startsWith("UPDATE ai_music_jobs SET user_id=client_id")) {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
             if (sql.startsWith("DELETE FROM template_category_items WHERE category_key IN")
