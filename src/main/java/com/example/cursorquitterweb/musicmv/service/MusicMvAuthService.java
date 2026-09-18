@@ -85,7 +85,9 @@ public class MusicMvAuthService {
             response.put("user", null);
             return response;
         }
-        repository.touchSession(RowUtils.str(user, "session_id"));
+        if (RowUtils.bool(user, "session_touch_due")) {
+            repository.touchSession(RowUtils.str(user, "session_id"));
+        }
         return sessionView(user);
     }
 

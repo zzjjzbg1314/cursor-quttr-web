@@ -33,6 +33,8 @@ public class MusicMvAuthRepository {
 
     public Map<String, Object> findBySessionTokenHash(String tokenSha256) {
         return d1.query("SELECT " + USER_VIEW + ",s.session_id,s.expires_at "
+                        + ",CASE WHEN s.last_seen_at IS NULL OR s.last_seen_at<datetime('now','-5 minutes') "
+                        + "THEN 1 ELSE 0 END AS session_touch_due "
                         + "FROM music_mv_user_sessions s JOIN music_mv_users u ON u.user_id=s.user_id "
                         + "WHERE s.token_sha256=? AND s.revoked_at IS NULL "
                         + "AND s.expires_at>CURRENT_TIMESTAMP AND u.status='active' "
@@ -81,7 +83,7 @@ public class MusicMvAuthRepository {
 
     public void touchSession(String sessionId) {
         d1.query("UPDATE music_mv_user_sessions SET last_seen_at=CURRENT_TIMESTAMP "
-                + "WHERE session_id=? AND last_seen_at<datetime('now','-5 minutes')", sessionId);
+                + "WHERE session_id=? AND (last_seen_at IS NULL OR last_seen_at<datetime('now','-5 minutes'))", sessionId);
     }
 
     public void revokeSession(String tokenSha256) {

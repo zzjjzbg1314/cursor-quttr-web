@@ -30,7 +30,7 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(14);
+        assertThat(result.get("schemaVersion")).isEqualTo(15);
         assertThat(result.get("categoryCount")).isEqualTo(11L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
@@ -95,6 +95,15 @@ class MusicMvD1SchemaInitializerTest {
         } finally { java.nio.file.Files.deleteIfExists(payload); }
     }
 
+    @Test
+    void rejectsAnIndexWithLegacyColumnsInsteadOfReportingReady() {
+        CapturingD1 d1 = new CapturingD1(DATABASE_ID, CapturingD1.knownTables());
+        d1.wrongLibraryIndex = true;
+        assertThatThrownBy(() -> initializer(d1).initialize(DATABASE_ID))
+                .isInstanceOfSatisfying(ApiException.class, exception ->
+                        assertThat(exception.getCode()).isEqualTo("MUSIC_MV_D1_SCHEMA_VERIFICATION_FAILED"));
+    }
+
     private MusicMvD1SchemaInitializer initializer(CapturingD1 d1) {
         return new MusicMvD1SchemaInitializer(d1,
                 new ClassPathResource("db/music-mv-d1-schema.sql"));
@@ -107,6 +116,7 @@ class MusicMvD1SchemaInitializerTest {
         private final List<String> queries = new ArrayList<String>();
         private final List<Map<String, Object>> boundQueries = new ArrayList<>();
         private boolean applied;
+        private boolean wrongLibraryIndex;
         private String metadataSha256;
 
         private CapturingD1(String databaseId, List<String> initialTables) {
@@ -135,6 +145,15 @@ class MusicMvD1SchemaInitializerTest {
             if (sql.startsWith("INSERT INTO music_mv_schema_metadata")) {
                 metadataSha256 = String.valueOf(params[2]);
                 return rows(Collections.<Map<String, Object>>emptyList());
+            }
+            if (sql.startsWith("PRAGMA index_info(idx_ai_music_jobs_user_library)")) {
+                List<Map<String, Object>> columns = new ArrayList<Map<String, Object>>();
+                for (String name : Arrays.asList(wrongLibraryIndex ? "client_id" : "user_id", "status", "job_id")) {
+                    Map<String, Object> column = new LinkedHashMap<String, Object>();
+                    column.put("name", name);
+                    columns.add(column);
+                }
+                return rows(columns);
             }
             if (sql.startsWith("PRAGMA table_info(ai_music_jobs)")) {
                 Map<String, Object> column = new LinkedHashMap<String, Object>();
@@ -178,7 +197,7 @@ class MusicMvD1SchemaInitializerTest {
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(14));
+                metadata.put("schema_version", Integer.valueOf(15));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }

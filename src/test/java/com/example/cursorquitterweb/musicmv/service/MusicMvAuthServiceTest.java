@@ -81,4 +81,26 @@ class MusicMvAuthServiceTest {
 
         assertEquals("usr_signed_in", service.requireUserId(request));
     }
+    @Test
+    void sessionActivityWritesOnlyWhenDueAndRevocationStillTakesEffect() {
+        MusicMvAuthRepository repository = mock(MusicMvAuthRepository.class);
+        Map<String, Object> user = new LinkedHashMap<String, Object>();
+        user.put("user_id", "usr_signed_in");
+        user.put("session_id", "session_1");
+        user.put("session_touch_due", 0);
+        when(repository.findBySessionTokenHash(anyString())).thenReturn(user);
+        MusicMvAuthService service = new MusicMvAuthService(repository,
+                mock(MusicMvOidcIdentityService.class), 30);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new javax.servlet.http.Cookie(MusicMvAuthService.SESSION_COOKIE,
+                "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"));
+        assertEquals(Boolean.TRUE, service.currentSession(request).get("authenticated"));
+        org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).touchSession(anyString());
+        user.put("session_touch_due", 1);
+        service.currentSession(request);
+        org.mockito.Mockito.verify(repository).touchSession("session_1");
+        when(repository.findBySessionTokenHash(anyString())).thenReturn(null);
+        assertEquals(Boolean.FALSE, service.currentSession(request).get("authenticated"));
+        assertThrows(ApiException.class, () -> service.requireUserId(request));
+    }
 }

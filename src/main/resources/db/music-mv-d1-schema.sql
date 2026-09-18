@@ -533,6 +533,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_status
   ON ai_music_jobs(status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_library
   ON ai_music_jobs(user_id, status, job_id);
+-- 使用新名称兼容仍按 client_id 建立的历史同名索引。
+CREATE INDEX IF NOT EXISTS idx_ai_music_jobs_user_library ON ai_music_jobs(user_id, status, job_id);
 
 CREATE TABLE IF NOT EXISTS ai_music_provider_attempts (
   attempt_id TEXT PRIMARY KEY,

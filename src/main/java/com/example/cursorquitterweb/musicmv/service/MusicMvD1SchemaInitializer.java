@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 14;
+    static final int SCHEMA_VERSION = 15;
     static final long ENABLED_CATEGORY_COUNT = 11L;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
@@ -331,7 +331,15 @@ public class MusicMvD1SchemaInitializer {
             throw verificationFailed("Schema metadata or category seed verification failed",
                     Collections.<String>emptySet());
         }
+        List<String> libraryIndexColumns = new ArrayList<String>();
+        for (Map<String, Object> column : d1.query("PRAGMA index_info(idx_ai_music_jobs_user_library)").getRows()) {
+            libraryIndexColumns.add(RowUtils.str(column, "name"));
+        }
+        if (!Arrays.asList("user_id", "status", "job_id").equals(libraryIndexColumns)) {
+            throw verificationFailed("Song library index columns do not match the user query", Collections.<String>emptySet());
+        }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("songLibraryIndexColumns", libraryIndexColumns);
         result.put("tableCount", Integer.valueOf(KNOWN_TABLES.size()));
         result.put("categoryCount", Long.valueOf(categoryCount));
         return result;
