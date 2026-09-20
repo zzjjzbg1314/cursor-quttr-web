@@ -351,6 +351,20 @@ class AiMusicGenerationServiceTest {
     }
 
     @Test
+    void acceptsCombinedLibraryFilters() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicGenerationService service = new AiMusicGenerationService(repository,
+                new AiMusicProviderRegistry(Collections.<AiMusicProvider>emptyList()),
+                mock(AiMusicCandidateStorageService.class), new ObjectMapper(), "sunoapi", "https://app.test");
+        for (String filter : java.util.Arrays.asList("selected-vocal", "selected-instrumental")) {
+            when(repository.libraryCandidates("user_1", null, filter, "newest", 25, null, null, null))
+                    .thenReturn(Collections.emptyList());
+            assertThat(service.list("user_1", null, filter, "newest", null, 24).get("filter")).isEqualTo(filter);
+            verify(repository).libraryCandidates("user_1", null, filter, "newest", 25, null, null, null);
+        }
+    }
+
+    @Test
     void selectingCandidateDoesNotDownloadOrMaterializeAudio() {
         AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
         AiMusicCandidateStorageService storage = mock(AiMusicCandidateStorageService.class);

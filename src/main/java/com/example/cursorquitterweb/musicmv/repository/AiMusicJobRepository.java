@@ -372,12 +372,16 @@ public class AiMusicJobRepository {
             params.add(like);
             params.add(like);
         }
-        if ("selected".equals(filter)) {
+        if ("selected".equals(filter) || "selected-vocal".equals(filter) || "selected-instrumental".equals(filter)) {
             where.append(" AND c.selected=1");
-        } else if ("vocal".equals(filter)) {
-            where.append(" AND LENGTH(TRIM(COALESCE(c.lyrics,'')))>0");
-        } else if ("instrumental".equals(filter)) {
-            where.append(" AND LENGTH(TRIM(COALESCE(c.lyrics,'')))=0");
+        }
+        // 优先按提交时的纯音乐开关分类；仅旧任务缺少该字段时按歌词回退。
+        String instrumental = "COALESCE(CASE WHEN json_valid(j.request_json) THEN json_extract(j.request_json,'$.instrumental') END,"
+                + "CASE WHEN LENGTH(TRIM(COALESCE(c.lyrics,'')))=0 THEN 1 ELSE 0 END)";
+        if ("vocal".equals(filter) || "selected-vocal".equals(filter)) {
+            where.append(" AND ").append(instrumental).append("=0");
+        } else if ("instrumental".equals(filter) || "selected-instrumental".equals(filter)) {
+            where.append(" AND ").append(instrumental).append("=1");
         }
         return new LibraryQuery(where.toString(), params);
     }

@@ -147,7 +147,8 @@ public class AiMusicGenerationService {
         String owner = requireId(clientId, "AI_MUSIC_CLIENT_ID_INVALID");
         String filter = normalize(blank(requestedFilter) ? "all" : requestedFilter);
         if (!"all".equals(filter) && !"selected".equals(filter)
-                && !"vocal".equals(filter) && !"instrumental".equals(filter)) {
+                && !"vocal".equals(filter) && !"instrumental".equals(filter)
+                && !"selected-vocal".equals(filter) && !"selected-instrumental".equals(filter)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "AI_MUSIC_LIBRARY_FILTER_INVALID",
                     "Song filter is invalid");
         }

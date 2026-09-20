@@ -125,6 +125,18 @@ class AiMusicJobRepositoryTest {
     }
 
     @Test
+    void combinedFiltersUseGenerationModeAndApplyBeforePagination() {
+        CapturingD1 d1 = new CapturingD1();
+        AiMusicJobRepository repository = new AiMusicJobRepository(d1);
+        for (String filter : java.util.Arrays.asList("selected-vocal", "selected-instrumental")) {
+            repository.libraryCandidates("user_1", null, filter, "newest", 25, null, null, null);
+            assertThat(d1.sql).contains("j.user_id=?", "c.selected=1", "json_valid(j.request_json)", "json_extract(j.request_json,'$.instrumental')");
+            assertThat(d1.sql).contains(filter.endsWith("-vocal") ? "END)=0" : "END)=1");
+            assertThat(d1.params).containsExactly("user_1", Integer.valueOf(25));
+        }
+    }
+
+    @Test
     void libraryQueryUsesStableKeysetCursorInsteadOfOffset() {
         CapturingD1 d1 = new CapturingD1();
         AiMusicJobRepository repository = new AiMusicJobRepository(d1);
