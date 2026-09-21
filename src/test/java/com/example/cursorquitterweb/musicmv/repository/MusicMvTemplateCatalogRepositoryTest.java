@@ -18,6 +18,14 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void readyUpdateIsGuardedByAssetIdentityAndPreservesReadyTime() {
+        CapturingD1 client=new CapturingD1();
+        new MusicMvTemplateCatalogRepository(client).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertEquals(Arrays.asList("{}","m","cloudflare_images","asset","hash","{}"),client.params);
+        assertTrue(client.sql.contains("provider=? AND provider_asset_id=? AND source_sha256=?"));
+        assertTrue(client.sql.contains("ready_at=COALESCE(ready_at,CURRENT_TIMESTAMP)"));
+        assertTrue(client.sql.contains("status<>'ready' OR provider_details_json<>?"));
+    }
     @Test void listAndCountShareSearchAndTechnicalPredicates() {
         CapturingD1 client=new CapturingD1();
         MusicMvTemplateCatalogRepository repository=new MusicMvTemplateCatalogRepository(client);

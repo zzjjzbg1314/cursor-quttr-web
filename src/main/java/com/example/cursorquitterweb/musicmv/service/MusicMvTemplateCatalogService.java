@@ -1794,14 +1794,51 @@ public class MusicMvTemplateCatalogService {
                 RowUtils.str(media, "provider_details_json"));
         providerDetails.putAll(state.getProviderDetails());
         if ("ready".equals(state.getStatus())) {
-            repository.markMediaReady(mediaId, json(providerDetails));
-            invalidateDetail(templateId);
+            if (!mediaReadyMatches(media, media, providerDetails)) {
+                confirmMediaReady(templateId, versionId, mediaId, media, providerDetails);
+                invalidateDetail(templateId);
+            }
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("mediaId", mediaId);
         result.put("status", state.getStatus());
         result.put("providerDetails", providerDetails);
         return result;
+    }
+
+    private boolean mediaReadyMatches(Map<String,Object> current, Map<String,Object> expected,
+            Map<String,Object> details) {
+        return current != null && sameMediaIdentity(current, expected)
+                && "ready".equals(RowUtils.str(current, "status"))
+                && parseObject(RowUtils.str(current, "provider_details_json")).equals(details);
+    }
+
+    private boolean sameMediaIdentity(Map<String,Object> current, Map<String,Object> expected) {
+        for (String key : Arrays.asList("provider", "provider_asset_id", "source_sha256")) {
+            if (!java.util.Objects.equals(current.get(key), expected.get(key))) return false;
+        }
+        return true;
+    }
+
+    private void confirmMediaReady(String templateId, String versionId, String mediaId,
+            Map<String,Object> expected, Map<String,Object> details) {
+        for (int attempt = 0; attempt < 2; attempt++) {
+            org.springframework.web.client.ResourceAccessException transportError = null;
+            try {
+                repository.markMediaReadyIfCurrent(mediaId, RowUtils.str(expected, "provider"),
+                        RowUtils.str(expected, "provider_asset_id"), RowUtils.str(expected, "source_sha256"), json(details));
+            } catch (org.springframework.web.client.ResourceAccessException ex) {
+                transportError = ex;
+            }
+            // 响应丢失不代表写入失败，先核对已提交状态；读失败则停止，不盲目重复写入。
+            Map<String,Object> current = repository.mediaById(templateId, versionId, mediaId);
+            if (mediaReadyMatches(current, expected, details)) return;
+            if (current == null || !sameMediaIdentity(current, expected)) {
+                throw conflict("TEMPLATE_MEDIA_CHANGED", "素材已被替换，请重新检查上线资料");
+            }
+            if (transportError == null) throw conflict("TEMPLATE_MEDIA_NOT_READY", "素材状态尚未确认，请继续同步");
+            if (attempt == 1) throw transportError;
+        }
     }
 
     public Map<String, Object> publish(String templateId, String versionId) {

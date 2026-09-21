@@ -66,6 +66,82 @@ class MusicMvTemplateCatalogServiceTest {
         return service.synchronizeBrowserScene("tpl_1", "tplver_1", request);
     }
 
+    @Test
+    void mediaCompletionSkipsUnchangedReadyState() {
+        Map<String,Object> media = completionMedia("ready");
+        when(repository.mediaById("t","v","m")).thenReturn(media);
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        assertEquals("ready",service.completeMedia("t","v","m").get("status"));
+        verify(repository,never()).markMediaReadyIfCurrent(anyString(),anyString(),anyString(),anyString(),anyString());
+    }
+
+    @Test
+    void completionRecoversLostWriteResponseWithoutSecondWrite() {
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"),completionMedia("ready"));
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("lost response"))
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertEquals("ready",service.completeMedia("t","v","m").get("status"));
+        verify(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    @Test
+    void completionRetriesOnlyUncommittedSameAssetOnce() {
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"),completionMedia("uploaded"),completionMedia("ready"));
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("lost response")).doNothing()
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertEquals("ready",service.completeMedia("t","v","m").get("status"));
+        verify(repository,org.mockito.Mockito.times(2)).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    @Test
+    void completionStopsWhenAssetChanged() {
+        Map<String,Object> replaced=completionMedia("uploaded"); replaced.put("provider_asset_id","replacement");
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"),replaced);
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("lost response"))
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertThrows(ApiException.class,()->service.completeMedia("t","v","m"));
+        verify(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    @Test
+    void completionStopsAfterSecondTransportFailure() {
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"));
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("lost response"))
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertThrows(org.springframework.web.client.ResourceAccessException.class,()->service.completeMedia("t","v","m"));
+        verify(repository,org.mockito.Mockito.times(2)).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    @Test
+    void completionDoesNotRetryWhenRecoveryReadFails() {
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"))
+            .thenThrow(new org.springframework.web.client.ResourceAccessException("read failed"));
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new org.springframework.web.client.ResourceAccessException("write response lost"))
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertThrows(org.springframework.web.client.ResourceAccessException.class,()->service.completeMedia("t","v","m"));
+        verify(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    @Test
+    void completionDoesNotRetryDatabaseApplicationErrors() {
+        when(repository.mediaById("t","v","m")).thenReturn(completionMedia("uploaded"));
+        when(mediaProvider.imageState("asset")).thenReturn(new CloudflareTemplateMediaProvider.MediaState("ready",Collections.emptyMap()));
+        org.mockito.Mockito.doThrow(new IllegalStateException("database rejected write"))
+            .when(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+        assertThrows(IllegalStateException.class,()->service.completeMedia("t","v","m"));
+        verify(repository).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");
+    }
+
+    private Map<String,Object> completionMedia(String status) {
+        Map<String,Object> value=row("status",status); value.put("provider","cloudflare_images");
+        value.put("provider_asset_id","asset"); value.put("source_sha256","hash"); value.put("provider_details_json","{}"); return value;
+    }
+
     @Test void acceptsExternalFontAndRetainsLegacyInlineFontValidation() throws Exception {
         Map<String,Object> font=new LinkedHashMap<>();font.put("fontFamily","same-family");font.put("kind","font");
         font.put("inlineData","data:font/otf;base64,T1RUTw==");

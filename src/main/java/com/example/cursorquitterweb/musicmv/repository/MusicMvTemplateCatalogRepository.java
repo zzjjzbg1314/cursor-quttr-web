@@ -903,6 +903,16 @@ public class MusicMvTemplateCatalogRepository {
                 sha256.toLowerCase(), Long.valueOf(sizeBytes), width, height, duration, providerDetailsJson)));
     }
 
+    public void markMediaReadyIfCurrent(String mediaId, String provider, String assetId,
+            String sourceSha256, String details) {
+        // 固定素材身份，避免断连恢复覆盖同时发生的素材替换；重复执行不刷新时间。
+        d1.query("UPDATE template_media SET status='ready',provider_details_json=?,error_message=NULL,"
+                + "ready_at=COALESCE(ready_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP "
+                + "WHERE media_id=? AND provider=? AND provider_asset_id=? AND source_sha256=? "
+                + "AND (status<>'ready' OR provider_details_json<>? OR provider_details_json IS NULL)",
+                details, mediaId, provider, assetId, sourceSha256, details);
+    }
+
     public void markMediaReady(String mediaId, String providerDetailsJson) {
         d1.query("UPDATE template_media SET status='ready',provider_details_json=?,error_message=NULL,"
                 + "ready_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE media_id=?",
