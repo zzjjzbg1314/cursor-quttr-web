@@ -7,6 +7,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class TemplateMetadataUpdateRequest {
+    private List<String> tagKeys;
+    public List<String> getTagKeys() { return tagKeys; }
+    public void setTagKeys(List<String> value) { tagKeys = value; }
+
     @NotBlank private String categoryKey;
     private List<String> categoryKeys = new ArrayList<String>();
     private Boolean classificationLocked = Boolean.TRUE;

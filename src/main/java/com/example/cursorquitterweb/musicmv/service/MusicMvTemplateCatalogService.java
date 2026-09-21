@@ -70,6 +70,11 @@ public class MusicMvTemplateCatalogService {
             .expireAfterWrite(Duration.ofMinutes(10))
             .build();
 
+    private final TemplateTagService templateTags;
+    public Map<String,Object> tags() { return templateTags.list(); }
+    public Map<String,Object> tags(String locale) { return templateTags.list(locale); }
+    public Map<String,Object> addTag(Map<String,Object> request) { return templateTags.add(request); }
+
     public MusicMvTemplateCatalogService(MusicMvTemplateCatalogRepository repository,
                                          CloudflareTemplateMediaProvider mediaProvider,
                                          TemplateRuntimePackageService runtimePackages,
@@ -79,6 +84,7 @@ public class MusicMvTemplateCatalogService {
         this.mediaProvider = mediaProvider;
         this.runtimePackages = runtimePackages;
         this.d1 = d1;
+        this.templateTags = new TemplateTagService(d1);
         this.objectMapper = objectMapper;
     }
 
@@ -373,6 +379,7 @@ public class MusicMvTemplateCatalogService {
             }
         }
         requireLeafCategory(request.getCategoryKey());
+        templateTags.validate(request.getTagKeys());
         List<String> sourceHashtags = rawHashtags(request.getSourceHashtags());
         List<Map<String, Object>> categoryAssignments = categoryAssignments(
                 request.getCategoryKey(), request.getCategoryKeys(), request.getSourceTitle(),
@@ -411,6 +418,7 @@ public class MusicMvTemplateCatalogService {
                         safe(request.getSourceSearchKeyword()), json(sourceHashtags), safe(request.getSourceUrl()),
                         Boolean.TRUE.equals(request.getClassificationLocked()));
                 repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory, categoryAssignments);
+                templateTags.replace(request.getTemplateId(), request.getTagKeys());
                 invalidateDetail(request.getTemplateId());
                 Map<String, Object> result = promotionView(request.getTemplateId(), targetId, RowUtils.str(target, "status"));
                 result.put("replacedExisting", Boolean.TRUE);
@@ -433,6 +441,7 @@ public class MusicMvTemplateCatalogService {
             invalidateDetail(request.getTemplateId());
             Map<String, Object> replay = promotionView(request.getTemplateId(),
                     RowUtils.str(existing, "version_id"), RowUtils.str(existing, "status"));
+            templateTags.replace(request.getTemplateId(), request.getTagKeys());
             replay.put("idempotentReplay", Boolean.TRUE);
             return replay;
         }
@@ -446,6 +455,7 @@ public class MusicMvTemplateCatalogService {
                 Boolean.TRUE.equals(request.getClassificationLocked()));
         repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory,
                 categoryAssignments);
+        templateTags.replace(request.getTemplateId(), request.getTagKeys());
         invalidateDetail(request.getTemplateId());
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
@@ -1594,6 +1604,7 @@ public class MusicMvTemplateCatalogService {
                 sourceHashtags, Boolean.TRUE.equals(request.getClassificationLocked()));
         String primaryCategory = resolvedPrimaryCategory(request.getCategoryKey(),
                 categoryAssignments, Boolean.TRUE.equals(request.getClassificationLocked()));
+        templateTags.validate(request.getTagKeys());
         String visibility = blankToNull(request.getVisibility());
         if (visibility == null || !VISIBILITIES.contains(visibility)) {
             throw badRequest("TEMPLATE_VISIBILITY_INVALID", "Template visibility is invalid");
@@ -1603,6 +1614,7 @@ public class MusicMvTemplateCatalogService {
                 request.getDescriptionEn(), visibility,
                 request.getSortOrder() == null ? 0 : request.getSortOrder().intValue());
         repository.replaceTemplateCategories(templateId, primaryCategory, categoryAssignments);
+        templateTags.replace(templateId, request.getTagKeys());
         if (source != null) {
             repository.upsertTemplateSourceMetadata(templateId,
                     safe(RowUtils.str(source, "source_title")),
@@ -2198,7 +2210,8 @@ public class MusicMvTemplateCatalogService {
         List<Map<String, Object>> categories = categoryViews(categoryRows);
         result.put("categoryKeys", categoryKeys(categories));
         result.put("categoryAssignments", categories);
-        if (admin) result.put("sourceMetadata", sourceMetadataView(sourceMetadata));
+        if (admin) { result.put("sourceMetadata", sourceMetadataView(sourceMetadata));
+            result.put("tagKeys", templateTags.keys(RowUtils.str(row, "template_id"))); }
         copy(result, "status", row, "status");
         copy(result, "visibility", row, "visibility");
         copy(result, "currentVersionId", row, "current_version_id");

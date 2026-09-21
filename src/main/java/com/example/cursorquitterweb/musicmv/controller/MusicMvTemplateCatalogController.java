@@ -36,6 +36,17 @@ public class MusicMvTemplateCatalogController {
         this.service = service;
     }
 
+    @GetMapping("/admin/template-tags")
+    public Map<String,Object> tags(@RequestHeader(value="X-Music-Mv-Client-Token", required=false) String token,
+            @RequestParam(value="locale", required=false) String locale) {
+        authentication.requireAuthorized(token); return service.tags(locale);
+    }
+    @org.springframework.web.bind.annotation.PostMapping("/admin/template-tags")
+    public Map<String,Object> addTag(@RequestHeader(value="X-Music-Mv-Client-Token", required=false) String token,
+            @RequestBody Map<String,Object> request) {
+        authentication.requireAuthorized(token); return service.addTag(request);
+    }
+
     @GetMapping("/template-categories")
     public Map<String, Object> categories(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,

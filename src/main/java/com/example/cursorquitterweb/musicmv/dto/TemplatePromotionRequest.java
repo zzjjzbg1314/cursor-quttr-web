@@ -16,6 +16,10 @@ import javax.validation.constraints.Size;
  * validation result is promoted into the cloud template catalog.
  */
 public class TemplatePromotionRequest {
+    private List<String> tagKeys;
+    public List<String> getTagKeys() { return tagKeys; }
+    public void setTagKeys(List<String> value) { tagKeys = value; }
+
     private Boolean replaceExisting = Boolean.FALSE;
     public Boolean getReplaceExisting() { return replaceExisting; }
     public void setReplaceExisting(Boolean value) { replaceExisting = value; }
