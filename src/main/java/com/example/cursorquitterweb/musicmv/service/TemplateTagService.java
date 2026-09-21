@@ -4,7 +4,7 @@ import java.util.*;
 import org.springframework.http.HttpStatus;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
-/** 运营标签独立于来源 Hashtag；首次初始化仅补标一次旧生日模板。 */
+/** 运营标签独立于来源 Hashtag；通过一次性迁移补标历史模板。 */
 public class TemplateTagService {
     private final D1DatabaseClient d1;
     private volatile boolean ready;
@@ -37,6 +37,9 @@ public class TemplateTagService {
         sql.add(D1Statement.of("DELETE FROM template_tag_translations WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
         sql.add(D1Statement.of("DELETE FROM template_tags WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('merge-wedding-v1')"));
+        // 仅为迁移时已有的婚礼分类模板补标，之后人工取消不会被重启补回。
+        sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_items(template_id,tag_key) SELECT t.template_id,'wedding' FROM templates t WHERE (t.category_key='wedding' OR EXISTS (SELECT 1 FROM template_category_items c WHERE c.template_id=t.template_id AND c.category_key='wedding')) AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='wedding-category-v1')"));
+        sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('wedding-category-v1')"));
         d1.batch(sql);
         ready = true;
     }

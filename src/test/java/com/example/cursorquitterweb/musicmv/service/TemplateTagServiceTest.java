@@ -6,6 +6,32 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 class TemplateTagServiceTest {
+    @Test void 婚礼分类一次性补标保留其他标签且取消后不再补回() throws Exception {
+        D1DatabaseClient d1=mock(D1DatabaseClient.class);
+        new TemplateTagService(d1).list();
+        ArgumentCaptor<List<D1Statement>> batch=ArgumentCaptor.forClass(List.class);
+        verify(d1).batch(batch.capture());
+        String script=String.join("\n",
+            "import sqlite3,json,sys",
+            "db=sqlite3.connect(':memory:');db.execute('PRAGMA foreign_keys=ON')",
+            "db.executescript('CREATE TABLE templates(template_id TEXT PRIMARY KEY,category_key TEXT,tags_json TEXT); CREATE TABLE template_category_items(template_id TEXT,category_key TEXT);')",
+            "db.executemany('INSERT INTO templates VALUES (?,?,?)',[('primary','wedding','[]'),('secondary','birthday','[]'),('unrelated','family','[]')])",
+            "db.execute(\"INSERT INTO template_category_items VALUES ('secondary','wedding')\");db.commit()",
+            "batch=json.loads(sys.argv[1])",
+            "def run():",
+            " with db:",
+            "  for item in batch: db.execute(item['sql'],item['params'])",
+            "run();run()",
+            "assert db.execute(\"SELECT template_id FROM template_tag_items WHERE tag_key='wedding' ORDER BY template_id\").fetchall()==[('primary',),('secondary',)]",
+            "assert db.execute(\"SELECT tag_key FROM template_tag_items WHERE template_id='secondary' ORDER BY tag_key\").fetchall()==[('birthday',),('wedding',)]",
+            "db.execute(\"DELETE FROM template_tag_items WHERE template_id='primary' AND tag_key='wedding'\")",
+            "db.execute(\"INSERT INTO templates VALUES ('future','wedding','[]')\");db.commit();run()",
+            "assert db.execute(\"SELECT template_id FROM template_tag_items WHERE tag_key='wedding'\").fetchall()==[('secondary',)]");
+        Process process=new ProcessBuilder("python3","-c",script,new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(batch.getValue())).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS));
+        String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0,process.exitValue(),output);
+    }
     @Test void 初始化只执行一次且保留原始标签() {
         D1DatabaseClient d1=mock(D1DatabaseClient.class); TemplateTagService service=new TemplateTagService(d1);
         service.list(); service.list();
