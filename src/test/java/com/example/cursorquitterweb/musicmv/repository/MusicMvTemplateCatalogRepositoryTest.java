@@ -18,6 +18,38 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void 主题查询只返回有标签的公开上线模板而不回退分类() throws Exception {
+        CapturingD1 client=new CapturingD1();
+        new MusicMvTemplateCatalogRepository(client).templateCount("published","public",null,null,null,null,null,null,null,null,"birthday");
+        String script=String.join("\n",
+            "import sqlite3,json,sys",
+            "db=sqlite3.connect(':memory:')",
+            "db.executescript('CREATE TABLE templates(template_id TEXT,category_key TEXT,status TEXT,visibility TEXT,deleted_at TEXT,current_version_id TEXT); CREATE TABLE template_versions(version_id TEXT); CREATE TABLE template_categories(category_key TEXT,enabled INTEGER,is_selectable INTEGER); CREATE TABLE template_tag_items(template_id TEXT,tag_key TEXT);')",
+            "db.executemany('INSERT INTO template_categories VALUES (?,1,1)', [('birthday',),('couples',)])",
+            "db.executemany('INSERT INTO templates VALUES (?,?,?,?,?,NULL)', [('tagged','couples','published','public',None),('category-only','birthday','published','public',None),('draft','birthday','draft','public',None),('private','birthday','published','private',None),('deleted','birthday','published','public','now')])",
+            "db.executemany('INSERT INTO template_tag_items VALUES (?,?)', [(x,'birthday') for x in ['tagged','draft','private','deleted']])",
+            "assert db.execute(sys.argv[1],json.loads(sys.argv[2])).fetchone()[0]==1",
+            "db.execute(\"DELETE FROM template_tag_items WHERE template_id='tagged'\")",
+            "assert db.execute(sys.argv[1],json.loads(sys.argv[2])).fetchone()[0]==0");
+        Process process=new ProcessBuilder("python3","-c",script,client.sql,new ObjectMapper().writeValueAsString(client.params)).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS));
+        String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0,process.exitValue(),output);
+    }
+    @Test void 标签筛选在分页前执行且总数使用同一条件() {
+        CapturingD1 client=new CapturingD1();
+        MusicMvTemplateCatalogRepository repository=new MusicMvTemplateCatalogRepository(client);
+        repository.templates("en","published","public",null,null,null,1,10,null,null,null,30,30,"birthday");
+        String list=client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL"),client.sql.indexOf("ORDER BY t.sort_order"));
+        List<Object> params=new ArrayList<>(client.params.subList(1,client.params.size()-2));
+        assertTrue(list.contains("tagged.tag_key=?"));
+        assertTrue(list.contains("t.status=?") && list.contains("t.visibility=?"));
+        assertFalse(list.contains("ti.category_key=?"));
+        assertTrue(params.contains("birthday"));
+        repository.templateCount("published","public",null,null,null,1,10,null,null,null,"birthday");
+        assertEquals(list,client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL")));
+        assertEquals(params,client.params);
+    }
     @Test void readyUpdateIsGuardedByAssetIdentityAndPreservesReadyTime() {
         CapturingD1 client=new CapturingD1();
         new MusicMvTemplateCatalogRepository(client).markMediaReadyIfCurrent("m","cloudflare_images","asset","hash","{}");

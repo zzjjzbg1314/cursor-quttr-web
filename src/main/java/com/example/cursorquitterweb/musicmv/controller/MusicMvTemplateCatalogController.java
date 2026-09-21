@@ -47,6 +47,13 @@ public class MusicMvTemplateCatalogController {
         authentication.requireAuthorized(token); return service.addTag(request);
     }
 
+    @GetMapping("/template-tags")
+    public Map<String,Object> publicTags(@RequestHeader(value="X-Music-Mv-Client-Token", required=false) String token,
+            @RequestParam(value="locale", required=false) String locale) {
+        authentication.requireAuthorized(token);
+        return service.tags(locale);
+    }
+
     @GetMapping("/template-categories")
     public Map<String, Object> categories(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
@@ -60,6 +67,7 @@ public class MusicMvTemplateCatalogController {
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestParam(value = "locale", required = false) String locale,
             @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "tag", required = false) String tag,
             @RequestParam(value = "q", required = false) String keyword,
             @RequestParam(value = "minSlots", required = false) Integer minSlots,
             @RequestParam(value = "maxSlots", required = false) Integer maxSlots,
@@ -70,7 +78,7 @@ public class MusicMvTemplateCatalogController {
             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         authentication.requireAuthorized(token);
         return service.list(locale, category, null, keyword, minSlots, maxSlots,
-                minDuration, maxDuration, aspectRatio, page, pageSize, false, null);
+                minDuration, maxDuration, aspectRatio, page, pageSize, false, null, tag);
     }
 
     @GetMapping("/templates/{templateId}")

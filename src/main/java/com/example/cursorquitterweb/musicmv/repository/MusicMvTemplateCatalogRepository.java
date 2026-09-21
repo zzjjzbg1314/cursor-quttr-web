@@ -158,6 +158,15 @@ public class MusicMvTemplateCatalogRepository {
                                                 Double minDuration, Double maxDuration,
                                                 String aspectRatio,
                                                 int limit, int offset) {
+        return templates(locale, status, visibility, categoryKey, collectionKey, keyword, minSlots, maxSlots, minDuration, maxDuration, aspectRatio, limit, offset, null);
+    }
+
+    public List<Map<String, Object>> templates(String locale, String status, String visibility,
+                                                String categoryKey, String collectionKey,
+                                                String keyword, Integer minSlots, Integer maxSlots,
+                                                Double minDuration, Double maxDuration,
+                                                String aspectRatio,
+                                                int limit, int offset, String tagKey) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT t.template_id, t.capcut_template_id, t.slug, t.category_key, t.tags_json, t.status, ")
@@ -212,6 +221,10 @@ public class MusicMvTemplateCatalogRepository {
                     + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
             params.add(collectionKey);
         }
+        if (tagKey != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM template_tag_items tagged WHERE tagged.template_id=t.template_id AND tagged.tag_key=?) ");
+            params.add(tagKey);
+        }
         TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
         sql.append("ORDER BY t.sort_order DESC, t.published_at DESC, t.updated_at DESC, t.template_id ASC ")
@@ -225,6 +238,13 @@ public class MusicMvTemplateCatalogRepository {
                               String collectionKey, String keyword, Integer minSlots,
                               Integer maxSlots, Double minDuration, Double maxDuration,
                               String aspectRatio) {
+        return templateCount(status, visibility, categoryKey, collectionKey, keyword, minSlots, maxSlots, minDuration, maxDuration, aspectRatio, null);
+    }
+
+    public long templateCount(String status, String visibility, String categoryKey,
+                              String collectionKey, String keyword, Integer minSlots,
+                              Integer maxSlots, Double minDuration, Double maxDuration,
+                              String aspectRatio, String tagKey) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM templates t "
                 + "LEFT JOIN template_versions v ON v.version_id=t.current_version_id "
@@ -244,6 +264,10 @@ public class MusicMvTemplateCatalogRepository {
             sql.append("AND EXISTS (SELECT 1 FROM template_collection_items ci "
                     + "WHERE ci.template_id=t.template_id AND ci.collection_key=?) ");
             params.add(collectionKey);
+        }
+        if (tagKey != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM template_tag_items tagged WHERE tagged.template_id=t.template_id AND tagged.tag_key=?) ");
+            params.add(tagKey);
         }
         TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);

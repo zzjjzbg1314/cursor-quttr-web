@@ -152,6 +152,18 @@ public class MusicMvTemplateCatalogService {
                                     Double minDuration, Double maxDuration, String aspectRatio,
                                     Integer page, Integer pageSize, boolean admin,
                                     String requestedStatus) {
+        return list(locale, categoryKey, collectionSlug, keyword, minSlots, maxSlots, minDuration,
+                maxDuration, aspectRatio, page, pageSize, admin, requestedStatus, null);
+    }
+
+    public Map<String, Object> list(String locale, String categoryKey, String collectionSlug,
+                                    String keyword, Integer minSlots, Integer maxSlots,
+                                    Double minDuration, Double maxDuration, String aspectRatio,
+                                    Integer page, Integer pageSize, boolean admin,
+                                    String requestedStatus, String tagKey) {
+        String tag = blankToNull(tagKey);
+        if (tag != null) templateTags.validate(Collections.singletonList(tag));
+
         String category = blankToNull(categoryKey);
         if (category != null) requireCategory(category);
         String collectionKey = null;
@@ -167,13 +179,16 @@ public class MusicMvTemplateCatalogService {
         int normalizedSize = pageSize == null ? 24 : Math.max(1, Math.min(100, pageSize.intValue()));
         String status = admin ? blankToNull(requestedStatus) : "published";
         String visibility = admin ? null : "public";
-        long total = repository.templateCount(status, visibility, category, collectionKey, query,
-                minSlots, maxSlots, minDuration, maxDuration, ratio);
+        long total = tag == null
+                ? repository.templateCount(status, visibility, category, collectionKey, query, minSlots, maxSlots, minDuration, maxDuration, ratio)
+                : repository.templateCount(status, visibility, category, collectionKey, query, minSlots, maxSlots, minDuration, maxDuration, ratio, tag);
         List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.templates(normalizeLocale(locale), status,
-                visibility, category, collectionKey, query, minSlots, maxSlots,
-                minDuration, maxDuration, ratio, normalizedSize,
-                (normalizedPage - 1) * normalizedSize)) {
+        List<Map<String, Object>> rows = tag == null
+                ? repository.templates(normalizeLocale(locale), status, visibility, category, collectionKey, query, minSlots, maxSlots,
+                        minDuration, maxDuration, ratio, normalizedSize, (normalizedPage - 1) * normalizedSize)
+                : repository.templates(normalizeLocale(locale), status, visibility, category, collectionKey, query, minSlots, maxSlots,
+                        minDuration, maxDuration, ratio, normalizedSize, (normalizedPage - 1) * normalizedSize, tag);
+        for (Map<String, Object> row : rows) {
             items.add(summary(row));
         }
         Map<String, Object> result = new LinkedHashMap<String, Object>();
