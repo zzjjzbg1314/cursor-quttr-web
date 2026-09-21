@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 final class BrowserNativeRuntimeContract {
     @SuppressWarnings("unchecked")
     static Map<String,Object> validate(Object raw, Set<String> deliveredIds) {
+        return validate(raw,deliveredIds,Collections.emptyMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String,Object> validate(Object raw, Set<String> deliveredIds, Map<String,Object> scene) {
         if (!(raw instanceof Map)) throw invalid();
         Map<String,Object> source=(Map<String,Object>)raw;
         if (!Arrays.asList("browser-native-photo-runtime-v1", "browser-native-scene-runtime-v2", "browser-native-scene-runtime-v3", "browser-native-scene-runtime-v4").contains(source.get("schemaVersion"))
@@ -25,6 +30,7 @@ final class BrowserNativeRuntimeContract {
         if(source.containsKey("stickerPolicy")&&(!ownsStickers||!ownsVideo))throw invalid();
         boolean ownsGlobals="original_tracks_v1".equals(source.get("globalEffectPolicy"));
         if(source.containsKey("globalEffectPolicy")&&(!ownsGlobals||!ownsVideo))throw invalid();
+        Set<String> scriptStickers=BrowserNativeScriptDependencyContract.stickers(scene,source);
         Map<String,Object> assets=(Map<String,Object>)source.get("assets");
         Map<String,Object> safeAssets=new LinkedHashMap<>(); String root=null;
         String[][] roles={{"loaderUrl","loader.js"},{"mainWasmUrl","main.wasm"},{"mediaWasmUrl","media.wasm"},
@@ -53,7 +59,7 @@ final class BrowserNativeRuntimeContract {
                     || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma","mask","text_style").contains(item.get("kind"))
                         ||(ownsTemplates&&"text_template".equals(item.get("kind")))
                         ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
-                        ||(ownsStickers&&"sticker".equals(item.get("kind"))))
+                        ||((ownsStickers||scriptStickers.contains(id))&&"sticker".equals(item.get("kind"))))
                     || files.stream().noneMatch(file->file.startsWith(id+"/")))throw invalid();
             if("sticker".equals(item.get("kind"))&&(!uniqueFiles.contains(id+"/config.json")||(!uniqueFiles.contains(id+"/infoSticker.lua")&&files.stream().noneMatch(file->file.startsWith(id+"/")&&file.toLowerCase(Locale.ROOT).endsWith(".gif")))))throw invalid();
             if("text_style".equals(item.get("kind"))) {

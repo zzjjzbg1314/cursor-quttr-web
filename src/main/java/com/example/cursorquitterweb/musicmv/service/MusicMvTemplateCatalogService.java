@@ -754,7 +754,7 @@ public class MusicMvTemplateCatalogService {
                     deliveredIds.add((String) ((Map<?, ?>) raw).get("resourceId"));
             }
             // 只有通过原始源、入口文件及最小依赖绑定校验的贴纸才使用原生资源归属。
-            Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(delivery.get("nativeEngine"), deliveredIds);
+            Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(delivery.get("nativeEngine"), deliveredIds, scene);
             nativeStickers = BrowserNativeStickerContract.validate(scene, descriptor);
         }
         Object rawLayers = scene.get("layers");

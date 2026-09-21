@@ -35,6 +35,20 @@ class TemplateRuntimePackageServiceTest {
         when(r2.isConfigured()).thenReturn(Boolean.TRUE);
     }
 
+    @Test void deliversScriptOwnedStickersAndRejectsUnownedResources() {
+        BrowserNativeScriptDependencyContractTest fixture=new BrowserNativeScriptDependencyContractTest();
+        Map<String,Object> asset=BrowserNativeScriptDependencyContractTest.row("status","ready","object_key","shared.zip","source_size_bytes",1234L,"content_type","application/zip");
+        when(repository.templateResourceAssets(Collections.singletonMap("sha_"+hash(),hash()))).thenReturn(Collections.singletonMap("sha_"+hash(),asset));
+        when(r2.presignedGetUrl("shared.zip",Duration.ofMinutes(15))).thenReturn("https://r2.example/shared.zip");
+        java.util.List<Map<String,Object>> dependencies=new java.util.ArrayList<>();
+        for(String id:java.util.Arrays.asList("parent","sticker"))dependencies.add(BrowserNativeScriptDependencyContractTest.row("resourceId",id,"assetId","sha_"+hash(),"sourceSha256",hash(),"sourceSizeBytes",1234L));
+        Map<String,Object> descriptor=fixture.descriptor(),source=fixture.source(),scene=fixture.scene(source);
+        scene.put("runtimeDelivery",BrowserNativeScriptDependencyContractTest.row("schemaVersion","browser-runtime-delivery-v1","resources",dependencies,"totalSizeBytes",2468L,"nativeEngine",descriptor));
+        assertEquals(descriptor,service.downloadForScene("tpl_1","tplver_1",scene).get("nativeEngine"));
+        source.put("dependencies",Collections.emptyList());
+        assertEquals("NATIVE_RUNTIME_CONTRACT_INVALID",assertThrows(ApiException.class,()->service.downloadForScene("tpl_1","tplver_1",scene)).getCode());
+    }
+
     @Test void deliversSharedFontBytesAndRejectsDifferentHashOrType() {
         Map<String,Object> row=new LinkedHashMap<>();row.put("status","ready");row.put("object_key","font.otf");row.put("source_size_bytes",123L);row.put("content_type","font/otf");
         when(repository.templateResourceAssets(Collections.singletonMap("sha_"+hash(),hash()))).thenReturn(Collections.singletonMap("sha_"+hash(),row));

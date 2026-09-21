@@ -592,7 +592,7 @@ public class MusicMvRenderJobService {
                     || !ids.add((String) ((Map<?, ?>) value).get("resourceId"))) return null;
         }
         try {
-            BrowserNativeRuntimeContract.validate(descriptor, ids);
+            BrowserNativeRuntimeContract.validate(descriptor, ids, scene);
             return (String) descriptor.get("schemaVersion");
         } catch (ApiException invalid) {
             return null;
