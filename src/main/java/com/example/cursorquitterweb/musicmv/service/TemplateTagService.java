@@ -10,10 +10,10 @@ public class TemplateTagService {
     private volatile boolean ready;
     public TemplateTagService(D1DatabaseClient d1) { this.d1 = d1; }
     private static final String[][] SEEDS = {
+        {"birthday", "生日", "Birthday"}, {"wedding", "婚礼", "Wedding"},
         {"valentines-day", "情人节", "Valentine's Day"}, {"mothers-day", "母亲节", "Mother's Day"},
-        {"fathers-day", "父亲节", "Father's Day"}, {"birthday", "生日", "Birthday"},
-        {"wedding", "婚礼", "Wedding"},
-        {"graduation", "毕业", "Graduation"}, {"christmas", "圣诞节", "Christmas"}
+        {"christmas", "圣诞节", "Christmas"}, {"graduation", "毕业", "Graduation"},
+        {"fathers-day", "父亲节", "Father's Day"}
     };
     private ApiException invalid(String message) { return new ApiException(HttpStatus.BAD_REQUEST, "TEMPLATE_TAG_INVALID", message); }
     private synchronized void ensure() {
@@ -40,6 +40,11 @@ public class TemplateTagService {
         // 仅为迁移时已有的婚礼分类模板补标，之后人工取消不会被重启补回。
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_items(template_id,tag_key) SELECT t.template_id,'wedding' FROM templates t WHERE (t.category_key='wedding' OR EXISTS (SELECT 1 FROM template_category_items c WHERE c.template_id=t.template_id AND c.category_key='wedding')) AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='wedding-category-v1')"));
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('wedding-category-v1')"));
+        // 按产品场景的预期使用频率设置初始优先级；一次迁移，不覆盖后续人工排序。
+        for (int index = 0; index < SEEDS.length; index++) {
+            sql.add(D1Statement.of("UPDATE template_tags SET sort_order=? WHERE tag_key=? AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='occasion-priority-v1')", index, SEEDS[index][0]));
+        }
+        sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('occasion-priority-v1')"));
         d1.batch(sql);
         ready = true;
     }
