@@ -38,6 +38,15 @@ public class RendererTemplateCatalogController {
         this.service = service;
     }
 
+    @PostMapping("/{templateId}/capcut-featured")
+    public Map<String, Object> syncFeatured(
+            @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,
+            @PathVariable String templateId,
+            @Valid @RequestBody com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata) {
+        authentication.requireAuthorized(token);
+        return service.syncCapCutFeatured(templateId, metadata);
+    }
+
     @GetMapping("/migration-readiness")
     public Map<String, Object> readiness(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token) {

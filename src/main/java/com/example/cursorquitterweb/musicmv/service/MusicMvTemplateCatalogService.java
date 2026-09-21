@@ -382,8 +382,36 @@ public class MusicMvTemplateCatalogService {
         }
     }
 
+    public Map<String, Object> syncCapCutFeatured(String templateId,
+            com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata) {
+        Map<String, Object> template = requireTemplate(templateId);
+        if (metadata == null || metadata.getTemplateId() == null || !metadata.getTemplateId().matches("[0-9]{8,24}") || !metadata.isConsistent()
+                || !"capcut_native_isExportCharge".equals(metadata.getSource())
+                || !java.util.Objects.equals(metadata.getTemplateId(), RowUtils.str(template, "capcut_template_id"))) {
+            throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性必须来自匹配的 CapCut 模板");
+        }
+        repository.updateCapCutFeatured(templateId, metadata.getTemplateId(), json(metadata), metadata.getCheckedAt());
+        invalidateDetail(templateId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        putCapCutFeatured(result, repository.template(templateId));
+        result.put("templateId", templateId);
+        return result;
+    }
+
+    private void putCapCutFeatured(Map<String, Object> result, Map<String, Object> row) {
+        Map<String, Object> metadata = parseObject(RowUtils.str(row, "capcut_featured_json"));
+        Object value = metadata.get("value");
+        result.put("capcutFeatured", "synced".equals(metadata.get("status")) && value instanceof Boolean ? value : null);
+        result.put("capcutFeaturedSync", metadata);
+    }
+
     public Map<String, Object> promote(TemplatePromotionRequest request) {
         requirePromotionEvidence(request);
+        if (request.getCapcutFeaturedSync() != null && (!request.getCapcutFeaturedSync().isConsistent()
+                || !"capcut_native_isExportCharge".equals(request.getCapcutFeaturedSync().getSource())
+                || !request.getCapcutTemplateId().equals(request.getCapcutFeaturedSync().getTemplateId()))) {
+            throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性与新增模板来源不一致");
+        }
         Map<String, Object> previousSource = repository.templateSourceMetadata(request.getTemplateId());
         if (previousSource != null && RowUtils.bool(previousSource, "classification_locked")) {
             Map<String, Object> previous = repository.template(request.getTemplateId());
@@ -434,6 +462,7 @@ public class MusicMvTemplateCatalogService {
                         Boolean.TRUE.equals(request.getClassificationLocked()));
                 repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory, categoryAssignments);
                 templateTags.replace(request.getTemplateId(), request.getTagKeys());
+                if (request.getCapcutFeaturedSync() != null) syncCapCutFeatured(request.getTemplateId(), request.getCapcutFeaturedSync());
                 invalidateDetail(request.getTemplateId());
                 Map<String, Object> result = promotionView(request.getTemplateId(), targetId, RowUtils.str(target, "status"));
                 result.put("replacedExisting", Boolean.TRUE);
@@ -457,6 +486,7 @@ public class MusicMvTemplateCatalogService {
             Map<String, Object> replay = promotionView(request.getTemplateId(),
                     RowUtils.str(existing, "version_id"), RowUtils.str(existing, "status"));
             templateTags.replace(request.getTemplateId(), request.getTagKeys());
+            if (request.getCapcutFeaturedSync() != null) syncCapCutFeatured(request.getTemplateId(), request.getCapcutFeaturedSync());
             replay.put("idempotentReplay", Boolean.TRUE);
             return replay;
         }
@@ -471,6 +501,7 @@ public class MusicMvTemplateCatalogService {
         repository.replaceTemplateCategories(request.getTemplateId(), primaryCategory,
                 categoryAssignments);
         templateTags.replace(request.getTemplateId(), request.getTagKeys());
+        if (request.getCapcutFeaturedSync() != null) syncCapCutFeatured(request.getTemplateId(), request.getCapcutFeaturedSync());
         invalidateDetail(request.getTemplateId());
         Map<String, Object> result = promotionView(request.getTemplateId(), versionId, "validated");
         result.put("idempotentReplay", Boolean.FALSE);
@@ -2180,6 +2211,7 @@ public class MusicMvTemplateCatalogService {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
         copy(result, "capcutTemplateId", row, "capcut_template_id");
+        putCapCutFeatured(result, row);
         copy(result, "slug", row, "slug");
         copy(result, "name", row, "display_name");
         copy(result, "description", row, "description");
@@ -2219,6 +2251,7 @@ public class MusicMvTemplateCatalogService {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         copy(result, "templateId", row, "template_id");
         copy(result, "capcutTemplateId", row, "capcut_template_id");
+        putCapCutFeatured(result, row);
         copy(result, "slug", row, "slug");
         copy(result, "defaultLocale", row, "default_locale");
         copy(result, "categoryKey", row, "category_key");

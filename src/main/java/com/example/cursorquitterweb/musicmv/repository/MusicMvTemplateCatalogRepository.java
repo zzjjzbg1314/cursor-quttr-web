@@ -20,6 +20,23 @@ public class MusicMvTemplateCatalogRepository {
     private final D1DatabaseClient d1;
     private volatile boolean cleanupQueueReady;
 
+    @javax.annotation.PostConstruct
+    public void ensureFeaturedColumn() {
+        D1QueryResult columns = d1.query("PRAGMA table_info(templates)");
+        if (columns == null || columns.getRows().isEmpty()) return;
+        boolean exists = columns.getRows().stream().anyMatch(row -> "capcut_featured_json".equals(row.get("name")));
+        if (!exists) d1.query("ALTER TABLE templates ADD COLUMN capcut_featured_json TEXT");
+    }
+
+    public void updateCapCutFeatured(String templateId, String capcutId, String metadata, String checkedAt) {
+        // 时间戳比较在数据库内完成，旧回填结果不能覆盖更新的采集结果。
+        d1.query("UPDATE templates SET capcut_featured_json=?,revision=revision+1 "
+                + "WHERE template_id=? AND capcut_template_id=? AND deleted_at IS NULL "
+                + "AND (capcut_featured_json IS NULL OR julianday(json_extract(capcut_featured_json,'$.checkedAt'))<=julianday(?))",
+                metadata, templateId, capcutId, checkedAt);
+    }
+
+
     public synchronized void ensureCleanupQueue() {
         if (cleanupQueueReady) return;
         d1.query("CREATE TABLE IF NOT EXISTS template_media_cleanup ("
@@ -169,7 +186,7 @@ public class MusicMvTemplateCatalogRepository {
                                                 int limit, int offset, String tagKey) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT t.template_id, t.capcut_template_id, t.slug, t.category_key, t.tags_json, t.status, ")
+        sql.append("SELECT t.template_id, t.capcut_template_id, t.capcut_featured_json, t.slug, t.category_key, t.tags_json, t.status, ")
                 .append("t.visibility, t.current_version_id, t.sort_order, t.revision, ")
                 .append("t.created_at, t.updated_at, t.published_at, ")
                 .append("COALESCE((SELECT json_group_array(category_key) FROM (")
@@ -302,7 +319,7 @@ public class MusicMvTemplateCatalogRepository {
     }
 
     public Map<String, Object> template(String templateId) {
-        return d1.query("SELECT template_id, capcut_template_id, slug, default_locale, category_key, tags_json, status, "
+        return d1.query("SELECT template_id, capcut_template_id, capcut_featured_json, slug, default_locale, category_key, tags_json, status, "
                 + "visibility, current_version_id, sort_order, revision, created_at, updated_at, "
                 + "published_at FROM templates WHERE template_id=? AND deleted_at IS NULL LIMIT 1",
                 templateId).firstRow();
@@ -331,7 +348,7 @@ public class MusicMvTemplateCatalogRepository {
         Object[] versionParams = allVersions ? new Object[]{templateId}
                 : new Object[]{templateId, requestedVersionId == null ? templateId : requestedVersionId};
         List<D1QueryResult> results = d1.batch(Arrays.asList(
-                D1Statement.of("SELECT template_id, capcut_template_id, slug, default_locale, "
+                D1Statement.of("SELECT template_id, capcut_template_id, capcut_featured_json, slug, default_locale, "
                                 + "category_key, tags_json, status, visibility, current_version_id, "
                                 + "sort_order, revision, created_at, updated_at, published_at "
                                 + "FROM templates WHERE template_id=? AND deleted_at IS NULL LIMIT 1",

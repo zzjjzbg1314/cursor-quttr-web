@@ -16,6 +16,10 @@ import javax.validation.constraints.Size;
  * validation result is promoted into the cloud template catalog.
  */
 public class TemplatePromotionRequest {
+    @javax.validation.Valid private CapCutFeaturedMetadata capcutFeaturedSync;
+    public CapCutFeaturedMetadata getCapcutFeaturedSync() { return capcutFeaturedSync; }
+    public void setCapcutFeaturedSync(CapCutFeaturedMetadata value) { capcutFeaturedSync = value; }
+
     private List<String> tagKeys;
     public List<String> getTagKeys() { return tagKeys; }
     public void setTagKeys(List<String> value) { tagKeys = value; }

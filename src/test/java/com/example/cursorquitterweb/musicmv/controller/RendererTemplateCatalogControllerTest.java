@@ -26,6 +26,19 @@ class RendererTemplateCatalogControllerTest {
                 .setControllerAdvice(new MusicMvExceptionHandler()).build();
     }
 
+    @Test void 精选仅允许同步凭证写入并校验三态() throws Exception {
+        String body = "{\"templateId\":\"123456789\",\"status\":\"synced\",\"value\":true,"
+                + "\"source\":\"capcut_native_isExportCharge\",\"appVersion\":\"9.3.0\",\"checkedAt\":\"2026-09-01T00:00:00Z\"}";
+        String path = "/internal/music-mv/v1/templates/tpl_1/capcut-featured";
+        mockMvc.perform(post(path).contentType("application/json").content(body)).andExpect(status().isUnauthorized());
+        mockMvc.perform(post(path).header("X-Music-Mv-Template-Sync-Token", "sync-only")
+                .contentType("application/json").content(body)).andExpect(status().isOk());
+        mockMvc.perform(post(path).header("X-Music-Mv-Template-Sync-Token", "sync-only")
+                .contentType("application/json").content(body.replace("synced", "unknown"))).andExpect(status().isBadRequest());
+        mockMvc.perform(post(path).header("X-Music-Mv-Template-Sync-Token", "sync-only")
+                .contentType("application/json").content(body.replace("capcut_native_isExportCharge", "manual"))).andExpect(status().isBadRequest());
+    }
+
     @Test
     void syncCleanupRequiresDedicatedCredentialAndValidManifest() throws Exception {
         String body = "{\"manifestSha256\":\"" + new String(new char[64]).replace('\0', 'a')

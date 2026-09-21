@@ -66,6 +66,37 @@ class MusicMvTemplateCatalogServiceTest {
         return service.synchronizeBrowserScene("tpl_1", "tplver_1", request);
     }
 
+    private Map<String,Object> featuredRow(Object... pairs) {
+        Map<String,Object> result=new LinkedHashMap<>();
+        for (int i=0;i<pairs.length;i+=2) result.put((String)pairs[i],pairs[i+1]);
+        return result;
+    }
+
+    @Test void 精选同步校验身份并返回官方属性() throws Exception {
+        com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata = new com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata();
+        metadata.setTemplateId("123456789"); metadata.setStatus("synced"); metadata.setValue(true);
+        metadata.setSource("capcut_native_isExportCharge"); metadata.setAppVersion("9.3.0");
+        metadata.setCheckedAt("2026-09-01T00:00:00Z");
+        Map<String,Object> template = featuredRow("template_id","tpl_1","capcut_template_id","123456789",
+            "capcut_featured_json",new ObjectMapper().writeValueAsString(metadata));
+        when(repository.template("tpl_1")).thenReturn(template);
+        assertEquals(true,service.syncCapCutFeatured("tpl_1",metadata).get("capcutFeatured"));
+        verify(repository).updateCapCutFeatured(eq("tpl_1"),eq("123456789"),anyString(),eq(metadata.getCheckedAt()));
+        metadata.setTemplateId("987654321");
+        assertThrows(ApiException.class,()->service.syncCapCutFeatured("tpl_1",metadata));
+    }
+
+    @Test void 精选同步失败不表示非精选() throws Exception {
+        com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata = new com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata();
+        metadata.setTemplateId("123456789"); metadata.setStatus("unknown");
+        metadata.setSource("capcut_native_isExportCharge"); metadata.setReason("native_query_failed");
+        metadata.setCheckedAt("2026-09-01T00:00:00Z");
+        when(repository.template("tpl_1")).thenReturn(featuredRow("template_id","tpl_1","capcut_template_id","123456789",
+            "capcut_featured_json",new ObjectMapper().writeValueAsString(metadata)));
+        assertEquals(null,service.syncCapCutFeatured("tpl_1",metadata).get("capcutFeatured"));
+        metadata.setValue(false); assertFalse(metadata.isConsistent());
+    }
+
     @Test
     void mediaCompletionSkipsUnchangedReadyState() {
         Map<String,Object> media = completionMedia("ready");

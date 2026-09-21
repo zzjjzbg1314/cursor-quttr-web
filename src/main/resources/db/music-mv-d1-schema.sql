@@ -162,6 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_template_categories_tree
 CREATE TABLE IF NOT EXISTS templates (
   template_id TEXT PRIMARY KEY,
   capcut_template_id TEXT,
+  capcut_featured_json TEXT,
   slug TEXT NOT NULL,
   default_locale TEXT NOT NULL DEFAULT 'zh-CN',
   category_key TEXT NOT NULL,
