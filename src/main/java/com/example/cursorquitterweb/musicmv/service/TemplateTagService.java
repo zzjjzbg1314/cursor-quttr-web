@@ -12,7 +12,7 @@ public class TemplateTagService {
     private static final String[][] SEEDS = {
         {"valentines-day", "情人节", "Valentine's Day"}, {"mothers-day", "母亲节", "Mother's Day"},
         {"fathers-day", "父亲节", "Father's Day"}, {"birthday", "生日", "Birthday"},
-        {"wedding-anniversary", "结婚纪念日", "Wedding Anniversary"}, {"wedding", "婚礼", "Wedding"},
+        {"wedding", "婚礼", "Wedding"},
         {"graduation", "毕业", "Graduation"}, {"christmas", "圣诞节", "Christmas"}
     };
     private ApiException invalid(String message) { return new ApiException(HttpStatus.BAD_REQUEST, "TEMPLATE_TAG_INVALID", message); }
@@ -31,6 +31,12 @@ public class TemplateTagService {
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_translations(tag_key,locale,name) SELECT tag_key,'en',name_en FROM template_tags"));
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_items(template_id,tag_key) SELECT t.template_id,'birthday' FROM templates t WHERE (t.category_key='birthday' OR EXISTS (SELECT 1 FROM template_category_items c WHERE c.template_id=t.template_id AND c.category_key='birthday')) AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='birthday-v1')"));
         sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('birthday-v1')"));
+        // 一次性合并纪念日标签，保留模板关联并处理已经同时勾选两个标签的情况。
+        sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_items(template_id,tag_key) SELECT template_id,'wedding' FROM template_tag_items WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
+        sql.add(D1Statement.of("DELETE FROM template_tag_items WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
+        sql.add(D1Statement.of("DELETE FROM template_tag_translations WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
+        sql.add(D1Statement.of("DELETE FROM template_tags WHERE tag_key='wedding-anniversary' AND NOT EXISTS (SELECT 1 FROM template_tag_migrations WHERE migration_key='merge-wedding-v1')"));
+        sql.add(D1Statement.of("INSERT OR IGNORE INTO template_tag_migrations(migration_key) VALUES ('merge-wedding-v1')"));
         d1.batch(sql);
         ready = true;
     }

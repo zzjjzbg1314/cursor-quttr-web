@@ -12,7 +12,7 @@ class TemplateTagServiceTest {
         ArgumentCaptor<List<D1Statement>> batch=ArgumentCaptor.forClass(List.class);
         verify(d1,times(1)).batch(batch.capture());
         List<D1Statement> sql=batch.getValue();
-        assertEquals(8,sql.stream().filter(s->s.getSql().startsWith("INSERT OR IGNORE INTO template_tags(")).count());
+        assertEquals(7,sql.stream().filter(s->s.getSql().startsWith("INSERT OR IGNORE INTO template_tags(")).count());
         assertTrue(sql.stream().anyMatch(s->s.getSql().contains("NOT EXISTS (SELECT 1 FROM template_tag_migrations")));
         assertFalse(sql.stream().anyMatch(s->s.getSql().contains("tags_json")));
         assertTrue(sql.stream().anyMatch(s->s.getSql().contains("template_category_items")));
@@ -87,9 +87,18 @@ class TemplateTagServiceTest {
             " with db:",
             "  for item in batch: db.execute(item['sql'],item['params'])",
             "run(batches[0])",
-            "assert db.execute('SELECT COUNT(*) FROM template_tags').fetchone()[0]==8",
+            "assert db.execute('SELECT COUNT(*) FROM template_tags').fetchone()[0]==7",
             "assert db.execute('SELECT COUNT(*) FROM template_tag_items').fetchone()[0]==2",
-            "assert db.execute('SELECT COUNT(*) FROM template_tag_translations').fetchone()[0]==16",
+            "assert db.execute('SELECT COUNT(*) FROM template_tag_translations').fetchone()[0]==14",
+            "db.execute(\"DELETE FROM template_tag_migrations WHERE migration_key='merge-wedding-v1'\")",
+            "db.execute(\"INSERT INTO template_tags(tag_key,name_zh,name_en) VALUES ('wedding-anniversary','结婚纪念日','Wedding Anniversary')\")",
+            "db.execute(\"INSERT INTO template_tag_translations VALUES ('wedding-anniversary','en','Wedding Anniversary')\")",
+            "db.executemany('INSERT INTO template_tag_items VALUES (?,?)',[('family-template','wedding-anniversary'),('other-template','wedding-anniversary'),('other-template','wedding')]);db.commit()",
+            "run(batches[0]);run(batches[0])",
+            "assert db.execute(\"SELECT COUNT(*) FROM template_tag_items WHERE tag_key='wedding'\").fetchone()[0]==2",
+            "assert db.execute(\"SELECT COUNT(*) FROM template_tags WHERE tag_key='wedding-anniversary'\").fetchone()[0]==0",
+            "assert db.execute(\"SELECT COUNT(*) FROM template_tag_translations WHERE tag_key='wedding-anniversary'\").fetchone()[0]==0",
+            "assert db.execute(\"SELECT COUNT(*) FROM template_tag_items WHERE tag_key='birthday'\").fetchone()[0]==2",
             "run(batches[1])",
             "assert db.execute(\"SELECT name FROM template_tag_translations WHERE tag_key='new-year' AND locale='ja'\").fetchone()[0]=='新年のお祝い'",
             "run(batches[2]);run(batches[0])",
