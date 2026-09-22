@@ -41,6 +41,9 @@ public class MusicLyricsDraftService {
         requireId(id);
         if(request==null || !request.path("revision").isIntegralNumber() || !request.path("revision").canConvertToInt() || request.path("revision").asInt()<0)
             throw invalid();
+        // 客户端身份只用于拒绝过期页面写入；数据归属始终取登录会话。
+        if(request.has("ownerId") && (!request.path("ownerId").isTextual() || !owner.equals(request.path("ownerId").asText())))
+            throw new ApiException(HttpStatus.CONFLICT,"LYRICS_DRAFT_ACCOUNT_CHANGED","Your account changed. Reopen the lyrics editor.");
         int expected=request.path("revision").asInt();
         ObjectNode next=validate(request.path("draft"));
         Map<String,Object> row=find(owner,id);
