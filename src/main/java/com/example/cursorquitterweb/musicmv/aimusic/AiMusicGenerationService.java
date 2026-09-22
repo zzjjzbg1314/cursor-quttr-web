@@ -50,6 +50,9 @@ public class AiMusicGenerationService {
     private final String defaultProvider;
     private final String publicBaseUrl;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.cursorquitterweb.musicmv.billing.MusicBillingService billing;
+
     private final Set<String> pendingRefreshes = ConcurrentHashMap.newKeySet();
     private final ThreadPoolExecutor refreshExecutor = new ThreadPoolExecutor(0, 2, 30L,
             TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), runnable -> {
@@ -102,6 +105,7 @@ public class AiMusicGenerationService {
         String attemptId = IdUtils.token("aimusicatt");
         GenerateSongCommand command = command(request, requestBaseUrl, provider, jobId);
         String providerRequestJson = json(commandView(command));
+        if (billing != null) billing.reserve(owner, request.getRequestId(), jobId);
         repository.create(jobId, owner, request.getRequestId(), provider.providerCode(),
                 fingerprint, requestJson);
         repository.createAttempt(attemptId, jobId, provider.providerCode(), 1, providerRequestJson);
@@ -120,7 +124,10 @@ public class AiMusicGenerationService {
             addEvent(jobId, unknown ? "provider_submission_unknown" : "provider_submission_failed",
                     unknown ? "submission_unknown" : "failed", provider.providerCode(),
                     singleton("errorCode", exception.getCode()));
-            if (!unknown) throw exception;
+            if (!unknown) {
+                if (billing != null) billing.settle(jobId, "failed");
+                throw exception;
+            }
         }
         return view(requireJob(repository.byId(jobId)), false);
     }
@@ -399,6 +406,7 @@ public class AiMusicGenerationService {
         }
         repository.applySnapshot(jobId, attemptId, snapshot.getStatus(), json(snapshot.getRaw()),
                 snapshot.getErrorCode(), snapshot.getErrorMessage(), snapshot.isRetryable());
+        if (billing != null) billing.settle(jobId, RowUtils.str(repository.byId(jobId), "status"));
         addEvent(jobId, "provider_status", snapshot.getStatus(), providerCode,
                 singleton("providerTaskId", snapshot.getProviderTaskId()));
     }

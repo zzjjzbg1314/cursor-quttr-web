@@ -24,6 +24,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void quotaRejectionHappensBeforeAnyPaidProviderSubmission() {
+        AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
+        AiMusicProvider provider = mock(AiMusicProvider.class);
+        when(provider.providerCode()).thenReturn("sunoapi");
+        AiMusicGenerationService service = syncService(repository, provider);
+        com.example.cursorquitterweb.musicmv.billing.MusicBillingService billing = mock(com.example.cursorquitterweb.musicmv.billing.MusicBillingService.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "billing", billing);
+        org.mockito.Mockito.doThrow(new ApiException(org.springframework.http.HttpStatus.PAYMENT_REQUIRED,"BILLING_QUOTA_EXHAUSTED","No allowance"))
+            .when(billing).reserve(org.mockito.ArgumentMatchers.eq("owner"),org.mockito.ArgumentMatchers.eq("req"),org.mockito.ArgumentMatchers.anyString());
+        AiMusicSongCreateRequest request = new AiMusicSongCreateRequest();request.setRequestId("req");request.setStory("A birthday song");
+        try {
+            assertThatThrownBy(() -> service.create("owner", request, "https://app.test")).isInstanceOf(ApiException.class);
+            verify(provider,org.mockito.Mockito.never()).submit(org.mockito.ArgumentMatchers.any());
+            verify(repository,org.mockito.Mockito.never()).create(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString());
+        } finally { service.close(); }
+    }
+
+    @Test
     void staleWorkerDiscardsEntireSnapshotAfterAnotherWorkerCompletes() {
         AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
         AiMusicProvider provider = mock(AiMusicProvider.class);
