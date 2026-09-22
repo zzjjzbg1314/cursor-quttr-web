@@ -18,6 +18,38 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void 公开模板按权重精选时间排序且分页和各筛选入口一致() throws Exception {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        String order = null;
+        for (String locale : Arrays.asList("en", "zh-CN")) {
+            for (String filter : Arrays.asList("all", "category", "collection", "tag", "search")) {
+                repository.templates(locale, "published", "public", "category".equals(filter) ? "birthday" : null,
+                        "collection".equals(filter) ? "collection" : null, "search".equals(filter) ? "birthday" : null,
+                        null, null, null, null, null, 3, 3, "tag".equals(filter) ? "birthday" : null);
+                String actual = client.sql.substring(client.sql.indexOf("ORDER BY t.sort_order"));
+                if (order == null) order = actual;
+                assertEquals(order, actual);
+            }
+        }
+        String script = String.join("\n",
+            "import sqlite3,json,sys",
+            "db=sqlite3.connect(':memory:')",
+            "db.execute('CREATE TABLE templates(template_id TEXT,sort_order INTEGER,capcut_featured_json TEXT,published_at TEXT,updated_at TEXT)')",
+            "yes=json.dumps({'status':'synced','value':True})",
+            "rows=[('pinned',10,None,'2000','2000'),('featured-new',0,yes,'2026','2026'),('featured-old',0,yes,'2020','2020'),('normal-new',0,None,'2027','2027'),('false',0,json.dumps({'status':'synced','value':False}),'2026','2026'),('unknown',0,json.dumps({'status':'unknown','value':True}),'2025','2025'),('string',0,json.dumps({'status':'synced','value':'true'}),'2024','2024'),('invalid',0,'broken','2023','2023'),('tie-b',0,None,'2022','2022'),('tie-a',0,None,'2022','2022'),('older-update',0,None,'2022','2021'),('negative',-1,yes,'2029','2029')]",
+            "db.executemany('INSERT INTO templates VALUES (?,?,?,?,?)',rows)",
+            "expected=['pinned','featured-new','featured-old','normal-new','false','unknown','string','invalid','tie-a','tie-b','older-update','negative']",
+            "sql='SELECT template_id FROM templates t '+sys.argv[1]",
+            "pages=[[r[0] for r in db.execute(sql,(3,offset))] for offset in range(0,len(rows),3)]",
+            "assert sum(pages,[])==expected, pages");
+        Process process = new ProcessBuilder("python3", "-c", script, order).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+        String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0, process.exitValue(), output);
+        repository.templates("en", null, null, null, null, null, null, null, null, null, null, 3, 0);
+        assertTrue(client.sql.contains("ORDER BY t.sort_order DESC, t.published_at DESC"));
+    }
     @Test void 主题查询只返回有标签的公开上线模板而不回退分类() throws Exception {
         CapturingD1 client=new CapturingD1();
         new MusicMvTemplateCatalogRepository(client).templateCount("published","public",null,null,null,null,null,null,null,null,"birthday");

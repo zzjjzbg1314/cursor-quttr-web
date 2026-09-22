@@ -244,7 +244,13 @@ public class MusicMvTemplateCatalogRepository {
         }
         TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
-        sql.append("ORDER BY t.sort_order DESC, t.published_at DESC, t.updated_at DESC, t.template_id ASC ")
+        sql.append("ORDER BY t.sort_order DESC, ");
+        if ("public".equals(visibility)) {
+            sql.append("CASE WHEN json_valid(t.capcut_featured_json) THEN CASE WHEN ")
+                    .append("json_extract(t.capcut_featured_json,'$.status')='synced' ")
+                    .append("AND json_type(t.capcut_featured_json,'$.value')='true' THEN 1 ELSE 0 END ELSE 0 END DESC, ");
+        }
+        sql.append("t.published_at DESC, t.updated_at DESC, t.template_id ASC ")
                 .append("LIMIT ? OFFSET ?");
         params.add(Integer.valueOf(limit));
         params.add(Integer.valueOf(offset));
