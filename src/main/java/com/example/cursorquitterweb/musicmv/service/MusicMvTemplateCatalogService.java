@@ -406,8 +406,14 @@ public class MusicMvTemplateCatalogService {
     }
 
     public Map<String, Object> promote(TemplatePromotionRequest request) {
+        if (request.getCapcutTemplateId() == null || !request.getCapcutTemplateId().matches("(?:jianying:)?[0-9]{8,24}"))
+            throw badRequest("TEMPLATE_SOURCE_ID_INVALID", "模板来源标识无效");
+        Map<String, Object> identityTarget = repository.template(request.getTemplateId());
+        String previousIdentity = identityTarget == null ? null : RowUtils.str(identityTarget, "capcut_template_id");
+        if (previousIdentity != null && !previousIdentity.isEmpty() && !previousIdentity.equals(request.getCapcutTemplateId()))
+            throw conflict("TEMPLATE_SOURCE_ID_CONFLICT", "不能用不同来源模板覆盖已有模板");
         requirePromotionEvidence(request);
-        if (request.getCapcutFeaturedSync() != null && (!request.getCapcutFeaturedSync().isConsistent()
+        if (request.getCapcutFeaturedSync() != null && (!request.getCapcutTemplateId().matches("[0-9]{8,24}") || !request.getCapcutFeaturedSync().isConsistent()
                 || !"capcut_native_isExportCharge".equals(request.getCapcutFeaturedSync().getSource())
                 || !request.getCapcutTemplateId().equals(request.getCapcutFeaturedSync().getTemplateId()))) {
             throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性与新增模板来源不一致");
@@ -513,7 +519,7 @@ public class MusicMvTemplateCatalogService {
         Set<String> seen = new HashSet<String>();
         for (String raw : requestedIds) {
             String value = blankToNull(raw);
-            if (value == null || !value.matches("^[0-9]{8,24}$")) {
+            if (value == null || !value.matches("^(?:jianying:)?[0-9]{8,24}$")) {
                 throw badRequest("CAPCUT_TEMPLATE_ID_INVALID", "CapCut template ID is invalid");
             }
             if (seen.add(value)) ids.add(value);
@@ -534,7 +540,12 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> bindCapCutTemplateIdentity(
             String templateId, String capcutTemplateId
     ) {
-        requireTemplate(templateId);
+        Map<String, Object> target = requireTemplate(templateId);
+        String previous = RowUtils.str(target, "capcut_template_id");
+        if (capcutTemplateId == null || !capcutTemplateId.matches("(?:jianying:)?[0-9]{8,24}"))
+            throw badRequest("TEMPLATE_SOURCE_ID_INVALID", "模板来源标识无效");
+        if (previous != null && !previous.isEmpty() && !previous.equals(capcutTemplateId))
+            throw conflict("TEMPLATE_SOURCE_ID_CONFLICT", "不能改绑已有模板来源");
         List<Map<String, Object>> existing = repository.templatesByCapCutTemplateIds(
                 Collections.singletonList(capcutTemplateId));
         if (existing != null && !existing.isEmpty()

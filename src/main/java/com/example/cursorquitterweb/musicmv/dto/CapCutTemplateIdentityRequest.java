@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 public class CapCutTemplateIdentityRequest {
-    @NotBlank @Pattern(regexp = "^[0-9]{8,24}$")
+    @NotBlank @Pattern(regexp = "^(?:jianying:)?[0-9]{8,24}$")
     private String capcutTemplateId;
 
     public String getCapcutTemplateId() { return capcutTemplateId; }

@@ -2818,4 +2818,23 @@ class MusicMvTemplateCatalogServiceTest {
         for (byte item : digest) result.append(String.format("%02x", item & 0xff));
         return result.toString();
     }
+    @Test
+    void preservesNamespacedJianyingIdentityThroughPromotionAndLookup() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCapcutTemplateId("jianying:7362454015088561426");
+        Map<String, Object> result = service.promote(request);
+        assertEquals("tpl_1", result.get("templateId"));
+        verify(repository).templatesByCapCutTemplateIds(Collections.singletonList("jianying:7362454015088561426"));
+        service.capCutTemplateExistence(Collections.singletonList("jianying:7362454015088561426"));
+    }
+
+    @Test
+    void rejectsCrossPlatformOverwriteEvenWhenOriginalNumbersMatch() {
+        TemplatePromotionRequest request = validPromotion();
+        request.setCapcutTemplateId("jianying:7362454015088561426");
+        Map<String, Object> old = new LinkedHashMap<>();
+        old.put("capcut_template_id", "7362454015088561426");
+        when(repository.template("tpl_1")).thenReturn(old);
+        assertEquals("TEMPLATE_SOURCE_ID_CONFLICT", assertThrows(ApiException.class, () -> service.promote(request)).getCode());
+    }
 }

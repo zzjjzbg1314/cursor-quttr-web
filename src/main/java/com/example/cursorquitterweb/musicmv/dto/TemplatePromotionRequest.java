@@ -29,7 +29,7 @@ public class TemplatePromotionRequest {
     public void setReplaceExisting(Boolean value) { replaceExisting = value; }
     @NotBlank private String promotionMode = "validated_native";
     @NotBlank private String templateId;
-    @NotBlank @Pattern(regexp = "^[0-9]{8,24}$") private String capcutTemplateId;
+    @NotBlank @Pattern(regexp = "^(?:jianying:)?[0-9]{8,24}$") private String capcutTemplateId;
     @NotBlank private String slug;
     @NotBlank private String categoryKey;
     private List<String> categoryKeys = new ArrayList<String>();
