@@ -34,6 +34,27 @@ class MusicMvInputAssetStorageServiceTest {
     Path tempDir;
 
     @Test
+    void missingBaseUrlFailsBeforeReadingOrStagingInput() throws Exception {
+        MusicMvInputAssetStorageService service = new MusicMvInputAssetStorageService(
+                mock(R2StorageService.class), tempDir.toString(), "", false, 3650L);
+        java.io.InputStream input = mock(java.io.InputStream.class);
+        ApiException error = assertThrows(ApiException.class, () -> service.store(
+                "owner", "music", "song.mp3", "audio/mpeg", 3, input, ""));
+        assertEquals("MV_INPUT_PUBLIC_URL_MISSING", error.getCode());
+        org.mockito.Mockito.verifyNoInteractions(input);
+        assertTrue(!Files.exists(tempDir.resolve("inputs/.staging")));
+    }
+
+    @Test
+    void configuredPublicBaseOverridesRequestOrigin() throws Exception {
+        MusicMvInputAssetStorageService service = new MusicMvInputAssetStorageService(
+                mock(R2StorageService.class), tempDir.toString(), "https://api.example.com", false, 3650L);
+        StoredInputAsset stored = service.store("owner", "music", "song.mp3", "audio/mpeg",
+                3, new ByteArrayInputStream(new byte[] {1, 2, 3}), "http://localhost:8080");
+        assertTrue(stored.getUrl().startsWith("https://api.example.com/api/music-mv/v1/assets/"));
+    }
+
+    @Test
     void storesAndServesLocalInputWithCapabilityToken() throws Exception {
         R2StorageService r2 = mock(R2StorageService.class);
         when(r2.isConfigured()).thenReturn(false);

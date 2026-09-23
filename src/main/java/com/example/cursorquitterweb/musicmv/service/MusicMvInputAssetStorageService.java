@@ -88,6 +88,8 @@ public class MusicMvInputAssetStorageService {
         String normalizedContentType = normalizeContentType(normalizedKind, contentType, fileName);
         String safeFileName = IdUtils.safeFilename(fileName);
         String assetId = IdUtils.token("mva");
+        String baseUrl = trimTrailingSlash(!configuredPublicBaseUrl.isEmpty()
+                ? configuredPublicBaseUrl : requestBaseUrl);
         Path stagingDir = localRoot.resolve(".staging").normalize();
         requireInside(stagingDir);
         Files.createDirectories(stagingDir);
@@ -112,8 +114,6 @@ public class MusicMvInputAssetStorageService {
         Instant expiresAt = Instant.now().plus("music".equals(normalizedKind)
                 ? MUSIC_RETENTION : imageRetention);
         String accessToken = accessToken(expiresAt);
-        String baseUrl = !configuredPublicBaseUrl.isEmpty()
-                ? configuredPublicBaseUrl : requestBaseUrl;
         String downloadUrl = capabilityUrl(baseUrl, assetId, accessToken);
         String storage;
         try {

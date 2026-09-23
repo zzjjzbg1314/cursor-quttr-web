@@ -49,6 +49,27 @@ class MusicMvRenderJobControllerTest {
     }
 
     @Test
+    void passesRequestOriginIntoAsyncPreparation() {
+        org.springframework.mock.web.MockHttpServletRequest servlet =
+                new org.springframework.mock.web.MockHttpServletRequest();
+        servlet.setScheme("https");
+        servlet.setServerName("api.example.com");
+        servlet.setServerPort(443);
+        servlet.setContextPath("/backend");
+        servlet.setRequestURI("/backend/api/music-mv/v1/render-jobs");
+        servlet.setQueryString("ignored=value");
+        when(auth.requireUserId(servlet)).thenReturn("owner");
+        com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest request =
+                new com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest();
+        when(service.create("owner", request)).thenReturn(
+                java.util.Collections.singletonMap("jobId", "first-export"));
+        MusicMvRenderJobController controller = new MusicMvRenderJobController(
+                new MusicMvRenderClientAuthenticationService("isolated-client-token"), auth, service);
+        controller.create("isolated-client-token", null, request, servlet);
+        verify(service).prepareBrowserAsync("owner", "first-export", "https://api.example.com/backend");
+    }
+
+    @Test
     void rejectsMissingDedicatedClientTokenOnDedicatedPath() throws Exception {
         mockMvc.perform(get("/api/music-mv/v1/render-jobs/mvr_1")
                         .header("X-Music-Mv-Client-Id", "website-backend"))

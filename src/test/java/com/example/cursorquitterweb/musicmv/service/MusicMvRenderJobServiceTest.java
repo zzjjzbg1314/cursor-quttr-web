@@ -31,6 +31,38 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void firstExportPassesRequestOriginToSongStorageWithoutExistingStorageUrl() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music = mock(AiMusicJobRepository.class);
+        com.example.cursorquitterweb.musicmv.aimusic.AiMusicCandidateStorageService storage =
+                mock(com.example.cursorquitterweb.musicmv.aimusic.AiMusicCandidateStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository, music,
+                storage, mock(MusicMvRenderArtifactStorageService.class), inputAssets(),
+                null, null, new ObjectMapper(), true, 2);
+        Map<String, Object> fresh = candidate();
+        fresh.remove("storage_url");
+        fresh.put("status", "ready");
+        when(music.ownedCandidate("owner", "song_1")).thenReturn(fresh, candidate());
+        when(repository.claimBrowserPreparation("first-export"))
+                .thenReturn(preparingRow("first-export", request()));
+
+        when(repository.updateBrowserPreparation("first-export", "preparing_template", 0.55d))
+                .thenReturn(preparingRow("first-export", request()));
+        when(repository.renderContract("tpl_1", "tplver_1")).thenReturn(
+                new RenderContract(version(), Arrays.asList(slot("photo_01"), slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"), anySet()))
+                .thenReturn(Collections.emptyMap());
+        when(repository.completeBrowserPreparation(eq("first-export"), anyString()))
+                .thenReturn(row("first-export", null));
+        service.prepareBrowserAsync("owner", "first-export", "http://localhost:8080");
+
+        verify(storage).materialize("owner", fresh, "http://localhost:8080");
+        verify(repository).completeBrowserPreparation(eq("first-export"), anyString());
+        verify(repository, never()).failBrowserPreparation(anyString(), anyString(), anyString(), eq(false));
+        verify(repository, never()).failBrowserPreparation(anyString(), anyString(), anyString(), eq(true));
+    }
+
+    @Test
     void emptyBindingsRequireAuthoritativePublishedTextOnlyScene() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         for (String variant : Arrays.asList("valid", "missing", "photo", "unowned", "missingSource", "extraBinding", "notReady")) {

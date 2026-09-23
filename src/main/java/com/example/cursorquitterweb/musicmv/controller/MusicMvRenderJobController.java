@@ -1,5 +1,7 @@
 package com.example.cursorquitterweb.musicmv.controller;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -63,7 +65,10 @@ public class MusicMvRenderJobController {
         authentication.requireAuthorized(token);
         String ownerId = auth.requireUserId(servletRequest);
         Map<String, Object> job = service.create(ownerId, request);
-        service.prepareBrowserAsync(ownerId, String.valueOf(job.get("jobId")));
+        String requestBaseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
+                .replacePath(servletRequest.getContextPath()).replaceQuery(null)
+                .build().toUriString();
+        service.prepareBrowserAsync(ownerId, String.valueOf(job.get("jobId")), requestBaseUrl);
         return job;
     }
 

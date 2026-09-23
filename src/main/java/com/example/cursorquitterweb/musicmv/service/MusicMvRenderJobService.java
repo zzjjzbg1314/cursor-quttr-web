@@ -167,6 +167,11 @@ public class MusicMvRenderJobService {
 
     @Async
     public void prepareBrowserAsync(String clientId, String jobId) {
+        prepareBrowserAsync(clientId, jobId, "");
+    }
+
+    @Async
+    public void prepareBrowserAsync(String clientId, String jobId, String requestBaseUrl) {
         Map<String, Object> claimed = repository.claimBrowserPreparation(jobId);
         if (claimed == null || claimed.isEmpty()) return;
         try {
@@ -174,7 +179,7 @@ public class MusicMvRenderJobService {
                     parseObject(RowUtils.str(claimed, "request_json")),
                     MusicMvRenderJobCreateRequest.class);
             validateSettings(request);
-            resolveOwnedMusic(clientId, request);
+            resolveOwnedMusic(clientId, request, requestBaseUrl);
             validateAsset(request.getMusic(), true);
             if (repository.updateBrowserPreparation(jobId, "preparing_template", 0.55d) == null) {
                 return;
@@ -437,10 +442,11 @@ public class MusicMvRenderJobService {
                 "Requested template version is not published and browser-render ready");
     }
 
-    private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request) {
+    private void resolveOwnedMusic(String userId, MusicMvRenderJobCreateRequest request,
+                                   String requestBaseUrl) {
         String candidateId = requireId(request.getMusicCandidateId(),
                 "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
-        Map<String, Object> candidate = refreshOwnedMusicCandidate(userId, candidateId);
+        Map<String, Object> candidate = refreshOwnedMusicCandidate(userId, candidateId, requestBaseUrl);
         if (candidate == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "MV_RENDER_MUSIC_CANDIDATE_NOT_FOUND",
                     "The selected AI song was not found");
@@ -465,6 +471,11 @@ public class MusicMvRenderJobService {
     }
 
     private Map<String, Object> refreshOwnedMusicCandidate(String userId, String candidateId) {
+        return refreshOwnedMusicCandidate(userId, candidateId, "");
+    }
+
+    private Map<String, Object> refreshOwnedMusicCandidate(String userId, String candidateId,
+                                                          String requestBaseUrl) {
         String normalizedCandidateId = requireId(candidateId,
                 "MV_RENDER_MUSIC_CANDIDATE_ID_INVALID");
         Map<String, Object> candidate = aiMusicJobs.ownedCandidate(userId,
@@ -475,7 +486,9 @@ public class MusicMvRenderJobService {
         }
         if (candidateStorage != null) {
             candidateStorage.materialize(userId, candidate,
-                    requestBaseUrl(RowUtils.str(candidate, "storage_url")));
+                    requestBaseUrl == null || requestBaseUrl.trim().isEmpty()
+                            ? requestBaseUrl(RowUtils.str(candidate, "storage_url"))
+                            : requestBaseUrl);
             candidate = aiMusicJobs.ownedCandidate(userId, normalizedCandidateId);
             if (candidate == null) {
                 throw new ApiException(HttpStatus.NOT_FOUND,
