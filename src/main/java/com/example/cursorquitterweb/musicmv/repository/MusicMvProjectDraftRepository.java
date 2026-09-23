@@ -36,7 +36,7 @@ public class MusicMvProjectDraftRepository {
     }
 
     public List<Map<String, Object>> listOwned(String userId, int limit) {
-        return d1.query("SELECT " + VIEW + " FROM music_mv_projects "
+        return d1.query("SELECT " + VIEW.replace("draft_json,", "") + " FROM music_mv_projects "
                         + "WHERE user_id=? AND deleted_at IS NULL "
                         + "ORDER BY updated_at DESC LIMIT ?",
                 userId, Integer.valueOf(limit)).getRows();
@@ -92,6 +92,15 @@ public class MusicMvProjectDraftRepository {
                     Integer.valueOf(asset.getTimelineOrder() == null ? index : asset.getTimelineOrder()),
                     cropJson.get(index), writeMarker, writeMarker,
                     projectId, userId, writeMarker, Integer.valueOf(revision)));
+        }
+        if (!assets.isEmpty()) {
+            // 仅本次修订真正写入后才更新素材使用时间，过期保存不会改变排序。
+            statements.add(D1Statement.of("UPDATE music_mv_user_assets SET last_used_at=CURRENT_TIMESTAMP,"
+                            + "updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND deleted_at IS NULL "
+                            + "AND asset_id IN (SELECT asset_id FROM music_mv_project_assets WHERE project_id=?) "
+                            + "AND EXISTS (SELECT 1 FROM music_mv_projects WHERE project_id=? AND user_id=? "
+                            + "AND updated_at=? AND revision=?)",
+                    userId, projectId, projectId, userId, writeMarker, Integer.valueOf(revision)));
         }
         d1.batch(statements);
         Map<String, Object> saved = findOwned(userId, projectId);

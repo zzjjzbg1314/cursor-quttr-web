@@ -77,9 +77,6 @@ public class MusicMvProjectDraftService {
                 throw new ApiException(HttpStatus.CONFLICT, "MUSIC_MV_PROJECT_REVISION_CONFLICT",
                         "This project was updated on another device. Load the latest cloud version before continuing");
             }
-            for (ProjectAsset asset : assets) {
-                assetRepository.touch(userId, asset.getAssetId());
-            }
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -120,6 +117,7 @@ public class MusicMvProjectDraftService {
     private List<String> validateAssets(String userId, List<ProjectAsset> assets) {
         List<String> cropJson = new ArrayList<String>();
         Set<String> slotKeys = new HashSet<String>();
+        Set<String> assetIds = new HashSet<String>();
         for (int index = 0; index < assets.size(); index++) {
             ProjectAsset asset = assets.get(index);
             if (asset == null) bad("Project asset must not be null");
@@ -130,10 +128,7 @@ public class MusicMvProjectDraftService {
                 bad("Project photo slot is invalid or duplicated");
             }
             asset.setSlotKey(slotKey);
-            if (assetRepository.findOwned(userId, asset.getAssetId()) == null) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "MUSIC_MV_PROJECT_ASSET_INVALID",
-                        "One or more project photos are missing or do not belong to this user");
-            }
+            assetIds.add(asset.getAssetId());
             try {
                 JsonNode crop = asset.getCrop();
                 cropJson.add(objectMapper.writeValueAsString(crop == null
@@ -141,6 +136,10 @@ public class MusicMvProjectDraftService {
             } catch (Exception e) {
                 bad("Project photo crop data is invalid");
             }
+        }
+        if (!assetIds.isEmpty() && !assetRepository.findOwnedIds(userId, assetIds).containsAll(assetIds)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "MUSIC_MV_PROJECT_ASSET_INVALID",
+                    "One or more project photos are missing or do not belong to this user");
         }
         return cropJson;
     }

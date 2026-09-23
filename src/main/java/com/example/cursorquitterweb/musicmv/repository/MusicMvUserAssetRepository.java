@@ -38,6 +38,23 @@ public class MusicMvUserAssetRepository {
                         + "AND deleted_at IS NULL LIMIT 1", userId, assetId).firstRow();
     }
 
+    public java.util.Set<String> findOwnedIds(String userId, java.util.Collection<String> assetIds) {
+        java.util.List<String> unique = new java.util.ArrayList<>(new java.util.LinkedHashSet<>(assetIds));
+        java.util.Set<String> found = new java.util.HashSet<>();
+        // 分块避免超过 D1 参数上限；重复照片只验证一次。
+        for (int start = 0; start < unique.size(); start += 80) {
+            List<String> chunk = unique.subList(start, Math.min(start + 80, unique.size()));
+            List<Object> params = new java.util.ArrayList<>();
+            params.add(userId); params.addAll(chunk);
+            String placeholders = String.join(",", Collections.nCopies(chunk.size(), "?"));
+            for (Map<String,Object> row : d1.query("SELECT asset_id FROM music_mv_user_assets WHERE user_id=? "
+                    + "AND status='active' AND deleted_at IS NULL AND asset_id IN (" + placeholders + ")", params).getRows()) {
+                found.add(String.valueOf(row.get("asset_id")));
+            }
+        }
+        return found;
+    }
+
     public boolean insertIfAbsent(String userId, String projectId, StoredInputAsset asset) {
         d1.query("INSERT INTO music_mv_user_assets "
                         + "(asset_id,user_id,project_id,kind,storage,asset_url,file_name,content_type,"

@@ -119,7 +119,7 @@ class MusicMvProjectDraftServiceTest {
         asset.setAssetId("mva_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         asset.setSlotKey("photo-1");
         request.setAssets(Arrays.asList(asset));
-        when(assets.findOwned("usr_owner", asset.getAssetId())).thenReturn(null);
+        when(assets.findOwnedIds(eq("usr_owner"), any())).thenReturn(Collections.emptySet());
 
         ApiException error = assertThrows(ApiException.class,
                 () -> service.save("usr_owner", "mvp_project_123", request));
@@ -129,6 +129,44 @@ class MusicMvProjectDraftServiceTest {
         verify(projects, never()).saveSnapshot(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString(), anyString(),
                 anyString(), anyInt(), anyString(), anyList(), anyList());
+    }
+
+    @Test
+    void validatesFortyTwoBindingsOnceAndKeepsRepeatedPhotos() {
+        MusicMvProjectDraftRepository projects = mock(MusicMvProjectDraftRepository.class);
+        MusicMvUserAssetRepository assets = mock(MusicMvUserAssetRepository.class);
+        MusicMvProjectDraftService service = new MusicMvProjectDraftService(projects, assets, new ObjectMapper());
+        MusicMvProjectDraftRequest request = request(3);
+        java.util.List<ProjectAsset> bindings = new java.util.ArrayList<>();
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (int index = 0; index < 42; index++) {
+            ProjectAsset asset = new ProjectAsset();
+            asset.setAssetId("asset_test_" + (index % 21)); asset.setSlotKey("photo-" + index);
+            bindings.add(asset); ids.add(asset.getAssetId());
+        }
+        request.setAssets(bindings);
+        when(assets.findOwnedIds(eq("usr_owner"), eq(ids))).thenReturn(ids);
+        when(projects.saveSnapshot(anyString(), anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString(), anyString(), anyInt(), anyString(), anyList(), anyList())).thenReturn(true);
+        when(projects.findOwned("usr_owner", "mvp_project_123")).thenReturn(projectRow(3));
+        when(projects.listAssets("mvp_project_123")).thenReturn(Collections.emptyList());
+        assertEquals(3, service.save("usr_owner", "mvp_project_123", request).get("revision"));
+        verify(assets).findOwnedIds("usr_owner", ids);
+        verify(assets, never()).findOwned(anyString(), anyString());
+        verify(assets, never()).touch(anyString(), anyString());
+        verify(projects).saveSnapshot(anyString(), anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString(), anyString(), eq(3), anyString(), eq(bindings), anyList());
+    }
+
+    @Test
+    void rejectsDuplicateSlotsBeforeDatabaseLookup() {
+        MusicMvProjectDraftRepository projects = mock(MusicMvProjectDraftRepository.class);
+        MusicMvUserAssetRepository assets = mock(MusicMvUserAssetRepository.class);
+        MusicMvProjectDraftService service = new MusicMvProjectDraftService(projects, assets, new ObjectMapper());
+        ProjectAsset asset = new ProjectAsset(); asset.setAssetId("asset_test_123"); asset.setSlotKey("photo-1");
+        MusicMvProjectDraftRequest request = request(3); request.setAssets(Arrays.asList(asset, asset));
+        assertThrows(ApiException.class, () -> service.save("usr_owner", "mvp_project_123", request));
+        verify(assets, never()).findOwnedIds(anyString(), any());
     }
 
     private MusicMvProjectDraftRequest request(int revision) {
