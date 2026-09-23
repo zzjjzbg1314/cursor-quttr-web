@@ -39,6 +39,15 @@ class MusicLyricsDraftServiceTest {
         JsonNode restored=service.save("alice","lyric_123",r);
         assertThat(restored.path("history").size()).isEqualTo(20);assertThat(restored.path("history").get(0).path("text").asText()).isEqualTo("text24");
     }
+    @Test void listOmitsSnapshotsButDetailKeepsRestorableHistory() {
+        service.save("alice","lyric_123",request(0,"first","generate"));
+        service.save("alice","lyric_123",request(1,"second","rewrite"));
+        JsonNode summary=service.list("alice").path("items").get(0);
+        assertThat(summary.has("history")).isFalse();
+        assertThat(summary.has("alternatives")).isFalse();
+        assertThat(summary.path("text").asText()).isEqualTo("second");
+        assertThat(service.get("alice","lyric_123").path("history").get(0).path("text").asText()).isEqualTo("first");
+    }
     @Test void staleAccountPageCannotWriteIntoNewSession(){
         ObjectNode oldPage=request(0,"private lyrics","edit");oldPage.put("ownerId","alice");
         assertThatThrownBy(()->service.save("bob","lyric_123",oldPage)).isInstanceOf(ApiException.class);

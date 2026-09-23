@@ -312,7 +312,7 @@ public class MusicMvRenderJobRepository {
     }
 
     public List<Map<String, Object>> ownedJobs(String clientId, int limit, boolean completedOnly, int offset, boolean activeOnly) {
-        return d1.query("SELECT " + prefixedJobColumns("j") + ","
+        return d1.query("SELECT " + prefixedJobColumns("j").replace("j.request_json AS request_json,", "").replace("j.evidence_json AS evidence_json,", "") + ","
                         + "COALESCE(en.name,df.name,t.slug) AS template_name,t.category_key,"
                         + "json_extract(j.request_json,'$.musicCandidateId') AS music_candidate_id,"
                         + "COALESCE(c.title,c.storage_file_name,'Original AI song') AS song_name "

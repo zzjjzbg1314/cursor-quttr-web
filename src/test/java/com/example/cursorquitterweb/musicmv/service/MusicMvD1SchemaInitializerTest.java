@@ -30,7 +30,7 @@ class MusicMvD1SchemaInitializerTest {
 
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
-        assertThat(result.get("schemaVersion")).isEqualTo(15);
+        assertThat(result.get("schemaVersion")).isEqualTo(16);
         assertThat(result.get("categoryCount")).isEqualTo(11L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
@@ -197,7 +197,7 @@ class MusicMvD1SchemaInitializerTest {
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-                metadata.put("schema_version", Integer.valueOf(15));
+                metadata.put("schema_version", Integer.valueOf(16));
                 metadata.put("schema_sha256", metadataSha256);
                 return rows(Arrays.asList(metadata));
             }

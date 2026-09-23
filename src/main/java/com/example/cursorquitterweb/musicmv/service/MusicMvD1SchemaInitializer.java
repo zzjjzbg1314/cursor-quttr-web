@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 15;
+    static final int SCHEMA_VERSION = 16;
     static final long ENABLED_CATEGORY_COUNT = 11L;
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";

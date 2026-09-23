@@ -21,7 +21,7 @@ public class MusicLyricsDraftService {
 
     public ObjectNode list(String owner) {
         ArrayNode items=mapper.createArrayNode();
-        for(Map<String,Object> row:db.query("SELECT draft_id,document_json,revision,updated_at FROM music_mv_lyrics_drafts WHERE user_id=? ORDER BY updated_at DESC LIMIT 50",owner).getRows()) {
+        for(Map<String,Object> row:db.query("SELECT draft_id,json_remove(document_json,'$.history','$.alternatives') AS document_json,revision,updated_at FROM music_mv_lyrics_drafts WHERE user_id=? ORDER BY updated_at DESC LIMIT 50",owner).getRows()) {
             ObjectNode item=decode(row);
             item.remove("history"); item.remove("alternatives");
             items.add(item);
