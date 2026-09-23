@@ -8,6 +8,9 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 public class TemplateTagService {
     private final D1DatabaseClient d1;
     private volatile boolean ready;
+    private final com.github.benmanes.caffeine.cache.Cache<String, Map<String,Object>> publicLists =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(64)
+                    .expireAfterWrite(java.time.Duration.ofSeconds(30)).build();
     public TemplateTagService(D1DatabaseClient d1) { this.d1 = d1; }
     private static final String[][] SEEDS = {
         {"birthday", "生日", "Birthday"}, {"wedding", "婚礼", "Wedding"},
@@ -55,6 +58,10 @@ public class TemplateTagService {
     public Map<String,Object> list() { return list("zh-CN"); }
     public Map<String,Object> list(String locale) {
         ensure();
+        String key = locale == null || locale.trim().isEmpty() ? "zh-CN" : Locale.forLanguageTag(locale).toLanguageTag();
+        return publicLists.get(key, this::loadList);
+    }
+    private Map<String,Object> loadList(String locale) {
         List<Map<String,Object>> items = rows("SELECT tag_key AS key,sort_order AS sortOrder FROM template_tags ORDER BY sort_order,tag_key");
         Map<String,Map<String,String>> translations = new LinkedHashMap<>();
         for (Map<String,Object> row : rows("SELECT tag_key,locale,name FROM template_tag_translations ORDER BY locale")) {
@@ -105,6 +112,7 @@ public class TemplateTagService {
         for (Map.Entry<String,String> entry : names.entrySet()) sql.add(D1Statement.of("INSERT INTO template_tag_translations(tag_key,locale,name) VALUES (?,?,?)",key,entry.getKey(),entry.getValue()));
         // 单个事务保存标识与全部翻译，失败时不留下半个标签。
         d1.batch(sql);
+        publicLists.invalidateAll();
         return list();
     }
     private ApiException duplicate() { return new ApiException(HttpStatus.CONFLICT,"TEMPLATE_TAG_EXISTS","标签标识或名称已存在"); }

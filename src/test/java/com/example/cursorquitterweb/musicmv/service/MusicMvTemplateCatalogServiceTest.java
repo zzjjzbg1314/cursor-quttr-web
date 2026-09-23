@@ -271,11 +271,11 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> counts = row("category_count", 11);
         counts.put("schema_sha256", String.join("", Collections.nCopies(64, "a")));
         when(repository.readiness()).thenReturn(counts);
-        for (int version : Arrays.asList(14, 15)) {
+        for (int version : Arrays.asList(14, 15, 16)) {
             counts.put("schema_version", version);
             assertEquals(Boolean.TRUE, service.readiness().get("ready"));
         }
-        for (int version : Arrays.asList(13, 16)) {
+        for (int version : Arrays.asList(13, 17)) {
             counts.put("schema_version", version);
             assertEquals(Boolean.FALSE, service.readiness().get("ready"));
         }

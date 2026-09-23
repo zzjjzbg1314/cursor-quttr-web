@@ -6,6 +6,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 class TemplateTagServiceTest {
+    @Test void 列表按语言缓存且新增后失效() {
+        D1DatabaseClient db=mock(D1DatabaseClient.class);
+        TemplateTagService service=new TemplateTagService(db);
+        service.list("en");service.list("en");service.list("zh-CN");
+        verify(db,times(2)).query(eq("SELECT tag_key AS key,sort_order AS sortOrder FROM template_tags ORDER BY sort_order,tag_key"),any(Object[].class));
+        Map<String,Object> input=new HashMap<>();input.put("key","new-event");input.put("nameZh","新场景");input.put("nameEn","New event");
+        service.add(input);
+        service.list("en");
+        verify(db,times(4)).query(eq("SELECT tag_key AS key,sort_order AS sortOrder FROM template_tags ORDER BY sort_order,tag_key"),any(Object[].class));
+    }
     @Test void 婚礼分类一次性补标保留其他标签且取消后不再补回() throws Exception {
         D1DatabaseClient d1=mock(D1DatabaseClient.class);
         new TemplateTagService(d1).list();
