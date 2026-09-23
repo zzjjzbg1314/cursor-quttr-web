@@ -6,6 +6,7 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import org.springframework.http.HttpStatus;
 
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class BillingSettings {
     @Value("${music-mv.billing.enabled:false}") public boolean enabled;
     @Value("${STRIPE_SECRET_KEY:}") public String secretKey;

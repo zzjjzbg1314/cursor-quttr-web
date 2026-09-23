@@ -50,7 +50,8 @@ class MusicMvDefaultPhotoCropTest {
 
         Map<String,Object> media=new LinkedHashMap<String,Object>();
         media.put("provider_details_json","{}");media.put("status","ready");media.put("provider","r2");media.put("provider_asset_id","photo");
-        when(repository.slotDefaultMedia("tplver_1","photo_01")).thenReturn(media);
+        when(repository.browserMediaByRole(eq("tplver_1"),org.mockito.ArgumentMatchers.anySet()))
+                .thenReturn(Collections.singletonMap("slot_default:photo_01",media));
         Map<String, Object> result = service.get("owner", "mvr_text");
         Map<String, Object> browserRender = (Map<String, Object>) result.get("browserRender");
         Map<String,Object> binding=(Map<String,Object>)((java.util.List<?>)browserRender.get("slotBindings")).get(0);

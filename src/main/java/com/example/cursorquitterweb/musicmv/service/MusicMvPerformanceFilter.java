@@ -13,6 +13,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import io.micrometer.core.instrument.Metrics;
 
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class MusicMvPerformanceFilter extends OncePerRequestFilter {
     private static final ThreadLocal<Stats> CURRENT = new ThreadLocal<>();
     static void recordD1(long nanos) {

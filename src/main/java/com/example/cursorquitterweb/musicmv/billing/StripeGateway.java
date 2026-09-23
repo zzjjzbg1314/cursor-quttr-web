@@ -10,6 +10,7 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import org.springframework.http.HttpStatus;
 
 @Service
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class StripeGateway {
     private final BillingSettings settings;
     private final ObjectMapper mapper;
