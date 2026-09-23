@@ -23,7 +23,7 @@ public class MusicBillingService {
     public Map<String,Object> capabilities() { return map("available",settings.ready(),"sandbox",true); }
     public Map<String,Object> status(String user) {
         if(!settings.ready()) return map("available",false,"sandbox",true);
-        repo.reconcile();
+        repo.reconcile(user);
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=map("available",true,"sandbox",true,"remaining",balance==null?0:balance.get("remaining"),"periodEnd",balance==null?null:balance.get("period_end"));
         Map<String,Object> customer=repo.customer(user);
@@ -57,7 +57,7 @@ public class MusicBillingService {
     }
     public void reserve(String user,String request,String job) {
         if(!settings.enabled) return;
-        settings.requireReady(); repo.reconcile();
+        settings.requireReady(); repo.reconcile(user);
         if(repo.hasReservation(user,request)) throw error(HttpStatus.CONFLICT,"BILLING_GENERATION_PENDING","This generation is already being processed.");
         if(!repo.reserve(user,request,job,Instant.now().getEpochSecond())) throw error(HttpStatus.PAYMENT_REQUIRED,"BILLING_QUOTA_EXHAUSTED","No music generations remaining. Choose a plan or wait for renewal.");
     }

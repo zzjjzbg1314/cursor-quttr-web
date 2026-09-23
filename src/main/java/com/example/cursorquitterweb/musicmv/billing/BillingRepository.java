@@ -44,6 +44,10 @@ public class BillingRepository {
     public void settle(String job,String state) {
         db.query("UPDATE music_mv_billing_reservations SET state=?,updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND state='reserved'",state,job);
     }
+    public void reconcile(String user) {
+        // 用户请求只对账自己的任务，避免一次状态查询触发全站更新。
+        db.query("UPDATE music_mv_billing_reservations SET state=CASE WHEN (SELECT status FROM ai_music_jobs j WHERE j.job_id=music_mv_billing_reservations.job_id)='completed' THEN 'consumed' ELSE 'released' END,updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND state='reserved' AND job_id IN (SELECT job_id FROM ai_music_jobs WHERE user_id=? AND status IN ('completed','failed'))", user, user);
+    }
     public void reconcile() {
         // 根据已持久化的最终任务状态恢复回调中断，不释放结果未知的请求。
         db.query("UPDATE music_mv_billing_reservations SET state=CASE WHEN (SELECT status FROM ai_music_jobs j WHERE j.job_id=music_mv_billing_reservations.job_id)='completed' THEN 'consumed' ELSE 'released' END,updated_at=CURRENT_TIMESTAMP WHERE state='reserved' AND job_id IN (SELECT job_id FROM ai_music_jobs WHERE status IN ('completed','failed'))");

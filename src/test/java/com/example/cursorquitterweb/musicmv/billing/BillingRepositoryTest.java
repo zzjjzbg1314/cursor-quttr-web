@@ -39,6 +39,14 @@ class BillingRepositoryTest {
         String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
         assertThat(process.exitValue()).withFailMessage(output).isZero();
     }
+    @Test void reconciliationOnlyChangesRequestedOwner() throws Exception {
+        Capture db=new Capture(); new BillingRepository(db).reconcile("u");
+        String script="import sqlite3,json,sys,pathlib\nd=sqlite3.connect(':memory:')\nd.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())\nd.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')\nd.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('j1','u','completed'),('j2','other','failed')])\nd.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,invoice_id,state) VALUES(?,?,?,'i','reserved')\", [('j1','u','r1'),('j2','other','r2')])\ns=json.loads(sys.argv[1]);d.execute(s['sql'],s['params'])\nassert d.execute('SELECT state FROM music_mv_billing_reservations ORDER BY job_id').fetchall()==[('consumed',),('reserved',)]";
+        Process process=new ProcessBuilder("python3","-c",script,new ObjectMapper().writeValueAsString(db.statements.get(0))).redirectErrorStream(true).start();
+        assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(process.exitValue()).withFailMessage(output).isZero();
+    }
     static class Capture extends D1DatabaseClient {
         List<Map<String,Object>> statements=new ArrayList<>();Capture(){super(new ObjectMapper());}
         @Override public D1QueryResult query(String sql,Object...params){statements.add(StripeGateway.map("sql",sql,"params",Arrays.asList(params)));return new D1QueryResult(Collections.emptyList(),null);}
