@@ -1,0 +1,844 @@
+{
+  "date": "2026-09-23",
+  "java_tests": [
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvProjectDraftServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.TemplateResourceAssetServiceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvRenderArtifactStorageServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicLyricsDraftServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeGlobalEffectContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeSceneCapabilitiesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.dto.TemplateSlotReconcileContractTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiMusicGenerationServiceTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicMvD1SchemaControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.TemplateTagServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.TemplateRuntimePackageServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.dto.TemplatePromotionSlotContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvReadPerformanceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateRetirementTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeRuntimeContractTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.AiVoiceControllerTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvD1SchemaInitializerTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.support.LoopbackRequestSupportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.TemplateSearchTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.RendererTemplateRuntimePackageControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvRenderTextOverrideTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.MusicMvSchemaIsolationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiMusicCandidateStorageServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicMvProjectDraftControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.billing.BillingRepositoryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiLyricsGenerationServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvUserAssetServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvProjectDraftRepositoryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepositoryTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvLatestPublicationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvAuthenticationIsolationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.billing.MusicBillingControllerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.KieWebhookVerifierTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeStickerContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.RendererTemplateCatalogControllerTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobServiceTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.CloudflareTemplateMediaProviderTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.dto.BrowserRenderTelemetryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvTemplateCatalogRepositoryTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.TemplateMediaCleanupServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvInputAssetStorageServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiMusicAudioOwnershipTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.billing.StripeGatewayTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvAuthServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiVoiceServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.config.MusicMvAutoEnableEnvironmentPostProcessorTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.MusicMvModuleDisabledTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvTemplateCatalogServiceTest",
+      "tests": 100,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeScriptDependencyContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.BrowserNativeEffectKeyframesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicMvInputAssetControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvPerformanceFilterTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.D1DatabaseClientTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicMvRenderJobControllerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicMvHistoricalTemplateControllerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.controller.MusicLyricsDraftControllerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicMvDefaultPhotoCropTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.KieAiMusicProviderTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.billing.MusicBillingServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.repository.MusicMvRenderJobRepositoryTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.service.MusicTextOptimizationServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.SunoApiAiMusicProviderTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.cursorquitterweb.musicmv.aimusic.AiMusicProviderRegistrySpringTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "live_regression": {
+    "passed": true,
+    "testData": "temporary users, sessions and synthetic metadata; no binary media or generation",
+    "samples": [
+      {
+        "method": "GET",
+        "route": "auth/session",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 600.2
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 2221.0
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 2003.5
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 2014.2
+      },
+      {
+        "method": "GET",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 848.8
+      },
+      {
+        "method": "GET",
+        "route": "projects",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 663.0
+      },
+      {
+        "method": "GET",
+        "route": "projects/{testProject}",
+        "status": 404,
+        "expected": 404,
+        "elapsed_ms": 644.8
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 409,
+        "expected": 409,
+        "elapsed_ms": 814.2
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 409,
+        "expected": 409,
+        "elapsed_ms": 1558.1
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 400,
+        "expected": 400,
+        "elapsed_ms": 741.0
+      },
+      {
+        "method": "GET",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 788.5
+      },
+      {
+        "method": "PUT",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 2133.5
+      },
+      {
+        "method": "GET",
+        "route": "assets?limit=100",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 528.7
+      },
+      {
+        "method": "GET",
+        "route": "songs",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 477.5
+      },
+      {
+        "method": "GET",
+        "route": "render-jobs",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 561.9
+      },
+      {
+        "method": "PUT",
+        "route": "lyric-drafts/{testDraft}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 1174.3
+      },
+      {
+        "method": "PUT",
+        "route": "lyric-drafts/{testDraft}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 1007.2
+      },
+      {
+        "method": "GET",
+        "route": "lyric-drafts/{testDraft}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 492.7
+      },
+      {
+        "method": "GET",
+        "route": "lyric-drafts",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 520.9
+      },
+      {
+        "method": "GET",
+        "route": "lyric-drafts/{testDraft}",
+        "status": 404,
+        "expected": 404,
+        "elapsed_ms": 485.4
+      },
+      {
+        "method": "PUT",
+        "route": "lyric-drafts/{testDraft}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 1243.5
+      },
+      {
+        "method": "DELETE",
+        "route": "projects/{testProject}",
+        "status": 200,
+        "expected": 200,
+        "elapsed_ms": 930.9
+      },
+      {
+        "method": "GET",
+        "route": "projects/{testProject}",
+        "status": 404,
+        "expected": 404,
+        "elapsed_ms": 550.6
+      }
+    ]
+  },
+  "public_http_after": [
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 1,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 1078.1
+    },
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 2,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 19.9
+    },
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 3,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 9.4
+    },
+    {
+      "path": "template-tags?locale=en",
+      "sample": 1,
+      "status": 200,
+      "bytes": 1073,
+      "elapsed_ms": 944.5
+    },
+    {
+      "path": "template-tags?locale=en",
+      "sample": 2,
+      "status": 200,
+      "bytes": 1073,
+      "elapsed_ms": 24.6
+    },
+    {
+      "path": "template-tags?locale=en",
+      "sample": 3,
+      "status": 200,
+      "bytes": 1073,
+      "elapsed_ms": 9.8
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 1,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 420.2
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 2,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 293.5
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 3,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 667.6
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 1,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 937.8
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 2,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 692.5
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 3,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 679.1
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 1,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 1611.0
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 2,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 906.5
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 3,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 1363.6
+    }
+  ],
+  "index_migration": [
+    {
+      "index": "idx_music_mv_projects_recent_active",
+      "elapsed_ms": 1299.5
+    },
+    {
+      "index": "idx_music_mv_assets_recent_active",
+      "elapsed_ms": 1656.0
+    },
+    {
+      "index": "idx_music_mv_render_jobs_owner_recent",
+      "elapsed_ms": 1196.5
+    },
+    {
+      "index": "idx_music_mv_render_jobs_owner_completed",
+      "elapsed_ms": 1709.5
+    }
+  ],
+  "index_plans_after": [
+    {
+      "name": "projects_list",
+      "plans": [
+        "SEARCH music_mv_projects USING INDEX idx_music_mv_projects_recent_active (user_id=?)"
+      ]
+    },
+    {
+      "name": "assets_recent",
+      "plans": [
+        "SEARCH music_mv_user_assets USING INDEX idx_music_mv_assets_recent_active (user_id=? AND kind=? AND status=?)"
+      ]
+    },
+    {
+      "name": "video_library",
+      "plans": [
+        "SEARCH music_mv_render_jobs USING INDEX idx_music_mv_render_jobs_owner_completed (client_id=?)"
+      ]
+    }
+  ],
+  "request_metrics": [
+    {
+      "route": "/api/music-mv/v1/projects/{projectId}",
+      "status": "200",
+      "elapsedMs": "2211",
+      "d1Calls": "7",
+      "d1Ms": "2158"
+    },
+    {
+      "route": "/api/music-mv/v1/projects/{projectId}",
+      "status": "200",
+      "elapsedMs": "1995",
+      "d1Calls": "7",
+      "d1Ms": "1988"
+    },
+    {
+      "route": "/api/music-mv/v1/projects/{projectId}",
+      "status": "200",
+      "elapsedMs": "2005",
+      "d1Calls": "7",
+      "d1Ms": "1995"
+    },
+    {
+      "route": "/api/music-mv/v1/projects/{projectId}",
+      "status": "409",
+      "elapsedMs": "1538",
+      "d1Calls": "5",
+      "d1Ms": "1532"
+    },
+    {
+      "route": "/api/music-mv/v1/projects/{projectId}",
+      "status": "200",
+      "elapsedMs": "2111",
+      "d1Calls": "7",
+      "d1Ms": "2102"
+    },
+    {
+      "route": "/api/music-mv/v1/lyric-drafts/{id}",
+      "status": "200",
+      "elapsedMs": "1163",
+      "d1Calls": "4",
+      "d1Ms": "1158"
+    },
+    {
+      "route": "/api/music-mv/v1/lyric-drafts/{id}",
+      "status": "200",
+      "elapsedMs": "1230",
+      "d1Calls": "4",
+      "d1Ms": "1224"
+    },
+    {
+      "route": "/api/music-mv/v1/admin/templates",
+      "status": "200",
+      "elapsedMs": "1153",
+      "d1Calls": "2",
+      "d1Ms": "1139"
+    },
+    {
+      "route": "/api/music-mv/v1/admin/templates",
+      "status": "200",
+      "elapsedMs": "1793",
+      "d1Calls": "2",
+      "d1Ms": "1783"
+    },
+    {
+      "route": "/api/music-mv/v1/template-tags",
+      "status": "200",
+      "elapsedMs": "1060",
+      "d1Calls": "3",
+      "d1Ms": "1047"
+    },
+    {
+      "route": "/api/music-mv/v1/templates",
+      "status": "200",
+      "elapsedMs": "1585",
+      "d1Calls": "3",
+      "d1Ms": "1575"
+    },
+    {
+      "route": "/api/music-mv/v1/templates",
+      "status": "200",
+      "elapsedMs": "1342",
+      "d1Calls": "3",
+      "d1Ms": "1336"
+    }
+  ]
+}
