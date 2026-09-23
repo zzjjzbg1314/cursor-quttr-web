@@ -33,6 +33,12 @@ public class AiLyricsGenerationService {
     private final String defaultProvider;
     private final String publicBaseUrl;
     private final byte[] taskTokenSecret;
+    private final com.github.benmanes.caffeine.cache.Cache<String, LyricsSnapshot> completedLyrics =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(500)
+                    .expireAfterWrite(java.time.Duration.ofMinutes(30)).build();
+    private final com.github.benmanes.caffeine.cache.Cache<String, LyricsSnapshot> pollingLyrics =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(1000)
+                    .expireAfterWrite(java.time.Duration.ofSeconds(3)).build();
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AiLyricsGenerationService(
@@ -75,7 +81,17 @@ public class AiLyricsGenerationService {
                     "The configured AI music provider does not support lyrics generation",
                     false, null);
         }
-        LyricsSnapshot snapshot = provider.queryLyrics(handle.providerTaskId);
+        // 先验证归属再命中缓存；同一任务并发轮询只访问供应商一次。
+        String cacheKey = owner + "\n" + handle.providerCode + "\n" + handle.providerTaskId;
+        LyricsSnapshot snapshot = completedLyrics.getIfPresent(cacheKey);
+        if (snapshot == null) {
+            snapshot = pollingLyrics.get(cacheKey, key -> {
+                LyricsSnapshot fresh = provider.queryLyrics(handle.providerTaskId);
+                if ("completed".equals(fresh.getStatus()) && fresh.getCandidates() != null
+                        && !fresh.getCandidates().isEmpty()) completedLyrics.put(key, fresh);
+                return fresh;
+            });
+        }
         return view(taskId, snapshot.getStatus(), snapshot.getErrorCode(),
                 snapshot.getErrorMessage(), snapshot.isRetryable(), snapshot.getCandidates());
     }

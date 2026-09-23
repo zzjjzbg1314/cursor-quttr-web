@@ -16,6 +16,9 @@ public class AiVoiceService {
     private final AiMusicProviderRegistry providers;
     private final MusicMvInputAssetStorageService storage;
     private volatile boolean initialized;
+    private final com.github.benmanes.caffeine.cache.Cache<String, Map<String,Object>> polling =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(1000)
+                    .expireAfterWrite(java.time.Duration.ofSeconds(3)).build();
     public AiVoiceService(D1DatabaseClient d1, AiMusicProviderRegistry providers, MusicMvInputAssetStorageService storage) {
         this.d1 = d1; this.providers = providers; this.storage = storage;
     }
@@ -68,6 +71,10 @@ public class AiVoiceService {
         Map<String,Object> row=owned(owner,id);
         String status=RowUtils.str(row,"status");
         if(!"processing".equals(status)) return view(row);
+        String key = owner + "\n" + id + "\n" + row.get("phase") + "\n" + row.get("task_id");
+        return polling.get(key, ignored -> refreshProcessing(owner, id, row));
+    }
+    private Map<String,Object> refreshProcessing(String owner, String id, Map<String,Object> row) {
         String task=RowUtils.str(row,"task_id");
         String endpoint="phrase".equals(RowUtils.str(row,"phase")) ? "validate-info" : "record-info";
         String path=UriComponentsBuilder.fromPath(endpoint).queryParam("taskId",task).build().encode().toUriString();
