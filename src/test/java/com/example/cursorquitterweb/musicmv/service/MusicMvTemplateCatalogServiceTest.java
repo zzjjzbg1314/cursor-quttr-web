@@ -1971,6 +1971,25 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    void fixedImageGraphAcceptsOriginalGifButStillRejectsWrongResourceKinds() throws Exception {
+        Map<String,Object> scene = row("slots", Collections.emptyList());
+        Map<String,Object> resource = row("resourceKey", "original-gif"); resource.put("kind", "animated_image");
+        Map<String,Object> layer = row("layerId", "fixed-photo");
+        layer.put("type", "static_image"); layer.put("resourceKey", "original-gif");
+        scene.put("resources", Collections.singletonList(resource));
+        scene.put("layers", Collections.singletonList(layer));
+        String before = new ObjectMapper().writeValueAsString(scene);
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserSceneGraph", scene);
+        assertEquals(before, new ObjectMapper().writeValueAsString(scene));
+        layer.put("type", "video");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserSceneGraph", scene));
+        layer.put("type", "static_image"); resource.put("kind", "video");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserSceneGraph", scene));
+        resource.put("kind", "animated_image"); layer.put("resourceKey", "missing");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserSceneGraph", scene));
+    }
+
+    @Test
     void rejectsVersionFourStaticImageLayerWithoutImageResource() throws Exception {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         when(repository.version("tpl_1", "tplver_1"))

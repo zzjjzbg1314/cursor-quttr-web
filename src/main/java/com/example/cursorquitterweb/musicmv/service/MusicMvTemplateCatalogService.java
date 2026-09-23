@@ -884,7 +884,8 @@ public class MusicMvTemplateCatalogService {
                 String requiredKind = "video".equals(type) ? "video" : "image";
                 if (!("sticker".equals(type) && nativeStickers.contains(layerId))
                         && (resourceKey == null || !(requiredKind.equals(resourceKinds.get(resourceKey))
-                        || ("sticker".equals(type) && "animated_image".equals(resourceKinds.get(resourceKey)))))) {
+                        || (("sticker".equals(type) || "static_image".equals(type))
+                        && "animated_image".equals(resourceKinds.get(resourceKey)))))) {
                     throw badRequest("TEMPLATE_BROWSER_SCENE_RESOURCE_REFERENCE_INVALID",
                             "Image, sticker, and video layers must reference a matching resource");
                 }
