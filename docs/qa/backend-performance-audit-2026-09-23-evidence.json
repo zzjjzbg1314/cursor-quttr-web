@@ -1,0 +1,2136 @@
+{
+  "date": "2026-09-23",
+  "scope": "只读结构检查及低频 GET 抽样；非负载测试",
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/provider-webhooks/kie/music",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/KieAiMusicWebhookController.java",
+      "line": 38
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/text-optimization",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicTextOptimizationController.java",
+      "line": 22
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/text-optimization",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicTextOptimizationController.java",
+      "line": 27
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/lyric-drafts",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicLyricsDraftController.java",
+      "line": 18
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/lyric-drafts/{id}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicLyricsDraftController.java",
+      "line": 19
+    },
+    {
+      "method": "PUT",
+      "path": "/api/music-mv/v1/lyric-drafts/{id}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicLyricsDraftController.java",
+      "line": 20
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/provider-webhooks/sunoapi/music",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/SunoApiAiMusicWebhookController.java",
+      "line": 32
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/lyrics",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicLyricsController.java",
+      "line": 41
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/lyrics/{taskId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicLyricsController.java",
+      "line": 57
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/template-tags",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 50
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/template-categories",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 57
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/templates",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 65
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/templates/{templateId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 84
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/templates/{templateId}/versions/{versionId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 106
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/templates/{templateId}/similar",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvTemplateCatalogController.java",
+      "line": 114
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/provider-webhooks/sunoapi/lyrics",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicLyricsWebhookController.java",
+      "line": 17
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/auth/providers",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvAuthController.java",
+      "line": 35
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/auth/sso",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvAuthController.java",
+      "line": 44
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/auth/session",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvAuthController.java",
+      "line": 54
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/auth/logout",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvAuthController.java",
+      "line": 62
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 57
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/render-jobs",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 75
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 90
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/cancel",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 101
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/browser-output/upload-session",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 112
+    },
+    {
+      "method": "PUT",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/browser-output/local-upload",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 122
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/browser-render/start",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 140
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/browser-output/complete",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 150
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/browser-output/fail",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 160
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 170
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/render-jobs/{jobId}/output",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvRenderJobController.java",
+      "line": 180
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/voices",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiVoiceController.java",
+      "line": 24
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/voices",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiVoiceController.java",
+      "line": 25
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/voices/{id}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiVoiceController.java",
+      "line": 28
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/voices/{id}/verify",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiVoiceController.java",
+      "line": 29
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/projects",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvProjectDraftController.java",
+      "line": 40
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/projects/{projectId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvProjectDraftController.java",
+      "line": 49
+    },
+    {
+      "method": "PUT",
+      "path": "/api/music-mv/v1/projects/{projectId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvProjectDraftController.java",
+      "line": 58
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/music-mv/v1/projects/{projectId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvProjectDraftController.java",
+      "line": 68
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/songs",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicSongController.java",
+      "line": 49
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/songs",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicSongController.java",
+      "line": 67
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/songs/{jobId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicSongController.java",
+      "line": 83
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/songs/{jobId}/candidates/{candidateId}/select",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/AiMusicSongController.java",
+      "line": 95
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/assets/readiness",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvInputAssetController.java",
+      "line": 50
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/assets",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvInputAssetController.java",
+      "line": 66
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/assets",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvInputAssetController.java",
+      "line": 83
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/music-mv/v1/assets/{assetId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvInputAssetController.java",
+      "line": 96
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/assets/{assetId}",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/controller/MusicMvInputAssetController.java",
+      "line": 110
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/billing/capabilities",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingController.java",
+      "line": 21
+    },
+    {
+      "method": "GET",
+      "path": "/api/music-mv/v1/billing/status",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingController.java",
+      "line": 22
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/billing/checkout",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingController.java",
+      "line": 23
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/billing/portal",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingController.java",
+      "line": 26
+    },
+    {
+      "method": "POST",
+      "path": "/api/music-mv/v1/billing/webhook",
+      "source": "src/main/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingController.java",
+      "line": 29
+    }
+  ],
+  "http_samples": [
+    {
+      "path": "auth/providers",
+      "sample": 1,
+      "status": 200,
+      "bytes": 159,
+      "elapsed_ms": 49.3
+    },
+    {
+      "path": "auth/providers",
+      "sample": 2,
+      "status": 200,
+      "bytes": 159,
+      "elapsed_ms": 8.3
+    },
+    {
+      "path": "auth/providers",
+      "sample": 3,
+      "status": 200,
+      "bytes": 159,
+      "elapsed_ms": 9.7
+    },
+    {
+      "path": "auth/session",
+      "sample": 1,
+      "status": 200,
+      "bytes": 35,
+      "elapsed_ms": 6.7
+    },
+    {
+      "path": "auth/session",
+      "sample": 2,
+      "status": 200,
+      "bytes": 35,
+      "elapsed_ms": 5.9
+    },
+    {
+      "path": "auth/session",
+      "sample": 3,
+      "status": 200,
+      "bytes": 35,
+      "elapsed_ms": 5.6
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 1,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 241.2
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 2,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 251.3
+    },
+    {
+      "path": "template-categories?locale=zh-CN",
+      "sample": 3,
+      "status": 200,
+      "bytes": 4067,
+      "elapsed_ms": 347.9
+    },
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 1,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 569.1
+    },
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 2,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 621.0
+    },
+    {
+      "path": "template-tags?locale=zh-CN",
+      "sample": 3,
+      "status": 200,
+      "bytes": 1054,
+      "elapsed_ms": 614.1
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 1,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 877.3
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 2,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 677.4
+    },
+    {
+      "path": "templates?page=1&pageSize=24",
+      "sample": 3,
+      "status": 200,
+      "bytes": 39852,
+      "elapsed_ms": 655.8
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 1,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 1165.8
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 2,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 1195.6
+    },
+    {
+      "path": "templates?tag=birthday&pageSize=24",
+      "sample": 3,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 881.7
+    },
+    {
+      "path": "templates?q=birthday&pageSize=24",
+      "sample": 1,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 919.0
+    },
+    {
+      "path": "templates?q=birthday&pageSize=24",
+      "sample": 2,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 645.9
+    },
+    {
+      "path": "templates?q=birthday&pageSize=24",
+      "sample": 3,
+      "status": 200,
+      "bytes": 36636,
+      "elapsed_ms": 673.8
+    },
+    {
+      "path": "billing/capabilities",
+      "sample": 1,
+      "status": 200,
+      "bytes": 34,
+      "elapsed_ms": 13.1
+    },
+    {
+      "path": "billing/capabilities",
+      "sample": 2,
+      "status": 200,
+      "bytes": 34,
+      "elapsed_ms": 6.6
+    },
+    {
+      "path": "billing/capabilities",
+      "sample": 3,
+      "status": 200,
+      "bytes": 34,
+      "elapsed_ms": 7.0
+    },
+    {
+      "path": "text-optimization",
+      "sample": 1,
+      "status": 200,
+      "bytes": 18,
+      "elapsed_ms": 5.9
+    },
+    {
+      "path": "text-optimization",
+      "sample": 2,
+      "status": 200,
+      "bytes": 18,
+      "elapsed_ms": 5.5
+    },
+    {
+      "path": "text-optimization",
+      "sample": 3,
+      "status": 200,
+      "bytes": 18,
+      "elapsed_ms": 4.7
+    },
+    {
+      "path": "assets/readiness",
+      "sample": 1,
+      "status": 401,
+      "bytes": 94,
+      "elapsed_ms": 6.1
+    },
+    {
+      "path": "assets/readiness",
+      "sample": 2,
+      "status": 401,
+      "bytes": 94,
+      "elapsed_ms": 6.7
+    },
+    {
+      "path": "assets/readiness",
+      "sample": 3,
+      "status": 401,
+      "bytes": 94,
+      "elapsed_ms": 5.5
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059",
+      "sample": 1,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 2028.1
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059",
+      "sample": 2,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 20.4
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059",
+      "sample": 3,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 8.5
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/similar?locale=zh-CN&limit=6",
+      "sample": 1,
+      "status": 200,
+      "bytes": 9874,
+      "elapsed_ms": 697.3
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/similar?locale=zh-CN&limit=6",
+      "sample": 2,
+      "status": 200,
+      "bytes": 9874,
+      "elapsed_ms": 654.6
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/similar?locale=zh-CN&limit=6",
+      "sample": 3,
+      "status": 200,
+      "bytes": 9874,
+      "elapsed_ms": 694.9
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/versions/tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+      "sample": 1,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 435.9
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/versions/tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+      "sample": 2,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 284.9
+    },
+    {
+      "path": "templates/tpl_5c66ebce53924059/versions/tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+      "sample": 3,
+      "status": 200,
+      "bytes": 93582,
+      "elapsed_ms": 296.0
+    },
+    {
+      "path": "/api/site-manifest?lang=zh-CN",
+      "sample": 1,
+      "status": 200,
+      "bytes": 342,
+      "elapsed_ms": 573.6
+    },
+    {
+      "path": "/api/site-manifest?lang=zh-CN",
+      "sample": 2,
+      "status": 200,
+      "bytes": 342,
+      "elapsed_ms": 3.4
+    },
+    {
+      "path": "/api/site-manifest?lang=zh-CN",
+      "sample": 3,
+      "status": 200,
+      "bytes": 342,
+      "elapsed_ms": 4.9
+    },
+    {
+      "path": "/api/browser-renderer-identity",
+      "sample": 1,
+      "status": 200,
+      "bytes": 129,
+      "elapsed_ms": 109.1
+    },
+    {
+      "path": "/api/browser-renderer-identity",
+      "sample": 2,
+      "status": 200,
+      "bytes": 129,
+      "elapsed_ms": 55.1
+    },
+    {
+      "path": "/api/browser-renderer-identity",
+      "sample": 3,
+      "status": 200,
+      "bytes": 129,
+      "elapsed_ms": 94.4
+    }
+  ],
+  "schema": {
+    "elapsed_ms": 2347.5,
+    "result": [
+      {
+        "results": [
+          {
+            "type": "table",
+            "name": "template_categories",
+            "tbl_name": "template_categories",
+            "sql": "CREATE TABLE template_categories (\n  category_key TEXT PRIMARY KEY,\n  name_zh TEXT NOT NULL,\n  name_en TEXT NOT NULL,\n  sort_order INTEGER NOT NULL,\n  enabled INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL\n, parent_key TEXT, level INTEGER NOT NULL DEFAULT 2, slug_path TEXT NOT NULL DEFAULT '', is_selectable INTEGER NOT NULL DEFAULT 1)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_categories_1",
+            "tbl_name": "template_categories",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "templates",
+            "tbl_name": "templates",
+            "sql": "CREATE TABLE templates (\n  template_id TEXT PRIMARY KEY,\n  slug TEXT NOT NULL,\n  default_locale TEXT NOT NULL DEFAULT 'zh-CN',\n  category_key TEXT NOT NULL,\n  tags_json TEXT NOT NULL DEFAULT '[]',\n  status TEXT NOT NULL,\n  visibility TEXT NOT NULL DEFAULT 'public',\n  current_version_id TEXT,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  revision INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  published_at TEXT,\n  deleted_at TEXT, capcut_template_id TEXT, capcut_featured_json TEXT,\n  FOREIGN KEY (category_key) REFERENCES template_categories(category_key)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_templates_1",
+            "tbl_name": "templates",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "uk_templates_slug",
+            "tbl_name": "templates",
+            "sql": "CREATE UNIQUE INDEX uk_templates_slug ON templates(slug)"
+          },
+          {
+            "type": "index",
+            "name": "idx_templates_catalog",
+            "tbl_name": "templates",
+            "sql": "CREATE INDEX idx_templates_catalog\n  ON templates(status, visibility, category_key, sort_order, updated_at)"
+          },
+          {
+            "type": "table",
+            "name": "template_translations",
+            "tbl_name": "template_translations",
+            "sql": "CREATE TABLE template_translations (\n  template_id TEXT NOT NULL,\n  locale TEXT NOT NULL,\n  name TEXT NOT NULL,\n  description TEXT NOT NULL DEFAULT '',\n  seo_title TEXT,\n  seo_description TEXT,\n  PRIMARY KEY (template_id, locale),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_translations_1",
+            "tbl_name": "template_translations",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_versions",
+            "tbl_name": "template_versions",
+            "sql": "CREATE TABLE template_versions (\n  version_id TEXT PRIMARY KEY,\n  template_id TEXT NOT NULL,\n  version_number INTEGER NOT NULL,\n  status TEXT NOT NULL,\n  width INTEGER NOT NULL,\n  height INTEGER NOT NULL,\n  fps REAL NOT NULL,\n  duration_seconds REAL NOT NULL,\n  slot_count INTEGER NOT NULL DEFAULT 0,\n  validation_status TEXT NOT NULL,\n  validation_render_job_id TEXT NOT NULL,\n  validation_master_sha256 TEXT NOT NULL,\n  draft_snapshot_sha256 TEXT NOT NULL,\n  timeline_evidence_sha256 TEXT NOT NULL,\n  native_runtime_version TEXT NOT NULL,\n  native_runtime_sha256 TEXT NOT NULL,\n  renderer_version TEXT NOT NULL,\n  source_node_id TEXT NOT NULL,\n  source_local_key TEXT NOT NULL,\n  source_availability TEXT NOT NULL DEFAULT 'unknown',\n  last_source_verified_at TEXT,\n  source_provenance_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  published_at TEXT, base_duration_seconds REAL, cycle_duration_seconds REAL,\n  UNIQUE (template_id, version_number),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (source_node_id) REFERENCES renderer_nodes(node_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_versions_1",
+            "tbl_name": "template_versions",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_versions_2",
+            "tbl_name": "template_versions",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_versions_template",
+            "tbl_name": "template_versions",
+            "sql": "CREATE INDEX idx_template_versions_template\n  ON template_versions(template_id, version_number DESC)"
+          },
+          {
+            "type": "index",
+            "name": "idx_template_versions_ready",
+            "tbl_name": "template_versions",
+            "sql": "CREATE INDEX idx_template_versions_ready\n  ON template_versions(status, validation_status, source_availability)"
+          },
+          {
+            "type": "index",
+            "name": "uk_template_versions_validation_job",
+            "tbl_name": "template_versions",
+            "sql": "CREATE UNIQUE INDEX uk_template_versions_validation_job\n  ON template_versions(validation_render_job_id)"
+          },
+          {
+            "type": "table",
+            "name": "template_slots",
+            "tbl_name": "template_slots",
+            "sql": "CREATE TABLE template_slots (\n  slot_id TEXT PRIMARY KEY,\n  version_id TEXT NOT NULL,\n  slot_key TEXT NOT NULL,\n  slot_type TEXT NOT NULL,\n  display_name TEXT NOT NULL,\n  timeline_order INTEGER NOT NULL,\n  aspect_ratio TEXT,\n  crop_policy TEXT NOT NULL,\n  repeat_policy TEXT NOT NULL,\n  is_required INTEGER NOT NULL DEFAULT 1,\n  material_id TEXT,\n  material_group TEXT,\n  UNIQUE (version_id, slot_key),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_slots_1",
+            "tbl_name": "template_slots",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_slots_2",
+            "tbl_name": "template_slots",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_slots_version",
+            "tbl_name": "template_slots",
+            "sql": "CREATE INDEX idx_template_slots_version\n  ON template_slots(version_id, timeline_order, slot_key)"
+          },
+          {
+            "type": "table",
+            "name": "template_media",
+            "tbl_name": "template_media",
+            "sql": "CREATE TABLE template_media (\n  media_id TEXT PRIMARY KEY,\n  template_id TEXT NOT NULL,\n  version_id TEXT NOT NULL,\n  media_role TEXT NOT NULL,\n  provider TEXT NOT NULL,\n  provider_asset_id TEXT NOT NULL,\n  status TEXT NOT NULL,\n  source_sha256 TEXT NOT NULL,\n  source_size_bytes INTEGER,\n  width INTEGER,\n  height INTEGER,\n  duration_seconds REAL,\n  provider_details_json TEXT NOT NULL DEFAULT '{}',\n  error_message TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  ready_at TEXT,\n  UNIQUE (version_id, media_role),\n  UNIQUE (provider, provider_asset_id),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_media_1",
+            "tbl_name": "template_media",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_media_2",
+            "tbl_name": "template_media",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_media_3",
+            "tbl_name": "template_media",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_media_lookup",
+            "tbl_name": "template_media",
+            "sql": "CREATE INDEX idx_template_media_lookup\n  ON template_media(template_id, version_id, media_role, status)"
+          },
+          {
+            "type": "table",
+            "name": "template_validation_records",
+            "tbl_name": "template_validation_records",
+            "sql": "CREATE TABLE template_validation_records (\n  validation_id TEXT PRIMARY KEY,\n  version_id TEXT NOT NULL,\n  render_job_id TEXT NOT NULL,\n  semantic_integrity TEXT NOT NULL,\n  video_encode_count INTEGER NOT NULL,\n  intermediate_video_count INTEGER NOT NULL,\n  external_resource_read_count INTEGER NOT NULL,\n  missing_resource_count INTEGER NOT NULL,\n  renderer_version TEXT NOT NULL,\n  elapsed_seconds REAL NOT NULL,\n  evidence_json TEXT NOT NULL DEFAULT '{}',\n  validated_at TEXT NOT NULL,\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_validation_records_1",
+            "tbl_name": "template_validation_records",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_validation_version",
+            "tbl_name": "template_validation_records",
+            "sql": "CREATE INDEX idx_template_validation_version\n  ON template_validation_records(version_id, validated_at DESC)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_render_jobs",
+            "tbl_name": "music_mv_render_jobs",
+            "sql": "CREATE TABLE music_mv_render_jobs (\n  job_id TEXT PRIMARY KEY,\n  client_id TEXT NOT NULL,\n  request_id TEXT NOT NULL,\n  template_id TEXT NOT NULL,\n  version_id TEXT NOT NULL,\n  status TEXT NOT NULL,\n  stage TEXT NOT NULL,\n  progress REAL NOT NULL DEFAULT 0,\n  priority INTEGER NOT NULL DEFAULT 0,\n  attempt_count INTEGER NOT NULL DEFAULT 0,\n  max_attempts INTEGER NOT NULL DEFAULT 2,\n  request_fingerprint TEXT NOT NULL,\n  request_json TEXT NOT NULL,\n  claimed_node_id TEXT,\n  lease_token TEXT,\n  lease_expires_at TEXT,\n  cancel_requested INTEGER NOT NULL DEFAULT 0,\n  output_storage_key TEXT,\n  output_content_type TEXT,\n  output_size_bytes INTEGER,\n  output_sha256 TEXT,\n  output_duration_seconds REAL,\n  semantic_integrity TEXT,\n  video_encode_count INTEGER,\n  intermediate_video_count INTEGER,\n  writer_sidecar_count INTEGER,\n  native_task_id TEXT,\n  native_render_job_id TEXT,\n  result_json TEXT,\n  evidence_json TEXT,\n  error_code TEXT,\n  error_message TEXT,\n  retryable INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  started_at TEXT,\n  completed_at TEXT,\n  UNIQUE (client_id, request_id),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id),\n  FOREIGN KEY (claimed_node_id) REFERENCES renderer_nodes(node_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_render_jobs_1",
+            "tbl_name": "music_mv_render_jobs",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_render_jobs_2",
+            "tbl_name": "music_mv_render_jobs",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_render_jobs_queue",
+            "tbl_name": "music_mv_render_jobs",
+            "sql": "CREATE INDEX idx_music_mv_render_jobs_queue\n  ON music_mv_render_jobs(status, priority DESC, created_at)"
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_render_jobs_lease",
+            "tbl_name": "music_mv_render_jobs",
+            "sql": "CREATE INDEX idx_music_mv_render_jobs_lease\n  ON music_mv_render_jobs(claimed_node_id, lease_expires_at)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_render_job_events",
+            "tbl_name": "music_mv_render_job_events",
+            "sql": "CREATE TABLE music_mv_render_job_events (\n  event_id TEXT PRIMARY KEY,\n  job_id TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  status TEXT NOT NULL,\n  node_id TEXT,\n  detail_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  FOREIGN KEY (job_id) REFERENCES music_mv_render_jobs(job_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_render_job_events_1",
+            "tbl_name": "music_mv_render_job_events",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_render_job_events_job",
+            "tbl_name": "music_mv_render_job_events",
+            "sql": "CREATE INDEX idx_music_mv_render_job_events_job\n  ON music_mv_render_job_events(job_id, created_at)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_schema_metadata",
+            "tbl_name": "music_mv_schema_metadata",
+            "sql": "CREATE TABLE music_mv_schema_metadata (\n  schema_key TEXT PRIMARY KEY,\n  schema_version INTEGER NOT NULL,\n  schema_sha256 TEXT NOT NULL,\n  applied_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_schema_metadata_1",
+            "tbl_name": "music_mv_schema_metadata",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "ai_music_jobs",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE TABLE ai_music_jobs (\n  job_id TEXT PRIMARY KEY,\n  client_id TEXT NOT NULL,\n  request_id TEXT NOT NULL,\n  status TEXT NOT NULL,\n  stage TEXT NOT NULL,\n  progress REAL NOT NULL DEFAULT 0,\n  primary_provider_code TEXT NOT NULL,\n  active_attempt_id TEXT,\n  selected_candidate_id TEXT,\n  request_fingerprint TEXT NOT NULL,\n  request_json TEXT NOT NULL,\n  error_code TEXT,\n  error_message TEXT,\n  retryable INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  completed_at TEXT, user_id TEXT, provider_synced_at TEXT, status_refresh_at TEXT, status_refresh_until TEXT, status_refresh_token TEXT,\n  UNIQUE (client_id, request_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_jobs_1",
+            "tbl_name": "ai_music_jobs",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_jobs_2",
+            "tbl_name": "ai_music_jobs",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_client",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE INDEX idx_ai_music_jobs_client\n  ON ai_music_jobs(client_id, created_at DESC)"
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_status",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE INDEX idx_ai_music_jobs_status\n  ON ai_music_jobs(status, updated_at)"
+          },
+          {
+            "type": "table",
+            "name": "ai_music_provider_attempts",
+            "tbl_name": "ai_music_provider_attempts",
+            "sql": "CREATE TABLE ai_music_provider_attempts (\n  attempt_id TEXT PRIMARY KEY,\n  job_id TEXT NOT NULL,\n  provider_code TEXT NOT NULL,\n  provider_task_id TEXT,\n  status TEXT NOT NULL,\n  attempt_number INTEGER NOT NULL,\n  request_json TEXT NOT NULL,\n  response_json TEXT,\n  credits_used REAL,\n  submission_unknown INTEGER NOT NULL DEFAULT 0,\n  error_code TEXT,\n  error_message TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  completed_at TEXT,\n  UNIQUE (provider_code, provider_task_id),\n  UNIQUE (job_id, attempt_number),\n  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_provider_attempts_1",
+            "tbl_name": "ai_music_provider_attempts",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_provider_attempts_2",
+            "tbl_name": "ai_music_provider_attempts",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_provider_attempts_3",
+            "tbl_name": "ai_music_provider_attempts",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_provider_attempts_job",
+            "tbl_name": "ai_music_provider_attempts",
+            "sql": "CREATE INDEX idx_ai_music_provider_attempts_job\n  ON ai_music_provider_attempts(job_id, attempt_number DESC)"
+          },
+          {
+            "type": "table",
+            "name": "ai_music_candidates",
+            "tbl_name": "ai_music_candidates",
+            "sql": "CREATE TABLE ai_music_candidates (\n  candidate_id TEXT PRIMARY KEY,\n  job_id TEXT NOT NULL,\n  attempt_id TEXT NOT NULL,\n  provider_code TEXT NOT NULL,\n  provider_task_id TEXT NOT NULL,\n  provider_audio_id TEXT NOT NULL,\n  status TEXT NOT NULL,\n  title TEXT,\n  lyrics TEXT,\n  style TEXT,\n  duration_seconds REAL,\n  provider_audio_url TEXT,\n  provider_stream_url TEXT,\n  provider_image_url TEXT,\n  storage_key TEXT,\n  storage_url TEXT,\n  storage_sha256 TEXT,\n  storage_size_bytes INTEGER,\n  storage_file_name TEXT,\n  storage_content_type TEXT,\n  selected INTEGER NOT NULL DEFAULT 0,\n  raw_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  UNIQUE (provider_code, provider_task_id, provider_audio_id),\n  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id),\n  FOREIGN KEY (attempt_id) REFERENCES ai_music_provider_attempts(attempt_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_candidates_1",
+            "tbl_name": "ai_music_candidates",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_candidates_2",
+            "tbl_name": "ai_music_candidates",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_candidates_job",
+            "tbl_name": "ai_music_candidates",
+            "sql": "CREATE INDEX idx_ai_music_candidates_job\n  ON ai_music_candidates(job_id, created_at, candidate_id)"
+          },
+          {
+            "type": "table",
+            "name": "ai_music_job_events",
+            "tbl_name": "ai_music_job_events",
+            "sql": "CREATE TABLE ai_music_job_events (\n  event_id TEXT PRIMARY KEY,\n  job_id TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  status TEXT NOT NULL,\n  provider_code TEXT,\n  detail_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  FOREIGN KEY (job_id) REFERENCES ai_music_jobs(job_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_ai_music_job_events_1",
+            "tbl_name": "ai_music_job_events",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_job_events_job",
+            "tbl_name": "ai_music_job_events",
+            "sql": "CREATE INDEX idx_ai_music_job_events_job\n  ON ai_music_job_events(job_id, created_at, event_id)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_users",
+            "tbl_name": "music_mv_users",
+            "sql": "CREATE TABLE music_mv_users (\n  user_id TEXT PRIMARY KEY,\n  display_name TEXT NOT NULL,\n  handle TEXT NOT NULL,\n  avatar_url TEXT,\n  email TEXT,\n  locale TEXT NOT NULL DEFAULT 'en',\n  status TEXT NOT NULL DEFAULT 'active',\n  last_login_at TEXT NOT NULL,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  deleted_at TEXT\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_users_1",
+            "tbl_name": "music_mv_users",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "uk_music_mv_users_handle",
+            "tbl_name": "music_mv_users",
+            "sql": "CREATE UNIQUE INDEX uk_music_mv_users_handle\n  ON music_mv_users(handle)"
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_users_email",
+            "tbl_name": "music_mv_users",
+            "sql": "CREATE INDEX idx_music_mv_users_email\n  ON music_mv_users(email)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_user_identities",
+            "tbl_name": "music_mv_user_identities",
+            "sql": "CREATE TABLE music_mv_user_identities (\n  identity_id TEXT PRIMARY KEY,\n  user_id TEXT NOT NULL,\n  provider TEXT NOT NULL,\n  provider_subject TEXT NOT NULL,\n  provider_email TEXT,\n  email_verified INTEGER NOT NULL DEFAULT 0,\n  provider_display_name TEXT,\n  provider_avatar_url TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  last_login_at TEXT NOT NULL,\n  UNIQUE (provider, provider_subject),\n  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_user_identities_1",
+            "tbl_name": "music_mv_user_identities",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_user_identities_2",
+            "tbl_name": "music_mv_user_identities",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_identities_user",
+            "tbl_name": "music_mv_user_identities",
+            "sql": "CREATE INDEX idx_music_mv_user_identities_user\n  ON music_mv_user_identities(user_id, provider)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_user_sessions",
+            "tbl_name": "music_mv_user_sessions",
+            "sql": "CREATE TABLE music_mv_user_sessions (\n  session_id TEXT PRIMARY KEY,\n  user_id TEXT NOT NULL,\n  token_sha256 TEXT NOT NULL,\n  expires_at TEXT NOT NULL,\n  last_seen_at TEXT NOT NULL,\n  created_at TEXT NOT NULL,\n  revoked_at TEXT,\n  UNIQUE (token_sha256),\n  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_user_sessions_1",
+            "tbl_name": "music_mv_user_sessions",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_user_sessions_2",
+            "tbl_name": "music_mv_user_sessions",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_sessions_user",
+            "tbl_name": "music_mv_user_sessions",
+            "sql": "CREATE INDEX idx_music_mv_user_sessions_user\n  ON music_mv_user_sessions(user_id, expires_at)"
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_sessions_token",
+            "tbl_name": "music_mv_user_sessions",
+            "sql": "CREATE INDEX idx_music_mv_user_sessions_token\n  ON music_mv_user_sessions(token_sha256, expires_at, revoked_at)"
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_library",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE INDEX idx_ai_music_jobs_library\n  ON ai_music_jobs(client_id, status, job_id)"
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_user",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE INDEX idx_ai_music_jobs_user\n  ON ai_music_jobs(user_id, created_at DESC)"
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_user_request",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE UNIQUE INDEX idx_ai_music_jobs_user_request\n  ON ai_music_jobs(user_id, request_id) WHERE user_id IS NOT NULL"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_user_assets",
+            "tbl_name": "music_mv_user_assets",
+            "sql": "CREATE TABLE music_mv_user_assets (\n  asset_id TEXT PRIMARY KEY,\n  user_id TEXT NOT NULL,\n  project_id TEXT,\n  kind TEXT NOT NULL,\n  storage TEXT NOT NULL,\n  asset_url TEXT NOT NULL,\n  file_name TEXT NOT NULL,\n  content_type TEXT NOT NULL,\n  size_bytes INTEGER NOT NULL,\n  sha256 TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'active',\n  expires_at TEXT NOT NULL,\n  last_used_at TEXT NOT NULL,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  deleted_at TEXT,\n  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_user_assets_1",
+            "tbl_name": "music_mv_user_assets",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_assets_library",
+            "tbl_name": "music_mv_user_assets",
+            "sql": "CREATE INDEX idx_music_mv_user_assets_library\n  ON music_mv_user_assets(user_id, kind, status, created_at DESC)"
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_assets_project",
+            "tbl_name": "music_mv_user_assets",
+            "sql": "CREATE INDEX idx_music_mv_user_assets_project\n  ON music_mv_user_assets(user_id, project_id, status, created_at DESC)"
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_user_assets_hash",
+            "tbl_name": "music_mv_user_assets",
+            "sql": "CREATE INDEX idx_music_mv_user_assets_hash\n  ON music_mv_user_assets(user_id, kind, sha256, status)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_projects",
+            "tbl_name": "music_mv_projects",
+            "sql": "CREATE TABLE music_mv_projects (\n  project_id TEXT PRIMARY KEY,\n  user_id TEXT NOT NULL,\n  name TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'draft',\n  current_step TEXT NOT NULL DEFAULT 'song',\n  song_candidate_id TEXT,\n  template_id TEXT,\n  template_version_id TEXT,\n  draft_json TEXT NOT NULL DEFAULT '{}',\n  revision INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  submitted_at TEXT,\n  deleted_at TEXT,\n  FOREIGN KEY (user_id) REFERENCES music_mv_users(user_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_projects_1",
+            "tbl_name": "music_mv_projects",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_projects_user",
+            "tbl_name": "music_mv_projects",
+            "sql": "CREATE INDEX idx_music_mv_projects_user\n  ON music_mv_projects(user_id, status, updated_at DESC)"
+          },
+          {
+            "type": "table",
+            "name": "music_mv_project_assets",
+            "tbl_name": "music_mv_project_assets",
+            "sql": "CREATE TABLE music_mv_project_assets (\n  project_id TEXT NOT NULL,\n  asset_id TEXT NOT NULL,\n  slot_key TEXT NOT NULL,\n  timeline_order INTEGER NOT NULL,\n  crop_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  PRIMARY KEY (project_id, slot_key),\n  FOREIGN KEY (project_id) REFERENCES music_mv_projects(project_id),\n  FOREIGN KEY (asset_id) REFERENCES music_mv_user_assets(asset_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_project_assets_1",
+            "tbl_name": "music_mv_project_assets",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_project_assets_asset",
+            "tbl_name": "music_mv_project_assets",
+            "sql": "CREATE INDEX idx_music_mv_project_assets_asset\n  ON music_mv_project_assets(asset_id, project_id)"
+          },
+          {
+            "type": "table",
+            "name": "template_browser_scenes",
+            "tbl_name": "template_browser_scenes",
+            "sql": "CREATE TABLE template_browser_scenes (\n  version_id TEXT PRIMARY KEY,\n  template_id TEXT NOT NULL,\n  schema_version TEXT NOT NULL,\n  manifest_sha256 TEXT NOT NULL,\n  status TEXT NOT NULL,\n  scene_json TEXT NOT NULL,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_browser_scenes_1",
+            "tbl_name": "template_browser_scenes",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_browser_scenes_ready",
+            "tbl_name": "template_browser_scenes",
+            "sql": "CREATE INDEX idx_template_browser_scenes_ready\n  ON template_browser_scenes(template_id, status, updated_at)"
+          },
+          {
+            "type": "index",
+            "name": "uk_templates_capcut_template_id",
+            "tbl_name": "templates",
+            "sql": "CREATE UNIQUE INDEX uk_templates_capcut_template_id\n  ON templates(capcut_template_id) WHERE capcut_template_id IS NOT NULL"
+          },
+          {
+            "type": "index",
+            "name": "idx_template_categories_tree",
+            "tbl_name": "template_categories",
+            "sql": "CREATE INDEX idx_template_categories_tree\n  ON template_categories(parent_key, enabled, sort_order)"
+          },
+          {
+            "type": "table",
+            "name": "template_collections",
+            "tbl_name": "template_collections",
+            "sql": "CREATE TABLE template_collections (\n  collection_key TEXT PRIMARY KEY,\n  slug TEXT NOT NULL UNIQUE,\n  parent_category_key TEXT NOT NULL,\n  keyword TEXT NOT NULL,\n  name_zh TEXT NOT NULL,\n  name_en TEXT NOT NULL,\n  description_zh TEXT NOT NULL DEFAULT '',\n  description_en TEXT NOT NULL DEFAULT '',\n  seo_title TEXT,\n  seo_description TEXT,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  enabled INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  FOREIGN KEY (parent_category_key) REFERENCES template_categories(category_key)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_collections_1",
+            "tbl_name": "template_collections",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_collections_2",
+            "tbl_name": "template_collections",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_collections_catalog",
+            "tbl_name": "template_collections",
+            "sql": "CREATE INDEX idx_template_collections_catalog\n  ON template_collections(parent_category_key, enabled, sort_order)"
+          },
+          {
+            "type": "table",
+            "name": "template_collection_items",
+            "tbl_name": "template_collection_items",
+            "sql": "CREATE TABLE template_collection_items (\n  collection_key TEXT NOT NULL,\n  template_id TEXT NOT NULL,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  source TEXT NOT NULL DEFAULT 'manual',\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  PRIMARY KEY (collection_key, template_id),\n  FOREIGN KEY (collection_key) REFERENCES template_collections(collection_key),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_collection_items_1",
+            "tbl_name": "template_collection_items",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_collection_items_template",
+            "tbl_name": "template_collection_items",
+            "sql": "CREATE INDEX idx_template_collection_items_template\n  ON template_collection_items(template_id, collection_key)"
+          },
+          {
+            "type": "table",
+            "name": "template_collection_relations",
+            "tbl_name": "template_collection_relations",
+            "sql": "CREATE TABLE template_collection_relations (\n  collection_key TEXT NOT NULL,\n  related_collection_key TEXT NOT NULL,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  PRIMARY KEY (collection_key, related_collection_key),\n  FOREIGN KEY (collection_key) REFERENCES template_collections(collection_key),\n  FOREIGN KEY (related_collection_key) REFERENCES template_collections(collection_key)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_collection_relations_1",
+            "tbl_name": "template_collection_relations",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_source_metadata",
+            "tbl_name": "template_source_metadata",
+            "sql": "CREATE TABLE template_source_metadata (\n  template_id TEXT PRIMARY KEY,\n  source_title TEXT NOT NULL DEFAULT '',\n  source_description TEXT NOT NULL DEFAULT '',\n  source_category TEXT NOT NULL DEFAULT '',\n  source_search_keyword TEXT NOT NULL DEFAULT '',\n  source_hashtags_json TEXT NOT NULL DEFAULT '[]',\n  source_url TEXT NOT NULL DEFAULT '',\n  classifier_version TEXT NOT NULL DEFAULT 'source-rules-v1',\n  classification_locked INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  FOREIGN KEY (template_id) REFERENCES templates(template_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_source_metadata_1",
+            "tbl_name": "template_source_metadata",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_category_items",
+            "tbl_name": "template_category_items",
+            "sql": "CREATE TABLE template_category_items (\n  template_id TEXT NOT NULL,\n  category_key TEXT NOT NULL,\n  is_primary INTEGER NOT NULL DEFAULT 0,\n  source TEXT NOT NULL DEFAULT 'automatic',\n  confidence REAL NOT NULL DEFAULT 0,\n  evidence_json TEXT NOT NULL DEFAULT '[]',\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  PRIMARY KEY (template_id, category_key),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (category_key) REFERENCES template_categories(category_key)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_category_items_1",
+            "tbl_name": "template_category_items",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_category_items_catalog",
+            "tbl_name": "template_category_items",
+            "sql": "CREATE INDEX idx_template_category_items_catalog\n  ON template_category_items(category_key, is_primary, confidence, template_id)"
+          },
+          {
+            "type": "table",
+            "name": "template_browser_parity_validations",
+            "tbl_name": "template_browser_parity_validations",
+            "sql": "CREATE TABLE template_browser_parity_validations (\n  validation_id TEXT PRIMARY KEY,\n  template_id TEXT NOT NULL,\n  version_id TEXT NOT NULL,\n  scene_manifest_sha256 TEXT NOT NULL,\n  reference_sha256 TEXT NOT NULL,\n  renderer_version TEXT NOT NULL,\n  status TEXT NOT NULL,\n  sample_count INTEGER,\n  ssim_threshold REAL,\n  mae_threshold REAL,\n  average_ssim REAL,\n  min_ssim REAL,\n  average_mae REAL,\n  max_mae REAL,\n  reference_duration_seconds REAL,\n  output_duration_seconds REAL,\n  output_sha256 TEXT,\n  report_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  completed_at TEXT,\n  UNIQUE (version_id, scene_manifest_sha256, reference_sha256, renderer_version),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_browser_parity_validations_1",
+            "tbl_name": "template_browser_parity_validations",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_browser_parity_validations_2",
+            "tbl_name": "template_browser_parity_validations",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_browser_parity_gate",
+            "tbl_name": "template_browser_parity_validations",
+            "sql": "CREATE INDEX idx_template_browser_parity_gate\n  ON template_browser_parity_validations(version_id, status, updated_at)"
+          },
+          {
+            "type": "table",
+            "name": "template_runtime_packages",
+            "tbl_name": "template_runtime_packages",
+            "sql": "CREATE TABLE template_runtime_packages (\n  version_id TEXT PRIMARY KEY,\n  template_id TEXT NOT NULL,\n  object_key TEXT NOT NULL,\n  source_sha256 TEXT NOT NULL,\n  source_size_bytes INTEGER NOT NULL,\n  content_type TEXT NOT NULL,\n  status TEXT NOT NULL,\n  error_message TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  ready_at TEXT,\n  UNIQUE (object_key),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_runtime_packages_1",
+            "tbl_name": "template_runtime_packages",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_runtime_packages_2",
+            "tbl_name": "template_runtime_packages",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_runtime_packages_ready",
+            "tbl_name": "template_runtime_packages",
+            "sql": "CREATE INDEX idx_template_runtime_packages_ready\n  ON template_runtime_packages(template_id, status, updated_at)"
+          },
+          {
+            "type": "table",
+            "name": "template_resource_assets",
+            "tbl_name": "template_resource_assets",
+            "sql": "CREATE TABLE template_resource_assets (\n  resource_id TEXT NOT NULL,\n  source_sha256 TEXT NOT NULL,\n  object_key TEXT NOT NULL,\n  source_size_bytes INTEGER NOT NULL,\n  content_type TEXT NOT NULL,\n  status TEXT NOT NULL,\n  error_message TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  ready_at TEXT,\n  PRIMARY KEY (resource_id, source_sha256),\n  UNIQUE (object_key)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_resource_assets_1",
+            "tbl_name": "template_resource_assets",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_resource_assets_2",
+            "tbl_name": "template_resource_assets",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_resource_assets_ready",
+            "tbl_name": "template_resource_assets",
+            "sql": "CREATE INDEX idx_template_resource_assets_ready\n  ON template_resource_assets(resource_id, status, updated_at)"
+          },
+          {
+            "type": "table",
+            "name": "template_version_resource_refs",
+            "tbl_name": "template_version_resource_refs",
+            "sql": "CREATE TABLE template_version_resource_refs (\n  version_id TEXT NOT NULL,\n  template_id TEXT NOT NULL,\n  resource_id TEXT NOT NULL,\n  source_sha256 TEXT NOT NULL,\n  panel TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  PRIMARY KEY (version_id, resource_id),\n  FOREIGN KEY (template_id) REFERENCES templates(template_id),\n  FOREIGN KEY (version_id) REFERENCES template_versions(version_id),\n  FOREIGN KEY (resource_id, source_sha256)\n    REFERENCES template_resource_assets(resource_id, source_sha256)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_version_resource_refs_1",
+            "tbl_name": "template_version_resource_refs",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_version_resource_refs_asset",
+            "tbl_name": "template_version_resource_refs",
+            "sql": "CREATE INDEX idx_template_version_resource_refs_asset\n  ON template_version_resource_refs(resource_id, source_sha256)"
+          },
+          {
+            "type": "table",
+            "name": "template_media_cleanup",
+            "tbl_name": "template_media_cleanup",
+            "sql": "CREATE TABLE template_media_cleanup (provider TEXT NOT NULL,provider_asset_id TEXT NOT NULL,template_id TEXT NOT NULL,version_id TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,next_attempt_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,attempts INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(provider,provider_asset_id))"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_media_cleanup_1",
+            "tbl_name": "template_media_cleanup",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_taxonomy_history",
+            "tbl_name": "template_taxonomy_history",
+            "sql": "CREATE TABLE template_taxonomy_history (template_id TEXT PRIMARY KEY, old_category_key TEXT NOT NULL, assignments_json TEXT NOT NULL, captured_at TEXT NOT NULL)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_taxonomy_history_1",
+            "tbl_name": "template_taxonomy_history",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_ai_music_jobs_user_library",
+            "tbl_name": "ai_music_jobs",
+            "sql": "CREATE INDEX idx_ai_music_jobs_user_library ON ai_music_jobs(user_id,status,job_id)"
+          },
+          {
+            "type": "table",
+            "name": "template_tags",
+            "tbl_name": "template_tags",
+            "sql": "CREATE TABLE template_tags (tag_key TEXT PRIMARY KEY,name_zh TEXT NOT NULL UNIQUE,name_en TEXT NOT NULL COLLATE NOCASE UNIQUE,sort_order INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tags_1",
+            "tbl_name": "template_tags",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tags_2",
+            "tbl_name": "template_tags",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tags_3",
+            "tbl_name": "template_tags",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_tag_items",
+            "tbl_name": "template_tag_items",
+            "sql": "CREATE TABLE template_tag_items (template_id TEXT NOT NULL REFERENCES templates(template_id) ON DELETE CASCADE,tag_key TEXT NOT NULL REFERENCES template_tags(tag_key),PRIMARY KEY(template_id,tag_key))"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tag_items_1",
+            "tbl_name": "template_tag_items",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_template_tag_items_tag",
+            "tbl_name": "template_tag_items",
+            "sql": "CREATE INDEX idx_template_tag_items_tag ON template_tag_items(tag_key,template_id)"
+          },
+          {
+            "type": "table",
+            "name": "template_tag_migrations",
+            "tbl_name": "template_tag_migrations",
+            "sql": "CREATE TABLE template_tag_migrations (migration_key TEXT PRIMARY KEY,applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tag_migrations_1",
+            "tbl_name": "template_tag_migrations",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "template_tag_translations",
+            "tbl_name": "template_tag_translations",
+            "sql": "CREATE TABLE template_tag_translations (tag_key TEXT NOT NULL REFERENCES template_tags(tag_key) ON DELETE CASCADE,locale TEXT NOT NULL,name TEXT NOT NULL,PRIMARY KEY(tag_key,locale),UNIQUE(locale,name COLLATE NOCASE))"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tag_translations_1",
+            "tbl_name": "template_tag_translations",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_template_tag_translations_2",
+            "tbl_name": "template_tag_translations",
+            "sql": null
+          },
+          {
+            "type": "table",
+            "name": "music_mv_lyrics_drafts",
+            "tbl_name": "music_mv_lyrics_drafts",
+            "sql": "CREATE TABLE music_mv_lyrics_drafts (\n user_id TEXT NOT NULL,\n draft_id TEXT NOT NULL,\n document_json TEXT NOT NULL,\n revision INTEGER NOT NULL,\n write_marker TEXT NOT NULL,\n created_at TEXT NOT NULL,\n updated_at TEXT NOT NULL,\n PRIMARY KEY(user_id,draft_id)\n)"
+          },
+          {
+            "type": "index",
+            "name": "sqlite_autoindex_music_mv_lyrics_drafts_1",
+            "tbl_name": "music_mv_lyrics_drafts",
+            "sql": null
+          },
+          {
+            "type": "index",
+            "name": "idx_music_mv_lyrics_drafts_owner",
+            "tbl_name": "music_mv_lyrics_drafts",
+            "sql": "CREATE INDEX idx_music_mv_lyrics_drafts_owner ON music_mv_lyrics_drafts(user_id,updated_at DESC)"
+          }
+        ],
+        "success": true,
+        "meta": {
+          "served_by": "v3-prod",
+          "served_by_region": "WNAM",
+          "served_by_colo": "SEA",
+          "served_by_primary": true,
+          "timings": {
+            "sql_duration_ms": 1.3021
+          },
+          "duration": 1.3021,
+          "changes": 0,
+          "last_row_id": 200,
+          "changed_db": false,
+          "size_after": 46112768,
+          "rows_read": 166,
+          "rows_written": 0,
+          "total_attempts": 1
+        }
+      }
+    ]
+  },
+  "plans": [
+    {
+      "name": "projects_list",
+      "sql": "SELECT project_id,draft_json FROM music_mv_projects WHERE user_id=? AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 100",
+      "elapsed_ms": 922.9,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 5,
+              "parent": 0,
+              "notused": 62,
+              "detail": "SEARCH music_mv_projects USING INDEX idx_music_mv_projects_user (user_id=?)"
+            },
+            {
+              "id": 25,
+              "parent": 0,
+              "notused": 0,
+              "detail": "USE TEMP B-TREE FOR ORDER BY"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.3689
+            },
+            "duration": 0.3689,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "assets_recent",
+      "sql": "SELECT asset_id FROM music_mv_user_assets WHERE user_id=? AND kind='image' AND status='active' AND deleted_at IS NULL AND datetime(expires_at)>CURRENT_TIMESTAMP ORDER BY last_used_at DESC,created_at DESC LIMIT 40",
+      "elapsed_ms": 648.5,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 5,
+              "parent": 0,
+              "notused": 60,
+              "detail": "SEARCH music_mv_user_assets USING INDEX idx_music_mv_user_assets_library (user_id=? AND kind=? AND status=?)"
+            },
+            {
+              "id": 32,
+              "parent": 0,
+              "notused": 0,
+              "detail": "USE TEMP B-TREE FOR ORDER BY"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.3959
+            },
+            "duration": 0.3959,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_library",
+      "sql": "SELECT job_id FROM music_mv_render_jobs WHERE client_id=? AND status='completed' AND output_storage_key IS NOT NULL ORDER BY created_at DESC,job_id DESC LIMIT 21 OFFSET 0",
+      "elapsed_ms": 837.2,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 8,
+              "parent": 0,
+              "notused": 61,
+              "detail": "SEARCH music_mv_render_jobs USING INDEX sqlite_autoindex_music_mv_render_jobs_2 (client_id=?)"
+            },
+            {
+              "id": 29,
+              "parent": 0,
+              "notused": 0,
+              "detail": "USE TEMP B-TREE FOR ORDER BY"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.3805
+            },
+            "duration": 0.3805,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "lyrics_list",
+      "sql": "SELECT draft_id,document_json FROM music_mv_lyrics_drafts WHERE user_id=? ORDER BY updated_at DESC LIMIT 50",
+      "elapsed_ms": 1166.8,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 5,
+              "parent": 0,
+              "notused": 62,
+              "detail": "SEARCH music_mv_lyrics_drafts USING INDEX idx_music_mv_lyrics_drafts_owner (user_id=?)"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.332
+            },
+            "duration": 0.332,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "voices_list",
+      "error": "HTTPError"
+    },
+    {
+      "name": "song_library_base",
+      "sql": "SELECT c.candidate_id FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id WHERE j.user_id=? AND j.status='completed' ORDER BY c.created_at DESC,c.candidate_id DESC LIMIT 21",
+      "elapsed_ms": 623.3,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 5,
+              "parent": 0,
+              "notused": 53,
+              "detail": "SEARCH j USING COVERING INDEX idx_ai_music_jobs_user_library (user_id=? AND status=?)"
+            },
+            {
+              "id": 12,
+              "parent": 0,
+              "notused": 54,
+              "detail": "SEARCH c USING COVERING INDEX idx_ai_music_candidates_job (job_id=?)"
+            },
+            {
+              "id": 28,
+              "parent": 0,
+              "notused": 0,
+              "detail": "USE TEMP B-TREE FOR ORDER BY"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.5448
+            },
+            "duration": 0.5448,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "project_detail",
+      "sql": "SELECT project_id FROM music_mv_projects WHERE user_id=? AND project_id='audit-nonexistent' AND deleted_at IS NULL LIMIT 1",
+      "elapsed_ms": 771.2,
+      "result": [
+        {
+          "results": [
+            {
+              "id": 4,
+              "parent": 0,
+              "notused": 39,
+              "detail": "SEARCH music_mv_projects USING INDEX sqlite_autoindex_music_mv_projects_1 (project_id=?)"
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.3188
+            },
+            "duration": 0.3188,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    }
+  ],
+  "counts": [
+    {
+      "table": "templates",
+      "elapsed_ms": 780.3,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 125
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.6043
+            },
+            "duration": 0.6043,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 125,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "template_versions",
+      "elapsed_ms": 796.5,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 133
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.618
+            },
+            "duration": 0.618,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 133,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "music_mv_projects",
+      "elapsed_ms": 1895.4,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 158
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.4315
+            },
+            "duration": 0.4315,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 158,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "music_mv_user_assets",
+      "elapsed_ms": 865.9,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 17
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.4322
+            },
+            "duration": 0.4322,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 17,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "ai_music_jobs",
+      "elapsed_ms": 805.7,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 12
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.699
+            },
+            "duration": 0.699,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 12,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "ai_music_candidates",
+      "elapsed_ms": 738.8,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 22
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.464
+            },
+            "duration": 0.464,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 22,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "music_mv_render_jobs",
+      "elapsed_ms": 1367.8,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 67
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.6501
+            },
+            "duration": 0.6501,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 67,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "table": "music_mv_lyrics_drafts",
+      "elapsed_ms": 1243.4,
+      "result": [
+        {
+          "results": [
+            {
+              "total": 2
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.4636
+            },
+            "duration": 0.4636,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 2,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    }
+  ],
+  "extra": [
+    {
+      "probe": "d1_select1",
+      "elapsed_ms": 1337.5,
+      "result": [
+        {
+          "results": [
+            {
+              "ok": 1
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.2244
+            },
+            "duration": 0.2244,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "probe": "d1_select1",
+      "elapsed_ms": 1178.1,
+      "result": [
+        {
+          "results": [
+            {
+              "ok": 1
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.2366
+            },
+            "duration": 0.2366,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "probe": "d1_select1",
+      "elapsed_ms": 833.6,
+      "result": [
+        {
+          "results": [
+            {
+              "ok": 1
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.2198
+            },
+            "duration": 0.2198,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 0,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "probe": "json_sizes",
+      "elapsed_ms": 1200.6,
+      "result": [
+        {
+          "results": [
+            {
+              "kind": "project",
+              "count": 158,
+              "max_chars": 1361,
+              "avg_chars": 377.5
+            },
+            {
+              "kind": "lyrics",
+              "count": 2,
+              "max_chars": 6996,
+              "avg_chars": 3617.5
+            },
+            {
+              "kind": "scene",
+              "count": 133,
+              "max_chars": 3565886,
+              "avg_chars": 289047.27819548873
+            }
+          ],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 165.0752
+            },
+            "duration": 165.0752,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 293,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "probe": "voice_schema",
+      "elapsed_ms": 924.0,
+      "result": [
+        {
+          "results": [],
+          "success": true,
+          "meta": {
+            "served_by": "v3-prod",
+            "served_by_region": "WNAM",
+            "served_by_colo": "SEA",
+            "served_by_primary": true,
+            "timings": {
+              "sql_duration_ms": 0.4433
+            },
+            "duration": 0.4433,
+            "changes": 0,
+            "last_row_id": 200,
+            "changed_db": false,
+            "size_after": 46112768,
+            "rows_read": 166,
+            "rows_written": 0,
+            "total_attempts": 1
+          }
+        }
+      ]
+    }
+  ]
+}
