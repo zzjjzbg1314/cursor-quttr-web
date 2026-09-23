@@ -579,6 +579,31 @@ class MusicMvTemplateCatalogServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void nativePhotoAnimationRequiresDeliveredBindingAndOriginalTiming() {
+        Map<String, Object> animation = row("preset", "native_resource_animation");
+        animation.put("durationSeconds", 0.0); animation.put("fidelity", "exact");
+        animation.put("category", "group"); animation.put("resourceId", "effect");
+        animation.put("rawAnimationTiming", featuredRow("startUs", "0", "durationUs", "0"));
+        Map<String, Object> layer = featuredRow("type", "photo", "animations", Collections.singletonList(animation));
+        Map<String, Object> descriptor = BrowserNativeRuntimeContractTest.descriptor();
+        ((List<Map<String,Object>>) descriptor.get("bindings")).get(0).put("kind", "animation");
+        Map<String, Object> delivery = featuredRow("nativeEngine", descriptor, "resources", Collections.singletonList(row("resourceId", "effect")));
+        Map<String, Object> scene = featuredRow("layers", Collections.singletonList(layer), "runtimeDelivery", delivery);
+        Set<String> resources = org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "validatedNativeAnimationResources", scene);
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer, resources);
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer));
+        animation.remove("rawAnimationTiming");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer, resources));
+        animation.put("rawAnimationTiming", featuredRow("startUs", "-1", "durationUs", "0"));
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer, resources));
+        animation.put("rawAnimationTiming", featuredRow("startUs", "0", "durationUs", "0")); layer.put("type", "text");
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireValidBrowserLayerAnimations", layer, resources));
+        delivery.put("resources", Collections.emptyList());
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "validatedNativeAnimationResources", scene));
+    }
+
+    @Test
     void acceptsAllCompiledTextAnimationsAndRejectsMissingDurationOrContract() {
         for (String preset : Arrays.asList("quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                 "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation", "directional_blur_fade_animation")) {

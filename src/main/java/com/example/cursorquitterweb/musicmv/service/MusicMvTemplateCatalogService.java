@@ -855,6 +855,7 @@ public class MusicMvTemplateCatalogService {
                 }
             }
         }
+        Set<String> nativeAnimationResources = validatedNativeAnimationResources(scene);
         Set<String> layerIds = new HashSet<String>();
         for (Object rawLayer : (List<?>) rawLayers) {
             if (!(rawLayer instanceof Map)) {
@@ -893,7 +894,7 @@ public class MusicMvTemplateCatalogService {
                 requireValidBrowserTextFonts(layer, resourceKinds);
                 requireValidBrowserTextLayerFidelity(layer);
             }
-            requireValidBrowserLayerAnimations(layer);
+            requireValidBrowserLayerAnimations(layer, nativeAnimationResources);
             requireValidBrowserLayerTransition(layer);
             requireValidBrowserLayerEffects(layer);
             requireValidBrowserLayerMask(layer);
@@ -1026,7 +1027,38 @@ public class MusicMvTemplateCatalogService {
         return Double.isFinite(number) && (positive ? number > 0.0d : number >= 0.0d);
     }
 
+    @SuppressWarnings("unchecked")
+    private Set<String> validatedNativeAnimationResources(Map<String, Object> scene) {
+        boolean required = false;
+        for (Object raw : (List<?>) scene.get("layers")) {
+            if (!(raw instanceof Map)) continue;
+            Object animations = ((Map<?, ?>) raw).get("animations");
+            if (animations instanceof List) for (Object animation : (List<?>) animations) {
+                if (animation instanceof Map && "native_resource_animation".equals(((Map<?, ?>) animation).get("preset"))) required = true;
+            }
+        }
+        if (!required) return Collections.emptySet();
+        Object rawDelivery = scene.get("runtimeDelivery");
+        if (!(rawDelivery instanceof Map)) throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID", "原生动画缺少最小运行依赖");
+        Map<?, ?> delivery = (Map<?, ?>) rawDelivery;
+        Set<String> delivered = new HashSet<>();
+        if (delivery.get("resources") instanceof List) for (Object raw : (List<?>) delivery.get("resources")) {
+            if (raw instanceof Map && ((Map<?, ?>) raw).get("resourceId") instanceof String) delivered.add((String) ((Map<?, ?>) raw).get("resourceId"));
+        }
+        Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(delivery.get("nativeEngine"), delivered, scene);
+        Set<String> result = new HashSet<>();
+        for (Object raw : (List<?>) descriptor.get("bindings")) {
+            Map<?, ?> binding = (Map<?, ?>) raw;
+            if ("animation".equals(binding.get("kind"))) result.add((String) binding.get("resourceId"));
+        }
+        return result;
+    }
+
     private void requireValidBrowserLayerAnimations(Map<String, Object> layer) {
+        requireValidBrowserLayerAnimations(layer, Collections.emptySet());
+    }
+
+    private void requireValidBrowserLayerAnimations(Map<String, Object> layer, Set<String> nativeResources) {
         Object rawAnimations = layer.get("animations");
         if (rawAnimations == null) return;
         if (!(rawAnimations instanceof List)) {
@@ -1034,7 +1066,7 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene animations must be a list");
         }
         Set<String> allowed = new HashSet<String>(java.util.Arrays.asList(
-                "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation",
+                "noop", "fade_in", "fade_out", "text_reveal", "lumi_video_animation", "native_resource_animation",
                 "glyph_texture_shuffle_animation",
                 "quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                 "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
@@ -1048,6 +1080,20 @@ public class MusicMvTemplateCatalogService {
                     "TEMPLATE_BROWSER_SCENE_ANIMATION_INVALID", true);
             Map<?, ?> animation = (Map<?, ?>) raw;
             String preset = String.valueOf(animation.get("preset"));
+            if ("native_resource_animation".equals(preset)) {
+                // 与原生照片执行器一致，保留零时长动画，但必须有原始时钟和已交付的动画依赖。
+                Object rawTiming = animation.get("rawAnimationTiming");
+                Map<?, ?> timing = rawTiming instanceof Map ? (Map<?, ?>) rawTiming : Collections.emptyMap();
+                if (!Arrays.asList("photo", "static_image").contains(layer.get("type"))
+                        || !"exact".equals(animation.get("fidelity"))
+                        || !nativeResources.contains(animation.get("resourceId"))
+                        || !Arrays.asList("in", "out", "group").contains(animation.get("category"))
+                        || !(timing.get("startUs") instanceof String) || !(timing.get("durationUs") instanceof String)
+                        || !((String) timing.get("startUs")).matches("0|[1-9][0-9]*")
+                        || !((String) timing.get("durationUs")).matches("0|[1-9][0-9]*")) {
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID", "原生动画缺少照片归属、原始时钟或动画资源绑定");
+                }
+            }
             if (java.util.Arrays.asList("quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
                     "staggered_glyph_pulse_animation", "staggered_glyph_bounce_animation",
                     "directional_blur_fade_animation").contains(preset)
