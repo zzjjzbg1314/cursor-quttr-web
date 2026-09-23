@@ -11,13 +11,19 @@ final class CloudflareRestTemplateFactory {
     }
 
     static RestTemplate create() {
+        return create(15000, 120000);
+    }
+
+    static RestTemplate create(int connectTimeoutMs, int readTimeoutMs) {
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(15000)
-                .setConnectionRequestTimeout(15000)
-                .setSocketTimeout(120000)
+                .setConnectTimeout(connectTimeoutMs)
+                .setConnectionRequestTimeout(connectTimeoutMs)
+                .setSocketTimeout(readTimeoutMs)
                 .build();
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultRequestConfig(requestConfig)
+                .setMaxConnTotal(40)
+                .setMaxConnPerRoute(20)
                 .disableAutomaticRetries()
                 .disableCookieManagement()
                 .build();

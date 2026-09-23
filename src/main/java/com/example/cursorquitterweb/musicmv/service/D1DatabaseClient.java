@@ -43,9 +43,15 @@ public class D1DatabaseClient {
     @Value("${music-mv.d1.api-token:}")
     private String apiToken;
 
-    @Autowired
     public D1DatabaseClient(ObjectMapper objectMapper) {
-        this(objectMapper, CloudflareRestTemplateFactory.create());
+        this(objectMapper, 3000, 10000);
+    }
+
+    @Autowired
+    public D1DatabaseClient(ObjectMapper objectMapper,
+            @Value("${music-mv.d1.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${music-mv.d1.read-timeout-ms:10000}") int readTimeoutMs) {
+        this(objectMapper, CloudflareRestTemplateFactory.create(connectTimeoutMs, readTimeoutMs));
     }
 
     D1DatabaseClient(ObjectMapper objectMapper, RestTemplate restTemplate) {
@@ -116,6 +122,8 @@ public class D1DatabaseClient {
         String url = baseUrl + "/accounts/" + accountId + "/d1/database/" + databaseId + "/query";
         int attempts = retryReadTimeout ? 2 : 1;
         for (int attempt = 1; attempt <= attempts; attempt++) {
+            long started = System.nanoTime();
+            boolean success = false;
             try {
                 ResponseEntity<String> response = restTemplate.exchange(
                         url,
@@ -123,7 +131,9 @@ public class D1DatabaseClient {
                         new HttpEntity<Map<String, Object>>(body, headers),
                         String.class
                 );
-                return parse(response.getBody());
+                List<D1QueryResult> results = parse(response.getBody());
+                success = true;
+                return results;
             } catch (ResourceAccessException e) {
                 if (attempt == attempts) throw e;
             } catch (HttpStatusCodeException e) {
@@ -135,6 +145,13 @@ public class D1DatabaseClient {
                                 + "URL=" + url + ", response=" + e.getResponseBodyAsString(),
                         e
                 );
+            } finally {
+                MusicMvPerformanceFilter.recordD1(System.nanoTime() - started);
+                // 指标只用有限标签，不记录 SQL 参数、账号或访问凭据。
+                io.micrometer.core.instrument.Metrics.timer("music.mv.d1.request",
+                        "operation", body.containsKey("batch") ? "batch" : retryReadTimeout ? "read" : "write",
+                        "outcome", success ? "success" : "error")
+                        .record(System.nanoTime() - started, java.util.concurrent.TimeUnit.NANOSECONDS);
             }
         }
         throw new IllegalStateException("Cloudflare D1 request failed without a response");
@@ -182,7 +199,14 @@ public class D1DatabaseClient {
         if (lastRowIdNode.isNumber()) {
             lastRowId = lastRowIdNode.asLong();
         }
-        return new D1QueryResult(rows, lastRowId);
+        JsonNode meta = resultNode.path("meta");
+        double durationMs = meta.path("duration").asDouble(0);
+        long rowsRead = meta.path("rows_read").asLong(0);
+        long rowsWritten = meta.path("rows_written").asLong(0);
+        io.micrometer.core.instrument.Metrics.summary("music.mv.d1.sql.duration.ms").record(Math.max(0, durationMs));
+        io.micrometer.core.instrument.Metrics.summary("music.mv.d1.rows.read").record(Math.max(0, rowsRead));
+        io.micrometer.core.instrument.Metrics.summary("music.mv.d1.rows.written").record(Math.max(0, rowsWritten));
+        return new D1QueryResult(rows, lastRowId, durationMs, rowsRead, rowsWritten);
     }
 
     private void ensureConfigured() {

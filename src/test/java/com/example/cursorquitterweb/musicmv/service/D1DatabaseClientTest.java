@@ -52,6 +52,17 @@ class D1DatabaseClientTest {
     }
 
     @Test
+    void preservesExecutionStatisticsWithoutExposingQueryValuesAsMetricTags() {
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<String>("{\"success\":true,\"result\":[{\"success\":true,\"results\":[],\"meta\":{\"duration\":1.25,\"rows_read\":42,\"rows_written\":2}}]}",HttpStatus.OK));
+        D1QueryResult result=client.query("SELECT ?", "private-value");
+        assertEquals(1.25,result.getDurationMs()); assertEquals(42,result.getRowsRead()); assertEquals(2,result.getRowsWritten());
+        io.micrometer.core.instrument.Metrics.globalRegistry.getMeters().stream()
+                .filter(m -> m.getId().getName().startsWith("music.mv.d1"))
+                .forEach(m -> org.junit.jupiter.api.Assertions.assertFalse(m.getId().toString().contains("private-value")));
+    }
+
+    @Test
     void doesNotRetryMutatingQueries() {
         when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST),
                 any(HttpEntity.class), eq(String.class)))
