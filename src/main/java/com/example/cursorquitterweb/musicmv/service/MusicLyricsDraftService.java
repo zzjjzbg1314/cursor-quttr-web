@@ -19,14 +19,17 @@ public class MusicLyricsDraftService {
     private final ObjectMapper mapper;
     public MusicLyricsDraftService(D1DatabaseClient db, ObjectMapper mapper) { this.db=db; this.mapper=mapper; }
 
-    public ObjectNode list(String owner) {
+    public ObjectNode list(String owner) { return list(owner,0); }
+    public ObjectNode list(String owner,int offset) {
+        if(offset<0 || offset>100000)throw invalid();
         ArrayNode items=mapper.createArrayNode();
-        for(Map<String,Object> row:db.query("SELECT draft_id,json_remove(document_json,'$.history','$.alternatives') AS document_json,revision,updated_at FROM music_mv_lyrics_drafts WHERE user_id=? ORDER BY updated_at DESC LIMIT 50",owner).getRows()) {
-            ObjectNode item=decode(row);
-            item.remove("history"); item.remove("alternatives");
-            items.add(item);
+        for(Map<String,Object> row:db.query("SELECT draft_id,json_remove(document_json,'$.history','$.alternatives') AS document_json,revision,updated_at FROM music_mv_lyrics_drafts WHERE user_id=? ORDER BY updated_at DESC,draft_id DESC LIMIT 51 OFFSET ?",owner,offset).getRows()) {
+            ObjectNode item=decode(row); item.remove("history"); item.remove("alternatives"); items.add(item);
         }
-        return mapper.createObjectNode().set("items",items);
+        boolean more=items.size()>50;if(more)items.remove(50);
+        ObjectNode result=mapper.createObjectNode();result.set("items",items);
+        if(more)result.put("nextOffset",offset+50);
+        return result;
     }
     public ObjectNode get(String owner,String id) {
         requireId(id);

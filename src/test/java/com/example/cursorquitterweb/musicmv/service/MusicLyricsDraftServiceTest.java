@@ -53,6 +53,18 @@ class MusicLyricsDraftServiceTest {
         assertThatThrownBy(()->service.save("bob","lyric_123",oldPage)).isInstanceOf(ApiException.class);
         assertThat(service.list("bob").path("items").size()).isZero();
     }
+    @Test void listPagesAllRecordsWithoutLeakingAnotherOwner() {
+        String document=request(0,"saved","edit").path("draft").toString();
+        db.query("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<51) INSERT INTO music_mv_lyrics_drafts(user_id,draft_id,document_json,revision,write_marker,created_at,updated_at) SELECT 'alice','lyric_'||printf('%03d',x),?,1,'test','2026-01-01','2026-01-01' FROM n",document);
+        ObjectNode first=service.list("alice",0),second=service.list("alice",50);
+        assertThat(first.path("items").size()).isEqualTo(50);
+        assertThat(first.path("nextOffset").asInt()).isEqualTo(50);
+        assertThat(second.path("items").size()).isEqualTo(1);
+        assertThat(second.has("nextOffset")).isFalse();
+        assertThat(first.path("items").get(0).path("id").asText()).isEqualTo("lyric_051");
+        assertThat(second.path("items").get(0).path("id").asText()).isEqualTo("lyric_001");
+        assertThat(service.list("bob",0).path("items").size()).isZero();
+    }
     @Test void rejectsOversizeInvalidIdsAndRevision(){
         assertThatThrownBy(()->service.save("alice","../bad",request(0,"x","edit"))).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->service.save("alice","lyric_123",request(-1,"x","edit"))).isInstanceOf(ApiException.class);

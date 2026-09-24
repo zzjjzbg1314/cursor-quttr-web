@@ -15,7 +15,7 @@ public class MusicLyricsDraftController {
     private final MusicLyricsDraftService service;
     public MusicLyricsDraftController(MusicMvAuthService auth,MusicMvRenderClientAuthenticationService authentication,MusicLyricsDraftService service){this.auth=auth;this.authentication=authentication;this.service=service;}
     private String owner(String token,HttpServletRequest request){authentication.requireAuthorized(token);return auth.requireUserId(request);}
-    @GetMapping public JsonNode list(@RequestHeader(value="X-Music-Mv-Client-Token",required=false)String token,HttpServletRequest request){return service.list(owner(token,request));}
+    @GetMapping public JsonNode list(@RequestParam(defaultValue="0") int offset,@RequestHeader(value="X-Music-Mv-Client-Token",required=false)String token,HttpServletRequest request){return service.list(owner(token,request),offset);}
     @GetMapping("/{id}") public JsonNode get(@PathVariable String id,@RequestHeader(value="X-Music-Mv-Client-Token",required=false)String token,HttpServletRequest request){return service.get(owner(token,request),id);}
     @PutMapping("/{id}") public JsonNode save(@PathVariable String id,@RequestHeader(value="X-Music-Mv-Client-Token",required=false)String token,@RequestBody JsonNode body,HttpServletRequest request){return service.save(owner(token,request),id,body);}
 }
