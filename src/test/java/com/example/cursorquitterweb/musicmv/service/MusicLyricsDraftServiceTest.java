@@ -15,6 +15,20 @@ class MusicLyricsDraftServiceTest {
         ObjectNode value=mapper.createObjectNode();value.put("revision",revision);value.put("reason",reason);
         ObjectNode draft=value.putObject("draft");draft.put("title","Birthday");draft.put("text",text);draft.put("language","Chinese");return value;
     }
+    @Test void legacyStyleIsRemovedFromReadsWritesAndStoredDocuments() throws Exception {
+        ObjectNode r=request(0,"歌词原文","edit");((ObjectNode)r.path("draft")).put("style","温暖");
+        assertThat(service.save("alice","lyric_123",r).has("style")).isFalse();
+        db.query("UPDATE music_mv_lyrics_drafts SET document_json=json_set(document_json,'$.style','温暖','$.history',json(?),'$.alternatives',json(?))",
+            "[{\"title\":\"旧标题\",\"text\":\"旧正文\",\"style\":\"温暖\"}]", "[{\"title\":\"备选\",\"text\":\"备选正文\",\"style\":\"温暖\"}]");
+        JsonNode detail=service.get("alice","lyric_123");
+        assertThat(detail.has("style")).isFalse();assertThat(detail.path("history").get(0).has("style")).isFalse();
+        assertThat(service.list("alice").path("items").get(0).has("style")).isFalse();
+        String sql=new String(Files.readAllBytes(Paths.get("src/main/resources/db/migrations/music-mv-v17-remove-lyrics-style.sql")), java.nio.charset.StandardCharsets.UTF_8);
+        for(int run=0;run<2;run++)for(String statement:sql.split(";"))if(!statement.trim().isEmpty())db.query(statement);
+        String raw=String.valueOf(db.query("SELECT document_json FROM music_mv_lyrics_drafts WHERE user_id='alice'").firstRow().get("document_json"));
+        assertThat(raw).doesNotContain("style").contains("歌词原文","旧正文","备选正文");
+        assertThat(service.get("alice","lyric_123").path("revision").asInt()).isEqualTo(1);
+    }
     @Test void typingDoesNotCreateHistoryAndRewritePreservesOriginal() {
         service.save("alice","lyric_123",request(0,"one","edit"));
         service.save("alice","lyric_123",request(1,"two","edit"));

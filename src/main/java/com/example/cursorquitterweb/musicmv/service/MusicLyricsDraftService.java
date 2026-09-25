@@ -80,8 +80,8 @@ public class MusicLyricsDraftService {
     private ObjectNode validate(JsonNode value) {
         if(!value.isObject())throw invalid();
         ObjectNode result=mapper.createObjectNode();
-        String[] names={"title","text","theme","language","style","jobId"};
-        int[] limits={80,5000,200,40,1000,2048};
+        String[] names={"title","text","theme","language","jobId"};
+        int[] limits={80,5000,200,40,2048};
         for(int i=0;i<names.length;i++){
             JsonNode field=value.path(names[i]);
             if(!field.isMissingNode()&&!field.isTextual())throw invalid();
@@ -97,8 +97,13 @@ public class MusicLyricsDraftService {
     }
     private boolean sameContent(JsonNode a,JsonNode b){return a.path("title").equals(b.path("title"))&&a.path("text").equals(b.path("text"));}
     private ObjectNode decode(Map<String,Object> row){
-        try {ObjectNode doc=(ObjectNode)mapper.readTree(String.valueOf(row.get("document_json")));doc.put("id",String.valueOf(row.get("draft_id")));doc.put("revision",((Number)row.get("revision")).intValue());doc.put("updatedAt",String.valueOf(row.get("updated_at")));return doc;}
+        try {ObjectNode doc=(ObjectNode)mapper.readTree(String.valueOf(row.get("document_json")));removeStyle(doc);doc.put("id",String.valueOf(row.get("draft_id")));doc.put("revision",((Number)row.get("revision")).intValue());doc.put("updatedAt",String.valueOf(row.get("updated_at")));return doc;}
         catch(Exception e){throw new IllegalStateException("Read lyrics draft failed",e);}
+    }
+    // 兼容尚未执行数据迁移的旧记录，废弃字段不再进入接口或新快照。
+    private void removeStyle(JsonNode node) {
+        if(node.isObject())((ObjectNode)node).remove("style");
+        if(node.isContainerNode())for(JsonNode child:node)removeStyle(child);
     }
     private void requireId(String id){if(id==null||!id.matches("[A-Za-z0-9_-]{8,80}"))throw invalid();}
     private ApiException invalid(){return new ApiException(HttpStatus.BAD_REQUEST,"LYRICS_DRAFT_INVALID","Invalid lyrics draft.");}

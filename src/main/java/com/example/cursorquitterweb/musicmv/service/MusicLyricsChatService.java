@@ -41,7 +41,7 @@ public class MusicLyricsChatService {
     public ObjectNode chat(JsonNode input) {
         if(input==null||!input.isObject())throw invalid();
         String message=field(input,"message",1000,true),text=field(input,"lyrics",5000,false),title=field(input,"title",100,false);
-        String language=field(input,"language",20,true),style=field(input,"style",1000,false),locale=field(input,"locale",10,true);
+        String language=field(input,"language",20,true),locale=field(input,"locale",10,true);
         if(!Arrays.asList("English","Chinese").contains(language)||!Arrays.asList("en","zh-CN").contains(locale))throw invalid();
         JsonNode history=input.path("history");
         if(!history.isMissingNode()&&(!history.isArray()||history.size()>8))throw invalid();
@@ -55,7 +55,7 @@ public class MusicLyricsChatService {
             +"Use the selected lyric language for title and lyrics, bracketed section labels such as [Verse] and [Chorus]. "
             +"If clarification is essential return reply with one short question and keep title/lyrics unchanged. Do not invent that audio or a paid song was generated. "
             +"Do not output markdown fences. Keep the response concise enough to fit the output budget.";
-        ObjectNode context=mapper.createObjectNode();context.put("message",message);context.put("currentTitle",title);context.put("currentLyrics",text);context.put("lyricLanguage",language);context.put("musicStyle",style);context.put("uiLocale",locale);
+        ObjectNode context=mapper.createObjectNode();context.put("message",message);context.put("currentTitle",title);context.put("currentLyrics",text);context.put("lyricLanguage",language);context.put("uiLocale",locale);
         if(history.isArray())context.set("recentConversation",history);
         Map<String,Object> body=new LinkedHashMap<>();body.put("model",model);body.put("stream",false);body.put("max_tokens",6000);
         body.put("messages",Arrays.asList(message("system",system),message("user",context.toString())));
