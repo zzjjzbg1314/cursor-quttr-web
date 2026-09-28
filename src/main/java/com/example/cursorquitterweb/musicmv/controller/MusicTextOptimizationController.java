@@ -28,6 +28,6 @@ public class MusicTextOptimizationController {
     public Map<String,String> optimize(@RequestHeader(value="X-Music-Mv-Client-Token",required=false) String token,
             @RequestBody Map<String,String> body, HttpServletRequest request) {
         authentication.requireAuthorized(token); auth.requireUserId(request);
-        return Collections.singletonMap("text", service.optimize(body.get("kind"), body.get("text"), body.get("instruction")));
+        return Collections.singletonMap("text", service.optimize(body.get("kind"), body.get("text"), body.get("instruction"), body.get("lyrics"), body.get("locale")));
     }
 }
