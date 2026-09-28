@@ -29,16 +29,39 @@ class MusicTextOptimizationServiceTest {
   assertThrows(ResponseStatusException.class,()->new MusicTextOptimizationService(client,"key","https://example.com","test").optimize("lyrics","Original lyrics",""));
  }
 
- @Test void styleUsesLyricsAndInterfaceLanguageWithoutRewritingLyrics() {
+ @Test void styleUsesLyricsAsContextAndInterfaceLanguageOnlyAsFallback() {
   for (String locale : new String[]{"zh-CN", "en"}) {
    RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
    String lyrics="[Verse]\n关了灯还没睡";
    server.expect(requestTo("https://example.com"))
     .andExpect(jsonPath("$.messages[1].content").value("Requested edit: \nSource text:\nPop, 90 BPM, female vocal\nLyrics (emotional reference only; do not rewrite):\n"+lyrics))
-    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("Output language: "+("zh-CN".equals(locale) ? "Simplified Chinese" : "English"))))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("fallback language: "+("zh-CN".equals(locale) ? "Simplified Chinese" : "English"))))
     .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("Preserve every explicit musical direction")))
     .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"Gentle pop, 90 BPM, female vocal\"}}]}",MediaType.APPLICATION_JSON));
    assertEquals("Gentle pop, 90 BPM, female vocal",new MusicTextOptimizationService(client,"key","https://example.com","test").optimize("styles","Pop, 90 BPM, female vocal","",lyrics,locale));
+   server.verify();
+  }
+ }
+ @Test void styleLanguageContractCoversCrossLanguageMixedAndAmbiguousSources() {
+  String[][] cases = {
+   {"Acoustic pop, warm piano", "中文歌词", "zh-CN", "Simplified Chinese"},
+   {"温暖流行，钢琴伴奏", "English lyrics", "en", "English"},
+   {"温暖的 Pop，90 BPM，轻柔人声", "English lyrics", "en", "English"},
+   {"90 BPM", "中文歌词", "zh-CN", "Simplified Chinese"},
+   {"90 BPM", "中文歌词", "", "English"}
+  };
+  for (String[] scenario : cases) {
+   RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+   server.expect(requestTo("https://example.com"))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("original music style) only")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("follow the dominant descriptive language")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("Do not infer the output language from the lyrics")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("fallback language: "+scenario[3])))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("fallback must not override a recognizable source language")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("regardless of the source text language"))))
+    .andExpect(jsonPath("$.messages[1].content").value(org.hamcrest.Matchers.containsString("Source text:\n"+scenario[0])))
+    .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"Optimized style\"}}]}",MediaType.APPLICATION_JSON));
+   new MusicTextOptimizationService(client,"key","https://example.com","test").optimize("styles",scenario[0],"",scenario[1],scenario[2]);
    server.verify();
   }
  }
