@@ -49,4 +49,35 @@ class MusicTextOptimizationServiceTest {
   assertThrows(ResponseStatusException.class,()->service.optimize("styles","Pop","","","invalid"));
   server.verify();
  }
+
+ @Test void selectedConstraintsOverrideConflictingStyleInProviderPrompt() {
+  for (String gender : new String[]{"m", "f"}) {
+   RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+   server.expect(requestTo("https://example.com"))
+    .andExpect(jsonPath("$.messages[1].content").value(org.hamcrest.Matchers.containsString("Selected vocal gender: "+("m".equals(gender) ? "male" : "female"))))
+    .andExpect(jsonPath("$.messages[1].content").value(org.hamcrest.Matchers.containsString("Excluded styles (constraints only):\n摇滚、鼓")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("take precedence over conflicting source style")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("never add those traits or repeat the exclusion list")))
+    .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"温暖的原声流行\"}}]}",MediaType.APPLICATION_JSON));
+   assertEquals("温暖的原声流行",new MusicTextOptimizationService(client,"key","https://example.com","test")
+    .optimize("styles","摇滚，鼓，男声","", "[Verse] 想念你","zh-CN",gender,"摇滚、鼓"));
+   server.verify();
+  }
+ }
+ @Test void rejectsInvalidConstraintsBeforeProviderCall() {
+  RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+  MusicTextOptimizationService service=new MusicTextOptimizationService(client,"key","https://example.com","test");
+  assertThrows(ResponseStatusException.class,()->service.optimize("styles","Pop","","","en","other",""));
+  assertThrows(ResponseStatusException.class,()->service.optimize("styles","Pop","","","en","",new String(new char[1001])));
+  server.verify();
+ }
+ @Test void lyricOptimizationDoesNotReceiveStyleConstraints() {
+  RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+  server.expect(requestTo("https://example.com"))
+   .andExpect(jsonPath("$.messages[1].content").value("Requested edit: \nSource text:\nOriginal lyrics"))
+   .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"Revised lyrics\"}}]}",MediaType.APPLICATION_JSON));
+  assertEquals("Revised lyrics",new MusicTextOptimizationService(client,"key","https://example.com","test")
+   .optimize("lyrics","Original lyrics","","","en","f","drums"));
+  server.verify();
+ }
 }
