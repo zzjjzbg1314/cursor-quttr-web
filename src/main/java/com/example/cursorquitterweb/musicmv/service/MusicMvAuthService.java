@@ -6,6 +6,9 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -71,9 +74,11 @@ public class MusicMvAuthService {
 
         String rawSessionToken = randomToken();
         repository.createSession(id("session"), userId, sha256(rawSessionToken), sessionDays);
+        Map<String, Object> current = repository.findBySessionTokenHash(sha256(rawSessionToken));
+        if (current == null) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "Sign-in could not be confirmed. Please sign in again.");
+        }
         setSessionCookie(response, rawSessionToken, request, sessionDays * 24 * 60 * 60);
-
-        Map<String, Object> current = repository.findByIdentity(identity.getProvider(), identity.getSubject());
         return sessionView(current);
     }
 
@@ -83,6 +88,7 @@ public class MusicMvAuthService {
             Map<String, Object> response = new LinkedHashMap<String, Object>();
             response.put("authenticated", Boolean.FALSE);
             response.put("user", null);
+            if (cookie(request, SESSION_COOKIE) != null) response.put("reason", "session_ended");
             return response;
         }
         if (RowUtils.bool(user, "session_touch_due")) {
@@ -132,6 +138,12 @@ public class MusicMvAuthService {
     private Map<String, Object> sessionView(Map<String, Object> user) {
         Map<String, Object> view = new LinkedHashMap<String, Object>();
         view.put("authenticated", Boolean.TRUE);
+        String expiresAt = RowUtils.str(user, "expires_at");
+        if (expiresAt != null) {
+            view.put("expiresAt", LocalDateTime.parse(expiresAt.replace(' ', 'T'))
+                    .toInstant(ZoneOffset.UTC).toString());
+            view.put("serverTime", Instant.now().toString());
+        }
         Map<String, Object> userView = new LinkedHashMap<String, Object>();
         userView.put("id", RowUtils.str(user, "user_id"));
         userView.put("displayName", RowUtils.str(user, "display_name"));
