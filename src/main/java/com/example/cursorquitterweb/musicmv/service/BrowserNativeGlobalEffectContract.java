@@ -46,7 +46,7 @@ final class BrowserNativeGlobalEffectContract {
             }
             if("adjustment".equals(source.get("type")) && (((Number)source.get("value")).doubleValue()!=1
                     ||!list(source.get("commonKeyframes")).isEmpty()||params.isEmpty()
-                    ||!Arrays.asList("brightness","contrast","saturation","sharpen","clear","tone","fade","light_sensation","vignetting","particle").containsAll(params)))throw invalid();
+                    ||!Arrays.asList("brightness","contrast","saturation","sharpen","clear","temperature","tone","fade","light_sensation","vignetting","particle").containsAll(params)))throw invalid();
             try { BrowserNativeEffectKeyframes.validate(source.get("commonKeyframes"),params); }
             catch(java.io.IOException error) { throw invalid(); }
         }
