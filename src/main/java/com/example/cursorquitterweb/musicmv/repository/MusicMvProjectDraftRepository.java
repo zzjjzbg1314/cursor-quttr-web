@@ -35,11 +35,17 @@ public class MusicMvProjectDraftRepository {
         return row == null ? null : String.valueOf(row.get("user_id"));
     }
 
-    public List<Map<String, Object>> listOwned(String userId, int limit) {
+    public List<Map<String, Object>> listOwned(String userId, int limit, int offset) {
         return d1.query("SELECT " + VIEW.replace("draft_json,", "") + " FROM music_mv_projects "
                         + "WHERE user_id=? AND deleted_at IS NULL "
-                        + "ORDER BY updated_at DESC LIMIT ?",
-                userId, Integer.valueOf(limit)).getRows();
+                        + "ORDER BY updated_at DESC,project_id DESC LIMIT ? OFFSET ?",
+                userId, Integer.valueOf(limit), Integer.valueOf(offset)).getRows();
+    }
+
+    public int countOwned(String userId) {
+        Map<String, Object> row = d1.query("SELECT COUNT(*) AS total FROM music_mv_projects "
+                + "WHERE user_id=? AND deleted_at IS NULL", userId).firstRow();
+        return row == null ? 0 : ((Number) row.get("total")).intValue();
     }
 
     /**

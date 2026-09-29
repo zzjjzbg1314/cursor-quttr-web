@@ -41,9 +41,10 @@ public class MusicMvProjectDraftController {
     public Map<String, Object> list(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "0") int offset,
             HttpServletRequest request) {
         authentication.requireAuthorized(token);
-        return projects.list(auth.requireUserId(request), limit);
+        return projects.list(auth.requireUserId(request), limit, offset);
     }
 
     @GetMapping("/{projectId}")

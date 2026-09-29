@@ -94,15 +94,16 @@ public class MusicMvProjectDraftService {
         return view(row, true);
     }
 
-    public Map<String, Object> list(String userId, int requestedLimit) {
+    public Map<String, Object> list(String userId, int requestedLimit, int requestedOffset) {
         int limit = Math.max(1, Math.min(100, requestedLimit));
         List<Map<String, Object>> projects = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> row : repository.listOwned(userId, limit)) {
+        for (Map<String, Object> row : repository.listOwned(userId, limit, Math.max(0, requestedOffset))) {
             projects.add(view(row, false));
         }
         Map<String, Object> response = new LinkedHashMap<String, Object>();
         response.put("projects", projects);
         response.put("count", Integer.valueOf(projects.size()));
+        response.put("total", Integer.valueOf(repository.countOwned(userId)));
         return response;
     }
 

@@ -28,6 +28,21 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvProjectDraftServiceTest {
+    @Test
+    void listsCloudProjectsWithTotalAndBoundedPagination() {
+        MusicMvProjectDraftRepository projects = mock(MusicMvProjectDraftRepository.class);
+        MusicMvProjectDraftService service = new MusicMvProjectDraftService(projects,
+                mock(MusicMvUserAssetRepository.class), new ObjectMapper());
+        when(projects.listOwned("owner", 10, 100)).thenReturn(Collections.emptyList());
+        when(projects.countOwned("owner")).thenReturn(134);
+        Map<String,Object> result = service.list("owner", 10, 100);
+        assertEquals(134, result.get("total"));
+        assertEquals(0, result.get("count"));
+        verify(projects).listOwned("owner", 10, 100);
+        service.list("owner", 1000, -1);
+        verify(projects).listOwned("owner", 100, 0);
+    }
+
 
     @Test
     void savesProjectAndAssetSnapshotWithRevisionProtection() {
