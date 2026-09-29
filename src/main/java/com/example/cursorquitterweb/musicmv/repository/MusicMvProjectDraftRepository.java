@@ -17,6 +17,10 @@ public class MusicMvProjectDraftRepository {
     private static final String VIEW = "project_id,user_id,name,status,current_step,song_candidate_id,"
             + "template_id,template_version_id,draft_json,revision,created_at,updated_at,submitted_at";
 
+    private static final String READ_VIEW = VIEW
+            + ",(SELECT r.status FROM music_mv_render_jobs r WHERE r.job_id=json_extract(music_mv_projects.draft_json,'$.submittedJobId')) AS render_status"
+            + ",(SELECT r.lease_expires_at FROM music_mv_render_jobs r WHERE r.job_id=json_extract(music_mv_projects.draft_json,'$.submittedJobId')) AS render_lease_expires_at";
+
     private final D1DatabaseClient d1;
 
     public MusicMvProjectDraftRepository(D1DatabaseClient d1) {
@@ -24,7 +28,7 @@ public class MusicMvProjectDraftRepository {
     }
 
     public Map<String, Object> findOwned(String userId, String projectId) {
-        return d1.query("SELECT " + VIEW + " FROM music_mv_projects "
+        return d1.query("SELECT " + READ_VIEW + " FROM music_mv_projects "
                         + "WHERE user_id=? AND project_id=? AND deleted_at IS NULL LIMIT 1",
                 userId, projectId).firstRow();
     }
@@ -36,7 +40,7 @@ public class MusicMvProjectDraftRepository {
     }
 
     public List<Map<String, Object>> listOwned(String userId, int limit, int offset) {
-        return d1.query("SELECT " + VIEW.replace("draft_json,", "") + " FROM music_mv_projects "
+        return d1.query("SELECT " + READ_VIEW + " FROM music_mv_projects "
                         + "WHERE user_id=? AND deleted_at IS NULL "
                         + "ORDER BY updated_at DESC,project_id DESC LIMIT ? OFFSET ?",
                 userId, Integer.valueOf(limit), Integer.valueOf(offset)).getRows();

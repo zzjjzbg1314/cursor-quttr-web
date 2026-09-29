@@ -33,7 +33,6 @@ public class MusicMvProjectDraftService {
     private static final Pattern ID = Pattern.compile("[A-Za-z0-9._:-]{8,160}");
     private static final Pattern SLOT_KEY = Pattern.compile("[A-Za-z0-9._:-]{1,160}");
     private static final Set<String> STEPS = set("song", "template", "photos", "review");
-    private static final Set<String> STATUSES = set("draft", "queued", "rendering", "completed", "failed", "cancelled");
 
     private final MusicMvProjectDraftRepository repository;
     private final MusicMvUserAssetRepository assetRepository;
@@ -50,7 +49,8 @@ public class MusicMvProjectDraftService {
     public Map<String, Object> save(String userId, String projectId,
                                     MusicMvProjectDraftRequest request) {
         requireId(projectId, "projectId");
-        String status = allowed(request.getStatus(), STATUSES, "draft");
+        // 项目始终是可编辑草稿，渲染进度由关联任务单独提供。
+        String status = "draft";
         String step = allowed(request.getCurrentStep(), STEPS, "song");
         String name = trim(request.getName());
         if (name == null) name = "Music video";
@@ -149,7 +149,23 @@ public class MusicMvProjectDraftService {
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("projectId", RowUtils.str(row, "project_id"));
         result.put("name", RowUtils.str(row, "name"));
-        result.put("status", RowUtils.str(row, "status"));
+        result.put("status", "draft");
+        JsonNode savedDraft = readJson(RowUtils.str(row, "draft_json"));
+        String jobId = savedDraft == null ? "" : savedDraft.path("submittedJobId").asText("");
+        String renderStatus = RowUtils.str(row, "render_status");
+        if (!jobId.isEmpty() && renderStatus == null) renderStatus = "task_missing";
+        if ("rendering".equals(renderStatus) || "leased".equals(renderStatus)) {
+            String lease = RowUtils.str(row, "render_lease_expires_at");
+            if (lease != null) {
+                try {
+                    if (LocalDateTime.parse(lease.replace(' ', 'T')).isBefore(LocalDateTime.now(ZoneOffset.UTC))) renderStatus = "interrupted";
+                } catch (java.time.format.DateTimeParseException ignored) {
+                    // 不能解析的时间不作为过期依据。
+                }
+            }
+        }
+        result.put("renderStatus", renderStatus);
+        result.put("submittedJobId", jobId.isEmpty() ? null : jobId);
         result.put("currentStep", RowUtils.str(row, "current_step"));
         result.put("songCandidateId", RowUtils.str(row, "song_candidate_id"));
         result.put("templateId", RowUtils.str(row, "template_id"));

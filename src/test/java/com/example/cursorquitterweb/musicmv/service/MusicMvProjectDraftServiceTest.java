@@ -29,6 +29,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvProjectDraftServiceTest {
     @Test
+    void projectStateDoesNotMasqueradeAsRenderProgress() {
+        MusicMvProjectDraftRepository projects = mock(MusicMvProjectDraftRepository.class);
+        MusicMvProjectDraftService service = new MusicMvProjectDraftService(projects,
+                mock(MusicMvUserAssetRepository.class), new ObjectMapper());
+        Map<String,Object> row = new LinkedHashMap<>();
+        row.put("project_id", "p"); row.put("status", "queued"); row.put("revision", 1);
+        row.put("draft_json", "{\"submittedJobId\":\"job\"}");
+        when(projects.findOwned("u", "p")).thenReturn(row);
+        assertEquals("task_missing", service.get("u", "p").get("renderStatus"));
+        for (String status : Arrays.asList("completed", "canceled", "failed", "ready", "queued", "interrupted")) {
+            row.put("render_status", status);
+            assertEquals(status, service.get("u", "p").get("renderStatus"));
+            assertEquals("draft", service.get("u", "p").get("status"));
+        }
+        row.put("render_status", "rendering"); row.put("render_lease_expires_at", "2000-01-01 00:00:00");
+        assertEquals("interrupted", service.get("u", "p").get("renderStatus"));
+        row.remove("render_status"); row.put("draft_json", "{}");
+        assertEquals(null, service.get("u", "p").get("renderStatus"));
+    }
+
+    @Test
     void listsCloudProjectsWithTotalAndBoundedPagination() {
         MusicMvProjectDraftRepository projects = mock(MusicMvProjectDraftRepository.class);
         MusicMvProjectDraftService service = new MusicMvProjectDraftService(projects,
