@@ -46,6 +46,17 @@ public class AiMusicSongController {
         this.voices = voices;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService lyricsTimeline;
+
+    @GetMapping("/candidates/{candidateId}/lyrics-timeline")
+    public Map<String, Object> lyricsTimeline(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String candidateId, HttpServletRequest request) {
+        authentication.requireAuthorized(token);
+        return lyricsTimeline.get(auth.requireUserId(request), candidateId);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Map<String, Object> create(

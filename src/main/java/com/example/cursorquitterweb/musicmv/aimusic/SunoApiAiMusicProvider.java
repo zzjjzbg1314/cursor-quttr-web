@@ -85,6 +85,14 @@ public class SunoApiAiMusicProvider implements AiMusicProvider {
     }
 
     @Override
+    public Map<String, Object> timestampedLyrics(String taskId, String audioId) {
+        ensureConfigured();
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("taskId", taskId); body.put("audioId", audioId);
+        return exchange(HttpMethod.POST, "/api/v1/generate/get-timestamped-lyrics", body);
+    }
+
+    @Override
     public boolean supportsLyrics() { return true; }
 
     @Override

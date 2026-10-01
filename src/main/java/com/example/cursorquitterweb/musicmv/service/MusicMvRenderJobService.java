@@ -45,6 +45,9 @@ public class MusicMvRenderJobService {
     private static final int MAX_JSON_BYTES = 256 * 1024;
     private static final int BROWSER_ATTEMPT_SECONDS = 24 * 60 * 60;
 
+    @Autowired
+    private com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService lyricsTimeline;
+
     private final MusicMvRenderJobRepository repository;
     private final AiMusicJobRepository aiMusicJobs;
     private final AiMusicCandidateStorageService candidateStorage;
@@ -191,6 +194,11 @@ public class MusicMvRenderJobService {
             requireSlotBindings(clientId, request.getTemplateVersionId(), contract.getSlots(),
                     request.getSlotBindings());
             Map<String, Object> preparedRequest = parseObject(json(request));
+            Map<String, Object> lyricSceneRow = repository.browserScene(request.getTemplateVersionId());
+            if (lyricSceneRow != null && com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService.hasLyrics(
+                    objectMapper.valueToTree(parseObject(RowUtils.str(lyricSceneRow, "scene_json"))))) {
+                preparedRequest.put("lyricsTimeline", lyricsTimeline.get(clientId, request.getMusicCandidateId()));
+            }
             preparedRequest.put("outputVideo", requestedOutputVideo(request, contract.getVersion()));
             String preparedRequestJson = json(preparedRequest);
             requireJsonSize(preparedRequestJson, "MV_RENDER_REQUEST_TOO_LARGE");
@@ -912,6 +920,7 @@ public class MusicMvRenderJobService {
                                 ? (Map<String, Object>) scene.get("canvas")
                                 : Collections.<String, Object>emptyMap()));
         result.put("music", music);
+        if (request.get("lyricsTimeline") instanceof Map) result.put("lyricsTimeline", request.get("lyricsTimeline"));
         result.put("volume", browserAudioVolume(request.get("volume")));
         result.put("outputMimeTypes", java.util.Arrays.asList(
                 "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"));

@@ -23,6 +23,10 @@ public interface AiMusicProvider {
 
     TaskSnapshot query(String providerTaskId);
 
+    default Map<String, Object> timestampedLyrics(String taskId, String audioId) {
+        throw new UnsupportedOperationException("Timestamped lyrics are unavailable for this provider");
+    }
+
     default boolean supportsLyrics() { return false; }
 
     default String lyricsWebhookPath() {
