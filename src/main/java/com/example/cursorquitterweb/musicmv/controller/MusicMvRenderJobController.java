@@ -161,6 +161,15 @@ public class MusicMvRenderJobController {
         return service.startBrowser(auth.requireUserId(servletRequest), jobId, request);
     }
 
+    @PostMapping("/{jobId}/local-export/complete")
+    public Map<String, Object> completeLocalExport(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId, @Valid @RequestBody BrowserRenderOutputRequest request,
+            HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        return service.completeLocalExport(auth.requireUserId(servletRequest), jobId, request);
+    }
+
     @PostMapping("/{jobId}/browser-output/complete")
     public Map<String, Object> completeBrowserOutput(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,

@@ -49,6 +49,25 @@ class MusicMvRenderJobControllerTest {
     }
 
     @Test
+    void localExportRequiresTrustedClientAndValidatedMetadata() throws Exception {
+        String endpoint = "/api/music-mv/v1/render-jobs/mvr_1/local-export/complete";
+        String payload = "{\"attemptId\":\"attempt\",\"leaseToken\":\"lease\",\"sha256\":\""
+                + new String(new char[64]).replace('\0','a')
+                + "\",\"sizeBytes\":12,\"contentType\":\"video/mp4\",\"durationSeconds\":1}";
+        mockMvc.perform(post(endpoint).contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isUnauthorized());
+        when(auth.requireUserId(any())).thenReturn("owner");
+        mockMvc.perform(post(endpoint).header("X-Music-Mv-Client-Token","isolated-client-token")
+                .contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isOk());
+        verify(service).completeLocalExport(org.mockito.ArgumentMatchers.eq("owner"),
+                org.mockito.ArgumentMatchers.eq("mvr_1"),any());
+        mockMvc.perform(post(endpoint).header("X-Music-Mv-Client-Token","isolated-client-token")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void passesRequestOriginIntoAsyncPreparation() {
         org.springframework.mock.web.MockHttpServletRequest servlet =
                 new org.springframework.mock.web.MockHttpServletRequest();

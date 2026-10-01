@@ -43,7 +43,7 @@ class MusicMvRenderJobRepositoryTest {
         CapturingD1 d1 = new CapturingD1();
         MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
         repository.ownedJobs("usr_1", 25, true, 24);
-        assertTrue(d1.sql.contains("WHERE j.client_id=? AND j.status='completed' AND j.output_storage_key IS NOT NULL"));
+        assertTrue(d1.sql.contains("WHERE j.client_id=? AND j.status='completed' AND (j.output_storage_key IS NOT NULL OR json_extract(j.result_json,'$.storage')='local')"));
         assertTrue(d1.sql.endsWith("ORDER BY j.created_at DESC,j.job_id DESC LIMIT ? OFFSET ?"));
         assertEquals(Arrays.asList("usr_1", 25, 24), d1.params);
         repository.ownedJobs("usr_1", 200);

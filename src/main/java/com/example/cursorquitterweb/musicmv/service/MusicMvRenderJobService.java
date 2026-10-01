@@ -350,6 +350,36 @@ public class MusicMvRenderJobService {
         artifacts.storeBrowserUpload(jobId, attemptId, input, sizeBytes, contentType, sha256);
     }
 
+    public Map<String, Object> completeLocalExport(String clientId, String jobId, BrowserRenderOutputRequest request) {
+        String owner = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
+        Map<String,Object> row = requireOwnedJob(owner, jobId);
+        if (sameCompletedOutput(row, request) && isLocalExport(row)) return clientDetailView(row, owner);
+        Map<String,Object> active = repository.activeBrowserAttempt(jobId, owner, request.getAttemptId(), request.getLeaseToken());
+        if (active == null || active.isEmpty()) {
+            row = requireOwnedJob(owner, jobId);
+            if (sameCompletedOutput(row, request) && isLocalExport(row)) return clientDetailView(row, owner);
+            throw browserAttemptConflict();
+        }
+        if (!"video/mp4".equals(request.getContentType())) throw badRequest("MV_RENDER_OUTPUT_INVALID", "MP4 is required");
+        Map<String,Object> result = new LinkedHashMap<String,Object>();
+        result.put("renderMode", "browser"); result.put("storage", "local");
+        result.put("renderValidation", request.getRenderValidation());
+        result.put("rendererFingerprint", request.getRendererFingerprint());
+        // 只记录浏览器报告，不声明文件已下载或已通过服务端校验。
+        Map<String,Object> done = repository.completeBrowser(jobId, owner, request.getAttemptId(), request.getLeaseToken(),
+                null, request.getContentType(), request.getSizeBytes(), request.getSha256(), request.getDurationSeconds(), json(result), "{}");
+        if (done == null || done.isEmpty()) {
+            done = requireOwnedJob(owner, jobId);
+            if (!(sameCompletedOutput(done, request) && isLocalExport(done))) throw browserAttemptConflict();
+        }
+        return clientDetailView(done, owner);
+    }
+
+    private boolean isLocalExport(Map<String,Object> row) {
+        Map<String,Object> result = parseObject(RowUtils.str(row, "result_json"));
+        return result != null && "local".equals(result.get("storage"));
+    }
+
     public Map<String, Object> completeBrowserOutput(
             String clientId, String jobId, BrowserRenderOutputRequest request) {
         String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
@@ -834,6 +864,8 @@ public class MusicMvRenderJobService {
         boolean outputReady = "completed".equals(RowUtils.str(row, "status"))
                 && RowUtils.str(row, "output_storage_key") != null;
         result.put("outputReady", Boolean.valueOf(outputReady));
+        Map<String,Object> original = parseObject(RowUtils.str(row, "request_json"));
+        if (original != null) result.put("outputFileName", original.get("outputFileName"));
         if (outputReady) result.put("outputDownloadPath", outputPath(RowUtils.str(row, "job_id")));
         result.put("result", parseObject(RowUtils.str(row, "result_json")));
         putIfPresent(result, "templateName", row.get("template_name"));

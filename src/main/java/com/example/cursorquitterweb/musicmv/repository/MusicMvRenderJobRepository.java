@@ -334,7 +334,7 @@ public class MusicMvRenderJobRepository {
                         + "LEFT JOIN ai_music_candidates c ON c.candidate_id="
                         + "json_extract(j.request_json,'$.musicCandidateId') "
                         + "WHERE j.client_id=? "
-                        + (completedOnly ? "AND j.status='completed' AND j.output_storage_key IS NOT NULL " : "")
+                        + (completedOnly ? "AND j.status='completed' AND (j.output_storage_key IS NOT NULL OR json_extract(j.result_json,'$.storage')='local') " : "")
                         + (activeOnly ? "AND j.status IN ('preparing','queued','ready','interrupted','leased','rendering','uploading') " : "")
                         + "ORDER BY j.created_at DESC,j.job_id DESC LIMIT ? OFFSET ?",
                 clientId, Integer.valueOf(Math.max(1, Math.min(completedOnly ? 101 : 100, limit))),

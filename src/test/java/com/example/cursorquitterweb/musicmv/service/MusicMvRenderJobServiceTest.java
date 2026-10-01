@@ -31,6 +31,41 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void localCompletionStoresMetadataWithoutArtifactAndSupportsIdempotentRetry() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), artifacts, inputAssets(), new ObjectMapper(), true, 2);
+        Map<String,Object> active = row("local", null);
+        active.put("client_id", "owner"); active.put("status", "rendering");
+        Map<String,Object> done = new LinkedHashMap<String,Object>(active);
+        done.put("status", "completed"); done.put("native_render_job_id", "attempt");
+        done.put("output_sha256", repeat('e')); done.put("output_size_bytes", 12L);
+        done.put("output_content_type", "video/mp4");
+        done.put("result_json", "{\"renderMode\":\"browser\",\"storage\":\"local\"}");
+        BrowserRenderOutputRequest request = new BrowserRenderOutputRequest();
+        request.setAttemptId("attempt"); request.setLeaseToken("lease"); request.setSizeBytes(12L);
+        request.setSha256(repeat('e')); request.setContentType("video/mp4"); request.setDurationSeconds(1d);
+        when(repository.byId("local")).thenReturn(active, done);
+        when(repository.activeBrowserAttempt("local", "owner", "attempt", "lease")).thenReturn(active);
+        when(repository.completeBrowser(eq("local"),eq("owner"),eq("attempt"),eq("lease"),
+                org.mockito.ArgumentMatchers.isNull(),eq("video/mp4"),eq(12L),eq(repeat('e')),eq(1d),
+                anyString(),eq("{}"))).thenReturn(done);
+        Map<String,Object> response = service.completeLocalExport("owner", "local", request);
+        assertEquals("completed", response.get("status"));
+        assertEquals(false, response.get("outputReady"));
+        assertEquals("completed", service.completeLocalExport("owner", "local", request).get("status"));
+        verify(repository).completeBrowser(eq("local"),eq("owner"),eq("attempt"),eq("lease"),
+                org.mockito.ArgumentMatchers.isNull(),eq("video/mp4"),eq(12L),eq(repeat('e')),eq(1d),
+                anyString(),eq("{}"));
+        org.mockito.Mockito.verifyNoInteractions(artifacts);
+        assertThrows(ApiException.class, () -> service.completeLocalExport("another-owner", "local", request));
+        request.setSha256(repeat('f'));
+        when(repository.activeBrowserAttempt("local", "owner", "attempt", "lease")).thenReturn(null);
+        assertThrows(ApiException.class, () -> service.completeLocalExport("owner", "local", request));
+    }
+
+    @Test
     void repeatedAndRacingCompletionKeepsSuccessfulArtifact() throws Exception {
         for (boolean racing : new boolean[]{false, true}) {
             MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
