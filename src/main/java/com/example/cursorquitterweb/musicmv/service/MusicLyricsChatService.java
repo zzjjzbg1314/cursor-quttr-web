@@ -42,7 +42,7 @@ public class MusicLyricsChatService {
         if(input==null||!input.isObject())throw invalid();
         String message=field(input,"message",1000,true),text=field(input,"lyrics",5000,false),title=field(input,"title",100,false);
         String language=field(input,"language",20,true),locale=field(input,"locale",10,true);
-        if(!Arrays.asList("English","Chinese").contains(language)||!Arrays.asList("en","zh-CN").contains(locale))throw invalid();
+        if(!Arrays.asList("English","Chinese","Traditional Chinese","Japanese","Korean","Spanish","Brazilian Portuguese","German","French").contains(language)||!Arrays.asList("en","zh-CN","zh-TW","ja","ko","es","pt-BR","de","fr").contains(locale))throw invalid();
         JsonNode history=input.path("history");
         if(!history.isMissingNode()&&(!history.isArray()||history.size()>8))throw invalid();
         for(JsonNode item:history){if(!item.isObject()||!Arrays.asList("user","assistant").contains(field(item,"role",10,true)))throw invalid();field(item,"content",1000,true);}

@@ -35,5 +35,14 @@ class MusicLyricsChatServiceTest {
   }
  }
  @Test void missingConfigurationFailsWithoutFakeLyrics(){assertThrows(ResponseStatusException.class,()->new MusicLyricsChatService(new RestTemplate(),"","url","model").chat(request()));}
+ @Test void supportsAllNineLanguagesAndKeepsUiLocaleIndependent() throws Exception {
+  String[] languages={"English","Chinese","Traditional Chinese","Japanese","Korean","Spanish","Brazilian Portuguese","German","French"};
+  for(String language:languages){
+   RestTemplate c=new RestTemplate();MockRestServiceServer mock=MockRestServiceServer.createServer(c);
+   mock.expect(requestTo("https://example.com/chat")).andExpect(jsonPath("$.messages[1].content").value(org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.containsString(language),org.hamcrest.Matchers.containsString("ja"))))
+    .andRespond(withSuccess(provider("{\"reply\":\"変更しました\",\"title\":\"Song\",\"lyrics\":\"Updated lyrics\"}"),MediaType.APPLICATION_JSON));
+   ObjectNode n=request();n.put("language",language);n.put("locale","ja");assertEquals("Updated lyrics",service(c).chat(n).path("lyrics").asText());mock.verify();
+  }
+ }
  private String provider(String content)throws Exception {ObjectNode n=mapper.createObjectNode();n.putArray("choices").addObject().putObject("message").put("content",content);return mapper.writeValueAsString(n);}
 }
