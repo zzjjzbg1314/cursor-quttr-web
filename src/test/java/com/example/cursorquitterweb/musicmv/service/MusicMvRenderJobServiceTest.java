@@ -31,6 +31,50 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void repeatedAndRacingCompletionKeepsSuccessfulArtifact() throws Exception {
+        for (boolean racing : new boolean[]{false, true}) {
+            MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+            MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
+            MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                    mock(AiMusicJobRepository.class), artifacts, inputAssets(), new ObjectMapper(), true, 2);
+            Map<String,Object> done = row("mvr_done", null);
+            done.put("status", "completed"); done.put("client_id", "owner");
+            done.put("result_json", "{\"renderMode\":\"browser\"}");
+            done.put("native_render_job_id", "attempt"); done.put("output_sha256", repeat('e'));
+            done.put("output_size_bytes", 12L); done.put("output_content_type", "video/mp4");
+            Map<String,Object> active = new LinkedHashMap<String,Object>(done);
+            active.put("status", "rendering");
+            when(repository.byId("mvr_done")).thenReturn(racing ? active : done, done);
+            when(repository.activeBrowserAttempt("mvr_done", "owner", "attempt", "lease")).thenReturn(active);
+            when(artifacts.verifyBrowserUpload("mvr_done", "attempt", 12L, "video/mp4", repeat('e')))
+                    .thenReturn(new MusicMvRenderArtifactStorageService.StoredArtifact("r2:result",12L,repeat('e'),"video/mp4"));
+            when(repository.completeBrowser(anyString(),anyString(),anyString(),anyString(),anyString(),
+                    anyString(),org.mockito.ArgumentMatchers.anyLong(),anyString(),org.mockito.ArgumentMatchers.anyDouble(),anyString(),anyString())).thenReturn(null);
+            BrowserRenderOutputRequest request = new BrowserRenderOutputRequest();
+            request.setAttemptId("attempt"); request.setLeaseToken("lease"); request.setSizeBytes(12L);
+            request.setSha256(repeat('e')); request.setContentType("video/mp4"); request.setDurationSeconds(1d);
+            assertEquals("completed", service.completeBrowserOutput("owner","mvr_done",request).get("status"));
+            verify(artifacts,never()).delete(anyString());
+            request.setSha256(repeat('f'));
+            when(repository.activeBrowserAttempt("mvr_done", "owner", "attempt", "lease")).thenReturn(null);
+            assertThrows(ApiException.class, () -> service.completeBrowserOutput("owner","mvr_done",request));
+        }
+    }
+
+    @Test
+    void timedOutPreparationRetriesOriginalInputsWithStableRequestId() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), mock(MusicMvRenderArtifactStorageService.class), inputAssets(), new ObjectMapper(), true, 2);
+        Map<String,Object> old = preparingRow("old",request());
+        old.put("status","failed");old.put("error_code","MV_RENDER_PREPARATION_TIMEOUT");
+        when(repository.byId("old")).thenReturn(old);
+        assertEquals("retry_old",service.retryPreparation("website-backend","old").get("requestId"));
+        old.put("status","canceled");
+        assertThrows(ApiException.class,()->service.retryPreparation("website-backend","old"));
+    }
+
+    @Test
     void firstExportPassesRequestOriginToSongStorageWithoutExistingStorageUrl() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository music = mock(AiMusicJobRepository.class);

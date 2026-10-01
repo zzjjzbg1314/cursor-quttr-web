@@ -17,6 +17,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvRenderJobRepositoryTest {
     @Test
+    void preparationDeadlineCannotCompleteLateOrOverwriteTerminalState() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+        repository.expireBrowserPreparation("job","owner");
+        assertTrue(d1.sql.contains("status='preparing'"));
+        assertTrue(d1.sql.contains("created_at<=datetime('now','-10 minutes')"));
+        assertEquals(Arrays.asList("job","owner"),d1.params);
+        repository.completeBrowserPreparation("job","{}");
+        assertTrue(d1.sql.contains("status='preparing'"));
+        assertTrue(d1.sql.contains("created_at>datetime('now','-10 minutes')"));
+    }
+
+    @Test
     void activeTasksExcludeTerminalStatesAndRemainOwned() {
         CapturingD1 d1 = new CapturingD1();
         new MusicMvRenderJobRepository(d1).ownedJobs("usr_1", 100, false, 0, true);

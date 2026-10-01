@@ -207,6 +207,15 @@ public class MusicMvRenderJobRepository {
                         eventId, jobId, eventDetailJson)));
     }
 
+    public Map<String, Object> expireBrowserPreparation(String jobId, String clientId) {
+        return d1.query("UPDATE music_mv_render_jobs SET status='failed',stage='failed',"
+                + "error_code='MV_RENDER_PREPARATION_TIMEOUT',error_message='Video preparation timed out. Please retry.',"
+                + "retryable=1,completed_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP "
+                + "WHERE job_id=? AND client_id=? AND status='preparing' "
+                + "AND created_at<=datetime('now','-10 minutes') RETURNING " + JOB_COLUMNS,
+                jobId, clientId).firstRow();
+    }
+
     public Map<String, Object> claimBrowserPreparation(String jobId) {
         return d1.query("UPDATE music_mv_render_jobs SET stage='preparing_music',progress=0.05,"
                         + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='preparing' "
@@ -226,7 +235,7 @@ public class MusicMvRenderJobRepository {
         return d1.query("UPDATE music_mv_render_jobs SET status='ready',stage='browser_ready',"
                         + "progress=0,request_json=?,error_code=NULL,error_message=NULL,retryable=0,"
                         + "updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='preparing' "
-                        + "AND cancel_requested=0 RETURNING " + JOB_COLUMNS,
+                        + "AND cancel_requested=0 AND created_at>datetime('now','-10 minutes') RETURNING " + JOB_COLUMNS,
                 requestJson, jobId).firstRow();
     }
 

@@ -219,9 +219,25 @@ public class MusicMvRenderJobService {
 
     public Map<String, Object> get(String clientId, String jobId) {
         Map<String, Object> row = requireOwnedJob(clientId, jobId);
+        Map<String, Object> expired = "preparing".equals(RowUtils.str(row, "status"))
+                ? repository.expireBrowserPreparation(jobId, clientId) : null;
+        if (expired != null && !expired.isEmpty()) row = expired;
         Map<String, Object> result = clientDetailView(row, clientId);
         result.put("events", eventViews(repository.events(jobId)));
         return result;
+    }
+
+    public Map<String, Object> retryPreparation(String clientId, String jobId) {
+        Map<String, Object> row = requireOwnedJob(clientId, jobId);
+        if (!"failed".equals(RowUtils.str(row, "status"))
+                || !"MV_RENDER_PREPARATION_TIMEOUT".equals(RowUtils.str(row, "error_code"))) {
+            throw conflict("MV_RENDER_RETRY_REJECTED", "Only timed out preparation can be retried");
+        }
+        MusicMvRenderJobCreateRequest request = objectMapper.convertValue(
+                parseObject(RowUtils.str(row, "request_json")), MusicMvRenderJobCreateRequest.class);
+        // 同一个失败任务的重复点击复用同一请求，不重新生成歌曲。
+        request.setRequestId("retry_" + jobId);
+        return create(clientId, request);
     }
 
     public Map<String, Object> list(String clientId, int limit) {
@@ -337,10 +353,15 @@ public class MusicMvRenderJobService {
     public Map<String, Object> completeBrowserOutput(
             String clientId, String jobId, BrowserRenderOutputRequest request) {
         String ownerId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
-        requireOwnedJob(ownerId, jobId);
+        Map<String, Object> existing = requireOwnedJob(ownerId, jobId);
+        if (sameCompletedOutput(existing, request)) return clientDetailView(existing, ownerId);
         Map<String, Object> row = repository.activeBrowserAttempt(jobId, ownerId,
                 request.getAttemptId(), request.getLeaseToken());
-        if (row == null) throw browserAttemptConflict();
+        if (row == null) {
+            existing = requireOwnedJob(ownerId, jobId);
+            if (sameCompletedOutput(existing, request)) return clientDetailView(existing, ownerId);
+            throw browserAttemptConflict();
+        }
         MusicMvRenderArtifactStorageService.StoredArtifact stored = artifacts.verifyBrowserUpload(
                 jobId, request.getAttemptId(), request.getSizeBytes().longValue(),
                 request.getContentType(), request.getSha256());
@@ -367,12 +388,22 @@ public class MusicMvRenderJobService {
                 stored.getSha256(), request.getDurationSeconds().doubleValue(),
                 json(resultPayload), json(evidence));
         if (completed == null) {
-            artifacts.delete(stored.getStorageKey());
+            Map<String, Object> current = requireOwnedJob(ownerId, jobId);
+            if (sameCompletedOutput(current, request)) return clientDetailView(current, ownerId);
+            // 状态竞争不代表文件无主，不能删除可能已登记成功的成片。
             throw conflict("MV_BROWSER_RENDER_STATE_CHANGED",
                     "Browser render could not be completed in its current state");
         }
         addEvent(jobId, "completed", "completed", null, evidence);
         return clientDetailView(completed, ownerId);
+    }
+
+    private boolean sameCompletedOutput(Map<String, Object> row, BrowserRenderOutputRequest request) {
+        return "completed".equals(RowUtils.str(row, "status"))
+                && request.getAttemptId().equals(RowUtils.str(row, "native_render_job_id"))
+                && request.getSha256().equalsIgnoreCase(RowUtils.str(row, "output_sha256"))
+                && request.getSizeBytes().equals(RowUtils.lng(row, "output_size_bytes"))
+                && request.getContentType().equals(RowUtils.str(row, "output_content_type"));
     }
 
     public Map<String, Object> startBrowser(String clientId, String jobId,

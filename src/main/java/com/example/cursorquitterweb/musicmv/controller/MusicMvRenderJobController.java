@@ -72,6 +72,20 @@ public class MusicMvRenderJobController {
         return job;
     }
 
+    @PostMapping("/{jobId}/retry-preparation")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Map<String, Object> retryPreparation(
+            @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
+            @PathVariable String jobId, HttpServletRequest servletRequest) {
+        authentication.requireAuthorized(token);
+        String ownerId = auth.requireUserId(servletRequest);
+        Map<String, Object> job = service.retryPreparation(ownerId, jobId);
+        String baseUrl = ServletUriComponentsBuilder.fromRequestUri(servletRequest)
+                .replacePath(servletRequest.getContextPath()).replaceQuery(null).build().toUriString();
+        service.prepareBrowserAsync(ownerId, String.valueOf(job.get("jobId")), baseUrl);
+        return job;
+    }
+
     @GetMapping
     public Map<String, Object> list(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
