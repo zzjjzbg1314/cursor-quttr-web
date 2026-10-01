@@ -111,24 +111,28 @@ public class AiMusicGenerationService {
         repository.createAttempt(attemptId, jobId, provider.providerCode(), 1, providerRequestJson);
         addEvent(jobId, "created", "submitting", provider.providerCode(),
                 singleton("requestId", request.getRequestId()));
+        Submission submission;
         try {
-            Submission submission = provider.submit(command);
-            repository.markSubmitted(jobId, attemptId, submission.getProviderTaskId(),
-                    json(submission.getRaw()));
-            addEvent(jobId, "provider_submitted", "queued", provider.providerCode(),
-                    singleton("providerTaskId", submission.getProviderTaskId()));
-        } catch (ApiException exception) {
-            boolean unknown = "AI_MUSIC_SUBMISSION_UNKNOWN".equals(exception.getCode());
-            repository.markSubmissionFailed(jobId, attemptId, exception.getCode(),
-                    exception.getMessage(), exception.isRetryable(), unknown);
-            addEvent(jobId, unknown ? "provider_submission_unknown" : "provider_submission_failed",
-                    unknown ? "submission_unknown" : "failed", provider.providerCode(),
-                    singleton("errorCode", exception.getCode()));
-            if (!unknown) {
+            submission = provider.submit(command);
+        } catch (RuntimeException exception) {
+            // 只有明确未受理的响应才允许释放额度，其他异常一律保留待确认。
+            boolean rejected = exception instanceof ApiException
+                    && SubmissionSafety.definitelyRejected((ApiException) exception);
+            String code = rejected ? ((ApiException) exception).getCode() : "AI_MUSIC_SUBMISSION_UNKNOWN";
+            String message = rejected ? exception.getMessage() : "Submission outcome is unknown; do not submit another generation.";
+            repository.markSubmissionFailed(jobId, attemptId, code, message, !rejected, !rejected);
+            addEvent(jobId, rejected ? "provider_submission_failed" : "provider_submission_unknown",
+                    rejected ? "failed" : "submission_unknown", provider.providerCode(), singleton("errorCode", code));
+            if (rejected) {
                 if (billing != null) billing.settle(jobId, "failed");
                 throw exception;
             }
+            return view(requireJob(repository.byId(jobId)), false);
         }
+        // 服务商已受理；本地保存失败必须保留占用，不能转成生成失败或重新提交。
+        repository.markSubmitted(jobId, attemptId, submission.getProviderTaskId(), json(submission.getRaw()));
+        addEvent(jobId, "provider_submitted", "queued", provider.providerCode(),
+                singleton("providerTaskId", submission.getProviderTaskId()));
         return view(requireJob(repository.byId(jobId)), false);
     }
 

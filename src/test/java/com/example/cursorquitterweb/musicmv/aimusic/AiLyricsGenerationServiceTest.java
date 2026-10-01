@@ -37,7 +37,7 @@ class AiLyricsGenerationServiceTest {
         when(provider.queryLyrics("provider-lyrics-task")).thenReturn(snapshot);
         AiLyricsGenerationService service = service(provider);
         AiMusicLyricsCreateRequest request = new AiMusicLyricsCreateRequest();
-        request.setPrompt("A song for my sister about growing up together");
+        request.setRequestId("lyrics_request_123"); request.setPrompt("A song for my sister about growing up together");
 
         Map<String, Object> created = service.create("client_12345678", request,
                 "http://localhost:8080");
@@ -69,7 +69,7 @@ class AiLyricsGenerationServiceTest {
         when(provider.queryLyrics("task-1")).thenThrow(new IllegalStateException("temporary"))
                 .thenAnswer(invocation -> { entered.countDown(); release.await(3,java.util.concurrent.TimeUnit.SECONDS); return pending; });
         AiLyricsGenerationService service=service(provider);
-        AiMusicLyricsCreateRequest request=new AiMusicLyricsCreateRequest(); request.setPrompt("Birthday memories");
+        AiMusicLyricsCreateRequest request=new AiMusicLyricsCreateRequest(); request.setRequestId("lyrics_request_123"); request.setPrompt("Birthday memories");
         String handle=(String)service.create("client_12345678",request,"http://localhost").get("taskId");
         assertThatThrownBy(() -> service.get("client_12345678",handle)).isInstanceOf(IllegalStateException.class);
         java.util.concurrent.ExecutorService executor=java.util.concurrent.Executors.newFixedThreadPool(4);
@@ -83,8 +83,11 @@ class AiLyricsGenerationServiceTest {
     }
 
     private AiLyricsGenerationService service(AiMusicProvider provider) {
+        com.example.cursorquitterweb.musicmv.repository.AiLyricsSubmissionRepository repo = mock(com.example.cursorquitterweb.musicmv.repository.AiLyricsSubmissionRepository.class);
+        when(repo.find(anyString(),anyString())).thenReturn(null);
+        when(repo.claim(anyString(),anyString(),anyString())).thenReturn(true);
         return new AiLyricsGenerationService(
-                new AiMusicProviderRegistry(Arrays.asList(provider)),
+                new AiMusicProviderRegistry(Arrays.asList(provider)), repo,
                 "sunoapi", "", "test-secret-long-enough");
     }
 }

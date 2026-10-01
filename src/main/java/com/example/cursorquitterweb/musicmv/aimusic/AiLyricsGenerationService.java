@@ -25,10 +25,11 @@ import com.example.cursorquitterweb.musicmv.aimusic.AiMusicProvider.Submission;
 import com.example.cursorquitterweb.musicmv.dto.AiMusicLyricsCreateRequest;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
-/** Stateless provider-neutral lyrics generation facade for the website. */
+/** 歌词提交持久化去重，查询令牌继续绑定用户。 */
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class AiLyricsGenerationService {
+    private final com.example.cursorquitterweb.musicmv.repository.AiLyricsSubmissionRepository submissions;
     private final AiMusicProviderRegistry providers;
     private final String defaultProvider;
     private final String publicBaseUrl;
@@ -43,11 +44,13 @@ public class AiLyricsGenerationService {
 
     public AiLyricsGenerationService(
             AiMusicProviderRegistry providers,
+            com.example.cursorquitterweb.musicmv.repository.AiLyricsSubmissionRepository submissions,
             @Value("${music-mv.ai-music.provider:sunoapi}") String defaultProvider,
             @Value("${music-mv.public-base-url:}") String publicBaseUrl,
             @Value("${music-mv.ai-music.task-token-secret:}") String taskTokenSecret
     ) {
         this.providers = providers;
+        this.submissions = submissions;
         this.defaultProvider = normalize(defaultProvider);
         this.publicBaseUrl = trimTrailingSlash(publicBaseUrl);
         this.taskTokenSecret = trim(taskTokenSecret).getBytes(StandardCharsets.UTF_8);
@@ -57,6 +60,10 @@ public class AiLyricsGenerationService {
                                       String requestBaseUrl) {
         String owner = requireId(clientId);
         ensureTokenSecret();
+        String requestId = requireId(request.getRequestId());
+        String prompt = request.getPrompt().trim();
+        Map<String,Object> existing = submissions.find(owner, requestId);
+        if (existing != null) return existingSubmission(existing, prompt);
         AiMusicProvider provider = providers.require(defaultProvider);
         if (!provider.supportsLyrics()) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
@@ -66,9 +73,35 @@ public class AiLyricsGenerationService {
         }
         String base = publicBaseUrl.isEmpty() ? trimTrailingSlash(requestBaseUrl) : publicBaseUrl;
         String callbackUrl = base + provider.lyricsWebhookPath();
-        Submission submission = provider.submitLyrics(request.getPrompt().trim(), callbackUrl);
-        return view(handle(provider.providerCode(), submission.getProviderTaskId(), owner),
+        if (!submissions.claim(owner, requestId, prompt)) {
+            return existingSubmission(submissions.find(owner, requestId), prompt);
+        }
+        Submission submission;
+        try {
+            submission = provider.submitLyrics(prompt, callbackUrl);
+        } catch (RuntimeException exception) {
+            throw pendingSubmission();
+        }
+        String taskHandle = handle(provider.providerCode(), submission.getProviderTaskId(), owner);
+        submissions.save(owner, requestId, taskHandle);
+        return view(taskHandle,
                 "queued", null, null, false, new ArrayList<LyricsCandidate>());
+    }
+
+    private Map<String,Object> existingSubmission(Map<String,Object> existing, String prompt) {
+        if (existing == null) throw pendingSubmission();
+        if (!prompt.equals(existing.get("prompt"))) {
+            throw new ApiException(HttpStatus.CONFLICT, "AI_LYRICS_IDEMPOTENCY_CONFLICT",
+                    "Request id is already bound to different lyrics inputs", false, null);
+        }
+        Object handle = existing.get("task_handle");
+        if (handle == null) throw pendingSubmission();
+        return view(String.valueOf(handle), "queued", null, null, false, new ArrayList<LyricsCandidate>());
+    }
+
+    private ApiException pendingSubmission() {
+        return new ApiException(HttpStatus.CONFLICT, "AI_LYRICS_SUBMISSION_UNKNOWN",
+                "The previous lyrics request is still being confirmed. Retry the same request; do not start another generation.", true, null);
     }
 
     public Map<String, Object> get(String clientId, String taskId) {

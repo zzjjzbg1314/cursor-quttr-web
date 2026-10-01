@@ -755,3 +755,12 @@ CREATE INDEX IF NOT EXISTS idx_music_mv_projects_recent_active ON music_mv_proje
 CREATE INDEX IF NOT EXISTS idx_music_mv_assets_recent_active ON music_mv_user_assets(user_id,kind,status,last_used_at DESC,created_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_music_mv_render_jobs_owner_recent ON music_mv_render_jobs(client_id,created_at DESC,job_id DESC);
 CREATE INDEX IF NOT EXISTS idx_music_mv_render_jobs_owner_completed ON music_mv_render_jobs(client_id,created_at DESC,job_id DESC) WHERE status='completed' AND output_storage_key IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS ai_lyrics_submissions (
+  user_id TEXT NOT NULL,
+  request_id TEXT NOT NULL,
+  prompt TEXT NOT NULL,
+  task_handle TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, request_id)
+);
