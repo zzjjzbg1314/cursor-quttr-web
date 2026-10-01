@@ -127,8 +127,8 @@ mqtt:
 logging:
   config: classpath:logback-spring.xml
   level:
-    com.example.cursorquitterweb: DEBUG
-    org.springframework.web: DEBUG
+    com.example.cursorquitterweb: INFO
+    org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
@@ -252,7 +252,7 @@ music-mv:
     # browser polling can pause without leaving a song permanently stuck in "generating".
     status-sync:
       enabled: ${MUSIC_MV_AI_STATUS_SYNC_ENABLED:true}
-      interval-ms: ${MUSIC_MV_AI_STATUS_SYNC_INTERVAL_MS:5000}
+      interval-ms: ${MUSIC_MV_AI_STATUS_SYNC_INTERVAL_MS:60000}
       initial-delay-ms: ${MUSIC_MV_AI_STATUS_SYNC_INITIAL_DELAY_MS:5000}
       stale-after-seconds: ${MUSIC_MV_AI_STATUS_SYNC_STALE_AFTER_SECONDS:8}
       batch-size: ${MUSIC_MV_AI_STATUS_SYNC_BATCH_SIZE:20}

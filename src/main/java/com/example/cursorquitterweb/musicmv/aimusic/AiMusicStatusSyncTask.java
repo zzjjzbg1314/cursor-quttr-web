@@ -30,7 +30,7 @@ public class AiMusicStatusSyncTask {
     }
 
     @Scheduled(
-            fixedDelayString = "${music-mv.ai-music.status-sync.interval-ms:5000}",
+            fixedDelayString = "${music-mv.ai-music.status-sync.interval-ms:60000}",
             initialDelayString = "${music-mv.ai-music.status-sync.initial-delay-ms:5000}"
     )
     public void synchronize() {
