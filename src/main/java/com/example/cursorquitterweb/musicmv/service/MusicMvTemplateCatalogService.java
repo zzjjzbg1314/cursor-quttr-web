@@ -385,10 +385,9 @@ public class MusicMvTemplateCatalogService {
     public Map<String, Object> syncCapCutFeatured(String templateId,
             com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata) {
         Map<String, Object> template = requireTemplate(templateId);
-        if (metadata == null || metadata.getTemplateId() == null || !metadata.getTemplateId().matches("[0-9]{8,24}") || !metadata.isConsistent()
-                || !"capcut_native_isExportCharge".equals(metadata.getSource())
+        if (metadata == null || metadata.getTemplateId() == null || !metadata.getTemplateId().matches("(?:jianying:)?[0-9]{8,24}") || !metadata.isConsistent()
                 || !java.util.Objects.equals(metadata.getTemplateId(), RowUtils.str(template, "capcut_template_id"))) {
-            throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性必须来自匹配的 CapCut 模板");
+            throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性必须来自匹配的模板来源");
         }
         repository.updateCapCutFeatured(templateId, metadata.getTemplateId(), json(metadata), metadata.getCheckedAt());
         invalidateDetail(templateId);
@@ -413,8 +412,7 @@ public class MusicMvTemplateCatalogService {
         if (previousIdentity != null && !previousIdentity.isEmpty() && !previousIdentity.equals(request.getCapcutTemplateId()))
             throw conflict("TEMPLATE_SOURCE_ID_CONFLICT", "不能用不同来源模板覆盖已有模板");
         requirePromotionEvidence(request);
-        if (request.getCapcutFeaturedSync() != null && (!request.getCapcutTemplateId().matches("[0-9]{8,24}") || !request.getCapcutFeaturedSync().isConsistent()
-                || !"capcut_native_isExportCharge".equals(request.getCapcutFeaturedSync().getSource())
+        if (request.getCapcutFeaturedSync() != null && (!request.getCapcutTemplateId().matches("(?:jianying:)?[0-9]{8,24}") || !request.getCapcutFeaturedSync().isConsistent()
                 || !request.getCapcutTemplateId().equals(request.getCapcutFeaturedSync().getTemplateId()))) {
             throw badRequest("CAPCUT_FEATURED_INVALID", "精选属性与新增模板来源不一致");
         }

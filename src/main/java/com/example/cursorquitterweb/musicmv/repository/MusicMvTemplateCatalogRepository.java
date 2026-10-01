@@ -32,8 +32,11 @@ public class MusicMvTemplateCatalogRepository {
         // 时间戳比较在数据库内完成，旧回填结果不能覆盖更新的采集结果。
         d1.query("UPDATE templates SET capcut_featured_json=?,revision=revision+1 "
                 + "WHERE template_id=? AND capcut_template_id=? AND deleted_at IS NULL "
-                + "AND (capcut_featured_json IS NULL OR julianday(json_extract(capcut_featured_json,'$.checkedAt'))<=julianday(?))",
-                metadata, templateId, capcutId, checkedAt);
+                + "AND (capcut_featured_json IS NULL OR julianday(json_extract(capcut_featured_json,'$.checkedAt'))<=julianday(?)) "
+                + "AND NOT (json_extract(?,'$.status')='unknown' "
+                + "AND COALESCE(json_extract(capcut_featured_json,'$.status'),'')='synced' "
+                + "AND COALESCE(json_type(capcut_featured_json,'$.value'),'') IN ('true','false'))",
+                metadata, templateId, capcutId, checkedAt, metadata);
     }
 
 

@@ -18,6 +18,32 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void 精选回填保留成功值且不改变渲染版本() throws Exception {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.updateCapCutFeatured("tpl_jy", "jianying:123456789", "{}", "2026-10-01T00:00:00Z");
+        String script = String.join("\n",
+            "import sqlite3,json,sys",
+            "db=sqlite3.connect(':memory:')",
+            "db.execute('CREATE TABLE templates(template_id TEXT,capcut_template_id TEXT,capcut_featured_json TEXT,revision INTEGER,deleted_at TEXT,current_version_id TEXT,status TEXT)')",
+            "db.execute(\"INSERT INTO templates VALUES ('tpl_jy','jianying:123456789',NULL,1,NULL,'ver_original','published')\")",
+            "def update(status,value,date,source='jianying:123456789'):",
+            " data=json.dumps({'status':status,'value':value,'checkedAt':date})",
+            " db.execute(sys.argv[1],(data,'tpl_jy',source,date,data))",
+            "def row(): return db.execute('SELECT capcut_featured_json,revision,current_version_id,status FROM templates').fetchone()",
+            "update('unknown',None,'2026-09-01T00:00:00Z')",
+            "assert json.loads(row()[0])['status']=='unknown'",
+            "update('synced',True,'2026-09-02T00:00:00Z')",
+            "saved=row(); update('unknown',None,'2026-09-03T00:00:00Z'); assert row()==saved",
+            "update('synced',False,'2026-09-01T00:00:00Z'); assert row()==saved",
+            "update('synced',False,'2026-09-04T00:00:00Z','123456789'); assert row()==saved",
+            "update('synced',False,'2026-09-04T00:00:00Z'); assert json.loads(row()[0])['value'] is False",
+            "assert row()[2:]==('ver_original','published')");
+        Process process = new ProcessBuilder("python3", "-c", script, client.sql).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+        String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0, process.exitValue(), output);
+    }
     @Test void 公开模板按权重精选时间排序且分页和各筛选入口一致() throws Exception {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

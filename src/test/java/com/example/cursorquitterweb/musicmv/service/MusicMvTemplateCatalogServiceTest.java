@@ -86,6 +86,19 @@ class MusicMvTemplateCatalogServiceTest {
         assertThrows(ApiException.class,()->service.syncCapCutFeatured("tpl_1",metadata));
     }
 
+    @Test void 剪映精选按命名空间保存且拒绝伪装来源() throws Exception {
+        com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata = new com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata();
+        metadata.setTemplateId("jianying:123456789"); metadata.setStatus("synced"); metadata.setValue(false);
+        metadata.setSource("jianying_native_isExportCharge"); metadata.setAppVersion("11.5.13264");
+        metadata.setCheckedAt("2026-09-01T00:00:00Z");
+        when(repository.template("tpl_jy")).thenReturn(featuredRow("template_id","tpl_jy","capcut_template_id","jianying:123456789",
+            "capcut_featured_json",new ObjectMapper().writeValueAsString(metadata)));
+        assertEquals(false,service.syncCapCutFeatured("tpl_jy",metadata).get("capcutFeatured"));
+        verify(repository).updateCapCutFeatured(eq("tpl_jy"),eq("jianying:123456789"),anyString(),eq(metadata.getCheckedAt()));
+        metadata.setSource("capcut_native_isExportCharge");
+        assertThrows(ApiException.class,()->service.syncCapCutFeatured("tpl_jy",metadata));
+    }
+
     @Test void 精选同步失败不表示非精选() throws Exception {
         com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata metadata = new com.example.cursorquitterweb.musicmv.dto.CapCutFeaturedMetadata();
         metadata.setTemplateId("123456789"); metadata.setStatus("unknown");

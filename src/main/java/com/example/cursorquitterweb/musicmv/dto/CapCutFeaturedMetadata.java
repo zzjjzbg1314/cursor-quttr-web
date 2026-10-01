@@ -7,9 +7,9 @@ import java.time.Instant;
 
 /** 来自官方采集端的只读模板属性，不属于运营编辑字段。 */
 public class CapCutFeaturedMetadata {
-    @NotBlank @Pattern(regexp="^[0-9]{8,24}$") private String templateId;
+    @NotBlank @Pattern(regexp="^(?:jianying:)?[0-9]{8,24}$") private String templateId;
     @NotBlank @Pattern(regexp="synced|unknown") private String status;
-    @NotBlank @Pattern(regexp="capcut_native_isExportCharge") private String source;
+    @NotBlank @Pattern(regexp="(?:capcut|jianying)_native_isExportCharge") private String source;
     @NotBlank private String checkedAt;
     private Boolean value;
     private String appVersion;
@@ -20,7 +20,9 @@ public class CapCutFeaturedMetadata {
     public boolean isConsistent() {
         try {
             Instant time = Instant.parse(checkedAt);
-            return schemaVersion == 1 && time.isBefore(Instant.now().plusSeconds(300))
+            return templateId != null && templateId.matches("(?:jianying:)?[0-9]{8,24}")
+                && (templateId.startsWith("jianying:") ? "jianying_native_isExportCharge" : "capcut_native_isExportCharge").equals(source)
+                && schemaVersion == 1 && time.isBefore(Instant.now().plusSeconds(300))
                 && ("synced".equals(status) ? value != null && appVersion != null && appVersion.matches("[0-9.]{1,30}")
                     : "unknown".equals(status) && value == null && reason != null && reason.matches("[a-z0-9_]{1,100}"));
         } catch (RuntimeException e) { return false; }
