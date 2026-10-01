@@ -39,7 +39,10 @@ public class BillingSettings {
         boolean local="http".equals(uri.getScheme()) && ("localhost".equals(uri.getHost()) || "127.0.0.1".equals(uri.getHost()));
         if ((!local && !"https".equals(uri.getScheme())) || uri.getHost()==null || uri.getUserInfo()!=null
                 || uri.getQuery()!=null || uri.getFragment()!=null) throw new IllegalStateException("Invalid billing site URL");
-        return siteUrl.replaceAll("/+$", "")+("zh-cn".equals(locale)?"/zh-cn":"")+"/pricing";
+        String language = locale == null ? "en" : locale.toLowerCase(java.util.Locale.ROOT);
+        String prefix = java.util.Arrays.asList("zh-cn", "zh-tw", "ja", "ko", "es", "pt-br", "de", "fr")
+                .contains(language) ? "/" + language : "";
+        return siteUrl.replaceAll("/+$", "") + prefix + "/pricing";
     }
     private boolean present(String value,String prefix) { return value!=null && value.startsWith(prefix) && value.length()>prefix.length(); }
 }
