@@ -81,6 +81,14 @@ public class MusicMvUserAssetRepository {
                 userId, kind, Integer.valueOf(limit)).getRows();
     }
 
+    public List<Map<String, Object>> listLibrary(String userId, String kind, int limit, int offset) {
+        return d1.query("SELECT " + VIEW + " FROM music_mv_user_assets "
+                        + "WHERE user_id=? AND kind=? AND status='active' AND deleted_at IS NULL "
+                        + "AND datetime(expires_at)>CURRENT_TIMESTAMP "
+                        + "ORDER BY created_at DESC,asset_id DESC LIMIT ? OFFSET ?",
+                userId, kind, Integer.valueOf(limit), Integer.valueOf(offset)).getRows();
+    }
+
     public List<Map<String, Object>> listProject(String userId, String projectId,
                                                   String kind, int limit) {
         if (projectId == null || projectId.trim().isEmpty()) return Collections.emptyList();

@@ -29,6 +29,33 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 class MusicMvUserAssetServiceTest {
 
     @Test
+    void libraryPaginationUsesLookaheadWithoutReturningExtraAsset() {
+        MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);
+        MusicMvUserAssetRepository repository = mock(MusicMvUserAssetRepository.class);
+        MusicMvUserAssetService service = new MusicMvUserAssetService(storage, repository);
+        when(repository.listLibrary("usr_1", "image", 3, 24)).thenReturn(Arrays.asList(
+                row("photo1", "hash1"), row("photo2", "hash2"), row("photo3", "hash3")));
+        Map<String, Object> result = service.listLibrary("usr_1", " IMAGE ", 2, 24);
+        assertEquals(2, result.get("count"));
+        assertEquals(Boolean.TRUE, result.get("hasMore"));
+        assertEquals("library", result.get("scope"));
+        java.util.List<?> items = (java.util.List<?>) result.get("items");
+        assertEquals("photo2", ((Map<?, ?>) items.get(1)).get("assetId"));
+        verify(repository).listLibrary("usr_1", "image", 3, 24);
+    }
+
+    @Test
+    void libraryPaginationBoundsAndEmptyLastPage() {
+        MusicMvUserAssetRepository repository = mock(MusicMvUserAssetRepository.class);
+        MusicMvUserAssetService service = new MusicMvUserAssetService(mock(MusicMvInputAssetStorageService.class), repository);
+        when(repository.listLibrary("usr_2", "image", 101, 0)).thenReturn(Collections.emptyList());
+        Map<String, Object> result = service.listLibrary("usr_2", "image", 500, -1);
+        assertEquals(0, result.get("count"));
+        assertEquals(Boolean.FALSE, result.get("hasMore"));
+        verify(repository).listLibrary("usr_2", "image", 101, 0);
+    }
+
+    @Test
     void reusesMatchingAssetAndRemovesRedundantCloudUpload() throws Exception {
         MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);
         MusicMvUserAssetRepository repository = mock(MusicMvUserAssetRepository.class);

@@ -87,10 +87,13 @@ public class MusicMvInputAssetController {
             @RequestParam(required = false) String projectId,
             @RequestParam(defaultValue = "image") String kind,
             @RequestParam(defaultValue = "40") int limit,
+            @RequestParam(defaultValue = "0") int offset,
             HttpServletRequest request
     ) {
         authentication.requireAuthorized(token);
-        return userAssets.list(auth.requireUserId(request), scope, projectId, kind, limit);
+        String userId = auth.requireUserId(request);
+        if ("library".equals(scope)) return userAssets.listLibrary(userId, kind, limit, offset);
+        return userAssets.list(userId, scope, projectId, kind, limit);
     }
 
     @DeleteMapping("/{assetId}")

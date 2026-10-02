@@ -91,6 +91,20 @@ public class MusicMvUserAssetService {
         return result;
     }
 
+    public Map<String, Object> listLibrary(String userId, String kind, int requestedLimit, int requestedOffset) {
+        int limit = Math.max(1, Math.min(requestedLimit, 100));
+        int offset = Math.max(0, requestedOffset);
+        List<Map<String, Object>> rows = repository.listLibrary(userId, normalizeKind(kind), limit + 1, offset);
+        List<Map<String, Object>> assets = new ArrayList<Map<String, Object>>();
+        for (int index = 0; index < Math.min(limit, rows.size()); index++) assets.add(response(rows.get(index)));
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("items", assets);
+        result.put("count", Integer.valueOf(assets.size()));
+        result.put("hasMore", Boolean.valueOf(rows.size() > limit));
+        result.put("scope", "library");
+        return result;
+    }
+
     public void delete(String userId, String assetId) throws IOException {
         Map<String, Object> row = repository.findOwned(userId, assetId);
         if (row == null) {

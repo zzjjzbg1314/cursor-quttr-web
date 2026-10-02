@@ -19,18 +19,35 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvUserAssetService;
 
 class MusicMvInputAssetControllerTest {
     private MockMvc mockMvc;
+    private MusicMvAuthService auth;
+    private MusicMvUserAssetService userAssets;
     private MusicMvInputAssetStorageService storage;
 
     @BeforeEach
     void setUp() {
         storage = mock(MusicMvInputAssetStorageService.class);
+        auth = mock(MusicMvAuthService.class);
+        userAssets = mock(MusicMvUserAssetService.class);
         MusicMvInputAssetController controller = new MusicMvInputAssetController(
                 new MusicMvRenderClientAuthenticationService("isolated-client-token"),
-                mock(MusicMvAuthService.class),
+                auth,
                 storage,
-                mock(MusicMvUserAssetService.class));
+                userAssets);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new MusicMvExceptionHandler()).build();
+    }
+
+    @Test
+    void libraryPageUsesAuthenticatedOwnerAndOffset() throws Exception {
+        when(auth.requireUserId(org.mockito.ArgumentMatchers.any())).thenReturn("owner_1");
+        when(userAssets.listLibrary("owner_1", "image", 24, 48)).thenReturn(
+                java.util.Collections.singletonMap("hasMore", Boolean.TRUE));
+        mockMvc.perform(get("/api/music-mv/v1/assets")
+                .header("X-Music-Mv-Client-Token", "isolated-client-token")
+                .param("scope", "library").param("limit", "24").param("offset", "48")
+                .param("userId", "other-user"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.hasMore").value(true));
+        org.mockito.Mockito.verify(userAssets).listLibrary("owner_1", "image", 24, 48);
     }
 
     @Test
