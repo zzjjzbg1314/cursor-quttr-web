@@ -19,6 +19,7 @@ public class MusicBillingController {
         this.billing=billing;this.auth=auth;this.clientAuth=clientAuth;
     }
     @GetMapping("/capabilities") public Map<String,Object> capabilities() { return billing.capabilities(); }
+    @GetMapping("/credits") public Map<String,Object> credits(HttpServletRequest request) { return billing.credits(owner(request)); }
     @GetMapping("/status") public Map<String,Object> status(HttpServletRequest request) { return billing.status(owner(request)); }
     @PostMapping("/checkout") public Map<String,Object> checkout(@RequestBody Map<String,String> body,HttpServletRequest request) {
         return billing.checkout(owner(request),body.get("plan"),body.get("locale"));

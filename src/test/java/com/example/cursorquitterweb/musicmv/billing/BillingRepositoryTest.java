@@ -8,18 +8,18 @@ import com.example.cursorquitterweb.musicmv.service.*;
 class BillingRepositoryTest {
     @Test void actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering() throws Exception {
         Capture db=new Capture();BillingRepository r=new BillingRepository(db);
-        r.grant("in_1","u","sub_1","starter",1,100,200);
-        r.reserve("u","r1","j1",150);
-        r.reserve("u","r2","j2",150);
+        r.grant("in_1","u","sub_1","starter",10,100,200);
+        r.reserve("u","r1","j1",150,10);
+        r.reserve("u","r2","j2",150,10);
         r.settle("j1","released");
-        r.reserve("u","r2","j2",150);
+        r.reserve("u","r2","j2",150,10);
         r.settle("j2","consumed");
         r.settle("j2","released");
         r.balance("u",150);
         r.revoke("in_2");
-        r.grant("in_2","u","sub_1","starter",30,200,300);
-        r.reserve("u","r3","j3",250);
-        r.reserve("other","r4","j4",150);
+        r.grant("in_2","u","sub_1","starter",300,200,300);
+        r.reserve("u","r3","j3",250,10);
+        r.reserve("other","r4","j4",150,10);
         r.balance("u",301);
         String script=String.join("\n",
             "import sqlite3,json,pathlib,sys",
@@ -47,6 +47,57 @@ class BillingRepositoryTest {
         String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
         assertThat(process.exitValue()).withFailMessage(output).isZero();
     }
+    @Test void creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod() throws Exception {
+        Capture db=new Capture(); BillingRepository r=new BillingRepository(db);
+        r.grant("old","u","sub","starter",25,100,200);
+        r.reserve("u","one","j1",150,10);
+        r.reserve("u","two","j2",150,10);
+        r.reserve("u","three","j3",150,10);
+        r.balance("u",150);
+        r.settle("j1","released");
+        r.reserve("u","three","j3",150,10);
+        r.grant("new","u","sub","starter",300,200,300);
+        r.balance("u",200);
+        r.settle("j2","released");
+        r.balance("u",200);
+        r.reserve("u","next","j4",200,20);
+        r.balance("u",200);
+        String script=String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);run(1);run(2);assert run(3)==[]",
+            "b=run(4)[0];assert (b['remaining'],b['reserved'],b['allowance'])==(5,20,25)",
+            "run(5);run(5);assert len(run(6))==1;assert run(6)==[]",
+            "run(7);assert run(8)[0]['remaining']==300",
+            "run(9);assert run(10)[0]['remaining']==300",
+            "run(11);b=run(12)[0];assert (b['remaining'],b['reserved'])==(280,20)");
+        runPython(script,new ObjectMapper().writeValueAsString(db.statements));
+    }
+
+    @Test void migrationPreservesExistingPurchasesHoldsAndRefunds() throws Exception {
+        String script=String.join("\n",
+            "import sqlite3,pathlib",
+            "d=sqlite3.connect(':memory:')",
+            "schema=pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text().replace(' credits INTEGER NOT NULL DEFAULT 10 CHECK(credits>0),','')",
+            "d.executescript(schema)",
+            "d.execute(\"INSERT INTO music_mv_billing_grants(invoice_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('i','u','s','starter',30,100,200)\")",
+            "d.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,invoice_id,state) VALUES(?,'u',?,'i',?)\", [('a','a','reserved'),('b','b','consumed'),('c','c','released')])",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-credits-migration.sql').read_text())",
+            "assert d.execute('SELECT allowance FROM music_mv_billing_grants').fetchone()[0]==300",
+            "assert d.execute(\"SELECT SUM(credits) FROM music_mv_billing_reservations WHERE state<>'released'\").fetchone()[0]==20");
+        runPython(script,"");
+    }
+
+    private void runPython(String script,String data) throws Exception {
+        Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
+        assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(process.exitValue()).withFailMessage(output).isZero();
+    }
+
     static class Capture extends D1DatabaseClient {
         List<Map<String,Object>> statements=new ArrayList<>();Capture(){super(new ObjectMapper());}
         @Override public D1QueryResult query(String sql,Object...params){statements.add(StripeGateway.map("sql",sql,"params",Arrays.asList(params)));return new D1QueryResult(Collections.emptyList(),null);}

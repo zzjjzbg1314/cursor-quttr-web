@@ -14,8 +14,10 @@ class MusicBillingControllerTest {
   MusicMvRenderClientAuthenticationService client=mock(MusicMvRenderClientAuthenticationService.class);
   MusicBillingController controller=new MusicBillingController(billing,auth,client);MockHttpServletRequest req=new MockHttpServletRequest();
   when(auth.requireUserId(req)).thenReturn("owner");Map<String,String> body=new HashMap<>();body.put("plan","starter");body.put("locale","en");body.put("userId","attacker");
+  controller.credits(req);verify(billing).credits("owner");
   controller.checkout(body,req);verify(billing).checkout("owner","starter","en");
   when(auth.requireUserId(req)).thenThrow(new ApiException(HttpStatus.UNAUTHORIZED,"AUTH","Sign in"));
+  assertThatThrownBy(()->controller.credits(req)).isInstanceOf(ApiException.class);verify(billing,times(1)).credits(anyString());
   assertThatThrownBy(()->controller.portal(body,req)).isInstanceOf(ApiException.class);verify(billing,never()).portal(anyString(),anyString());
  }
 }

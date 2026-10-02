@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS music_mv_billing_reservations (
  job_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, request_id TEXT NOT NULL,
  invoice_id TEXT NOT NULL REFERENCES music_mv_billing_grants(invoice_id),
  state TEXT NOT NULL CHECK(state IN ('reserved','consumed','released')),
+ credits INTEGER NOT NULL DEFAULT 10 CHECK(credits>0),
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  UNIQUE(user_id,request_id)
 );

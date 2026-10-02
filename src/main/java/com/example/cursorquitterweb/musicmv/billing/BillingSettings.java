@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @Component
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class BillingSettings {
+    public static final int SONG_CREDITS = 10;
     @Value("${music-mv.billing.enabled:false}") public boolean enabled;
     @Value("${STRIPE_SECRET_KEY:}") public String secretKey;
     @Value("${STRIPE_WEBHOOK_SECRET:}") public String webhookSecret;
@@ -30,8 +31,8 @@ public class BillingSettings {
         throw new ApiException(HttpStatus.BAD_REQUEST,"BILLING_PLAN_INVALID","Unknown plan.");
     }
     public int allowance(String price) {
-        if (present(starterPrice,"price_") && starterPrice.equals(price)) return 30;
-        if (present(creatorPrice,"price_") && creatorPrice.equals(price)) return 100;
+        if (present(starterPrice,"price_") && starterPrice.equals(price)) return 300;
+        if (present(creatorPrice,"price_") && creatorPrice.equals(price)) return 1000;
         return 0;
     }
     public String returnUrl(String locale) {

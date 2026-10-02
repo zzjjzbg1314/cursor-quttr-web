@@ -4,7 +4,7 @@
 
 仅支持 Sandbox。正式环境密钥会被拒绝；默认不开启计费。不能将此版本作为正式收费上线验收。
 
-已调用官方 `stripe_implementation_planner` 并接受方案，guide_id 为 `iguide_61VRiEFDUDAuX9jPW41HvJKvqgg1d`：网页、托管 Checkout、固定月费、提前付款、Customer Portal、账期末取消、不做期中升降级。音乐使用次数由网站后台管理，不使用后付费用量计费。视频制作不扣音乐次数。
+已调用官方 `stripe_implementation_planner` 并接受方案，guide_id 为 `iguide_61VRiEFDUDAuX9jPW41HvJKvqgg1d`：网页、托管 Checkout、固定月费、提前付款、Customer Portal、账期末取消、不做期中升降级。音乐积分由网站后台管理，不使用后付费用量计费。视频制作不扣音乐积分。
 
 Stripe Java SDK 33.4.2，固定 API 2026-08-26.dahlia；版本来自本次 Maven Central 稳定版清单和 SDK 常量。不要使用技能文件里较旧的 API 版本创建回调。
 
@@ -12,10 +12,10 @@ Stripe Java SDK 33.4.2，固定 API 2026-08-26.dahlia；版本来自本次 Maven
 
 账户：`acct_1UIK5yHvJKvqgg1d`（bitestar 沙盒，livemode=false）。
 
-| 套餐 | USD/月 | 生成任务/账期 | Price ID |
+| 套餐 | USD/月 | 积分/账期 | Price ID |
 | --- | ---: | ---: | --- |
-| Starter | 9.99 | 30 | price_1UIKOgHvJKvqgg1dqPdGhy17 |
-| Creator | 29.99 | 100 | price_1UIKOrHvJKvqgg1dBa9Jy3JQ |
+| Starter | 9.99 | 300 | price_1UIKOgHvJKvqgg1dqPdGhy17 |
+| Creator | 29.99 | 1000 | price_1UIKOrHvJKvqgg1dBa9Jy3JQ |
 
 Portal configuration：`bpc_1UIKQNHvJKvqgg1dPfuO3g15`。允许查看账单、更新支付方式、账期末取消，不允许更改套餐。充值包暂未接入。
 
@@ -40,6 +40,7 @@ MUSIC_MV_BILLING_SITE_URL=http://localhost:3000
 ## 回调与路由
 
 - `GET /api/music-mv/v1/billing/capabilities`：是否可用、沙盒标识。
+- `GET /api/music-mv/v1/billing/credits`：当前用户可用积分、预占积分和到期时间；只读本地账本，不查询 Stripe。
 - `GET /api/music-mv/v1/billing/status`：当前用户余额与订阅状态。
 - `POST /api/music-mv/v1/billing/checkout`：仅接收 plan、locale，用户来自会话，价格来自后台白名单。
 - `POST /api/music-mv/v1/billing/portal`：只进入当前用户的 Portal。
@@ -49,12 +50,12 @@ MUSIC_MV_BILLING_SITE_URL=http://localhost:3000
 
 监听 `invoice.paid`、`credit_note.created`、`charge.refunded`、`charge.dispute.created`。本地可使用 Stripe CLI 将这些事件转发到 `http://localhost:8080/api/music-mv/v1/billing/webhook`，使用监听器输出的签名密钥。远程 Stripe 不能直接访问 localhost。
 
-## 额度规则
+## 积分规则
 
 - 只根据验签成功后重新读取的已付账单发额度；不根据返回页面、前端价格或 Checkout 成功跳转发放。
 - 按账单行覆盖的真实账期发放，按 invoice_id 幂等；月度额度不结转，账期结束失效。
 - 创建生成任务前，在单条条件写入中检查有效额度并预占，用户+request_id 唯一。并发请求不能超额。
-- 成功消耗一次，明确失败返还；结果未知保留占用，不能因为接口超时自动返还。
+- 每次生成预占 10 积分，通常返回两个歌曲版本；成功只扣一次，明确失败返还 10 积分；结果未知保留占用，不能因为接口超时自动返还。
 - 读取余额或开始生成时，根据持久化最终任务状态补偿未完成的结算。
 - 如果预占成功但建任务前数据库/进程故障，保留占用并阻止重复提交，需要人工核对；不自动冒险重新调用供应商。
 - 首版退款、贷项通知或争议会撤回对应账单剩余额度，包括部分退款。撤回记录独立保存，即使通知先于发放，也不能随后误发。
@@ -76,3 +77,13 @@ MUSIC_MV_BILLING_SITE_URL=http://localhost:3000
 - https://docs.stripe.com/billing/subscriptions/build-subscriptions?payment-ui=checkout&ui=stripe-hosted
 - https://docs.stripe.com/customer-management/integrate-customer-portal
 - https://docs.stripe.com/webhooks
+
+## 从次数升级为积分（本次改动）
+
+价格和可生成数量不变：Starter 每月 300 积分、Creator 每月 1000 积分，每个生成请求 10 积分。无结转、无充值包，浏览器视频导出免费。前端在定价页展示余额、预占和到期时间，在生成按钮附近显示单次消耗。九种语言同步。
+
+- 新数据库：执行完整 `music-mv-billing-schema.sql`。
+- 已有次数账本：先关闭计费入口并备份测试数据库，再将 `music-mv-billing-credits-migration.sql` 作为一个原子批次执行一次，然后部署本次前后端。不要对新库或已迁移库重复执行。
+- 旧预约每条换算为 10 积分，旧发放额度乘 10，因此用户可生成次数不变。必须先迁移再启动新计费代码。
+- 已过期账期的失败退还只回到原账期，不增加新账期余额。
+- 本次未执行远程迁移、未部署、未改变 Stripe 资源或开启正式收款。真实沙盒支付闭环仍按上述清单验收。

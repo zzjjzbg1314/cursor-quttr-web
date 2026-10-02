@@ -20,12 +20,21 @@ public class MusicBillingService {
     public MusicBillingService(BillingSettings settings,BillingRepository repo,StripeGateway stripe,ObjectMapper mapper) {
         this.settings=settings;this.repo=repo;this.stripe=stripe;this.mapper=mapper;
     }
-    public Map<String,Object> capabilities() { return map("available",settings.ready(),"sandbox",true); }
-    public Map<String,Object> status(String user) {
-        if(!settings.ready()) return map("available",false,"sandbox",true);
+    public Map<String,Object> capabilities() { return map("available",settings.ready(),"sandbox",true,"enabled",settings.enabled,"generationCredits",BillingSettings.SONG_CREDITS); }
+    public Map<String,Object> credits(String user) {
+        if(!settings.ready()) return capabilities();
         repo.reconcile(user);
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
-        Map<String,Object> result=map("available",true,"sandbox",true,"remaining",balance==null?0:balance.get("remaining"),"periodEnd",balance==null?null:balance.get("period_end"));
+        Map<String,Object> result=new LinkedHashMap<>(capabilities());
+        result.put("remaining",balance==null?0:balance.get("remaining"));
+        result.put("allowance",balance==null?0:balance.get("allowance"));
+        result.put("reserved",balance==null?0:balance.get("reserved"));
+        result.put("periodEnd",balance==null?null:balance.get("period_end"));
+        return result;
+    }
+    public Map<String,Object> status(String user) {
+        Map<String,Object> result=credits(user);
+        if(!settings.ready()) return result;
         Map<String,Object> customer=repo.customer(user);
         result.put("canManage",customer!=null);
         if(customer!=null) result.put("subscription",activeSubscription(stripe.subscriptions(text(customer,"customer_id"))));
@@ -59,7 +68,7 @@ public class MusicBillingService {
         if(!settings.enabled) return;
         settings.requireReady(); repo.reconcile(user);
         if(repo.hasReservation(user,request)) throw error(HttpStatus.CONFLICT,"BILLING_GENERATION_PENDING","This generation is already being processed.");
-        if(!repo.reserve(user,request,job,Instant.now().getEpochSecond())) throw error(HttpStatus.PAYMENT_REQUIRED,"BILLING_QUOTA_EXHAUSTED","No music generations remaining. Choose a plan or wait for renewal.");
+        if(!repo.reserve(user,request,job,Instant.now().getEpochSecond(),BillingSettings.SONG_CREDITS)) throw error(HttpStatus.PAYMENT_REQUIRED,"BILLING_QUOTA_EXHAUSTED","Not enough credits. Choose a plan or wait for renewal.");
     }
     public void settle(String job,String status) {
         if(!settings.enabled) return;
