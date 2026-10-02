@@ -1,4 +1,4 @@
--- 支付数据独立迁移；仅在指定的测试数据库执行，不在启动时自动修改数据库。
+-- 全新积分系统初始化；仅在指定的测试数据库执行，不在启动时自动修改数据库。
 CREATE TABLE IF NOT EXISTS music_mv_billing_customers (
  user_id TEXT PRIMARY KEY, customer_id TEXT UNIQUE NOT NULL,
  checkout_token TEXT, checkout_plan TEXT, checkout_expires INTEGER,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS music_mv_billing_reservations (
  job_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, request_id TEXT NOT NULL,
  invoice_id TEXT NOT NULL REFERENCES music_mv_billing_grants(invoice_id),
  state TEXT NOT NULL CHECK(state IN ('reserved','consumed','released')),
- credits INTEGER NOT NULL DEFAULT 10 CHECK(credits>0),
+ credits INTEGER NOT NULL CHECK(credits>0),
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  UNIQUE(user_id,request_id)
 );

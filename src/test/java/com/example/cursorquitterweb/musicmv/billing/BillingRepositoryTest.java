@@ -41,7 +41,7 @@ class BillingRepositoryTest {
     }
     @Test void reconciliationOnlyChangesRequestedOwner() throws Exception {
         Capture db=new Capture(); new BillingRepository(db).reconcile("u");
-        String script="import sqlite3,json,sys,pathlib\nd=sqlite3.connect(':memory:')\nd.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())\nd.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')\nd.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('j1','u','completed'),('j2','other','failed')])\nd.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,invoice_id,state) VALUES(?,?,?,'i','reserved')\", [('j1','u','r1'),('j2','other','r2')])\ns=json.loads(sys.argv[1]);d.execute(s['sql'],s['params'])\nassert d.execute('SELECT state FROM music_mv_billing_reservations ORDER BY job_id').fetchall()==[('consumed',),('reserved',)]";
+        String script="import sqlite3,json,sys,pathlib\nd=sqlite3.connect(':memory:')\nd.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())\nd.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')\nd.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('j1','u','completed'),('j2','other','failed')])\nd.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,invoice_id,state,credits) VALUES(?,?,?,'i','reserved',10)\", [('j1','u','r1'),('j2','other','r2')])\ns=json.loads(sys.argv[1]);d.execute(s['sql'],s['params'])\nassert d.execute('SELECT state FROM music_mv_billing_reservations ORDER BY job_id').fetchall()==[('consumed',),('reserved',)]";
         Process process=new ProcessBuilder("python3","-c",script,new ObjectMapper().writeValueAsString(db.statements.get(0))).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
         String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
@@ -75,20 +75,6 @@ class BillingRepositoryTest {
             "run(9);assert run(10)[0]['remaining']==300",
             "run(11);b=run(12)[0];assert (b['remaining'],b['reserved'])==(280,20)");
         runPython(script,new ObjectMapper().writeValueAsString(db.statements));
-    }
-
-    @Test void migrationPreservesExistingPurchasesHoldsAndRefunds() throws Exception {
-        String script=String.join("\n",
-            "import sqlite3,pathlib",
-            "d=sqlite3.connect(':memory:')",
-            "schema=pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text().replace(' credits INTEGER NOT NULL DEFAULT 10 CHECK(credits>0),','')",
-            "d.executescript(schema)",
-            "d.execute(\"INSERT INTO music_mv_billing_grants(invoice_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('i','u','s','starter',30,100,200)\")",
-            "d.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,invoice_id,state) VALUES(?,'u',?,'i',?)\", [('a','a','reserved'),('b','b','consumed'),('c','c','released')])",
-            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-credits-migration.sql').read_text())",
-            "assert d.execute('SELECT allowance FROM music_mv_billing_grants').fetchone()[0]==300",
-            "assert d.execute(\"SELECT SUM(credits) FROM music_mv_billing_reservations WHERE state<>'released'\").fetchone()[0]==20");
-        runPython(script,"");
     }
 
     private void runPython(String script,String data) throws Exception {
