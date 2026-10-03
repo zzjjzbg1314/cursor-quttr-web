@@ -11,10 +11,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerMapping;
 import io.micrometer.core.instrument.Metrics;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 @Component
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class MusicMvPerformanceFilter extends OncePerRequestFilter {
+    public static final String BUSINESS_ATTRIBUTE = MusicMvPerformanceFilter.class.getName() + ".business";
+    private static final org.slf4j.Logger REQUEST_LOG = LoggerFactory.getLogger("musicmv.requests");
     private static final ThreadLocal<Stats> CURRENT = new ThreadLocal<>();
     static void recordD1(long nanos) {
         Stats stats = CURRENT.get();
@@ -27,9 +32,13 @@ public class MusicMvPerformanceFilter extends OncePerRequestFilter {
             FilterChain chain) throws ServletException, IOException {
         String requestId = UUID.randomUUID().toString();
         response.setHeader("X-Request-Id", requestId);
+        String previousId = MDC.get("requestId");
+        MDC.put("requestId", requestId);
+        Throwable failure = null;
         long start = System.nanoTime();
         Stats stats = new Stats(); CURRENT.set(stats);
         try { chain.doFilter(request, response); }
+        catch (IOException | ServletException | RuntimeException exception) { failure = exception; throw exception; }
         finally {
             CURRENT.remove();
             Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
@@ -39,11 +48,24 @@ public class MusicMvPerformanceFilter extends OncePerRequestFilter {
                     .record(elapsed, TimeUnit.NANOSECONDS);
             Metrics.summary("music.mv.http.d1.calls", "route", route).record(stats.calls);
             Metrics.timer("music.mv.http.d1.duration", "route", route).record(stats.nanos, TimeUnit.NANOSECONDS);
-            // 仅记录路由模板和耗时，避免将作品编号、正文、查询参数写入性能日志。
-            if (elapsed >= TimeUnit.SECONDS.toNanos(1)) logger.info("music_mv_performance requestId=" + requestId
-                    + " route=" + route + " status=" + response.getStatus() + " elapsedMs="
-                    + TimeUnit.NANOSECONDS.toMillis(elapsed) + " d1Calls=" + stats.calls
-                    + " d1Ms=" + TimeUnit.NANOSECONDS.toMillis(stats.nanos));
+            // 每个请求仅输出一条摘要，不记录正文、查询参数或登录凭证。
+            int status = failure == null ? response.getStatus() : 500;
+            Throwable cause = failure;
+            while (cause != null && cause.getCause() != null && cause != cause.getCause()) cause = cause.getCause();
+            String code = cause instanceof ApiException ? ((ApiException) cause).getCode() : "-";
+            String summary = "music_mv_request requestId=" + requestId + " " + request.getMethod()
+                    + " " + route + " status=" + status + " elapsedMs=" + TimeUnit.NANOSECONDS.toMillis(elapsed);
+            Object business = request.getAttribute(BUSINESS_ATTRIBUTE);
+            if (business instanceof java.util.Map && !((java.util.Map<?,?>) business).isEmpty()) summary += " business=" + business;
+            if (cause != null) summary += " exception=" + cause.getClass().getSimpleName();
+            if (!"-".equals(code)) summary += " code=" + code;
+            try {
+                if (status >= 500) REQUEST_LOG.error(summary);
+                else if (status >= 400) REQUEST_LOG.warn(summary);
+                else REQUEST_LOG.info(summary);
+            } finally {
+                if (previousId == null) MDC.remove("requestId"); else MDC.put("requestId", previousId);
+            }
         }
     }
     private static final class Stats { long calls; long nanos; }
