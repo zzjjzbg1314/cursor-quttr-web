@@ -40,6 +40,8 @@ class MusicMvModuleDisabledTest {
             assertThat(context).doesNotHaveBean(MusicMvTemplateCatalogRepository.class);
             assertThat(context).doesNotHaveBean(MusicMvRenderJobRepository.class);
             assertThat(context).doesNotHaveBean(D1DatabaseClient.class);
+            assertThat(context).doesNotHaveBean(com.example.cursorquitterweb.musicmv.service.MusicMvPerformanceFilter.class);
+            assertThat(context).doesNotHaveBean(com.example.cursorquitterweb.musicmv.service.MusicMvBusinessLogAdvice.class);
 
             RequestMappingHandlerMapping mappings = context.getBean(RequestMappingHandlerMapping.class);
             for (Map.Entry<?, ?> entry : mappings.getHandlerMethods().entrySet()) {

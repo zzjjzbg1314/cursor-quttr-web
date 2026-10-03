@@ -37,6 +37,8 @@ class MusicMvRequestLogTest {
             assertEquals(Level.INFO,logs.list.get(0).getLevel());
         } finally {MDC.remove("requestId");logger.detachAppender(logs);logs.stop();}
     }
+    // 仅由独立 MockMvc 测试手动实例化，禁止进入应用组件扫描。
+    @org.springframework.context.annotation.Profile("music-mv-log-test-fixture")
     @org.springframework.web.bind.annotation.RestController
     static class FixtureController {
         @org.springframework.web.bind.annotation.GetMapping("/api/music-mv/v1/example")
@@ -65,7 +67,14 @@ class MusicMvRequestLogTest {
         ListAppender<ILoggingEvent> logs=new ListAppender<>();logs.start();logger.addAppender(logs);
         try {
             MusicMvPerformanceFilter filter=new MusicMvPerformanceFilter();
-            filter.doFilter(new MockHttpServletRequest("GET","/other"),new MockHttpServletResponse(),(req,res)->{});
+            MockHttpServletRequest otherRequest = new MockHttpServletRequest("GET","/api/quittr/example");
+            MockHttpServletResponse otherResponse = new MockHttpServletResponse();
+            Map<String,Object> otherBody = Collections.singletonMap("status", "ready");
+            filter.doFilter(otherRequest,otherResponse,(req,res)->{
+                assertSame(otherBody,new MusicMvBusinessLogAdvice().beforeBodyWrite(otherBody,null,null,null,new ServletServerHttpRequest(otherRequest),null));
+            });
+            assertNull(otherResponse.getHeader("X-Request-Id"));
+            assertNull(otherRequest.getAttribute(MusicMvPerformanceFilter.BUSINESS_ATTRIBUTE));
             assertTrue(logs.list.isEmpty());
             filter.doFilter(new MockHttpServletRequest("GET","/api/music-mv/v1/jobs"),new MockHttpServletResponse(),(req,res)->((javax.servlet.http.HttpServletResponse)res).setStatus(401));
             assertEquals(Level.WARN,logs.list.get(0).getLevel());

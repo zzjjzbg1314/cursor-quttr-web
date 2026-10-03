@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /** 只提取安全业务摘要，原样返回响应，不缓存媒体流。 */
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 @ControllerAdvice(basePackages = "com.example.cursorquitterweb.musicmv")
 public class MusicMvBusinessLogAdvice implements ResponseBodyAdvice<Object> {
     private static final String[] FIELDS = {"code", "retryable", "status", "available", "enabled",
