@@ -48,12 +48,12 @@ MUSIC_MV_BILLING_SITE_URL=http://localhost:3000
 
 前端代理保留原始流和 Stripe-Signature。公开回调 URL 为 `https://你的测试网站/api/music-mv/v1/billing/webhook`，必须直达处理器，不经过登录重定向。Webhook API 版本固定为上述 SDK 版本。
 
-监听 `invoice.paid`、`credit_note.created`、`charge.refunded`、`charge.dispute.created`。本地可使用 Stripe CLI 将这些事件转发到 `http://localhost:8080/api/music-mv/v1/billing/webhook`，使用监听器输出的签名密钥。远程 Stripe 不能直接访问 localhost。
+监听 `customer.subscription.created`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.paid`、`credit_note.created`、`charge.refunded`、`charge.dispute.created`。本地可使用 Stripe CLI 将这些事件转发到 `http://localhost:8080/api/music-mv/v1/billing/webhook`，使用监听器输出的签名密钥。远程 Stripe 不能直接访问 localhost。
 
 ## 积分规则
 
 - 只根据验签成功后重新读取的已付账单发额度；不根据返回页面、前端价格或 Checkout 成功跳转发放。
-- 按账单行覆盖的真实账期发放，按 invoice_id 幂等；月度额度不结转，账期结束失效。
+- 按账单行覆盖的真实账期发放，按支付渠道 + payment_id 幂等；月度额度不结转，账期结束失效。
 - 创建生成任务前，在单条条件写入中检查有效额度并预占，用户+request_id 唯一。并发请求不能超额。
 - 每次生成预占 10 积分，通常返回两个歌曲版本；成功只扣一次，明确失败返还 10 积分；结果未知保留占用，不能因为接口超时自动返还。
 - 读取余额或开始生成时，根据持久化最终任务状态补偿未完成的结算。
@@ -62,7 +62,7 @@ MUSIC_MV_BILLING_SITE_URL=http://localhost:3000
 - 争议撤销、贷项撤销的自动恢复未实现，需核对后处理；正式上线前需要确定部分退款和恢复政策。
 - 重复通知只记一次；业务中断不确认回调，让 Stripe 重试。可在 Stripe Workbench 重发失败事件；尚无独立后台重放界面。
 - 当前读取订阅状态使用 Stripe 实时 API；供应商暂不可用时会明确返回错误，不伪造账户状态。
-- 同一用户未结束的 Checkout 使用同一幂等键和同一返回地址；另一套餐需等待订单过期，防止并行买两份订阅。
+- 同一用户跨渠道共用一个订阅/结账入口，未结束的 Checkout 使用同一幂等键和同一返回地址；另一套餐需等待订单过期，防止并行买两份订阅。
 
 ## 验证与尚未完成
 
@@ -91,3 +91,22 @@ Starter 每月 300 积分，Creator 每月 1000 积分；每次生成预占 10 �
 每笔任务明确写入积分数，不依赖数据库默认扣分值。保留支付回调去重、任务预占和退款撤回，防止重复发放、超扣与失败误扣。过期账期的退还仍只回到原账期。
 
 本次仅调整代码和初始化说明，未删除或修改任何远程数据库数据，未部署或开启正式收款。
+
+## 支付渠道与积分模型
+
+当前只接通 Stripe 沙盒；PayPal 尚未实现，不展示入口。新建表直接采用以下模型，不提供旧结构迁移。
+
+| 表 | 职责 | 唯一范围 |
+| --- | --- | --- |
+| customers | 网站用户对应渠道账户 | 用户 + 渠道；渠道 + 外部账户 ID |
+| subscriptions | 当前订阅归属和结账占用 | 每用户一条，跨渠道共用 |
+| grants | 每次付款获得的积分及有效期 | 内部 grant_id；渠道 + 外部付款编号 |
+| reservations | 任务预占、消费、退还 | job_id；用户 + request_id；关联内部 grant_id |
+| events | 已成功处理的支付通知 | 渠道 + event_id |
+| revocations | 退款先到时记录撤回 | 渠道 + payment_id |
+
+表名均以 `music_mv_billing_` 开头。Stripe 的 payment_id 当前取已付账单 ID；未来渠道需选取每期付款的稳定唯一编号，不能以订阅 ID 代替，否则续费无法再次发积分。积分消费无需读取渠道账户或外部付款编号。
+
+订阅表中的状态是渠道查证后的快照。Stripe 结账前、查询账户时和相关回调到达时，重新查询当前订阅，避免旧回调覆盖新状态。取消续费但本期未结束仍保留订阅归属；渠道确认订阅结束才释放。跨渠道结账占用使用同一条条件写入；其他渠道的订阅或有效结账不能被覆盖。
+
+未来接 PayPal：补充其结账、验签、付款核实和订阅状态读取；核实后调用共用账本的发放/撤回方法，并使用共享订阅入口。必须验证渠道间同时结账、通知乱序和每期去重。无需复制积分表，不需要通用支付插件框架。前端支付跳转目前仍只允许 Stripe，接入 PayPal 时另行增加经过验证的跳转及管理入口。
