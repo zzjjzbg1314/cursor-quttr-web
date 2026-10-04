@@ -27,6 +27,7 @@ class MusicBillingControllerTest {
   when(auth.requireUserId(req)).thenReturn("owner");Map<String,String> body=new HashMap<>();body.put("plan","starter");body.put("locale","en");body.put("userId","attacker");
   controller.history(20,req);verify(billing).history("owner",20,"all");
   controller.usage(req);verify(billing).usage("owner");
+  body.put("id","notice");controller.acknowledgeWelcomeNotice(body,req);verify(billing).acknowledgeWelcomeNotice("owner","notice");
   controller.credits(req);verify(billing).credits("owner");
   controller.checkout(body,req);verify(billing).checkout("owner","starter","en");
   when(auth.requireUserId(req)).thenThrow(new ApiException(HttpStatus.UNAUTHORIZED,"AUTH","Sign in"));

@@ -41,7 +41,13 @@ public class BillingRepository {
     public void ensureWelcomeCredits(String user) {
         // 固定来源和账号唯一键保证重试、并发登录都只赠送一次；体验积分永久有效。
         // 0/1 仅兼容现有表的非空区间约束；余额和预占查询明确对体验来源豁免到期判断。
-        grant("internal", "welcome:"+user, user, "welcome", "welcome", 10, 0, 1);
+        db.query("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end,welcome_notice_seen) VALUES(?,'internal',?,?,'welcome','welcome',10,0,1,0) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),"welcome:"+user,user);
+    }
+    public Map<String,Object> welcomeNotice(String user) {
+        return db.query("SELECT grant_id AS id,allowance AS credits FROM music_mv_billing_grants WHERE user_id=? AND provider='internal' AND plan_key='welcome' AND revoked=0 AND welcome_notice_seen=0 LIMIT 1",user).firstRow();
+    }
+    public void acknowledgeWelcomeNotice(String user,String id) {
+        db.query("UPDATE music_mv_billing_grants SET welcome_notice_seen=1 WHERE user_id=? AND grant_id=? AND provider='internal' AND plan_key='welcome' AND welcome_notice_seen=0",user,id);
     }
     public List<Map<String,Object>> history(String user,int limit,int offset) { return history(user,limit,offset,"all"); }
     public List<Map<String,Object>> history(String user,int limit,int offset,String kind) {

@@ -28,12 +28,17 @@ public class MusicBillingService {
         repo.reconcile(user);
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=new LinkedHashMap<>(capabilities());
+        result.put("welcomeNotice",repo.welcomeNotice(user));
         result.put("welcomeRemaining",balance==null?0:balance.get("welcome_remaining"));
         result.put("remaining",balance==null?0:balance.get("remaining"));
         result.put("allowance",balance==null?0:balance.get("allowance"));
         result.put("reserved",balance==null?0:balance.get("reserved"));
         result.put("periodEnd",balance==null?null:balance.get("period_end"));
         return result;
+    }
+    public Map<String,Object> acknowledgeWelcomeNotice(String user,String id) {
+        if(settings.enabled && id!=null && !id.isEmpty() && id.length()<=100) repo.acknowledgeWelcomeNotice(user,id);
+        return map("acknowledged",true);
     }
     public Map<String,Object> history(String user,int offset) { return history(user,offset,"all"); }
     public Map<String,Object> history(String user,int offset,String kind) {

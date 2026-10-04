@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS music_mv_billing_grants (
  provider TEXT NOT NULL, payment_id TEXT NOT NULL, subscription_id TEXT NOT NULL,
  plan_key TEXT NOT NULL, allowance INTEGER NOT NULL CHECK(allowance>0),
  period_start INTEGER NOT NULL, period_end INTEGER NOT NULL CHECK(period_end>period_start),
+ welcome_notice_seen INTEGER NOT NULL DEFAULT 1 CHECK(welcome_notice_seen IN (0,1)),
  revoked INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  UNIQUE(provider,payment_id)
 );
