@@ -35,6 +35,12 @@ public class MusicBillingService {
         result.put("periodEnd",balance==null?null:balance.get("period_end"));
         return result;
     }
+    public Map<String,Object> history(String user,int offset) {
+        if(offset<0 || offset>100000) throw error(HttpStatus.BAD_REQUEST,"BILLING_HISTORY_INVALID","Invalid page.");
+        if(!settings.enabled) return map("items",Collections.emptyList(),"hasMore",false);
+        List<Map<String,Object>> rows=repo.history(user,21,offset);
+        return map("items",rows.subList(0,Math.min(20,rows.size())),"hasMore",rows.size()>20);
+    }
     public Map<String,Object> status(String user) {
         Map<String,Object> result=credits(user);
         if(!settings.ready()) return result;

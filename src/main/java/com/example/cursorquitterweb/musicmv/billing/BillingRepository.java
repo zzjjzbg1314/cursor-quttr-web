@@ -43,6 +43,10 @@ public class BillingRepository {
         // 0/1 仅兼容现有表的非空区间约束；余额和预占查询明确对体验来源豁免到期判断。
         grant("internal", "welcome:"+user, user, "welcome", "welcome", 10, 0, 1);
     }
+    public List<Map<String,Object>> history(String user,int limit,int offset) {
+        // 从现有发放与任务记录读取明细，不增加账本或改变扣费流程。
+        return db.query("SELECT * FROM (SELECT 'grant:'||grant_id AS id, CASE WHEN revoked=1 THEN 'revoked' WHEN provider='internal' AND plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS kind, CASE WHEN revoked=1 THEN 0 ELSE allowance END AS amount, created_at AS occurredAt FROM music_mv_billing_grants WHERE user_id=? UNION ALL SELECT 'job:'||job_id AS id,state AS kind,CASE WHEN state='released' THEN 0 ELSE -credits END AS amount,updated_at AS occurredAt FROM music_mv_billing_reservations WHERE user_id=?) ORDER BY occurredAt DESC,id DESC LIMIT ? OFFSET ?",user,user,limit,offset).getRows();
+    }
     public boolean paymentGranted(String user,String invoice) {
         return db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=? AND provider='stripe' AND payment_id=? AND revoked=0",user,invoice).firstRow()!=null;
     }

@@ -20,6 +20,7 @@ public class MusicBillingController {
     }
     @GetMapping("/capabilities") public Map<String,Object> capabilities() { return billing.capabilities(); }
     @GetMapping("/credits") public Map<String,Object> credits(HttpServletRequest request) { return billing.credits(owner(request)); }
+    @GetMapping("/history") public Map<String,Object> history(@RequestParam(defaultValue="0") int offset,HttpServletRequest request) { return billing.history(owner(request),offset); }
     @GetMapping("/status") public Map<String,Object> status(HttpServletRequest request) { return billing.status(owner(request),request.getParameter("checkout_session_id")); }
     @PostMapping("/checkout") public Map<String,Object> checkout(@RequestBody Map<String,String> body,HttpServletRequest request) {
         return billing.checkout(owner(request),body.get("plan"),body.get("locale"));

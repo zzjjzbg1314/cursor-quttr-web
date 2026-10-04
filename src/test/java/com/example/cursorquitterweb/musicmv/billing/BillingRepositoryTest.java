@@ -136,6 +136,22 @@ class BillingRepositoryTest {
         runPython(script,new ObjectMapper().writeValueAsString(db.statements));
     }
 
+    @Test void historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds() throws Exception {
+        Capture db=new Capture();BillingRepository r=new BillingRepository(db);
+        r.ensureWelcomeCredits("u");r.ensureWelcomeCredits("other");
+        r.reserve("u","r","job",100,10);r.settle("job","released");r.history("u",21,0);r.history("u",1,1);
+        runPython(String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);run(1);run(2);run(3)",
+            "rows=run(4);assert len(rows)==2",
+            "assert {(r['kind'],r['amount']) for r in rows}=={('welcome',10),('released',0)}",
+            "assert len(run(5))==1"),new ObjectMapper().writeValueAsString(db.statements));
+    }
+
     private void runPython(String script,String data) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
