@@ -152,6 +152,24 @@ class BillingRepositoryTest {
             "assert len(run(5))==1"),new ObjectMapper().writeValueAsString(db.statements));
     }
 
+    @Test void usageCountsEachGenerationOnceAndFiltersBeforePagination() throws Exception {
+        Capture db=new Capture();BillingRepository r=new BillingRepository(db);
+        r.ensureWelcomeCredits("u");r.ensureWelcomeCredits("other");r.reserve("u","r","j",100,10);r.settle("j","consumed");
+        r.history("u",1,0,"welcome");r.history("u",1,1,"welcome");r.usage("u");r.generationSpend("u");r.generationSpend("other");
+        runPython(String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "d.executescript(\"CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT); CREATE TABLE ai_music_candidates(candidate_id TEXT,job_id TEXT,title TEXT,selected INT,created_at TEXT); INSERT INTO ai_music_jobs VALUES('j','u'); INSERT INTO ai_music_candidates VALUES('c1','j','First song',0,'2026-01-01'),('c2','j','Second song',1,'2026-01-01');\")",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);run(1);run(2);run(3)",
+            "assert run(4)[0]['kind']=='welcome';assert run(5)==[]",
+            "totals=run(6)[0];assert totals['earned']==10 and totals['spent']==10",
+            "jobs=run(7);assert len(jobs)==1 and jobs[0]['credits']==10 and jobs[0]['title']=='Second song'",
+            "assert run(8)==[]"),new ObjectMapper().writeValueAsString(db.statements));
+    }
+
     private void runPython(String script,String data) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();

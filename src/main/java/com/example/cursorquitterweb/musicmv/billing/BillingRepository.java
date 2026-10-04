@@ -43,9 +43,17 @@ public class BillingRepository {
         // 0/1 仅兼容现有表的非空区间约束；余额和预占查询明确对体验来源豁免到期判断。
         grant("internal", "welcome:"+user, user, "welcome", "welcome", 10, 0, 1);
     }
-    public List<Map<String,Object>> history(String user,int limit,int offset) {
-        // 从现有发放与任务记录读取明细，不增加账本或改变扣费流程。
-        return db.query("SELECT * FROM (SELECT 'grant:'||grant_id AS id, CASE WHEN revoked=1 THEN 'revoked' WHEN provider='internal' AND plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS kind, CASE WHEN revoked=1 THEN 0 ELSE allowance END AS amount, created_at AS occurredAt FROM music_mv_billing_grants WHERE user_id=? UNION ALL SELECT 'job:'||job_id AS id,state AS kind,CASE WHEN state='released' THEN 0 ELSE -credits END AS amount,updated_at AS occurredAt FROM music_mv_billing_reservations WHERE user_id=?) ORDER BY occurredAt DESC,id DESC LIMIT ? OFFSET ?",user,user,limit,offset).getRows();
+    public List<Map<String,Object>> history(String user,int limit,int offset) { return history(user,limit,offset,"all"); }
+    public List<Map<String,Object>> history(String user,int limit,int offset,String kind) {
+        // 先按用户和类型过滤，再分页，避免仅筛选当前页造成遗漏。
+        return db.query("SELECT * FROM (SELECT 'grant:'||grant_id AS id, CASE WHEN revoked=1 THEN 'revoked' WHEN provider='internal' AND plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS kind, CASE WHEN revoked=1 THEN 0 ELSE allowance END AS amount, created_at AS occurredAt FROM music_mv_billing_grants WHERE user_id=? UNION ALL SELECT 'job:'||job_id AS id,state AS kind,CASE WHEN state='released' THEN 0 ELSE -credits END AS amount,updated_at AS occurredAt FROM music_mv_billing_reservations WHERE user_id=?) WHERE (?='all' OR kind=?) ORDER BY occurredAt DESC,id DESC LIMIT ? OFFSET ?",user,user,kind,kind,limit,offset).getRows();
+    }
+    public Map<String,Object> usage(String user) {
+        return db.query("SELECT (SELECT COALESCE(SUM(allowance),0) FROM music_mv_billing_grants WHERE user_id=?) AS earned,(SELECT COALESCE(SUM(credits),0) FROM music_mv_billing_reservations WHERE user_id=? AND state='consumed') AS spent",user,user).firstRow();
+    }
+    public List<Map<String,Object>> generationSpend(String user) {
+        // 一次任务只显示一笔费用，不因返回多首候选歌曲重复计算。
+        return db.query("SELECT r.job_id AS jobId,r.state,r.credits,CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS source,r.created_at AS occurredAt,(SELECT c.title FROM ai_music_candidates c WHERE c.job_id=j.job_id AND c.title IS NOT NULL AND c.title<>'' ORDER BY c.selected DESC,c.created_at,c.candidate_id LIMIT 1) AS title FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id AND g.user_id=r.user_id JOIN ai_music_jobs j ON j.job_id=r.job_id AND j.user_id=r.user_id WHERE r.user_id=? AND r.state IN ('consumed','reserved') ORDER BY r.created_at DESC,r.job_id DESC LIMIT 8",user).getRows();
     }
     public boolean paymentGranted(String user,String invoice) {
         return db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=? AND provider='stripe' AND payment_id=? AND revoked=0",user,invoice).firstRow()!=null;
