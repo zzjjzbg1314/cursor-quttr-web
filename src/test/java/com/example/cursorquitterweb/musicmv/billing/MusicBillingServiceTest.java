@@ -20,7 +20,39 @@ class MusicBillingServiceTest {
     }
     @Test void productionKeysAndIncompleteConfigurationRemainDisabled() {
         assertThat(settings.ready()).isTrue();settings.secretKey="sk_live_fixture";assertThat(settings.ready()).isFalse();
-        assertThatThrownBy(()->service.reserve("u","r","j")).isInstanceOf(ApiException.class);verifyNoInteractions(repo,stripe);
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);verifyNoInteractions(repo,stripe);
+    }
+    @Test void welcomeCreditsDoNotDependOnPaymentConfiguration() {
+        settings.secretKey="";
+        when(repo.balance(eq("u"),anyLong())).thenReturn(map("remaining",10,"welcome_remaining",10,"allowance",0,"reserved",0));
+        assertThat(service.credits("u")).containsEntry("remaining",10).containsEntry("welcomeRemaining",10).containsEntry("available",true).containsEntry("checkoutAvailable",false);
+        verify(repo).ensureWelcomeCredits("u");verifyNoInteractions(stripe);
+    }
+    @Test void checkoutConfirmationRequiresOwnedSessionAndPersistedGrant() throws Exception {
+        when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"));
+        when(stripe.checkoutSession("cs_test_1")).thenReturn(json.readTree("{\"customer\":\"cus_1\",\"client_reference_id\":\"u\",\"livemode\":false,\"payment_status\":\"paid\",\"invoice\":\"in_1\"}"));
+        assertThat(service.status("u","cs_test_1")).containsEntry("paymentConfirmed",false);
+        when(repo.paymentGranted("u","in_1")).thenReturn(true);
+        assertThat(service.status("u","cs_test_1")).containsEntry("paymentConfirmed",true);
+        when(stripe.checkoutSession("cs_test_1")).thenReturn(json.readTree("{\"customer\":\"cus_1\",\"client_reference_id\":\"other\",\"livemode\":false}"));
+        assertThatThrownBy(()->service.status("u","cs_test_1")).isInstanceOf(ApiException.class);
+    }
+    @Test void liveModeMustBeExplicitAndMatchTheKey() {
+        settings.secretKey="sk_live_fixture";assertThat(settings.ready()).isFalse();
+        settings.mode="live";assertThat(settings.ready()).isTrue();
+        settings.secretKey="sk_test_fixture";assertThat(settings.ready()).isFalse();
+    }
+    @Test void liveWebhookOnlyGrantsMatchingLiveInvoice() throws Exception {
+        settings.mode="live";settings.secretKey="sk_live_fixture";
+        when(repo.owner("stripe","cus_1")).thenReturn("u");
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"));
+        when(stripe.invoice("in_live")).thenReturn(json.readTree("{\"id\":\"in_live\",\"livemode\":true,\"status\":\"paid\",\"billing_reason\":\"subscription_create\",\"customer\":\"cus_1\",\"lines\":{\"data\":[{\"quantity\":1,\"pricing\":{\"price_details\":{\"price\":\"price_starter\"}},\"parent\":{\"subscription_item_details\":{\"subscription\":\"sub_1\"}},\"period\":{\"start\":100,\"end\":200}}]}}"));
+        String wrong=event("invoice.paid","{\"id\":\"in_live\"}",false);
+        assertThatThrownBy(()->service.webhook(wrong,sign(wrong,Instant.now().getEpochSecond()))).isInstanceOf(ApiException.class);
+        String right=event("invoice.paid","{\"id\":\"in_live\"}",true);
+        service.webhook(right,sign(right,Instant.now().getEpochSecond()));
+        verify(repo).grant("stripe","in_live","u","sub_1","starter",300,100,200);
     }
     @Test void reserveFailsClosedAndUnknownRequestsAreNotReleased() {
         when(repo.reserve(eq("u"),eq("r"),eq("j"),anyLong(),eq(10))).thenReturn(false);

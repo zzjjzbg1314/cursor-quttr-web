@@ -21,12 +21,14 @@ public class MusicBillingService {
     public MusicBillingService(BillingSettings settings,BillingRepository repo,StripeGateway stripe,ObjectMapper mapper) {
         this.settings=settings;this.repo=repo;this.stripe=stripe;this.mapper=mapper;
     }
-    public Map<String,Object> capabilities() { return map("available",settings.ready(),"sandbox",true,"enabled",settings.enabled,"generationCredits",BillingSettings.SONG_CREDITS); }
+    public Map<String,Object> capabilities() { return map("available",settings.enabled,"checkoutAvailable",settings.ready(),"sandbox",!settings.live(),"enabled",settings.enabled,"generationCredits",BillingSettings.SONG_CREDITS); }
     public Map<String,Object> credits(String user) {
-        if(!settings.ready()) return capabilities();
+        if(!settings.enabled) return capabilities();
+        repo.ensureWelcomeCredits(user);
         repo.reconcile(user);
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=new LinkedHashMap<>(capabilities());
+        result.put("welcomeRemaining",balance==null?0:balance.get("welcome_remaining"));
         result.put("remaining",balance==null?0:balance.get("remaining"));
         result.put("allowance",balance==null?0:balance.get("allowance"));
         result.put("reserved",balance==null?0:balance.get("reserved"));
@@ -39,6 +41,19 @@ public class MusicBillingService {
         Map<String,Object> customer=repo.customer(PROVIDER,user);
         result.put("canManage",customer!=null);
         if(customer!=null) result.put("subscription",refreshSubscription(user,text(customer,"customer_id")));
+        return result;
+    }
+    public Map<String,Object> status(String user,String checkoutId) {
+        Map<String,Object> result=status(user);
+        if(checkoutId==null || checkoutId.isEmpty()) return result;
+        settings.requireReady();
+        if(!checkoutId.matches("cs_[A-Za-z0-9_]{1,240}")) throw error(HttpStatus.BAD_REQUEST,"BILLING_CHECKOUT_INVALID","Invalid checkout.");
+        JsonNode session=stripe.checkoutSession(checkoutId);
+        Map<String,Object> customer=repo.customer(PROVIDER,user);
+        if(customer==null || !user.equals(session.path("client_reference_id").asText()) || !text(customer,"customer_id").equals(session.path("customer").asText()) || !session.has("livemode") || session.path("livemode").asBoolean()!=settings.live())
+            throw error(HttpStatus.NOT_FOUND,"BILLING_CHECKOUT_INVALID","Checkout not found.");
+        String invoice=session.path("invoice").asText();
+        result.put("paymentConfirmed","paid".equals(session.path("payment_status").asText()) && !invoice.isEmpty() && repo.paymentGranted(user,invoice));
         return result;
     }
     public Map<String,Object> checkout(String user,String plan,String locale) {
@@ -69,7 +84,7 @@ public class MusicBillingService {
     }
     public void reserve(String user,String request,String job) {
         if(!settings.enabled) return;
-        settings.requireReady(); repo.reconcile(user);
+        repo.ensureWelcomeCredits(user); repo.reconcile(user);
         if(repo.hasReservation(user,request)) throw error(HttpStatus.CONFLICT,"BILLING_GENERATION_PENDING","This generation is already being processed.");
         if(!repo.reserve(user,request,job,Instant.now().getEpochSecond(),BillingSettings.SONG_CREDITS)) throw error(HttpStatus.PAYMENT_REQUIRED,"BILLING_QUOTA_EXHAUSTED","Not enough credits. Choose a plan or wait for renewal.");
     }
@@ -85,7 +100,7 @@ public class MusicBillingService {
             Webhook.constructEvent(payload,signature,settings.webhookSecret);
             event=mapper.readTree(payload);
         } catch(Exception e) { throw error(HttpStatus.BAD_REQUEST,"BILLING_SIGNATURE_INVALID","Invalid payment notification."); }
-        if(!event.has("livemode") || event.path("livemode").asBoolean(true)) throw error(HttpStatus.BAD_REQUEST,"BILLING_MODE_INVALID","Live events are not accepted.");
+        if(!event.has("livemode") || event.path("livemode").asBoolean()!=settings.live()) throw error(HttpStatus.BAD_REQUEST,"BILLING_MODE_INVALID","Payment environment mismatch.");
         String id=event.path("id").asText(),type=event.path("type").asText();
         if(id.isEmpty()) throw error(HttpStatus.BAD_REQUEST,"BILLING_EVENT_INVALID","Missing event identifier.");
         if(repo.processed(PROVIDER,id)) return;
@@ -112,7 +127,7 @@ public class MusicBillingService {
         repo.processed(PROVIDER,id,type);
     }
     private void grantInvoice(JsonNode invoice) {
-        if(invoice.path("livemode").asBoolean(true) || !"paid".equals(invoice.path("status").asText())) throw new IllegalStateException("Unexpected invoice state");
+        if(!invoice.has("livemode") || invoice.path("livemode").asBoolean()!=settings.live() || !"paid".equals(invoice.path("status").asText())) throw new IllegalStateException("Unexpected invoice state");
         String reason=invoice.path("billing_reason").asText();
         if(!"subscription_create".equals(reason) && !"subscription_cycle".equals(reason)) return;
         String user=repo.owner(PROVIDER,invoice.path("customer").asText());
@@ -149,7 +164,15 @@ public class MusicBillingService {
         for(JsonNode sub:list.path("data")) {
             String status=sub.path("status").asText();
             if(!"canceled".equals(status) && !"incomplete_expired".equals(status))
-                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean());
+                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub));
+        }
+        return null;
+    }
+    private String planKey(JsonNode sub) {
+        for(JsonNode item:sub.path("items").path("data")) {
+            String price=item.path("price").path("id").asText();
+            if(price.equals(settings.starterPrice)) return "starter";
+            if(price.equals(settings.creatorPrice)) return "creator";
         }
         return null;
     }

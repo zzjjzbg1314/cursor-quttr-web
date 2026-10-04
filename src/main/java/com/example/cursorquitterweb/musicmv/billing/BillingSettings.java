@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class BillingSettings {
     public static final int SONG_CREDITS = 10;
+    @Value("${MUSIC_MV_BILLING_MODE:test}") public String mode = "test";
     @Value("${music-mv.billing.enabled:false}") public boolean enabled;
     @Value("${STRIPE_SECRET_KEY:}") public String secretKey;
     @Value("${STRIPE_WEBHOOK_SECRET:}") public String webhookSecret;
@@ -18,10 +19,11 @@ public class BillingSettings {
     @Value("${MUSIC_MV_BILLING_SITE_URL:http://localhost:3000}") public String siteUrl;
 
     public boolean ready() {
-        return enabled && secretKey != null && (secretKey.startsWith("sk_test_") || secretKey.startsWith("rk_test_"))
+        return enabled && secretKey != null && (("test".equals(mode) && (secretKey.startsWith("sk_test_") || secretKey.startsWith("rk_test_"))) || ("live".equals(mode) && (secretKey.startsWith("sk_live_") || secretKey.startsWith("rk_live_"))))
                 && present(webhookSecret,"whsec_") && present(starterPrice,"price_")
                 && present(creatorPrice,"price_") && present(portalConfiguration,"bpc_");
     }
+    public boolean live() { return "live".equals(mode); }
     public void requireReady() {
         if (!ready()) throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,"BILLING_UNAVAILABLE","Billing is not available.");
     }
@@ -43,7 +45,7 @@ public class BillingSettings {
         String language = locale == null ? "en" : locale.toLowerCase(java.util.Locale.ROOT);
         String prefix = java.util.Arrays.asList("zh-cn", "zh-tw", "ja", "ko", "es", "pt-br", "de", "fr")
                 .contains(language) ? "/" + language : "";
-        return siteUrl.replaceAll("/+$", "") + prefix + "/pricing";
+        return siteUrl.replaceAll("/+$", "") + prefix + "/account";
     }
     private boolean present(String value,String prefix) { return value!=null && value.startsWith(prefix) && value.length()>prefix.length(); }
 }

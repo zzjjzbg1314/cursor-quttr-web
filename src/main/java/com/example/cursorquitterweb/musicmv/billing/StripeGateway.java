@@ -30,8 +30,9 @@ public class StripeGateway {
         return call(() -> com.stripe.model.checkout.Session.create(map("mode","subscription","customer",customer,
             "client_reference_id",user,"line_items",Collections.singletonList(map("price",price,"quantity",1)),
             "subscription_data",map("metadata",map("sunofilm_user_id",user),"billing_mode",map("type","flexible")),
-            "success_url",url+"?billing=return","cancel_url",url,"expires_at",expires),options("sunofilm-checkout-"+token)));
+            "success_url",url+"?billing=return&checkout_session_id={CHECKOUT_SESSION_ID}","cancel_url",url+"?billing=canceled","expires_at",expires),options("sunofilm-checkout-"+token)));
     }
+    public JsonNode checkoutSession(String id) { return call(() -> com.stripe.model.checkout.Session.retrieve(id,options(null))); }
     public JsonNode portal(String customer,String url) {
         return call(() -> com.stripe.model.billingportal.Session.create(map("customer",customer,"return_url",url,
             "configuration",settings.portalConfiguration),options(null)));

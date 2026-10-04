@@ -116,6 +116,26 @@ class BillingRepositoryTest {
         runPython(script,new ObjectMapper().writeValueAsString(db.statements));
     }
 
+    @Test void welcomeIsPermanentUniqueAndSpentAfterExpiringCredits() throws Exception {
+        Capture db=new Capture();BillingRepository r=new BillingRepository(db);
+        r.ensureWelcomeCredits("u");r.ensureWelcomeCredits("u");r.grant("stripe","paid","u","sub","starter",10,100,200);
+        r.reserve("u","paid-request","paid-job",150,10);r.reserve("u","trial-request","trial-job",150,10);
+        r.reserve("u","extra","extra",150,10);r.settle("trial-job","released");
+        r.balance("u",9999999999L);r.ensureWelcomeCredits("u");r.reserve("u","later","later",9999999999L,10);r.settle("later","consumed");r.ensureWelcomeCredits("u");r.balance("u",9999999999L);
+        String script=String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);run(1);run(2);assert len(run(3))==1;assert len(run(4))==1;assert run(5)==[]",
+            "assert d.execute(\"SELECT g.provider FROM music_mv_billing_grants g JOIN music_mv_billing_reservations r USING(grant_id) WHERE r.job_id='paid-job'\").fetchone()[0]=='stripe'",
+            "run(6);b=run(7)[0];assert b['remaining']==10 and b['welcome_remaining']==10 and b['period_end'] is None and b['allowance']==0",
+            "run(8);assert len(run(9))==1;run(10);run(11);assert run(12)[0]['remaining']==0",
+            "assert d.execute(\"SELECT count(*) FROM music_mv_billing_grants WHERE provider='internal'\").fetchone()[0]==1");
+        runPython(script,new ObjectMapper().writeValueAsString(db.statements));
+    }
+
     private void runPython(String script,String data) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();

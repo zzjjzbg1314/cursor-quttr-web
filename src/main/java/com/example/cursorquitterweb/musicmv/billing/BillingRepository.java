@@ -38,13 +38,21 @@ public class BillingRepository {
     public void grant(String provider,String payment,String user,String subscription,String plan,int allowance,long start,long end) {
         db.query("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end,revoked) VALUES(?,?,?,?,?,?,?,?,?,EXISTS(SELECT 1 FROM music_mv_billing_revocations WHERE provider=? AND payment_id=?)) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),provider,payment,user,subscription,plan,allowance,start,end,provider,payment);
     }
+    public void ensureWelcomeCredits(String user) {
+        // 固定来源和账号唯一键保证重试、并发登录都只赠送一次；体验积分永久有效。
+        // 0/1 仅兼容现有表的非空区间约束；余额和预占查询明确对体验来源豁免到期判断。
+        grant("internal", "welcome:"+user, user, "welcome", "welcome", 10, 0, 1);
+    }
+    public boolean paymentGranted(String user,String invoice) {
+        return db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=? AND provider='stripe' AND payment_id=? AND revoked=0",user,invoice).firstRow()!=null;
+    }
     public Map<String,Object> balance(String user,long now) {
-        return db.query("SELECT COALESCE(SUM(g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released')),0) AS remaining, COALESCE(SUM(g.allowance),0) AS allowance, COALESCE(SUM((SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state='reserved')),0) AS reserved, MAX(g.period_end) AS period_end FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND g.period_end>?",user,now,now).firstRow();
+        return db.query("SELECT COALESCE(SUM(g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released')),0) AS remaining, COALESCE(SUM(CASE WHEN g.plan_key='welcome' AND g.provider='internal' THEN 0 ELSE g.allowance END),0) AS allowance, COALESCE(SUM((SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state='reserved')),0) AS reserved, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN NULL ELSE g.period_end END) AS period_end, COALESCE(SUM(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ELSE 0 END),0) AS welcome_remaining FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND (g.period_end>? OR (g.provider='internal' AND g.plan_key='welcome'))",user,now,now).firstRow();
     }
     public boolean reserve(String user,String request,String job,long now,int credits) {
         // 每笔任务保存扣分数；单条条件写入检查余额，避免并发超扣。
         if (credits <= 0) throw new IllegalArgumentException("Credits must be positive");
-        return db.query("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) SELECT ?,?,?,g.grant_id,'reserved',? FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND g.period_end>? AND g.allowance-? >=(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ORDER BY g.period_end,g.grant_id LIMIT 1 ON CONFLICT DO NOTHING RETURNING job_id",job,user,request,credits,user,now,now,credits).firstRow()!=null;
+        return db.query("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) SELECT ?,?,?,g.grant_id,'reserved',? FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND (g.period_end>? OR (g.provider='internal' AND g.plan_key='welcome')) AND g.allowance-? >=(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ORDER BY CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN 1 ELSE 0 END,g.period_end,g.grant_id LIMIT 1 ON CONFLICT DO NOTHING RETURNING job_id",job,user,request,credits,user,now,now,credits).firstRow()!=null;
     }
     public boolean hasReservation(String user,String request) {
         return db.query("SELECT job_id FROM music_mv_billing_reservations WHERE user_id=? AND request_id=?",user,request).firstRow()!=null;

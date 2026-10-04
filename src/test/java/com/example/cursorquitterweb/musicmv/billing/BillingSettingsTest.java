@@ -9,12 +9,12 @@ class BillingSettingsTest {
         settings.siteUrl = "https://www.suno.film/";
         for (String locale : new String[]{"zh-CN", "zh-TW", "ja", "ko", "es", "pt-BR", "de", "fr"}) {
             assertThat(settings.returnUrl(locale)).isEqualTo("https://www.suno.film/"
-                    + locale.toLowerCase(java.util.Locale.ROOT) + "/pricing");
+                    + locale.toLowerCase(java.util.Locale.ROOT) + "/account");
         }
         for (String locale : new String[]{null, "en", "unknown", "//evil.example", "../de", "de?next=evil"}) {
-            assertThat(settings.returnUrl(locale)).isEqualTo("https://www.suno.film/pricing");
+            assertThat(settings.returnUrl(locale)).isEqualTo("https://www.suno.film/account");
         }
         settings.siteUrl = "http://localhost:3000";
-        assertThat(settings.returnUrl("ja")).isEqualTo("http://localhost:3000/ja/pricing");
+        assertThat(settings.returnUrl("ja")).isEqualTo("http://localhost:3000/ja/account");
     }
 }
