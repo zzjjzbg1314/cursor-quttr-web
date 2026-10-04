@@ -17,6 +17,7 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
  * Existing production controllers keep their original exception behaviour.
  */
 @RestControllerAdvice(assignableTypes = {
+        com.example.cursorquitterweb.musicmv.billing.MusicBillingController.class,
         MusicMvRenderJobController.class,
         MusicMvInputAssetController.class,
         MusicMvProjectDraftController.class,

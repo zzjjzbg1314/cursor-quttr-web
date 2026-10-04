@@ -9,6 +9,17 @@ import org.springframework.http.HttpStatus;
 import static com.example.cursorquitterweb.musicmv.billing.StripeGateway.map;
 import java.util.*;
 class MusicBillingControllerTest {
+ @Test void missingSessionReturnsUnauthorizedThroughScopedHandler() throws Exception {
+  MusicBillingService billing=mock(MusicBillingService.class);MusicMvAuthService auth=mock(MusicMvAuthService.class);
+  when(auth.requireUserId(any())).thenThrow(new ApiException(HttpStatus.UNAUTHORIZED,"AUTH_REQUIRED","Sign in"));
+  org.springframework.test.web.servlet.MockMvc mvc=org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(new MusicBillingController(billing,auth,mock(MusicMvRenderClientAuthenticationService.class)))
+   .setControllerAdvice(new com.example.cursorquitterweb.musicmv.controller.MusicMvExceptionHandler()).build();
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/music-mv/v1/billing/history"))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isUnauthorized())
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code").value("AUTH_REQUIRED"));
+  verifyNoInteractions(billing);
+ }
+
  @Test void identityAlwaysComesFromAuthenticatedSession(){
   MusicBillingService billing=mock(MusicBillingService.class);MusicMvAuthService auth=mock(MusicMvAuthService.class);
   MusicMvRenderClientAuthenticationService client=mock(MusicMvRenderClientAuthenticationService.class);
