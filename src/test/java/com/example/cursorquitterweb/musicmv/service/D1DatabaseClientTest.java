@@ -73,4 +73,26 @@ class D1DatabaseClientTest {
         verify(restTemplate, times(1)).exchange(any(String.class), eq(HttpMethod.POST),
                 any(HttpEntity.class), eq(String.class));
     }
+    @Test
+    void billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites() {
+        when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
+            .thenReturn(new ResponseEntity<String>("{\"success\":true,\"result\":[{\"success\":true,\"results\":[]},{\"success\":true,\"results\":[]},{\"success\":true,\"results\":[{\"remaining\":10}]}]}",HttpStatus.OK));
+        java.util.List<D1Statement> statements=java.util.Arrays.asList(
+            D1Statement.of("INSERT INTO grants VALUES(?)","u"),
+            D1Statement.of("UPDATE reservations SET state=?","consumed"),
+            D1Statement.of("SELECT remaining FROM grants WHERE user_id=?","u"));
+        java.util.List<D1QueryResult> results=client.batch(statements);
+        assertEquals(3,results.size());assertEquals(10,((Number)results.get(2).firstRow().get("remaining")).intValue());
+        org.mockito.ArgumentCaptor<HttpEntity> request=org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),request.capture(),eq(String.class));
+        java.util.Map<?,?> body=(java.util.Map<?,?>)request.getValue().getBody();
+        java.util.List<?> batch=(java.util.List<?>)body.get("batch");
+        assertEquals(3,batch.size());assertEquals(statements.get(0).getSql(),((java.util.Map<?,?>)batch.get(0)).get("sql"));
+        org.mockito.Mockito.reset(restTemplate);
+        when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
+            .thenThrow(new ResourceAccessException("timeout"));
+        assertThrows(ResourceAccessException.class,()->client.batch(statements));
+        verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class));
+    }
+
 }

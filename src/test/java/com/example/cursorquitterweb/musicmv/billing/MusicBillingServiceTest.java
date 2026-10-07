@@ -19,7 +19,7 @@ class MusicBillingServiceTest {
         repo=mock(BillingRepository.class); stripe=mock(StripeGateway.class);service=new MusicBillingService(settings,repo,stripe,json);
     }
     @Test void reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase() {
-        when(repo.balance(eq("u"),anyLong())).thenReturn(map("unused_welcome_id","gift","welcome_remaining",10));
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("unused_welcome_id","gift","welcome_remaining",10));
         assertThat(service.credits("u")).containsEntry("welcomeNotice",null)
             .containsEntry("unusedWelcomeCredits",map("id","gift","credits",10));
         clearInvocations(repo);
@@ -32,9 +32,9 @@ class MusicBillingServiceTest {
     }
     @Test void welcomeCreditsDoNotDependOnPaymentConfiguration() {
         settings.secretKey="";
-        when(repo.balance(eq("u"),anyLong())).thenReturn(map("remaining",10,"welcome_remaining",10,"allowance",0,"reserved",0));
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10,"welcome_remaining",10,"allowance",0,"reserved",0));
         assertThat(service.credits("u")).containsEntry("remaining",10).containsEntry("welcomeRemaining",10).containsEntry("available",true).containsEntry("checkoutAvailable",false);
-        verify(repo).ensureWelcomeCredits("u");verifyNoInteractions(stripe);
+        verify(repo).refreshBalance(eq("u"),anyLong());verifyNoInteractions(stripe);
     }
     @Test void checkoutConfirmationRequiresOwnedSessionAndPersistedGrant() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
@@ -105,14 +105,14 @@ class MusicBillingServiceTest {
         org.mockito.InOrder order=inOrder(repo);order.verify(repo).processed("stripe","evt_1");order.verify(repo).revoke("stripe","in_1");order.verify(repo).processed("stripe","evt_1","credit_note.created");
     }
     @Test void creditBalanceNeverCallsStripeAndIncludesPendingHolds() {
-        when(repo.balance(eq("u"),anyLong())).thenReturn(map("remaining",280,"allowance",300,"reserved",20,"period_end",200L));
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",280,"allowance",300,"reserved",20,"period_end",200L));
         java.util.Map<String,Object> result=service.credits("u");
         assertThat(result).containsEntry("generationCredits",10).containsEntry("remaining",280)
                 .containsEntry("reserved",20).containsEntry("periodEnd",200L);
         verifyNoInteractions(stripe);
     }
     @Test void cancellationKeepsPaidPeriodAndDoesNotRevokeCredits() throws Exception {
-        when(repo.balance(eq("u"),anyLong())).thenReturn(map("remaining",20,"reserved",0,"allowance",300,"period_end",200L));
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",20,"reserved",0,"allowance",300,"period_end",200L));
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
         when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[{\"status\":\"active\",\"cancel_at_period_end\":true}]}"));
         assertThat(service.status("u")).containsEntry("remaining",20);
@@ -138,6 +138,17 @@ class MusicBillingServiceTest {
         service.webhook(payload,sign(payload,Instant.now().getEpochSecond()));
         verify(repo).syncSubscription("stripe","u",null,null,false);
         verify(repo).processed("stripe","evt_1","customer.subscription.updated");
+    }
+    @Test void creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery() {
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10,"welcome_remaining",10,"reserved",0));
+        assertThat(service.credits("u")).containsEntry("remaining",10);
+        verify(repo).refreshBalance(eq("u"),anyLong());
+        verify(repo,never()).ensureWelcomeCredits(anyString());
+        verify(repo,never()).reconcile(anyString());
+        verify(repo,never()).balance(anyString(),anyLong());
+        clearInvocations(repo);settings.enabled=false;
+        assertThat(service.credits("u")).containsEntry("available",false);
+        verifyNoInteractions(repo);
     }
     private String event(String type,String object,boolean live) {return "{\"id\":\"evt_1\",\"object\":\"event\",\"livemode\":"+live+",\"type\":\""+type+"\",\"data\":{\"object\":"+object+"}}";}
     private String sign(String body,long timestamp) throws Exception {

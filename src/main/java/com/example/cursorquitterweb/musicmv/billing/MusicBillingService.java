@@ -24,9 +24,7 @@ public class MusicBillingService {
     public Map<String,Object> capabilities() { return map("available",settings.enabled,"checkoutAvailable",settings.ready(),"sandbox",!settings.live(),"enabled",settings.enabled,"generationCredits",BillingSettings.SONG_CREDITS); }
     public Map<String,Object> credits(String user) {
         if(!settings.enabled) return capabilities();
-        repo.ensureWelcomeCredits(user);
-        repo.reconcile(user);
-        Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
+        Map<String,Object> balance=repo.refreshBalance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=new LinkedHashMap<>(capabilities());
         result.put("welcomeNotice",null);
         result.put("unusedWelcomeCredits",balance!=null && balance.get("unused_welcome_id")!=null ? map("id",balance.get("unused_welcome_id"),"credits",balance.get("welcome_remaining")) : null);

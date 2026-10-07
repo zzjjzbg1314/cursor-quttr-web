@@ -39,9 +39,12 @@ public class BillingRepository {
         db.query("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end,revoked) VALUES(?,?,?,?,?,?,?,?,?,EXISTS(SELECT 1 FROM music_mv_billing_revocations WHERE provider=? AND payment_id=?)) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),provider,payment,user,subscription,plan,allowance,start,end,provider,payment);
     }
     public void ensureWelcomeCredits(String user) {
-        // 固定来源和账号唯一键保证重试、并发登录都只赠送一次；体验积分永久有效。
-        // 0/1 仅兼容现有表的非空区间约束；余额和预占查询明确对体验来源豁免到期判断。
-        db.query("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES(?,'internal',?,?,'welcome','welcome',10,0,1) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),"welcome:"+user,user);
+        D1Statement statement=welcomeStatement(user);
+        db.query(statement.getSql(),statement.getParams().toArray());
+    }
+    private D1Statement welcomeStatement(String user) {
+        // 固定账号唯一键保证首次赠送不重复。
+        return D1Statement.of("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES(?,'internal',?,?,'welcome','welcome',10,0,1) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),"welcome:"+user,user);
     }
     public List<Map<String,Object>> history(String user,int limit,int offset) { return history(user,limit,offset,"all"); }
     public List<Map<String,Object>> history(String user,int limit,int offset,String kind) {
@@ -59,7 +62,17 @@ public class BillingRepository {
         return db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=? AND provider='stripe' AND payment_id=? AND revoked=0",user,invoice).firstRow()!=null;
     }
     public Map<String,Object> balance(String user,long now) {
-        return db.query("SELECT COALESCE(SUM(g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released')),0) AS remaining, COALESCE(SUM(CASE WHEN g.plan_key='welcome' AND g.provider='internal' THEN 0 ELSE g.allowance END),0) AS allowance, COALESCE(SUM((SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state='reserved')),0) AS reserved, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN NULL ELSE g.period_end END) AS period_end, COALESCE(SUM(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ELSE 0 END),0) AS welcome_remaining, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state IN ('reserved','consumed')) AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.user_id=g.user_id AND r.state='reserved') THEN g.grant_id ELSE NULL END) AS unused_welcome_id FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND (g.period_end>? OR (g.provider='internal' AND g.plan_key='welcome'))",user,now,now).firstRow();
+        D1Statement statement=balanceStatement(user,now);
+        return db.query(statement.getSql(),statement.getParams().toArray()).firstRow();
+    }
+    private D1Statement balanceStatement(String user,long now) {
+        return D1Statement.of("SELECT COALESCE(SUM(g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released')),0) AS remaining, COALESCE(SUM(CASE WHEN g.plan_key='welcome' AND g.provider='internal' THEN 0 ELSE g.allowance END),0) AS allowance, COALESCE(SUM((SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state='reserved')),0) AS reserved, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN NULL ELSE g.period_end END) AS period_end, COALESCE(SUM(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ELSE 0 END),0) AS welcome_remaining, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state IN ('reserved','consumed')) AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.user_id=g.user_id AND r.state='reserved') THEN g.grant_id ELSE NULL END) AS unused_welcome_id FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND (g.period_end>? OR (g.provider='internal' AND g.plan_key='welcome'))",user,now,now);
+    }
+    public Map<String,Object> refreshBalance(String user,long now) {
+        // 同一批次按顺序赠送、对账再读取余额，减少远程往返且不缓存账务状态。
+        List<D1QueryResult> results=db.batch(Arrays.asList(welcomeStatement(user),reconcileStatement(user),balanceStatement(user,now)));
+        if(results.size()!=3) throw new IllegalStateException("Incomplete billing balance batch");
+        return results.get(2).firstRow();
     }
     public boolean reserve(String user,String request,String job,long now,int credits) {
         // 每笔任务保存扣分数；单条条件写入检查余额，避免并发超扣。
@@ -73,8 +86,11 @@ public class BillingRepository {
         db.query("UPDATE music_mv_billing_reservations SET state=?,updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND state='reserved'",state,job);
     }
     public void reconcile(String user) {
-        // 用户请求只对账自己的任务，避免一次状态查询触发全站更新。
-        db.query("UPDATE music_mv_billing_reservations SET state=CASE WHEN (SELECT status FROM ai_music_jobs j WHERE j.job_id=music_mv_billing_reservations.job_id)='completed' THEN 'consumed' ELSE 'released' END,updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND state='reserved' AND job_id IN (SELECT job_id FROM ai_music_jobs WHERE user_id=? AND status IN ('completed','failed'))", user, user);
+        D1Statement statement=reconcileStatement(user);
+        db.query(statement.getSql(),statement.getParams().toArray());
+    }
+    private D1Statement reconcileStatement(String user) {
+        return D1Statement.of("UPDATE music_mv_billing_reservations SET state=CASE WHEN (SELECT status FROM ai_music_jobs j WHERE j.job_id=music_mv_billing_reservations.job_id)='completed' THEN 'consumed' ELSE 'released' END,updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND state='reserved' AND job_id IN (SELECT job_id FROM ai_music_jobs WHERE user_id=? AND status IN ('completed','failed'))", user, user);
     }
     public void reconcile() {
         // 根据已持久化的最终任务状态恢复回调中断，不释放结果未知的请求。

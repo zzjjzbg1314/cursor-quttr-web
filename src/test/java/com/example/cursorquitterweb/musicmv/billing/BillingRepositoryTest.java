@@ -189,6 +189,42 @@ class BillingRepositoryTest {
             "assert run(8)==[]"),new ObjectMapper().writeValueAsString(db.statements));
     }
 
+    @Test void balanceRefreshBatchesGrantReconciliationAndReadInOrder() throws Exception {
+        Capture db=new Capture() {
+            @Override public List<D1QueryResult> batch(List<D1Statement> statements) {
+                for(D1Statement statement:statements) query(statement.getSql(),statement.getParams().toArray());
+                return Arrays.asList(new D1QueryResult(Collections.emptyList(),null),new D1QueryResult(Collections.emptyList(),null),
+                    new D1QueryResult(Collections.singletonList(StripeGateway.map("remaining",90)),null));
+            }
+        };
+        assertThat(new BillingRepository(db).refreshBalance("u",150)).containsEntry("remaining",90);
+        assertThat(db.statements).hasSize(3);
+        runPython(String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "d.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')",
+            "d.execute(\"INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('paid','stripe','invoice','u','sub','starter',100,100,200)\")",
+            "d.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('done','u','completed'),('failed','u','failed'),('running','u','running'),('other','other','failed')])",
+            "d.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,'paid','reserved',10)\",[('done','u','a'),('failed','u','b'),('running','u','c'),('other','other','d')])",
+            "d.execute(\"UPDATE music_mv_billing_reservations SET grant_id='other-grant' WHERE user_id='other'\")",
+            "s=json.loads(sys.argv[1])",
+            "def run():",
+            " with d:",
+            "  for statement in s: rows=d.execute(statement['sql'],statement['params']).fetchall()",
+            " return dict(rows[0])",
+            "balance=run();assert balance['remaining']==90 and balance['reserved']==10 and balance['welcome_remaining']==10 and balance['unused_welcome_id'] is None",
+            "assert {r['job_id']:r['state'] for r in d.execute('SELECT job_id,state FROM music_mv_billing_reservations')}=={'done':'consumed','failed':'released','running':'reserved','other':'reserved'}",
+            "assert run()==balance;assert d.execute(\"SELECT COUNT(*) FROM music_mv_billing_grants WHERE payment_id='welcome:u'\").fetchone()[0]==1",
+            "d.execute(\"UPDATE ai_music_jobs SET status='failed' WHERE job_id='running'\")",
+            "balance=run();assert balance['remaining']==100 and balance['reserved']==0 and balance['unused_welcome_id'] is not None"
+        ),new ObjectMapper().writeValueAsString(db.statements));
+    }
+    @Test void incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance() {
+        assertThatThrownBy(() -> new BillingRepository(new Capture()).refreshBalance("u",150))
+            .isInstanceOf(IllegalStateException.class).hasMessageContaining("Incomplete billing balance batch");
+    }
+
     private void runPython(String script,String data) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
