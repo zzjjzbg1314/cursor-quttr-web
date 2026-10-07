@@ -47,6 +47,7 @@ public class MusicMvAuthController {
             @Valid @RequestBody MusicMvSsoLoginRequest body,
             HttpServletRequest request, HttpServletResponse response) {
         clientAuthentication.requireAuthorized(token);
+        response.setHeader("Cache-Control", "no-store");
         return auth.login(body.getProvider(), body.getIdToken(), body.getDisplayName(),
                 body.getAnonymousClientId(), request, response);
     }
@@ -54,9 +55,10 @@ public class MusicMvAuthController {
     @GetMapping("/session")
     public Map<String, Object> session(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
-            HttpServletRequest request) {
+            HttpServletRequest request, HttpServletResponse response) {
         clientAuthentication.requireAuthorized(token);
-        return auth.currentSession(request);
+        response.setHeader("Cache-Control", "no-store");
+        return auth.currentSession(request, response);
     }
 
     @PostMapping("/logout")
@@ -64,6 +66,7 @@ public class MusicMvAuthController {
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,
             HttpServletRequest request, HttpServletResponse response) {
         clientAuthentication.requireAuthorized(token);
+        response.setHeader("Cache-Control", "no-store");
         auth.logout(request, response);
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         result.put("authenticated", Boolean.FALSE);

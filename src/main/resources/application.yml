@@ -10,6 +10,8 @@ server:
     key-alias: ${SSL_KEY_ALIAS:kejiapi.cn}
 
 spring:
+  config:
+    import: optional:file:./secrets/music-mv-auth.properties
   application:
     name: cursor-quitter-web
 
@@ -228,6 +230,7 @@ music-mv:
     template-sync-token: ${MUSIC_MV_TEMPLATE_SYNC_TOKEN:} 
   auth:
     session-days: ${MUSIC_MV_AUTH_SESSION_DAYS:30}
+    access-signing-key: ${MUSIC_MV_AUTH_ACCESS_SIGNING_KEY:}
     google:
       client-id: ${MUSIC_MV_GOOGLE_CLIENT_ID:}
       jwks-url: ${MUSIC_MV_GOOGLE_JWKS_URL:https://www.googleapis.com/oauth2/v3/certs}

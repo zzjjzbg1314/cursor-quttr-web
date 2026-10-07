@@ -123,7 +123,7 @@ class MusicMvRenderJobControllerTest {
 
     @Test
     void streamsRenderedOutputThroughSameOriginWithByteRanges() throws Exception {
-        when(auth.requireUserId(any())).thenReturn("usr_owner");
+        when(auth.requireDownloadUserId(any())).thenReturn("usr_owner");
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
         when(artifacts.openStream("r2:result.mp4", 1L, 2L))
                 .thenReturn(new java.io.ByteArrayInputStream(new byte[] { 11, 12 }));
@@ -145,7 +145,7 @@ class MusicMvRenderJobControllerTest {
 
     @Test
     void redirectsR2OutputToAShortLivedPrivateUrl() throws Exception {
-        when(auth.requireUserId(any())).thenReturn("usr_owner");
+        when(auth.requireDownloadUserId(any())).thenReturn("usr_owner");
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
         when(artifacts.temporaryDownloadUrl("r2:result.mp4", true, "Family story.mp4"))
                 .thenReturn("https://private-r2.example/result.mp4?signed=true");

@@ -211,7 +211,7 @@ public class MusicMvRenderJobController {
             HttpServletResponse servletResponse
     ) throws IOException {
         authentication.requireAuthorized(token);
-        OutputAccess output = service.output(auth.requireUserId(servletRequest), jobId);
+        OutputAccess output = service.output(auth.requireDownloadUserId(servletRequest), jobId);
         String temporaryUrl = output.temporaryDownloadUrl(inline);
         if (temporaryUrl != null) {
             return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
