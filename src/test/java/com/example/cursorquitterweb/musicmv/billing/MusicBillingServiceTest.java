@@ -18,14 +18,13 @@ class MusicBillingServiceTest {
         settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";settings.siteUrl="http://localhost:3000";
         repo=mock(BillingRepository.class); stripe=mock(StripeGateway.class);service=new MusicBillingService(settings,repo,stripe,json);
     }
-    @Test void welcomeNoticeSurvivesRepeatedReadsAndAcknowledgesWithoutGranting() {
-        when(repo.welcomeNotice("u")).thenReturn(map("id","notice","credits",10));
-        assertThat(service.credits("u")).containsEntry("welcomeNotice",map("id","notice","credits",10));
-        assertThat(service.credits("u")).containsEntry("welcomeNotice",map("id","notice","credits",10));
+    @Test void reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase() {
+        when(repo.balance(eq("u"),anyLong())).thenReturn(map("unused_welcome_id","gift","welcome_remaining",10));
+        assertThat(service.credits("u")).containsEntry("welcomeNotice",null)
+            .containsEntry("unusedWelcomeCredits",map("id","gift","credits",10));
         clearInvocations(repo);
-        service.acknowledgeWelcomeNotice("u","notice");
-        verify(repo).acknowledgeWelcomeNotice("u","notice");verifyNoMoreInteractions(repo);
-        settings.enabled=false;clearInvocations(repo);service.acknowledgeWelcomeNotice("u","notice");verifyNoInteractions(repo);
+        service.acknowledgeWelcomeNotice("u","gift");
+        verifyNoInteractions(repo,stripe);
     }
     @Test void productionKeysAndIncompleteConfigurationRemainDisabled() {
         assertThat(settings.ready()).isTrue();settings.secretKey="sk_live_fixture";assertThat(settings.ready()).isFalse();

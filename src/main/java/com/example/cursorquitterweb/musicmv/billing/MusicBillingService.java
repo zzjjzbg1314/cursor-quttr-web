@@ -28,7 +28,7 @@ public class MusicBillingService {
         repo.reconcile(user);
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=new LinkedHashMap<>(capabilities());
-        result.put("welcomeNotice",repo.welcomeNotice(user));
+        result.put("welcomeNotice",null);
         result.put("unusedWelcomeCredits",balance!=null && balance.get("unused_welcome_id")!=null ? map("id",balance.get("unused_welcome_id"),"credits",balance.get("welcome_remaining")) : null);
         result.put("welcomeRemaining",balance==null?0:balance.get("welcome_remaining"));
         result.put("remaining",balance==null?0:balance.get("remaining"));
@@ -38,7 +38,7 @@ public class MusicBillingService {
         return result;
     }
     public Map<String,Object> acknowledgeWelcomeNotice(String user,String id) {
-        if(settings.enabled && id!=null && !id.isEmpty() && id.length()<=100) repo.acknowledgeWelcomeNotice(user,id);
+        // 兼容旧前端的确认请求；提醒按登录会话去重，不读写数据库。
         return map("acknowledged",true);
     }
     public Map<String,Object> history(String user,int offset) { return history(user,offset,"all"); }

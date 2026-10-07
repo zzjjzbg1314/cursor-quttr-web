@@ -17,7 +17,7 @@ class BillingRepositoryTest {
             "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
             "s=json.loads(sys.argv[1])",
             "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
-            "run(0);assert run(1)[0][-1] is not None;assert run(2)[0][-1] is None",
+            "run(0);run(0);assert d.execute('SELECT COUNT(*) FROM music_mv_billing_grants').fetchone()[0]==1;assert run(1)[0][-1] is not None;assert run(2)[0][-1] is None",
             "run(3);assert run(1)[0][-1] is None;run(4);assert run(1)[0][-1] is not None",
             "run(5);run(6);assert run(1)[0][-1] is None",
             "d.execute(\"UPDATE music_mv_billing_reservations SET state='released'\")",
@@ -25,31 +25,6 @@ class BillingRepositoryTest {
             "assert run(1)[0][-1] is None");
         runPython(script,new ObjectMapper().writeValueAsString(db.statements));
     }
-    @Test void welcomeNoticeIsAtomicPersistentAndOwnerScoped() throws Exception {
-        Capture db=new Capture(); BillingRepository r=new BillingRepository(db);
-        r.ensureWelcomeCredits("u");r.welcomeNotice("u");r.acknowledgeWelcomeNotice("other","notice");
-        r.acknowledgeWelcomeNotice("u","notice");r.welcomeNotice("old");
-        String script=String.join("\n",
-            "import sqlite3,json,pathlib,sys",
-            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
-            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
-            "s=json.loads(sys.argv[1])",
-            "s[0]['params'][0]='notice'",
-            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
-            "run(0);run(0);assert len(run(1))==1 and run(1)[0]['credits']==10",
-            "run(2);assert len(run(1))==1",
-            "run(3);run(3);run(0);assert run(1)==[]",
-            "assert d.execute('select count(*) from music_mv_billing_grants').fetchone()[0]==1",
-            "d.execute(\"INSERT INTO music_mv_billing_grants(grant_id,user_id,provider,payment_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('old','old','internal','welcome:old','welcome','welcome',10,0,1)\")",
-            "assert run(4)==[]",
-            "old=sqlite3.connect(':memory:')",
-            "old.execute('CREATE TABLE music_mv_billing_grants(grant_id TEXT)')",
-            "old.execute(\"INSERT INTO music_mv_billing_grants VALUES('legacy')\")",
-            "old.executescript(pathlib.Path('src/main/resources/db/migrations/music-mv-billing-welcome-notice.sql').read_text())",
-            "assert old.execute('SELECT welcome_notice_seen FROM music_mv_billing_grants').fetchone()[0]==1");
-        runPython(script,new ObjectMapper().writeValueAsString(db.statements));
-    }
-
     @Test void actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering() throws Exception {
         Capture db=new Capture();BillingRepository r=new BillingRepository(db);
         r.grant("stripe","in_1","u","sub_1","starter",10,100,200);

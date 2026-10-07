@@ -113,6 +113,4 @@ Starter 每月 300 积分，Creator 每月 1000 积分；每次生成预占 10 �
 
 ## 首次赠送到账通知（2026-10-05）
 
-现有数据库必须在部署本次后端前执行一次 `src/main/resources/db/migrations/music-mv-billing-welcome-notice.sql`。不要对已经含 `welcome_notice_seen` 列的库重复执行 ALTER；先用 `PRAGMA table_info(music_mv_billing_grants)` 确认。新数据库直接执行更新后的 `music-mv-billing-schema.sql`，不再执行此迁移。
-
-历史赠送默认 `welcome_notice_seen=1`，不补弹；新赠送原子写入 `welcome_notice_seen=0`。余额接口返回 `welcomeNotice: {id, credits}` 或 null。登录用户通过 `POST /api/music-mv/v1/billing/welcome-notice/ack`、请求体 `{"id":"赠送记录 ID"}` 确认已展示，只能修改自己的记录，重复确认无副作用。确认不发积分，不调用 Stripe。未确认通知保留到下次查询；首次生成路径发放的积分也遵循同一规则。
+弹窗提醒不再依赖数据库展示标记，也不需要执行 welcome-notice 迁移。已经存在的 `welcome_notice_seen` 列可以保留，代码不再访问。首次赠送仍按账号唯一键只发一次；未使用资格复用余额查询，前端按登录会话去重。旧版确认接口保留为空操作，不读写数据库、不赠送积分。
