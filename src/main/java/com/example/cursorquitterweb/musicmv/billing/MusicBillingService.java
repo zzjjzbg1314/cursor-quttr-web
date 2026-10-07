@@ -29,6 +29,7 @@ public class MusicBillingService {
         Map<String,Object> balance=repo.balance(user,Instant.now().getEpochSecond());
         Map<String,Object> result=new LinkedHashMap<>(capabilities());
         result.put("welcomeNotice",repo.welcomeNotice(user));
+        result.put("unusedWelcomeCredits",balance!=null && balance.get("unused_welcome_id")!=null ? map("id",balance.get("unused_welcome_id"),"credits",balance.get("welcome_remaining")) : null);
         result.put("welcomeRemaining",balance==null?0:balance.get("welcome_remaining"));
         result.put("remaining",balance==null?0:balance.get("remaining"));
         result.put("allowance",balance==null?0:balance.get("allowance"));

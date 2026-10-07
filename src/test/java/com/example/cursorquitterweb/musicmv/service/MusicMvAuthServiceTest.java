@@ -109,6 +109,7 @@ class MusicMvAuthServiceTest {
         MusicMvAuthRepository repository = mock(MusicMvAuthRepository.class);
         Map<String, Object> user = new LinkedHashMap<String, Object>();
         user.put("user_id", "usr_signed_in");
+        user.put("session_id", "login-one");
         user.put("expires_at", "2026-10-28 12:00:00");
         when(repository.findBySessionTokenHash(anyString())).thenReturn(user);
         MusicMvAuthService service = new MusicMvAuthService(repository, mock(MusicMvOidcIdentityService.class), 30);
@@ -117,6 +118,11 @@ class MusicMvAuthServiceTest {
                 "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"));
         Map<String, Object> response = service.currentSession(request);
         assertEquals("2026-10-28T12:00:00Z", response.get("expiresAt"));
+        String loginId = (String) response.get("loginId");
+        org.junit.jupiter.api.Assertions.assertTrue(loginId.matches("[a-f0-9]{64}"));
+        assertEquals(loginId, service.currentSession(request).get("loginId"));
+        user.put("session_id", "login-two");
+        org.junit.jupiter.api.Assertions.assertNotEquals(loginId, service.currentSession(request).get("loginId"));
         org.junit.jupiter.api.Assertions.assertNotNull(java.time.Instant.parse((String) response.get("serverTime")));
         org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).createSession(anyString(), anyString(), anyString(), org.mockito.ArgumentMatchers.anyInt());
     }

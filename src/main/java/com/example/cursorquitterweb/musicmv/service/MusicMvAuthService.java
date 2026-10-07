@@ -138,6 +138,9 @@ public class MusicMvAuthService {
     private Map<String, Object> sessionView(Map<String, Object> user) {
         Map<String, Object> view = new LinkedHashMap<String, Object>();
         view.put("authenticated", Boolean.TRUE);
+        // 仅用于界面按登录会话去重，不返回 Cookie 或可用于认证的令牌。
+        String sessionId = RowUtils.str(user, "session_id");
+        if (sessionId != null) view.put("loginId", sha256("welcome-reminder:" + sessionId));
         String expiresAt = RowUtils.str(user, "expires_at");
         if (expiresAt != null) {
             view.put("expiresAt", LocalDateTime.parse(expiresAt.replace(' ', 'T'))

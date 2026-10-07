@@ -6,6 +6,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.cursorquitterweb.musicmv.service.*;
 
 class BillingRepositoryTest {
+    @Test void reminderRequiresUntouchedWelcomeAndNoPendingGeneration() throws Exception {
+        Capture db=new Capture();BillingRepository r=new BillingRepository(db);
+        r.ensureWelcomeCredits("u");r.balance("u",100);r.balance("other",100);
+        r.reserve("u","r","job",100,10);r.settle("job","released");
+        r.reserve("u","r2","job2",100,10);r.settle("job2","consumed");
+        String script=String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:')",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);assert run(1)[0][-1] is not None;assert run(2)[0][-1] is None",
+            "run(3);assert run(1)[0][-1] is None;run(4);assert run(1)[0][-1] is not None",
+            "run(5);run(6);assert run(1)[0][-1] is None",
+            "d.execute(\"UPDATE music_mv_billing_reservations SET state='released'\")",
+            "d.execute(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('paid','u','paid','paid-grant','reserved',10)\")",
+            "assert run(1)[0][-1] is None");
+        runPython(script,new ObjectMapper().writeValueAsString(db.statements));
+    }
     @Test void welcomeNoticeIsAtomicPersistentAndOwnerScoped() throws Exception {
         Capture db=new Capture(); BillingRepository r=new BillingRepository(db);
         r.ensureWelcomeCredits("u");r.welcomeNotice("u");r.acknowledgeWelcomeNotice("other","notice");
