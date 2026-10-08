@@ -1,6 +1,6 @@
 {
   "date": "2026-10-08",
-  "goalStatus": "active",
+  "goalStatus": "blocked",
   "baselineCommit": "98cd6e1",
   "planCases": 174,
   "testSuites": [
@@ -54,11 +54,11 @@
     },
     {
       "class": "BillingScenarioDatabaseRegressionTest",
-      "tests": 10,
+      "tests": 12,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "223a27a932de272be7cd1461d62e5febaa258a55e69f2fd6c2f50d8e93aef870"
+      "reportSha256": "2cb488361f4fb289486bb2cd357814fc8501cd1bb6ea056fc09d1dc1d439d1e9"
     },
     {
       "class": "BillingScenarioHttpRegressionTest",
@@ -1359,76 +1359,6 @@
       "characterization": false
     },
     {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K10_initializationReplayPreservesExistingLedger",
-      "seconds": 0.353,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I15_RISK_splitAllowancesCannotCoverOneReservation",
-      "seconds": 0.029,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
-      "seconds": 0.028,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[1]",
-      "seconds": 0.035,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[2]",
-      "seconds": 0.027,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I04_actualSqlConcurrentReservationsNeverOverdraw",
-      "seconds": 0.178,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
-      "seconds": 0.03,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner",
-      "seconds": 0.047,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert",
-      "seconds": 0.027,
-      "result": "pass",
-      "characterization": true
-    },
-    {
       "class": "BillingScenarioHttpRegressionTest",
       "name": "B11_RISK_unexpectedDatabaseErrorHasNoScopedSafeResponse",
       "seconds": 0.653,
@@ -1964,6 +1894,90 @@
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
       "seconds": 1.333,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K10_initializationReplayPreservesExistingLedger",
+      "seconds": 0.348,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I15_RISK_splitAllowancesCannotCoverOneReservation",
+      "seconds": 0.029,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+      "seconds": 0.03,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[1]",
+      "seconds": 0.036,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[2]",
+      "seconds": 0.027,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I04_actualSqlConcurrentReservationsNeverOverdraw",
+      "seconds": 0.184,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+      "seconds": 0.03,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner",
+      "seconds": 0.048,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
+      "seconds": 0.164,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
+      "seconds": 0.154,
       "result": "pass",
       "characterization": false
     }
@@ -3034,9 +3048,11 @@
       "evidence": [
         "MusicBillingServiceTest.paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents",
         "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
-        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
+        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
+        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。 已完成真实SQL的两种首事件顺序、8个独立连接、支付/退款各100次交错重放；非真实HTTP通知并发或D1远程并发。"
     },
     {
       "id": "F05",
@@ -3140,9 +3156,11 @@
       "status": "部分验证",
       "evidence": [
         "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
-        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
+        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 已完成真实SQL的两种首事件顺序、8个独立连接、支付/退款各100次交错重放；非真实HTTP通知并发或D1远程并发。"
     },
     {
       "id": "F14",
@@ -4079,7 +4097,7 @@
     "沙盒待环境": 9,
     "边界已复现": 3
   },
-  "totalBackendTests": 263,
+  "totalBackendTests": 265,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
   "remoteMutationCount": 1,
@@ -4132,7 +4150,8 @@
     "43e1021",
     "7c1e847",
     "frontend:9c1f604",
-    "46bac5b"
+    "46bac5b",
+    "4de7c01"
   ],
   "currentPaymentReadOnlyAudit": {
     "database": {
@@ -4212,5 +4231,9 @@
     },
     "mutations": 0,
     "limitations": "现有运行配置选择的D1；读到已知原始发票/事件和当前用户数据，与站内310一致。未检查全部Stripe投递尝试和请求日志，不断言首次grant具体入口。"
-  }
+  },
+  "blockedBy": [
+    "尚未确认可处置沙盒账号或现有沙盒订阅可取消/恢复/退款",
+    "尚未提供隔离测试站点、独立D1配置位置及部署日志访问条件"
+  ]
 }
