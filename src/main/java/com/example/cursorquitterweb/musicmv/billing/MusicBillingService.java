@@ -97,6 +97,7 @@ public class MusicBillingService {
             result.putAll(credits(user));
         }
         result.put("paymentConfirmed",paid && repo.paymentGranted(user,invoiceId));
+        result.put("paymentRevoked",paid && repo.paymentRevoked(invoiceId));
         return result;
     }
     public Map<String,Object> checkout(String user,String plan,String locale) {

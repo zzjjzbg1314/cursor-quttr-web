@@ -25,7 +25,7 @@ class BillingScenarioHttpRegressionTest {
 
     @BeforeEach void setup() {
         billing=mock(MusicBillingService.class);auth=mock(MusicMvAuthService.class);client=mock(MusicMvRenderClientAuthenticationService.class);
-        mvc=MockMvcBuilders.standaloneSetup(new MusicBillingController(billing,auth,client)).setControllerAdvice(new MusicMvExceptionHandler()).build();
+        mvc=MockMvcBuilders.standaloneSetup(new MusicBillingController(billing,auth,client)).setControllerAdvice(new BillingExceptionHandler(),new MusicMvExceptionHandler()).build();
     }
 
     @ParameterizedTest(name="B01 protectedEndpoint={0}")
@@ -94,12 +94,14 @@ class BillingScenarioHttpRegressionTest {
             .andExpect(jsonPath("$.details.reference").value("fixture"));
     }
 
-    @Test void B11_RISK_unexpectedDatabaseErrorHasNoScopedSafeResponse() {
+    @Test void B11_unexpectedDatabaseErrorReturnsSafeRetryableResponse() throws Exception {
         when(auth.requireUserId(any())).thenReturn("u");
         when(billing.status("u",null)).thenThrow(new IllegalStateException("fixture-private-database-info"));
-        org.assertj.core.api.Assertions.assertThatThrownBy(()->mvc.perform(get(base("status"))))
-            .hasRootCauseInstanceOf(IllegalStateException.class)
-            .hasRootCauseMessage("fixture-private-database-info");
+        mvc.perform(get(base("status"))).andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.code").value("BILLING_UNAVAILABLE"))
+            .andExpect(jsonPath("$.retryable").value(true))
+            .andExpect(jsonPath("$.details.reference").isNotEmpty())
+            .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("fixture-private"))));
     }
 
     private String base(String endpoint) { return "/api/music-mv/v1/billing/"+endpoint; }

@@ -194,7 +194,7 @@ class BillingRepositoryTest {
             @Override public List<D1QueryResult> batch(List<D1Statement> statements) {
                 for(D1Statement statement:statements) query(statement.getSql(),statement.getParams().toArray());
                 return Arrays.asList(new D1QueryResult(Collections.emptyList(),null),new D1QueryResult(Collections.emptyList(),null),
-                    new D1QueryResult(Collections.singletonList(StripeGateway.map("remaining",90)),null));
+                    new D1QueryResult(Collections.singletonList(StripeGateway.map("remaining",90,"allowance",100,"reserved",10,"welcome_remaining",10)),null));
             }
         };
         assertThat(new BillingRepository(db).refreshBalance("u",150)).containsEntry("remaining",90);
@@ -253,7 +253,7 @@ class BillingRepositoryTest {
 
     static class Capture extends D1DatabaseClient {
         List<Map<String,Object>> statements=new ArrayList<>();Capture(){super(new ObjectMapper());}
-        @Override public D1QueryResult query(String sql,Object...params){statements.add(StripeGateway.map("sql",sql,"params",Arrays.asList(params)));return new D1QueryResult(Collections.emptyList(),null);}
+        @Override public D1QueryResult query(String sql,Object...params){statements.add(StripeGateway.map("sql",sql,"params",Arrays.asList(params)));return new D1QueryResult(sql.startsWith("SELECT COALESCE(SUM(g.allowance")?Collections.singletonList(StripeGateway.map("remaining",0,"allowance",0,"reserved",0,"welcome_remaining",0)):Collections.emptyList(),null);}
         @Override public List<D1QueryResult> batch(List<D1Statement> batch){for(D1Statement s:batch)query(s.getSql(),s.getParams().toArray());return Collections.emptyList();}
     }
 }

@@ -95,6 +95,7 @@ class BillingLedgerJourneyRegressionTest {
         send(service,settings,"evt_paid_late","invoice.paid",json.createObjectNode().put("id","in_u"));
         assertThat(((Number)service.credits("u").get("remaining")).intValue()).isEqualTo(10);
         assertThat(repo.paymentGranted("u","in_u")).isFalse();
+        assertThat(service.status("u","cs_test_fixture")).containsEntry("paymentConfirmed",false).containsEntry("paymentRevoked",true).containsEntry("remaining",10);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'" )).isEqualTo(1);
         assertThat(service.history("u",0).get("items")).asList().hasSize(3);
         service.reserve("u","request_2","job_2");service.settle("job_2","failed");

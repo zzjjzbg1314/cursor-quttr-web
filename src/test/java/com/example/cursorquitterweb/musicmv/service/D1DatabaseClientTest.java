@@ -117,7 +117,7 @@ class D1DatabaseClientTest {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings={"missing-rows","empty-rows","object-rows"})
-    void I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero(String shape) {
+    void I19_emptyOrMalformedBalanceResultNeverReturnsZero(String shape) {
         String last=shape.equals("missing-rows")?"{\"success\":true}":shape.equals("empty-rows")?"{\"success\":true,\"results\":[]}":"{\"success\":true,\"results\":{\"remaining\":999}}";
         when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
             .thenReturn(new ResponseEntity<String>("{\"success\":true,\"result\":[{\"success\":true,\"results\":[]},{\"success\":true,\"results\":[]},"+last+"]}",HttpStatus.OK));
@@ -125,7 +125,7 @@ class D1DatabaseClientTest {
         com.example.cursorquitterweb.musicmv.billing.StripeGateway stripe=mock(com.example.cursorquitterweb.musicmv.billing.StripeGateway.class);
         com.example.cursorquitterweb.musicmv.billing.MusicBillingService billing=new com.example.cursorquitterweb.musicmv.billing.MusicBillingService(settings,
             new com.example.cursorquitterweb.musicmv.billing.BillingRepository(client),stripe,new ObjectMapper());
-        org.assertj.core.api.Assertions.assertThat(billing.credits("u")).containsEntry("remaining",0).containsEntry("allowance",0).containsEntry("enabled",true);
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->billing.credits("u")).isInstanceOf(IllegalStateException.class);
         verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class));
         org.mockito.Mockito.verifyNoInteractions(stripe);
     }

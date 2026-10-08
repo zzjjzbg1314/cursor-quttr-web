@@ -71,9 +71,12 @@ public class BillingRepository {
     public boolean paymentGranted(String user,String invoice) {
         return db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=? AND provider='stripe' AND payment_id=? AND revoked=0",user,invoice).firstRow()!=null;
     }
+    public boolean paymentRevoked(String invoice) {
+        return db.query("SELECT payment_id FROM music_mv_billing_revocations WHERE provider='stripe' AND payment_id=?",invoice).firstRow()!=null;
+    }
     public Map<String,Object> balance(String user,long now) {
         D1Statement statement=balanceStatement(user,now);
-        return db.query(statement.getSql(),statement.getParams().toArray()).firstRow();
+        return verifiedBalance(db.query(statement.getSql(),statement.getParams().toArray()));
     }
     private D1Statement balanceStatement(String user,long now) {
         return D1Statement.of("SELECT COALESCE(SUM(g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released')),0) AS remaining, COALESCE(SUM(CASE WHEN g.plan_key='welcome' AND g.provider='internal' THEN 0 ELSE g.allowance END),0) AS allowance, COALESCE(SUM((SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state='reserved')),0) AS reserved, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN NULL ELSE g.period_end END) AS period_end, COALESCE(SUM(CASE WHEN g.provider='internal' AND g.plan_key='welcome' THEN g.allowance-(SELECT COALESCE(SUM(r.credits),0) FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state<>'released') ELSE 0 END),0) AS welcome_remaining, MAX(CASE WHEN g.provider='internal' AND g.plan_key='welcome' AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.grant_id=g.grant_id AND r.state IN ('reserved','consumed')) AND NOT EXISTS(SELECT 1 FROM music_mv_billing_reservations r WHERE r.user_id=g.user_id AND r.state='reserved') THEN g.grant_id ELSE NULL END) AS unused_welcome_id FROM music_mv_billing_grants g WHERE g.user_id=? AND g.revoked=0 AND g.period_start<=? AND (g.period_end>? OR (g.provider='internal' AND g.plan_key='welcome'))",user,now,now);
@@ -82,7 +85,17 @@ public class BillingRepository {
         // 同一批次按顺序赠送、对账再读取余额，减少远程往返且不缓存账务状态。
         List<D1QueryResult> results=db.batch(Arrays.asList(welcomeStatement(user),reconcileStatement(user),balanceStatement(user,now)));
         if(results.size()!=3) throw new IllegalStateException("Incomplete billing balance batch");
-        return results.get(2).firstRow();
+        return verifiedBalance(results.get(2));
+    }
+    private Map<String,Object> verifiedBalance(D1QueryResult result) {
+        if(result==null || result.getRows().size()!=1) throw new IllegalStateException("Missing billing balance aggregate");
+        Map<String,Object> row=result.firstRow();
+        for(String key:Arrays.asList("remaining","allowance","reserved","welcome_remaining")) {
+            Object value=row.get(key);
+            if(!(value instanceof Number) || ((Number)value).doubleValue()<0 || !Double.isFinite(((Number)value).doubleValue())
+                    || ((Number)value).doubleValue()!=((Number)value).longValue()) throw new IllegalStateException("Invalid billing balance aggregate");
+        }
+        return row;
     }
     public boolean reserve(String user,String request,String job,long now,int credits) {
         // 每笔任务保存扣分数；单条条件写入检查余额，避免并发超扣。
