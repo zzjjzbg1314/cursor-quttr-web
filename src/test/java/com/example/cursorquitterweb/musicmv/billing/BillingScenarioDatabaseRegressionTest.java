@@ -132,6 +132,20 @@ class BillingScenarioDatabaseRegressionTest {
             "d.execute(s[0]['sql'],s[0]['params']);assert d.execute('SELECT COUNT(*) FROM music_mv_billing_grants').fetchone()[0]==1"));
     }
 
+    @Test void K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert() throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.history("u",20,0);repo.history("u",20,20);
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row;d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "insert=\"INSERT INTO music_mv_billing_grants(grant_id,user_id,provider,payment_id,subscription_id,plan_key,allowance,period_start,period_end,created_at) VALUES(?,'u','stripe',?,'sub','starter',10,100,200,?)\"",
+            "for i in range(40): d.execute(insert,('g%02d'%i,'in%02d'%i,'2026-10-08 01:00:00'))",
+            "def page(i): return [r['id'] for r in d.execute(s[i]['sql'],s[i]['params'])]",
+            "first=page(0);second=page(1);assert len(set(first+second))==40;assert page(0)==first",
+            "d.execute(insert,('new','in_new','2026-10-08 02:00:00'));changed=page(1)",
+            "assert set(first)&set(changed);assert len(set(first+changed))==39"));
+    }
+
     private void run(BillingRepositoryTest.Capture db,String script) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,new ObjectMapper().writeValueAsString(db.statements)).redirectErrorStream(true).start();
         boolean ended=process.waitFor(15,TimeUnit.SECONDS);
