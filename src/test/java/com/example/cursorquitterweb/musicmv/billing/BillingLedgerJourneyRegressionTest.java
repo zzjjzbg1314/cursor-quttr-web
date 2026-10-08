@@ -468,6 +468,63 @@ class BillingLedgerJourneyRegressionTest {
         } finally {music.close();}
     }
 
+    @ParameterizedTest(name="I07/I09 生成终局={0}")
+    @ValueSource(strings={"completed-two-songs","quota-rejected","rate-rejected"})
+    void explicitRejectionAndTwoCandidateCompletionSettleOneReservation(String scenario) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("settlement-journey.sqlite"));
+        db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES('u','u','u','2026-10-08','2026-10-08','2026-10-08')");
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        BillingRepository ledger=new BillingRepository(db);
+        MusicBillingService billing=new MusicBillingService(settings,ledger,mock(StripeGateway.class),json);
+        org.springframework.web.client.RestTemplate client=new org.springframework.web.client.RestTemplate();
+        org.springframework.test.web.client.MockRestServiceServer http=org.springframework.test.web.client.MockRestServiceServer.bindTo(client).build();
+        boolean completed=scenario.equals("completed-two-songs");
+        String response=completed?"{\"code\":200,\"data\":{\"taskId\":\"accepted-task\"}}":
+            scenario.equals("quota-rejected")?"{\"code\":429,\"msg\":\"fixture quota\"}":"{\"code\":405,\"msg\":\"fixture rate\"}";
+        http.expect(org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo("https://sunoapi.test/api/v1/generate"))
+            .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.method(org.springframework.http.HttpMethod.POST))
+            .andRespond(org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess(response,org.springframework.http.MediaType.APPLICATION_JSON));
+        AiMusicProvider provider=new SunoApiAiMusicProvider(json,"https://sunoapi.test","fixture-key","fixture-callback-secret-long-enough","V6");
+        org.springframework.test.util.ReflectionTestUtils.setField(provider,"restTemplate",client);
+        AiMusicGenerationService music=new AiMusicGenerationService(new AiMusicJobRepository(db),new AiMusicProviderRegistry(Collections.singletonList(provider)),
+            mock(AiMusicCandidateStorageService.class),json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest request=new com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest();
+        request.setRequestId("req");request.setStory("A birthday song");
+        try {
+            if(completed) {
+                music.create("u",request,"https://example.test");
+                assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isZero();
+                AiMusicProvider.TaskSnapshot snapshot=new AiMusicProvider.TaskSnapshot();snapshot.setProviderTaskId("accepted-task");snapshot.setStatus("completed");
+                AiMusicProvider.Candidate first=new AiMusicProvider.Candidate();first.setProviderAudioId("audio_1");first.setTitle("First song");
+                AiMusicProvider.Candidate second=new AiMusicProvider.Candidate();second.setProviderAudioId("audio_2");second.setTitle("Second song");
+                snapshot.setCandidates(Arrays.asList(first,second));
+                String job=(String)db.query("SELECT job_id FROM ai_music_jobs").firstRow().get("job_id");
+                music.acceptProviderCallback("sunoapi",job,snapshot);music.acceptProviderCallback("sunoapi",job,snapshot);
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_candidates")).isEqualTo(2);
+                assertThat(ledger.generationSpend("u")).hasSize(1);assertThat(ledger.generationSpend("other")).isEmpty();
+                assertThat(ledger.generationSpend("u").get(0).get("title")).isIn("First song","Second song");
+            } else {
+                assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOfSatisfying(com.example.cursorquitterweb.musicmv.support.ApiException.class,
+                    e->assertThat(e.getCode()).isEqualTo(scenario.equals("quota-rejected")?"SUNOAPI_CREDITS_EXHAUSTED":"SUNOAPI_RATE_LIMITED"));
+                String job=(String)db.query("SELECT job_id FROM ai_music_jobs").firstRow().get("job_id");
+                billing.settle(job,"failed");billing.settle(job,"failed");
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_candidates")).isZero();assertThat(ledger.generationSpend("u")).isEmpty();
+            }
+            assertThat(music.create("u",request,"https://example.test")).containsEntry("idempotentReplay",true).containsEntry("status",completed?"completed":"failed");
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations")).isEqualTo(1);
+            assertThat(db.query("SELECT state,credits FROM music_mv_billing_reservations").firstRow()).containsEntry("state",completed?"consumed":"released").containsEntry("credits",10);
+            assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(completed?0:10);
+            assertThat(((Number)ledger.usage("u").get("spent")).intValue()).isEqualTo(completed?10:0);
+            assertThat(((Number)ledger.usage("u").get("earned")).intValue()).isEqualTo(10);
+            List<Map<String,Object>> history=ledger.history("u",21,0);assertThat(history).hasSize(2);
+            assertThat(history).extracting(row->row.get("kind")).containsExactlyInAnyOrder("welcome",completed?"consumed":"released");
+            Map<String,Object> reservationHistory=history.stream().filter(row->!"welcome".equals(row.get("kind"))).findFirst().get();
+            assertThat(((Number)reservationHistory.get("amount")).intValue()).isEqualTo(completed?-10:0);
+            http.verify();
+        } finally {music.close();}
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
