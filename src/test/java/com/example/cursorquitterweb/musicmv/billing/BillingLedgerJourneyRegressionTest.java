@@ -79,6 +79,13 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(income).hasSize(2);
         assertThat(income).extracting(row->row.get("kind")).containsExactlyInAnyOrder("welcome","subscription");
         for(Map<String,Object> row:income)assertThat(((Number)row.get("amount")).intValue()).isEqualTo(row.get("kind").equals("welcome")?10:allowance);
+        sub.put("latest_invoice","in_u");
+        Map<String,Object> daily=service.status("u");service.status("u");
+        Map<?,?> active=(Map<?,?>)daily.get("subscription");
+        assertThat(active.get("status")).isEqualTo("active");assertThat(active.get("plan")).isEqualTo(plan);
+        assertThat(((Number)active.get("periodEnd")).longValue()).isEqualTo(end);
+        assertThat(active.containsKey("_latestInvoice")).isFalse();
+        verify(stripe,times(3)).invoice("in_u");verify(stripe,times(2)).checkoutSession("cs_test_fixture");
         service.reserve("u","request_1","job_1");service.settle("job_1","completed");
         assertThat(((Number)service.credits("u").get("remaining")).intValue()).isEqualTo(allowance);
         assertThat(db.query("SELECT g.payment_id FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.job_id='job_1'").firstRow()).containsEntry("payment_id","in_u");
@@ -1026,6 +1033,31 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(((Number)ledger.balance("u",199).get("remaining")).intValue()).isEqualTo(oldAllowance+10);
         assertThat(((Number)ledger.balance("u",200).get("remaining")).intValue()).isEqualTo(newAllowance+10);
         assertThat(((Number)ledger.balance("u",250).get("remaining")).intValue()).isEqualTo(newAllowance+10);
+    }
+
+    @org.junit.jupiter.api.Test
+    void generationCannotReserveExpiredFutureRevokedOrOtherOwnersAllowance() {
+        SqliteClient db=new SqliteClient(directory.resolve("ineligible-allowance.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);BillingSettings settings=new BillingSettings();settings.enabled=true;
+        StripeGateway stripe=mock(StripeGateway.class);MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        long now=Instant.now().getEpochSecond();
+        ledger.ensureWelcomeCredits("u");assertThat(ledger.reserve("u","welcome_used","welcome_job",now,10)).isTrue();ledger.settle("welcome_job","consumed");
+        ledger.grant("stripe","expired","u","sub_u","starter",300,now-7200,now-1);
+        ledger.grant("stripe","future","u","sub_u","creator",1000,now+3600,now+7200);
+        ledger.grant("stripe","revoked","u","sub_u","starter",300,now-100,now+3600);ledger.revoke("stripe","revoked");
+        ledger.grant("stripe","other_valid","other","sub_other","starter",300,now-100,now+3600);
+        assertThatThrownBy(()->service.reserve("u","invalid","job_invalid")).isInstanceOfSatisfying(com.example.cursorquitterweb.musicmv.support.ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(402);assertThat(e.getCode()).isEqualTo("BILLING_QUOTA_EXHAUSTED");});
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='reserved'")).isZero();
+        assertThat(((Number)ledger.balance("u",now).get("remaining")).intValue()).isZero();
+        ledger.grant("stripe","valid","u","sub_u","starter",10,now-100,now+3600);
+        service.reserve("u","valid_request","job_valid");
+        assertThat(db.query("SELECT g.payment_id,r.user_id,r.credits FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.job_id='job_valid'").firstRow())
+            .containsEntry("payment_id","valid").containsEntry("user_id","u").containsEntry("credits",10);
+        assertThat(((Number)ledger.balance("u",now).get("remaining")).intValue()).isZero();
+        assertThat(((Number)ledger.balance("other",now).get("remaining")).intValue()).isEqualTo(300);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='reserved'")).isEqualTo(1);
+        verifyNoInteractions(stripe);
     }
 
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
