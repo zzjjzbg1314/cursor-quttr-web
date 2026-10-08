@@ -2978,9 +2978,10 @@
       "expected": "必须与页面USD月付9.99/29.99一致；错误对象不能完成错误收费",
       "status": "本地配置失败/沙盒待环境",
       "evidence": [
-        "readonly-stripe-price-check"
+        "readonly-stripe-price-check",
+        "priceConfigurationRecheck20261009"
       ],
-      "limitations": "现有本地run配置两档Price均404 resource_missing；未判定线上配置错误，也未执行真实Checkout。"
+      "limitations": "2026-10-09再次读取本地IDE两档Price均404 resource_missing；线上成功新购Starter的实际Checkout单行Price有效、USD999美分/月，且与本地Starter配置不同。线上Starter本轮收费匹配，不据本地404推断线上错误；Creator实购及全部错误配置组合未闭环。"
     },
     {
       "id": "A07",
@@ -6878,5 +6879,30 @@
     "normalProductFlow": "不提供自助退款、申请退款或人工审核功能；支持取消未来续费，本期积分保留至账期结束。",
     "testBoundary": "退款通知用例仅覆盖Stripe后台实际退款、争议等外部异常事件的账务撤销保护，不代表产品提供退款能力。",
     "supersedes": "此前未使用人工审核退款的建议，不作为待实施需求。"
+  },
+  "priceConfigurationRecheck20261009": {
+    "configuredPriceChecks": [
+      {
+        "plan": "starter",
+        "status": 404,
+        "code": "resource_missing"
+      },
+      {
+        "plan": "creator",
+        "status": 404,
+        "code": "resource_missing"
+      }
+    ],
+    "paidStarterCheckoutPrices": [
+      {
+        "priceId": "price_1UMPkKGj38FUksqYWIrrL0pl",
+        "active": true,
+        "currency": "usd",
+        "unit_amount": 999,
+        "interval": "month",
+        "localStarterMatches": false
+      }
+    ],
+    "scope": "当前本地IDE配置与已成功线上新购Starter对照；不证明线上Creator配置。"
   }
 }

@@ -527,7 +527,7 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 | A03 | P0 | test模式配live key；live模式配test key | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 |
 | A04 | P1 | 参数化 sk/rk 测试/正式、未知mode、null/空key | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 |
 | A05 | P1 | 分别缺webhook/price/portal；无效前缀 | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 |
-| A06 | P0 | price存在但币种/金额/周期/账号错误；实际打开Checkout | 本地配置失败/沙盒待环境 | 现有本地run配置两档Price均404 resource_missing；未判定线上配置错误，也未执行真实Checkout。 |
+| A06 | P0 | price存在但币种/金额/周期/账号错误；实际打开Checkout | 本地配置失败/沙盒待环境 | 2026-10-09再次读取本地IDE两档Price均404 resource_missing；线上成功新购Starter的实际Checkout单行Price有效、USD999美分/月，且与本地Starter配置不同。线上Starter本轮收费匹配，不据本地404推断线上错误；Creator实购及全部错误配置组合未闭环。 |
 | A07 | P0 | starterPrice与creatorPrice配置成同一个ID | 安全目标未通过 | 风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。 |
 | A08 | P1 | 合法https站点、localhost/127.0.0.1 http、尾斜杠；生成URL | 本地核心通过 | 实际BillingSettings验证6种https/localhost/127.0.0.1及尾斜杠形式×9语言，另非法语言/null回退；输出精确pricing，无account/重复尾斜杠。共84个断言，仍计1条JUnit；不是九语言实际付款/门户回站。 |
 | A09 | P0 | siteUrl为外部http、带凭据/query/fragment、无host、格式破损 | 部分验证 | 相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 |
@@ -795,3 +795,5 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 主流程待修复：R21计划取消时间未识别；R09管理订阅加载提示绑定错；R10购买入口文案不一致。外部退款回站与明细展示仍有R17/R16。更深层账务防御问题按各条可达条件处理，不应把所有模拟异常都描述成已发生的线上故障。
 
 真实续费及失败扣款恢复、自然账期结束仍缺证据；现有客户没有Test Clock。实际歌曲扣费/失败退回受“不得为验收触发真实付费生成”约束。跨节点/D1异常、版本混跑需要独立环境，用户已说明目前没有。不会用立即结束订阅充当自然到期，不会用模拟支付或临时SQLite充当上述真实验收。
+
+2026-10-09价格配置复核：本地IDE两档Price仍404 resource_missing；读取新购Starter实际Checkout单行价格，active=true、livemode=false、USD999美分、month，与本地Starter ID不同。确认本地与线上价格配置不一致；线上本轮Starter收费符合页面，不将本地404归为线上收费故障。未创建订单、付款或变更配置，Creator实际支付及全部错误配置组合仍待验收。
