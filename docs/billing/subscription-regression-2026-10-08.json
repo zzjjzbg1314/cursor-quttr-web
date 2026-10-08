@@ -6329,5 +6329,30 @@
       "unpaid"
     ],
     "scope": "真实服务及临时SQLite，付款状态切换和Stripe通知模拟；真实认证与换卡未验收"
+  },
+  "evidenceIndexAudit": {
+    "date": "2026-10-08",
+    "cases": 174,
+    "uniqueTestRecords": 394,
+    "testMethodReferencesChecked": 546,
+    "markdownStatusesMatch": true,
+    "missingMethods": [],
+    "sourceSha256": {
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingServiceTest.java": "92f38b3c6693fd88d2d5441933b85d76a083c3008e39b7a3379d33fddd5aa8fe",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingScenarioRegressionTest.java": "3bf0c6129d1bcd4b23cd88568d30da64a114ea61a5361931742b09e6eabd4967",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingSettingsTest.java": "47dba0c2d6badc23ef80fd3517c557b87fa06fb46751d0ac2a91436eba1c61db",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingScenarioHttpRegressionTest.java": "e2f2905b3795d89ddfeb14a896670e26c89678a6334cca97b21324745d0bb114",
+      "src/test/java/com/example/cursorquitterweb/musicmv/service/MusicMvAccessTokenServiceTest.java": "d518b7e196a766b5eccd315058a3f9b1833510b119c65f9245080334e09ec79b",
+      "src/test/java/com/example/cursorquitterweb/musicmv/service/MusicMvAuthenticationIsolationTest.java": "476a6696375d1ca4c1ddd229ee2334b106f29315a08deccc7fc08b44666d8928",
+      "src/test/java/com/example/cursorquitterweb/musicmv/service/MusicMvAuthServiceTest.java": "227a5a21ee26502c5dcd598f054c77e09284d7cd43856b4afe26f689b9b763f7",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/StripeGatewayTest.java": "755b2afacaa210b24983fc494ba165779a78e6f11bd4826ace453bffaab9147f",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingLedgerJourneyRegressionTest.java": "e26e1684199e833ed1834614c2d5f8faaf5b82749f2e156ab62e08306327e35e",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingScenarioDatabaseRegressionTest.java": "9ba10aa6195f4be1f8217f117a94e89c6e67ff8d7bea15e1f967340bb2fcabad",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingRepositoryTest.java": "965be3318d28c94014b57b219ef42cca767b10c848f15443eca4452e273afdb6",
+      "src/test/java/com/example/cursorquitterweb/musicmv/aimusic/AiMusicGenerationServiceTest.java": "b912455d750fd203ef12e6b6dcffe775443995fc933150d228fcdebc0ef7752a",
+      "src/test/java/com/example/cursorquitterweb/musicmv/aimusic/PaidSubmissionSafetyTest.java": "23fad39cdceb7619dc636c3c9f77318c72dc2ca56ce25fc157e0745020ebac29",
+      "src/test/java/com/example/cursorquitterweb/musicmv/service/D1DatabaseClientTest.java": "83ea35325db0186a1945d3b5c783d1d4b1e0efa4cce76cf823bd32e8bf20eaa3"
+    },
+    "scope": "索引与源码存在性核对，不替代真实场景执行或重新运行全部测试"
   }
 }
