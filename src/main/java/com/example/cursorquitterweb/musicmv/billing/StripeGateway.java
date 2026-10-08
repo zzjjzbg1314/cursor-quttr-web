@@ -33,6 +33,13 @@ public class StripeGateway {
             "success_url",url+"?billing=return&checkout_session_id={CHECKOUT_SESSION_ID}","cancel_url",url+"?billing=canceled","expires_at",expires),options("sunofilm-checkout-"+token)));
     }
     public JsonNode checkoutSession(String id) { return call(() -> com.stripe.model.checkout.Session.retrieve(id,options(null))); }
+    public JsonNode checkoutSessions(String customer,long createdAfter) {
+        return call(() -> com.stripe.model.checkout.Session.list(map("customer",customer,"created",map("gte",createdAfter),"limit",100),options(null)));
+    }
+    public JsonNode expireCheckout(String id) {
+        return call(() -> com.stripe.model.checkout.Session.retrieve(id,options(null)).expire(options(null)));
+    }
+    static class CheckoutExpiryRejectedException extends RuntimeException { }
     public JsonNode portal(String customer,String url) {
         return call(() -> com.stripe.model.billingportal.Session.create(map("customer",customer,"return_url",url,
             "configuration",settings.portalConfiguration),options(null)));
@@ -46,10 +53,17 @@ public class StripeGateway {
     private interface Request { StripeObject run() throws StripeException; }
     private JsonNode call(Request request) {
         try { return mapper.readTree(request.run().toJson()); }
+        catch(com.stripe.exception.InvalidRequestException e) {
+            if("expires_at".equals(e.getParam())) throw new CheckoutExpiryRejectedException();
+            throw unavailable();
+        }
         catch(Exception e) {
             // 不向浏览器暴露供应商响应、请求参数或凭据。
-            throw new ApiException(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Billing could not confirm this request. Please retry.",true,null);
+            throw unavailable();
         }
+    }
+    private ApiException unavailable() {
+        return new ApiException(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Billing could not confirm this request. Please retry.",true,null);
     }
     public static Map<String,Object> map(Object... pairs) {
         Map<String,Object> result=new LinkedHashMap<>();

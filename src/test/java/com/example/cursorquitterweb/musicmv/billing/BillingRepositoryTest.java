@@ -225,6 +225,25 @@ class BillingRepositoryTest {
             .isInstanceOf(IllegalStateException.class).hasMessageContaining("Incomplete billing balance batch");
     }
 
+    @Test void clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription() throws Exception {
+        Capture db=new Capture();BillingRepository r=new BillingRepository(db);
+        r.claimCheckout("stripe","u","old","starter","url",100);
+        r.clearCheckout("stripe","other","old");r.clearCheckout("paypal","u","old");r.clearCheckout("stripe","u","new");
+        r.clearCheckout("stripe","u","old");r.claimCheckout("stripe","u","new","creator","url",100);
+        r.clearCheckout("stripe","u","old");r.syncSubscription("stripe","u","sub","active",false);r.clearCheckout("stripe","u","new");
+        runPython(String.join("\n",
+            "import sqlite3,json,pathlib,sys",
+            "d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row",
+            "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "s=json.loads(sys.argv[1])",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "run(0);assert run(1)==[] and run(2)==[] and run(3)==[]",
+            "assert len(run(4))==1;assert len(run(5))==1;assert run(6)==[]",
+            "run(7);assert run(8)==[]",
+            "row=d.execute('SELECT * FROM music_mv_billing_subscriptions').fetchone();assert row['checkout_token']=='new' and row['subscription_id']=='sub'"
+        ),new ObjectMapper().writeValueAsString(db.statements));
+    }
+
     private void runPython(String script,String data) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,data).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();

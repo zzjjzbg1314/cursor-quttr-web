@@ -33,6 +33,10 @@ public class BillingRepository {
     public void saveCheckout(String provider,String user,String token,String id,String url) {
         db.query("UPDATE music_mv_billing_subscriptions SET checkout_id=?,checkout_url=? WHERE provider=? AND user_id=? AND checkout_token=?",id,url,provider,user,token);
     }
+    public boolean clearCheckout(String provider,String user,String token) {
+        // 只释放已查证的原订单，不覆盖并发请求创建的新订单或已同步的订阅。
+        return db.query("UPDATE music_mv_billing_subscriptions SET checkout_token=NULL,checkout_plan=NULL,checkout_expires=NULL,checkout_return_url=NULL,checkout_id=NULL,checkout_url=NULL WHERE provider=? AND user_id=? AND checkout_token=? AND subscription_id IS NULL RETURNING user_id",provider,user,token).firstRow()!=null;
+    }
     public boolean processed(String provider,String id) { return db.query("SELECT event_id FROM music_mv_billing_events WHERE provider=? AND event_id=?",provider,id).firstRow()!=null; }
     public void processed(String provider,String id,String type) { db.query("INSERT INTO music_mv_billing_events(provider,event_id,event_type) VALUES(?,?,?) ON CONFLICT DO NOTHING",provider,id,type); }
     public void grant(String provider,String payment,String user,String subscription,String plan,int allowance,long start,long end) {

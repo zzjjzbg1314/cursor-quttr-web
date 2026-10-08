@@ -25,4 +25,43 @@ class StripeGatewayTest {
    assertThat(idempotency.get()).isEqualTo("sunofilm-checkout-token");assertThat(version.get()).isEqualTo(Stripe.API_VERSION);
   }finally{Stripe.overrideApiBase(original);server.stop(0);}
  }
+ @Test void onlyExplicitExpiryValidationAllowsCheckoutReconciliation() throws Exception {
+  HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+  AtomicReference<String> param=new AtomicReference<>("expires_at");
+  server.createContext("/v1/checkout/sessions",exchange->{
+   byte[] response=("{\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Invalid parameter\",\"param\":\""+param.get()+"\"}}").getBytes(StandardCharsets.UTF_8);
+   exchange.getResponseHeaders().add("Content-Type","application/json");exchange.sendResponseHeaders(400,response.length);exchange.getResponseBody().write(response);exchange.close();
+  });server.start();String original=Stripe.getApiBase();
+  try {
+   Stripe.overrideApiBase("http://127.0.0.1:"+server.getAddress().getPort());
+   BillingSettings s=new BillingSettings();s.enabled=true;s.secretKey="sk_test_fixture";s.webhookSecret="whsec_fixture";s.starterPrice="price_s";s.creatorPrice="price_c";s.portalConfiguration="bpc_fixture";
+   StripeGateway gateway=new StripeGateway(s,new ObjectMapper());
+   assertThatThrownBy(()->gateway.checkout("cus_1","u","price_s","token",100L,"http://localhost:3000/pricing")).isInstanceOf(StripeGateway.CheckoutExpiryRejectedException.class);
+   param.set("line_items");
+   assertThatThrownBy(()->gateway.checkout("cus_1","u","price_s","token",100L,"http://localhost:3000/pricing")).isInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
+  } finally {Stripe.overrideApiBase(original);server.stop(0);}
+ }
+
+ @Test void recoveryListsCustomerSessionsAndExpiresVerifiedSessionThroughSdk() throws Exception {
+  HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+  AtomicReference<String> query=new AtomicReference<>(),expiryMethod=new AtomicReference<>();
+  server.createContext("/v1/checkout/sessions",exchange->{
+   String path=exchange.getRequestURI().getPath(),response;
+   if(path.endsWith("/expire")) {expiryMethod.set(exchange.getRequestMethod());response="{\"object\":\"checkout.session\",\"id\":\"cs_test_fixture\",\"status\":\"expired\"}";}
+   else if(path.endsWith("cs_test_fixture")) response="{\"object\":\"checkout.session\",\"id\":\"cs_test_fixture\",\"status\":\"open\"}";
+   else {query.set(URLDecoder.decode(exchange.getRequestURI().getRawQuery(),"UTF-8"));response="{\"object\":\"list\",\"data\":[],\"has_more\":false}";}
+   byte[] bytes=response.getBytes(StandardCharsets.UTF_8);
+   exchange.getResponseHeaders().add("Content-Type","application/json");exchange.sendResponseHeaders(200,bytes.length);exchange.getResponseBody().write(bytes);exchange.close();
+  });server.start();String original=Stripe.getApiBase();
+  try {
+   Stripe.overrideApiBase("http://127.0.0.1:"+server.getAddress().getPort());
+   BillingSettings s=new BillingSettings();s.enabled=true;s.secretKey="sk_test_fixture";s.webhookSecret="whsec_fixture";s.starterPrice="price_s";s.creatorPrice="price_c";s.portalConfiguration="bpc_fixture";
+   StripeGateway gateway=new StripeGateway(s,new ObjectMapper());
+   assertThat(gateway.checkoutSessions("cus_1",100L).path("data").size()).isZero();
+   assertThat(query.get()).contains("customer=cus_1","created[gte]=100","limit=100");
+   assertThat(gateway.expireCheckout("cs_test_fixture").path("status").asText()).isEqualTo("expired");
+   assertThat(expiryMethod.get()).isEqualTo("POST");
+  } finally {Stripe.overrideApiBase(original);server.stop(0);}
+ }
+
 }

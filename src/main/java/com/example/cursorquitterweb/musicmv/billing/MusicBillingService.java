@@ -75,24 +75,73 @@ public class MusicBillingService {
     }
     public Map<String,Object> checkout(String user,String plan,String locale) {
         settings.requireReady();
-        String price=settings.price(plan),url=settings.returnUrl(locale);
+        settings.price(plan);
+        String url=settings.returnUrl(locale);
         requireStripeOwner(user);
         Map<String,Object> row=repo.customer(PROVIDER,user);
         if(row==null) { repo.saveCustomer(PROVIDER,user,stripe.customer(user).path("id").asText()); row=repo.customer(PROVIDER,user); }
         String customer=text(row,"customer_id");
         if(refreshSubscription(user,customer)!=null) throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
-        long now=Instant.now().getEpochSecond();
-        repo.claimCheckout(PROVIDER,user,UUID.randomUUID().toString(),plan,url,now);
-        row=repo.subscription(user);
-        if(row==null || !PROVIDER.equals(text(row,"provider")) || row.get("subscription_id")!=null) throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
-        if(!plan.equals(text(row,"checkout_plan"))) throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_PENDING","A checkout for another plan is still open. Please finish it or wait for it to expire.");
-        if(row.get("checkout_url")!=null) return map("url",row.get("checkout_url"));
+        for(int attempt=0;attempt<3;attempt++) {
+            row=repo.subscription(user);
+            if(row==null || text(row,"checkout_token").isEmpty() || (!PROVIDER.equals(text(row,"provider"))
+                    && row.get("checkout_expires") instanceof Number && ((Number)row.get("checkout_expires")).longValue()<Instant.now().getEpochSecond())) {
+                repo.claimCheckout(PROVIDER,user,UUID.randomUUID().toString(),plan,url,Instant.now().getEpochSecond());
+                row=repo.subscription(user);
+            }
+            if(row==null || !PROVIDER.equals(text(row,"provider")) || row.get("subscription_id")!=null)
+                throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
+            String token=text(row,"checkout_token");
+            JsonNode checkout=restoreCheckout(user,customer,row);
+            if(checkout!=null) {
+                verifyCheckoutOwner(user,customer,checkout);
+                String state=checkout.path("status").asText();
+                if("complete".equals(state))
+                    throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
+                if("open".equals(state) && plan.equals(text(row,"checkout_plan"))) {
+                    String checkoutUrl=checkout.path("url").asText("");
+                    if(checkoutUrl.isEmpty()) throw error(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Checkout URL is unavailable.");
+                    repo.saveCheckout(PROVIDER,user,token,checkout.path("id").asText(),checkoutUrl);
+                    return map("url",checkoutUrl);
+                }
+                if("open".equals(state)) {
+                    // 切换套餐前先关闭原收银台；关闭失败时保留占用，避免同时存在两笔可支付订单。
+                    checkout=stripe.expireCheckout(checkout.path("id").asText());
+                    verifyCheckoutOwner(user,customer,checkout);
+                    state=checkout.path("status").asText();
+                }
+                if(!"expired".equals(state)) throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_RETRY","Checkout is still being confirmed. Please retry.");
+            }
+            if(refreshSubscription(user,customer)!=null)
+                throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
+            repo.clearCheckout(PROVIDER,user,token);
+        }
+        throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_RETRY","Checkout changed during this request. Please retry.");
+    }
+    private JsonNode restoreCheckout(String user,String customer,Map<String,Object> row) {
+        if(!text(row,"checkout_id").isEmpty()) return stripe.checkoutSession(text(row,"checkout_id"));
         long expires=((Number)row.get("checkout_expires")).longValue();
-        if(expires-now<1800) throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_PENDING","Please wait for the pending checkout to expire.");
-        // 重试使用已持久化的同一幂等键与参数，不重复创建订阅。
-        JsonNode checkout=stripe.checkout(customer,user,price,text(row,"checkout_token"),expires,text(row,"checkout_return_url"));
-        repo.saveCheckout(PROVIDER,user,text(row,"checkout_token"),checkout.path("id").asText(),checkout.path("url").asText());
-        return map("url",checkout.path("url").asText());
+        try {
+            // 即使剩余不足半小时，也重放原参数与幂等键，恢复已创建但尚未保存的收银台。
+            return stripe.checkout(customer,user,settings.price(text(row,"checkout_plan")),text(row,"checkout_token"),expires,text(row,"checkout_return_url"));
+        } catch(StripeGateway.CheckoutExpiryRejectedException e) {
+            // Stripe 明确拒绝旧到期参数后，仍查找渠道订单，兼容旧数据并避免误清除成功订单。
+            JsonNode sessions=stripe.checkoutSessions(customer,Math.max(0,expires-3600));
+            if(!sessions.path("data").isArray() || !sessions.has("has_more") || sessions.path("has_more").asBoolean()) throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Please contact support to review your checkouts.");
+            JsonNode found=null;
+            for(JsonNode session:sessions.path("data")) {
+                if(user.equals(session.path("client_reference_id").asText()) && session.path("expires_at").asLong()==expires) {
+                    if(found!=null) throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Please contact support to review your checkouts.");
+                    found=session;
+                }
+            }
+            return found;
+        }
+    }
+    private void verifyCheckoutOwner(String user,String customer,JsonNode session) {
+        if(!user.equals(session.path("client_reference_id").asText()) || !customer.equals(session.path("customer").asText())
+                || !session.has("livemode") || session.path("livemode").asBoolean()!=settings.live() || !"subscription".equals(session.path("mode").asText()))
+            throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Please contact support to review your checkout.");
     }
     public Map<String,Object> portal(String user,String locale) {
         settings.requireReady(); requireStripeOwner(user); Map<String,Object> row=repo.customer(PROVIDER,user);

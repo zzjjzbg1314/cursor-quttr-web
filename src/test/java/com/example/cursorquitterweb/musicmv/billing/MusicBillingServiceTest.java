@@ -123,13 +123,109 @@ class MusicBillingServiceTest {
         assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
         verifyNoInteractions(stripe);
     }
-    @Test void checkoutReadsSharedSlotAndReusesTheSameSession() throws Exception {
+    private java.util.Map<String,Object> pending(String plan,long expires,String id) {
+        return map("provider","stripe","checkout_token","token","checkout_plan",plan,"checkout_expires",expires,
+                "checkout_id",id,"checkout_return_url","http://localhost:3000/zh-cn/pricing");
+    }
+    private JsonNode session(String id,String state) throws Exception {
+        return json.readTree("{\"id\":\""+id+"\",\"status\":\""+state+"\",\"customer\":\"cus_1\",\"client_reference_id\":\"u\",\"mode\":\"subscription\",\"livemode\":false,\"url\":\"https://checkout.stripe.com/session\"}");
+    }
+    private void checkoutCustomer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
         when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"));
-        when(repo.subscription("u")).thenReturn(map("provider","stripe","checkout_plan","starter","checkout_url","https://checkout.stripe.com/session"));
+    }
+    @Test void checkoutReadsSharedSlotAndVerifiesTheSameSession() throws Exception {
+        checkoutCustomer();
+        when(repo.subscription("u")).thenReturn(pending("starter",Instant.now().getEpochSecond()+600,"cs_existing"));
+        when(stripe.checkoutSession("cs_existing")).thenReturn(session("cs_existing","open"));
         assertThat(service.checkout("u","starter","en")).containsEntry("url","https://checkout.stripe.com/session");
-        verify(repo).syncSubscription("stripe","u",null,null,false);
         verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        when(repo.subscription("u")).thenReturn(pending("starter",expires,null));
+        when(stripe.checkout("cus_1","u","price_starter","token",expires,"http://localhost:3000/zh-cn/pricing")).thenReturn(session("cs_restored","open"));
+        assertThat(service.checkout("u","starter","fr")).containsEntry("url","https://checkout.stripe.com/session");
+        verify(repo).saveCheckout("stripe","u","token","cs_restored","https://checkout.stripe.com/session");
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void providerTimeoutPreservesOriginalTokenInsteadOfCreatingAnotherOrder() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        when(repo.subscription("u")).thenReturn(pending("starter",expires,null));
+        when(stripe.checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString())).thenThrow(new ApiException(org.springframework.http.HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","retry"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+        verify(repo,never()).claimCheckout(anyString(),anyString(),anyString(),anyString(),anyString(),anyLong());
+    }
+    @Test void changingPlanExpiresOldCheckoutBeforeOpeningNewOne() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        java.util.Map<String,Object> old=pending("starter",expires,"cs_old"),fresh=pending("creator",expires+3600,null);
+        fresh.put("checkout_token","new-token");
+        when(repo.subscription("u")).thenReturn(old,old,map("provider","stripe"),fresh);
+        when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","open"));
+        when(stripe.expireCheckout("cs_old")).thenReturn(session("cs_old","expired"));
+        when(stripe.checkout(anyString(),anyString(),eq("price_creator"),eq("new-token"),anyLong(),anyString())).thenReturn(session("cs_new","open"));
+        assertThat(service.checkout("u","creator","ja")).containsEntry("url","https://checkout.stripe.com/session");
+        org.mockito.InOrder order=inOrder(stripe,repo);
+        order.verify(stripe).expireCheckout("cs_old");order.verify(repo).clearCheckout("stripe","u","token");
+        order.verify(repo).claimCheckout(eq("stripe"),eq("u"),anyString(),eq("creator"),eq("http://localhost:3000/ja/pricing"),anyLong());
+        order.verify(stripe).checkout(anyString(),anyString(),eq("price_creator"),eq("new-token"),anyLong(),anyString());
+    }
+    @Test void failedExpiryDoesNotReleaseOrReplaceCheckout() throws Exception {
+        checkoutCustomer();when(repo.subscription("u")).thenReturn(pending("starter",Instant.now().getEpochSecond()+600,"cs_old"));
+        when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","open"));
+        when(stripe.expireCheckout("cs_old")).thenThrow(new ApiException(org.springframework.http.HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","retry"));
+        assertThatThrownBy(()->service.checkout("u","creator","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void expiredValidationWithoutChannelOrderAllowsFreshCheckout() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        java.util.Map<String,Object> old=pending("starter",expires,null),fresh=pending("starter",expires+3600,null);fresh.put("checkout_token","new-token");
+        when(repo.subscription("u")).thenReturn(old,old,map("provider","stripe"),fresh);
+        when(stripe.checkout(anyString(),anyString(),anyString(),eq("token"),anyLong(),anyString())).thenThrow(new StripeGateway.CheckoutExpiryRejectedException());
+        when(stripe.checkoutSessions("cus_1",expires-3600)).thenReturn(json.readTree("{\"data\":[],\"has_more\":false}"));
+        when(stripe.checkout(anyString(),anyString(),anyString(),eq("new-token"),anyLong(),anyString())).thenReturn(session("cs_new","open"));
+        assertThat(service.checkout("u","starter","de")).containsKey("url");
+        verify(repo).clearCheckout("stripe","u","token");
+    }
+    @Test void expiredValidationRecoversLegacyOrderAndDoesNotClearIt() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        when(repo.subscription("u")).thenReturn(pending("starter",expires,null));
+        when(stripe.checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString())).thenThrow(new StripeGateway.CheckoutExpiryRejectedException());
+        JsonNode restored=session("cs_legacy","open");((com.fasterxml.jackson.databind.node.ObjectNode)restored).put("expires_at",expires);
+        when(stripe.checkoutSessions("cus_1",expires-3600)).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(restored)));
+        assertThat(service.checkout("u","starter","en")).containsKey("url");
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void incompleteChannelSearchCannotReleaseUnknownCheckout() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        when(repo.subscription("u")).thenReturn(pending("starter",expires,null));
+        when(stripe.checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString())).thenThrow(new StripeGateway.CheckoutExpiryRejectedException());
+        when(stripe.checkoutSessions(anyString(),anyLong())).thenReturn(json.readTree("{\"data\":[],\"has_more\":true}"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()-60;
+        java.util.Map<String,Object> old=pending("starter",expires,"cs_expired"),fresh=pending("starter",expires+3600,null);fresh.put("checkout_token","new-token");
+        when(repo.subscription("u")).thenReturn(old,old,map("provider","stripe"),fresh);
+        when(stripe.checkoutSession("cs_expired")).thenReturn(session("cs_expired","expired"));
+        when(stripe.checkout(anyString(),anyString(),anyString(),eq("new-token"),anyLong(),anyString())).thenReturn(session("cs_new","open"));
+        assertThat(service.checkout("u","starter","en")).containsKey("url");
+        verify(repo).clearCheckout("stripe","u","token");
+        clearInvocations(repo,stripe);when(repo.subscription("u")).thenReturn(old);
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"),json.readTree("{\"data\":[{\"id\":\"sub_new\",\"status\":\"active\"}]}"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+    }
+    @Test void completedOrForeignCheckoutCannotBeReplaced() throws Exception {
+        checkoutCustomer();when(repo.subscription("u")).thenReturn(pending("starter",Instant.now().getEpochSecond()+600,"cs_old"));
+        when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","complete"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        ((com.fasterxml.jackson.databind.node.ObjectNode)stripe.checkoutSession("cs_old")).put("client_reference_id","other");
+        assertThatThrownBy(()->service.checkout("u","creator","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());verify(stripe,never()).expireCheckout(anyString());
     }
     @Test void subscriptionNotificationUsesVerifiedCurrentStateNotStalePayload() throws Exception {
         when(repo.owner("stripe","cus_1")).thenReturn("u");
