@@ -1,0 +1,200 @@
+{
+  "date": "2026-10-09",
+  "scope": "R01—R21代码缺陷及移动端入口补修；政策/能力边界与待环境场景单独保留",
+  "fixes": [
+    {
+      "id": "R01",
+      "fix": "退款关联缺失或列表损坏时不记录processed，保留重试；先校验整批关联再撤销。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R02",
+      "fix": "查回争议Charge核对ID与沙盒/正式模式。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R03",
+      "fix": "Webhook查回发票ID必须与事件引用一致。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R04",
+      "fix": "损坏订阅列表不清除已知快照。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R05",
+      "fix": "多条有效订阅明确拒绝自动决策。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R06",
+      "fix": "两档Price重复时禁用支付，且不映射额度。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R07",
+      "fix": "发票数量必须是整数1，拒绝截断。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R08",
+      "fix": "Portal地址须为非空HTTPS Stripe管理地址。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R09",
+      "fix": "管理订阅加载提示只绑定管理按钮。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R10",
+      "fix": "积分明细入口统一为购买更多积分。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R11",
+      "fix": "拒绝多义套餐项或未完整分页的items。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R12",
+      "fix": "数据库触发器约束预占记录和积分来源同用户，保护插入和修改。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R13",
+      "fix": "账务意外异常返回安全503、可重试及追踪编号，保留正常API和参数错误契约。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R14",
+      "fix": "拒绝跨源账务写请求；签名Webhook保留外部投递。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R15",
+      "fix": "网站历史分页改用时间/唯一ID游标，公开接口拒绝非零offset。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R16",
+      "fix": "原发放记录保留；单独展示撤销剩余额度与真实撤销时间，重复撤销不重记。缺失旧审计数据明确未知。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R17",
+      "fix": "已撤销支付回站返回终态，停止确认轮询、清除回站参数，显示已收回积分。无订阅时仍显示通知。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R18",
+      "fix": "数据库查询令牌及原子条件写入，防止旧查询跨实例覆盖新订阅或恢复续费状态。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R19",
+      "fix": "账期只接受可转为Long的正整数，拒绝字符串、小数、布尔和溢出。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R20",
+      "fix": "余额聚合缺失、损坏或负值报错，不伪造零余额。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    },
+    {
+      "id": "R21",
+      "fix": "识别Portal明确cancel_at，页面按该时间显示有效期，恢复续费正常清除。",
+      "implementation": "本地已修复",
+      "acceptance": "部署后统一验收待执行"
+    }
+  ],
+  "checks": {
+    "backend": {
+      "fullAffectedRun": 346,
+      "additionalFocusedCases": 2,
+      "failures": 0,
+      "logs": [
+        "/tmp/storyai-all-known-backend-fixes-retest.log",
+        "/tmp/storyai-cursor-reversal-proof-complete.log"
+      ]
+    },
+    "frontend": {
+      "contracts": 23,
+      "localization": 15,
+      "typeCheck": true,
+      "uiViews": 18,
+      "uiScope": "真实组件SSR隔离夹具，实际1440x900及390x844；非线上Portal/hydration验收",
+      "report": "/Users/zongjei/Documents/code/capcut/docs/billing/subscription-known-fixes-ui-2026-10-09.json",
+      "paginationInteractionCases": 2
+    },
+    "migration": {
+      "existingLedgerPreserved": true,
+      "idempotentReplays": 2,
+      "remainingReversed": 250,
+      "remoteD1Executed": false
+    }
+  },
+  "deploymentRequired": {
+    "migration": "src/main/resources/db/music-mv-billing-fixes-20261009.sql",
+    "newConfigurationItems": 0,
+    "deployed": false
+  },
+  "localPriceConfiguration": {
+    "fixed": true,
+    "ignoredFile": ".idea/workspace.xml",
+    "stripeReadOnlyVerified": {
+      "starter": {
+        "amount": 999,
+        "currency": "usd",
+        "interval": "month",
+        "livemode": false
+      },
+      "creator": {
+        "amount": 2999,
+        "currency": "usd",
+        "interval": "month",
+        "livemode": false
+      }
+    }
+  },
+  "boundaries": [
+    "没有增加用户退款入口或审核流程",
+    "旧数据未保存撤销时刻/额度，不能伪造回填",
+    "争议胜诉恢复、零散额度组合、历史多期对账是能力边界，不擅自扩大产品",
+    "真实续费、自然到期与隔离故障场景仍待环境"
+  ],
+  "commits": {
+    "backend": [
+      "4060533",
+      "a8fc16a",
+      "b02dfee",
+      "ebfe4ae"
+    ],
+    "frontend": [
+      "595fbad",
+      "ff7ebb9",
+      "8fd617f"
+    ]
+  }
+}

@@ -7274,5 +7274,33 @@
       "mobileFix": "积分明细标题和购买入口在窄屏上下排列，修复德语横向溢出。",
       "notCovered": "需要部署后实际Portal取消/恢复复验；不替代付款接口、前端hydration、焦点或全站视觉验收。"
     }
+  },
+  "knownIssueRemediation20261009": {
+    "report": "docs/billing/subscription-known-fixes-2026-10-09.json",
+    "fixedIds": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R09",
+      "R10",
+      "R11",
+      "R12",
+      "R13",
+      "R14",
+      "R15",
+      "R16",
+      "R17",
+      "R18",
+      "R19",
+      "R20",
+      "R21"
+    ],
+    "unifiedAcceptance": "pendingDeployment",
+    "historicalEvidenceNotice": "原测试记录、矩阵状态、方法引用和SHA为修复前证据快照，不能当作当前源码索引；当前保护断言及检查见修复交付报告。"
   }
 }
