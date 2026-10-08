@@ -298,6 +298,100 @@ class BillingScenarioRegressionTest {
         verify(repo).revoke("stripe","in_1");verify(repo).processed("stripe","evt_fixture","charge.dispute.created");
     }
 
+    @Test void A12_databaseFailureCannotBecomeSuccessfulZeroBalance() {
+        when(repo.refreshBalance(eq("u"),anyLong())).thenThrow(new IllegalStateException("database unavailable"));
+        assertThatThrownBy(()->service.credits("u")).isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(stripe);
+    }
+
+    @Test void C11_duplicateRecoveredSessionsRequireReviewAndKeepSlot() throws Exception {
+        customer(); long expires=Instant.now().getEpochSecond()+600;
+        when(repo.subscription("u")).thenReturn(map("provider","stripe","checkout_token","token",
+            "checkout_plan","starter","checkout_expires",expires,"checkout_return_url",settings.returnUrl("en")));
+        when(stripe.checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString()))
+            .thenThrow(new StripeGateway.CheckoutExpiryRejectedException());
+        ObjectNode session=json.createObjectNode().put("client_reference_id","u").put("expires_at",expires);
+        ObjectNode list=json.createObjectNode().put("has_more",false);
+        list.set("data",json.createArrayNode().add(session.deepCopy().put("id","cs_one"))
+            .add(session.deepCopy().put("id","cs_two")));
+        when(stripe.checkoutSessions(eq("cus_u"),anyLong())).thenReturn(list);
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOfSatisfying(ApiException.class,
+            e->assertThat(e.getCode()).isEqualTo("BILLING_REVIEW_REQUIRED"));
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+        verify(repo,never()).saveCheckout(anyString(),anyString(),anyString(),anyString(),anyString());
+    }
+
+    @Test void C24_customerSaveFailureRetriesSameOwnerBeforeCreatingOrder() throws Exception {
+        when(stripe.customer("u")).thenReturn(json.createObjectNode().put("id","cus_u"));
+        doThrow(new IllegalStateException("database unavailable")).doNothing().when(repo).saveCustomer("stripe","u","cus_u");
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(IllegalStateException.class);
+        verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+        when(repo.customer("stripe","u")).thenReturn(null,map("customer_id","cus_u"));
+        when(stripe.subscriptions("cus_u")).thenReturn(subscriptions("active"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        verify(stripe,times(2)).customer("u"); verify(repo,times(2)).saveCustomer("stripe","u","cus_u");
+        verify(stripe,never()).customer("other");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings={"revoke","processed"})
+    void F09_refundFailureDoesNotCompleteAndRetryRepeatsSameInvoice(String failure) throws Exception {
+        ObjectNode credit=json.createObjectNode().put("invoice","in_1");
+        if(failure.equals("revoke")) doThrow(new IllegalStateException("database unavailable")).doNothing()
+            .when(repo).revoke("stripe","in_1");
+        else doThrow(new IllegalStateException("database unavailable")).doNothing()
+            .when(repo).processed("stripe","evt_fixture","credit_note.created");
+        assertThatThrownBy(()->send("credit_note.created",credit)).isInstanceOf(IllegalStateException.class);
+        if(failure.equals("revoke")) verify(repo,never()).processed("stripe","evt_fixture","credit_note.created");
+        send("credit_note.created",credit);
+        verify(repo,times(2)).revoke("stripe","in_1");
+        verify(repo,times(failure.equals("revoke")?1:2)).processed("stripe","evt_fixture","credit_note.created");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings={"invoice.payment_failed","invoice.payment_action_required","unknown.fixture"})
+    void F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke(String type) throws Exception {
+        send(type,json.createObjectNode().put("id","in_1"));
+        verify(repo).processed("stripe","evt_fixture",type);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).revoke(anyString(),anyString()); verifyNoInteractions(stripe);
+    }
+
+    @Test void G03_staleCancellationEventsUseLatestResumedState() throws Exception {
+        customer(); when(stripe.subscriptions("cus_u")).thenReturn(subscriptions("active"));
+        ObjectNode old=json.createObjectNode().put("customer","cus_u").put("cancel_at_period_end",true);
+        send("customer.subscription.updated",old); send("customer.subscription.updated",old);
+        verify(repo,times(2)).syncSubscription("stripe","u","sub_u","active",false);
+        verify(repo,never()).revoke(anyString(),anyString());
+    }
+
+    @Test void G18_providerOutagePreservesSnapshotAndLedgerReadsRemainIndependent() throws Exception {
+        customer(); when(stripe.subscriptions("cus_u")).thenThrow(new ApiException(
+            org.springframework.http.HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","retry"));
+        assertThatThrownBy(()->service.status("u")).isInstanceOfSatisfying(ApiException.class,
+            e->assertThat(e.getCode()).isEqualTo("BILLING_PROVIDER_UNAVAILABLE"));
+        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
+        clearInvocations(stripe); service.credits("u"); service.history("u",0);
+        verifyNoInteractions(stripe);
+    }
+
+    @Test void I20_disabledBillingSkipsReservationAndSettlementButCanResumeSettlement() {
+        settings.enabled=false; service.reserve("u","request","job");service.settle("job","completed");
+        verifyNoInteractions(repo,stripe);
+        settings.enabled=true;service.settle("job","completed");verify(repo).settle("job","consumed");
+    }
+
+    @Test void G17_RISK_multipleItemsSelectFirstAndIgnoreItemPagination() throws Exception {
+        customer(); ObjectNode list=(ObjectNode)subscriptions("active");
+        ObjectNode items=(ObjectNode)list.path("data").get(0).path("items");items.put("has_more",true);
+        ((ArrayNode)items.path("data")).add(json.createObjectNode().put("current_period_end",300)
+            .set("price",json.createObjectNode().put("id","price_creator")));
+        when(stripe.subscriptions("cus_u")).thenReturn(list);
+        Map<?,?> sub=(Map<?,?>)service.status("u").get("subscription");
+        assertThat(sub.get("plan")).isEqualTo("starter");assertThat(sub.get("periodEnd")).isEqualTo(200L);
+        verify(repo).syncSubscription("stripe","u","sub_u","active",false);
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");

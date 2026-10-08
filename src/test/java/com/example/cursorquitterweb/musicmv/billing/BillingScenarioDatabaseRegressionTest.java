@@ -2,6 +2,8 @@ package com.example.cursorquitterweb.musicmv.billing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
@@ -84,6 +86,50 @@ class BillingScenarioDatabaseRegressionTest {
             "assert d.execute(\"SELECT payment_id,revoked FROM music_mv_billing_grants ORDER BY payment_id\").fetchall()[0]['revoked']==0",
             "assert d.execute(\"SELECT COUNT(*) FROM music_mv_billing_grants\").fetchone()[0]==2",
             "assert d.execute(\"SELECT revoked FROM music_mv_billing_grants WHERE payment_id='old'\").fetchone()[0]==1"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings={"consumed","released"})
+    void I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance(String state) throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.grant("stripe","in_1","u","sub","starter",10,100,200);
+        repo.reserve("u","r","j",150,10);repo.revoke("stripe","in_1");repo.settle("j",state);
+        repo.balance("u",150);repo.usage("u");repo.history("u",21,0);
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row;d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "def run(i): return d.execute(s[i]['sql'],s[i]['params']).fetchall()",
+            "for i in range(5): run(i)",
+            "assert run(5)[0]['remaining']==0",
+            "totals=run(6)[0];assert totals['earned']==10;assert totals['spent']==("+(state.equals("consumed")?"10":"0")+")",
+            "history=run(7);assert len(history)==2;assert {r['kind'] for r in history}=={'revoked','"+state+"'}",
+            "assert d.execute('SELECT revoked FROM music_mv_billing_grants').fetchone()[0]==1",
+            "assert d.execute('SELECT state FROM music_mv_billing_reservations').fetchone()[0]=='"+state+"'"));
+    }
+
+    @Test void K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner() throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.grant("stripe","in_1","owner","sub","starter",10,100,200);
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.execute('PRAGMA foreign_keys=ON');d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text());d.execute(s[0]['sql'],s[0]['params'])",
+            "insert=\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('j','other','r',?,'reserved',10)\"",
+            "try: d.execute(insert,('missing',));raise AssertionError('missing grant was accepted')",
+            "except sqlite3.IntegrityError: pass",
+            "grant=d.execute('SELECT grant_id FROM music_mv_billing_grants').fetchone()[0];d.execute(insert,(grant,))",
+            "assert d.execute(\"SELECT COUNT(*) FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.user_id<>g.user_id\").fetchone()[0]==1"));
+    }
+
+    @Test void K10_initializationReplayPreservesExistingLedger() throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.grant("stripe","in_1","u","sub","starter",300,100,200);repo.reserve("u","r","j",150,10);
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');schema=pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text();d.executescript(schema)",
+            "for q in s: d.execute(q['sql'],q['params'])",
+            "before=d.execute('SELECT * FROM music_mv_billing_grants').fetchall();reservations=d.execute('SELECT * FROM music_mv_billing_reservations').fetchall();d.executescript(schema)",
+            "assert before==d.execute('SELECT * FROM music_mv_billing_grants').fetchall();assert reservations==d.execute('SELECT * FROM music_mv_billing_reservations').fetchall()",
+            "d.execute(s[0]['sql'],s[0]['params']);assert d.execute('SELECT COUNT(*) FROM music_mv_billing_grants').fetchone()[0]==1"));
     }
 
     private void run(BillingRepositoryTest.Capture db,String script) throws Exception {
