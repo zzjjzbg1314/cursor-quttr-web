@@ -1,5 +1,32 @@
 # Suno Film：Stripe 沙盒接入
 
+## 2026-10-08 首笔沙盒支付验收结果
+
+本轮核对 Stripe 实际对象、当前用户浏览器页面、D1 数据库记录及前后端实现，没有重发事件、补发积分、取消订阅或发起额外支付。
+
+### 实际订单与数据库
+
+- Checkout：`cs_test_a1Tlsr0klGVtcHHEdU5y0o0xJuk0FjqvVunAR6HodGwpwzf6vpMmYnur8a`，`livemode=false`，`status=complete`，`payment_status=paid`，金额 USD 9.99。
+- 账单：`in_1UOAUFGj38FUksqYQ2Asi5Hk`，`status=paid`，`billing_reason=subscription_create`，数量 1，无按比例调整，价格为 `price_1UMPkKGj38FUksqYWIrrL0pl`。
+- 订阅：`sub_1UOAUHGj38FUksqYsl1pvYdk`，Stripe 状态为 `active`，没有取消续费。首个付费周期为 2026-10-08 06:07:27 UTC 至 2026-11-08 06:07:27 UTC。
+- 支付事件：`evt_1UOAUIGj38FUksqYth9JC4W6`，类型 `invoice.paid`，Stripe 查询结果 `pending_webhooks=1`；D1 的该事件处理记录为空。
+- D1 客户编号与此 Checkout 的客户编号一致。首次查询本地订阅编号和状态为空；浏览器访问正确的定价确认页后，D1 已同步为上述订阅编号和 `active`。
+- D1 未找到该账单的积分发放记录；用户只有一笔 10 体验积分，没有冻结或消耗记录。当前余额 10，预期完成发放后为 310。
+- D1 发放表、事件表的唯一索引存在。实际重复回调仍未执行，不能仅凭索引宣称完整幂等验收通过。
+
+### 已确认的问题
+
+1. **支付返回 404。** 实际 Checkout 的成功和取消返回路径仍是 `/zh-cn/account`，D1 的 `checkout_return_url` 也是旧路径。前端已删除该页面，无法展示支付确认。新订单应使用 `/zh-cn/pricing`；已经支付的旧订单不能要求用户重新购买。
+2. **回调被域名重定向阻断。** 当前端点 `we_1UMPVRGj38FUksqYWcZtYuv1` 配置为 `https://suno.film/api/music-mv/v1/billing/webhook`。不带签名的 POST 探针在该地址实际收到 308，Location 指向 `https://www.suno.film/api/music-mv/v1/billing/webhook`；后者实际进入处理器并返回预期的签名拒绝 400。Stripe 把 3xx 回调响应视为失败，应直接配置最终 www 地址。此无签名探针不证明签名密钥正确，修正后仍须由 Stripe 重发真实事件验收。
+3. **支付确认缺少对账恢复。** 后端 `status(user,checkoutId)` 校验订单归属、环境及已支付状态，但只读 `paymentGranted`，不会恢复漏发的已支付账单。前端轮询超时后显示等待和刷新，订阅能识别而积分仍只有 10。建议通过查证 Stripe 账单后复用同一幂等发放逻辑恢复，无需新增队列。
+4. **未知价格可能被静默忽略。** `grantInvoice` 对所有不匹配配置的价格继续循环，最终不发放而 Webhook 仍写入已处理事件。价格配置错误修正后重发该事件也会被已处理标记跳过。本笔事件目前尚未被标记，仍可正常恢复；这个分支属于代码检查发现的风险，未修改远程数据构造复现。
+5. **本地与线上价格配置不一致。** 本地 IDE 仍配置 `price_prod_VNA4395gn0DxYJ` 和 `price_prod_VNA5XRt9QLg7em`，使用同一沙盒查询两个对象均返回 404。线上 Starter 已成功使用真实价格；线上 Creator 的购买尚未测试。Stripe 当前 Creator 默认价格 `price_1UMPkwGj38FUksqYiwoc3b5J` 已改为 USD 29.99/月，不应继续引用此前港币快照作为当前状态。
+6. **升级功能未接通。** 客户门户配置 `bpc_1UMPqKGj38FUksqYF3qBDqH2` 有效，取消续费为账期结束生效，账单历史和支付方式更新开启，但 `subscription_update.enabled=false`。前端已订阅后其他套餐进入管理订阅，无法在当前门户完成升级。未取消这笔测试订阅。
+
+### 恢复及剩余验收
+
+先让回调直接到最终 www 地址并确认对应签名配置，再重发本笔真实 `invoice.paid` 事件，核对 HTTP 2xx、D1 事件记录及该账单唯一 300 积分发放。刷新应显示 310 可用积分；再次重发不应增加。新 Checkout 需确认返回定价页。最后再覆盖 Creator 1000 积分、支付失败、续费、取消、退款及其他语言页面。当前这笔支付不能判定整个订阅链路验收通过。
+
 ## 2026-10-08 线上支付故障核对
 
 在用户已登录的线上定价页复现，`POST /api/music-mv/v1/billing/checkout` 在约 2.17 秒后返回 `502 BILLING_PROVIDER_UNAVAILABLE`。同一时间 Stripe 沙盒请求 `req_Kx8cll8GwbE6Jp` 返回 `400 resource_missing`，原因是 `No such price: 'price_prod_VNA4395gn0DxYJ'`，错误参数为 `line_items[0][price]`。不能把这个配置错误当作网络超时或订单占用问题。
@@ -9,9 +36,9 @@
 | 套餐 | 产品 ID | 真实价格 ID | 当前价格 |
 | --- | --- | --- | --- |
 | Starter | `prod_VNA4395gn0DxYJ` | `price_1UMPkKGj38FUksqYWIrrL0pl` | USD 9.99/月 |
-| Creator | `prod_VNA5XRt9QLg7em` | `price_1UMPkwGj38FUksqYiwoc3b5J` | HKD 29.99/月，不能用于网站展示的 USD 29.99 套餐 |
+| Creator | `prod_VNA5XRt9QLg7em` | `price_1UMPkwGj38FUksqYiwoc3b5J` | 故障排查时为 HKD 29.99/月；首笔支付验收时复核已为 USD 29.99/月 |
 
-修复部署环境中的现有 `STRIPE_STARTER_PRICE_ID`，填入真实价格 ID，不能给产品 ID 加上 `price_` 来构造。Creator 需先在同一沙盒核对或创建 USD 29.99/月的价格，再配置 `STRIPE_CREATOR_PRICE_ID`。此处列出的 Creator 港币价格不能直接替换使用。API 密钥、价格、客户门户配置与 Webhook 必须属于同一沙盒；以下历史沙盒记录属于另一个账户，不能与当前账户混用。
+修复部署环境中的现有 `STRIPE_STARTER_PRICE_ID`，填入真实价格 ID，不能给产品 ID 加上 `price_` 来构造。Creator 在后续复核时已为 USD 29.99/月，可使用其真实价格 ID 配置 `STRIPE_CREATOR_PRICE_ID`，仍需验收实际购买。API 密钥、价格、客户门户配置与 Webhook 必须属于同一沙盒；以下历史沙盒记录属于另一个账户，不能与当前账户混用。
 
 这次失败请求还携带了已删除的 `/zh-cn/account` 支付返回地址。新订单应返回 `/zh-cn/pricing`；已保存旧地址的未支付收银台需先在 Stripe 核实并关闭，才能释放原订单标识并重新创建，不能直接修改原幂等请求参数或删除未知订单。服务端日志只保留供应商异常类型、状态码、错误码和请求 ID，不记录密钥或完整请求体。
 
