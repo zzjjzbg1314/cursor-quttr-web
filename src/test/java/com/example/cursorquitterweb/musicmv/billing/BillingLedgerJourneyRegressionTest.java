@@ -737,6 +737,57 @@ class BillingLedgerJourneyRegressionTest {
         verify(stripe,times(2)).invoice("in_u");
     }
 
+    @ParameterizedTest(name="D03/D04 未确认回站={0}")
+    @ValueSource(strings={"complete-unpaid","open","expired","payment-mode","missing-invoice"})
+    void unconfirmedCheckoutReturnNeverConfusesWelcomeBalanceWithPayment(String scenario) {
+        SqliteClient db=new SqliteClient(directory.resolve("unconfirmed-return.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
+        settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        ledger.saveCustomer("stripe","u","cus_u");
+        when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode()));
+        ObjectNode checkout=session("complete");
+        if(scenario.equals("complete-unpaid"))checkout.put("payment_status","unpaid");
+        if(scenario.equals("open")||scenario.equals("expired"))checkout.put("status",scenario);
+        if(scenario.equals("payment-mode"))checkout.put("mode","payment");
+        if(scenario.equals("missing-invoice"))checkout.remove("invoice");
+        when(stripe.checkoutSession("cs_test_fixture")).thenReturn(checkout);
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        for(int i=0;i<2;i++) {
+            assertThat(service.status("u","cs_test_fixture")).containsEntry("paymentConfirmed",false).containsEntry("remaining",10);
+        }
+        assertThat(service.credits("u")).containsEntry("remaining",10);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isZero();
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='internal'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isZero();
+        verify(stripe,never()).invoice(anyString());
+        verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+    }
+
+    @ParameterizedTest(name="D10 显式回站发票状态={0}")
+    @ValueSource(strings={"open","draft","void","uncollectible","missing-mode","wrong-mode"})
+    void paidSessionCannotAuthorizeInvalidInvoiceStateInActualLedger(String scenario) {
+        SqliteClient db=new SqliteClient(directory.resolve("invalid-return-invoice.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
+        settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        ledger.saveCustomer("stripe","u","cus_u");
+        when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode()));
+        when(stripe.checkoutSession("cs_test_fixture")).thenReturn(session("complete"));
+        ObjectNode invoice=json.createObjectNode().put("id","in_u").put("customer","cus_u").put("status","paid").put("livemode",false);
+        invoice.set("parent",json.createObjectNode().set("subscription_details",json.createObjectNode().put("subscription","sub_u")));
+        if(scenario.equals("missing-mode"))invoice.remove("livemode");
+        else if(scenario.equals("wrong-mode"))invoice.put("livemode",true);
+        else invoice.put("status",scenario);
+        when(stripe.invoice("in_u")).thenReturn(invoice);
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        assertThatThrownBy(()->service.status("u","cs_test_fixture")).isInstanceOf(IllegalStateException.class);
+        assertThat(service.credits("u")).containsEntry("remaining",10);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isZero();
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isZero();
+        verify(stripe).invoice("in_u");
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
