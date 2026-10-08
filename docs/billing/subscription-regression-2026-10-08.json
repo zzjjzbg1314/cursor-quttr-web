@@ -2755,9 +2755,10 @@
       "expected": "唯一grant仍revoked；不恢复额度；paymentConfirmed不因余额而true",
       "status": "部分验证",
       "evidence": [
-        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+        "authorizedSandboxLifecycle:D11"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 原真实grant撤回后刷新网站仍只有10分，未复活；真实旧paid事件重放与显式原Checkout返回尚未执行。"
     },
     {
       "id": "D12",
@@ -3180,9 +3181,10 @@
       "expected": "直达2xx，不301/308或登录重定向；保留原文及Stripe-Signature",
       "status": "部分验证",
       "evidence": [
-        "currentPaymentReadOnlyAudit:invoice.paid processed and pending_webhooks=0"
+        "currentPaymentReadOnlyAudit:invoice.paid processed and pending_webhooks=0",
+        "authorizedSandboxLifecycle:F15"
       ],
-      "limitations": "已知真实沙盒事件在D1处理成功且Stripe pending_webhooks=0；未核对每次HTTP投递路径、响应码及其他事件，不代表全链路重试全部验收。"
+      "limitations": "已知真实沙盒事件在D1处理成功且Stripe pending_webhooks=0；未核对每次HTTP投递路径、响应码及其他事件，不代表全链路重试全部验收。 本轮两条subscription.updated和charge.refunded均D1 processed、Stripe待投递0；原始HTTP投递明细和完整路径仍未获取。"
     },
     {
       "id": "F16",
@@ -3211,9 +3213,10 @@
       "expected": "active保留、取消标记true；当期余额不变；不能买第二订阅",
       "status": "部分验证",
       "evidence": [
-        "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits"
+        "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
+        "authorizedSandboxLifecycle:G02"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 真实API账期末取消后active且月积分保留，D1最终同步1；短暂旧状态已记录；门户操作尚未验收。"
     },
     {
       "id": "G03",
@@ -3222,9 +3225,10 @@
       "expected": "渠道最新cancel=false；下次正常续期；不得撤回当期grant",
       "status": "部分验证",
       "evidence": [
-        "BillingScenarioRegressionTest.G03_staleCancellationEventsUseLatestResumedState"
+        "BillingScenarioRegressionTest.G03_staleCancellationEventsUseLatestResumedState",
+        "authorizedSandboxLifecycle:G03"
       ],
-      "limitations": "新增直接本地断言已执行；真实Stripe/D1或完整故障组合仍未验收。"
+      "limitations": "真实API取消后恢复，Stripe/D1取消标记回false，月grant未撤回；Portal按钮、重复乱序真实通知与下期续费尚未执行。"
     },
     {
       "id": "G04",
@@ -3449,9 +3453,10 @@
       "expected": "权限与商户配置一致；回站同步真实状态；账本不多授",
       "status": "部分验证",
       "evidence": [
-        "onlineBrowserRegression:Portal账单与返回"
+        "onlineBrowserRegression:Portal账单与返回",
+        "authorizedSandboxLifecycle:H05"
       ],
-      "limitations": "真实Portal套餐/已付账单可见，返回/pricing恢复310已验证；改卡与确认取消尚未执行。"
+      "limitations": "真实Portal套餐/已付账单可见，返回/pricing恢复310已验证；改卡与确认取消尚未执行。 原订阅取消恢复API已执行，不能视为门户取消按钮验收。"
     },
     {
       "id": "H06",
@@ -3731,11 +3736,12 @@
       "priority": "P0",
       "action": "全额退款charge.refunded，关联I1",
       "expected": "根据payment_intent查invoicePayments；I1 revoked=1，余额扣除剩余；event成功后记录",
-      "status": "部分验证",
+      "status": "沙盒核心通过",
       "evidence": [
-        "BillingScenarioRegressionTest.J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement"
+        "BillingScenarioRegressionTest.J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement",
+        "authorizedSandboxLifecycle:J01"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "原999美分付款全额退款成功，真实charge.refunded已processed且待投递0；唯一300分grant已撤销、网站10分；其他退款参数场景不在此行。"
     },
     {
       "id": "J02",
@@ -4092,15 +4098,16 @@
     "本地核心通过": 55,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 11,
-    "部分验证": 89,
+    "部分验证": 88,
     "已确认边界": 6,
     "沙盒待环境": 9,
-    "边界已复现": 3
+    "边界已复现": 3,
+    "沙盒核心通过": 1
   },
   "totalBackendTests": 265,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
-  "remoteMutationCount": 1,
+  "remoteMutationCount": 5,
   "onlineBrowserRegression": {
     "date": "2026-10-08",
     "browser": "Google Chrome 已登录界面",
@@ -4143,7 +4150,7 @@
       }
     ]
   },
-  "remoteMutationExplanation": "浏览器创建了一个Stripe沙盒Portal会话；未购买、取消、退款、改卡或故障注入。",
+  "remoteMutationExplanation": "之前创建1次Portal会话；本轮另创建1次Portal会话、原沙盒订阅取消/恢复两次更新、原付款全额退款1次；不含支付方自动通知或服务端自动同步。",
   "continuationCommit": "12a33ee",
   "frontendRiskCharacterizations": 1,
   "additionalCommits": [
@@ -4233,7 +4240,372 @@
     "limitations": "现有运行配置选择的D1；读到已知原始发票/事件和当前用户数据，与站内310一致。未检查全部Stripe投递尝试和请求日志，不断言首次grant具体入口。"
   },
   "blockedBy": [
-    "尚未确认可处置沙盒账号或现有沙盒订阅可取消/恢复/退款",
-    "尚未提供隔离测试站点、独立D1配置位置及部署日志访问条件"
-  ]
+    "用户确认没有独立环境；无法安全执行共享环境故障注入、跨节点/版本混跑及账期推进等完整验收",
+    "尚缺真实门户按钮、换卡认证、后续续费等剩余场景完整执行证据"
+  ],
+  "authorizedSandboxLifecycle": {
+    "date": "2026-10-08",
+    "userAuthorization": "当前沙盒订阅可以用于取消、恢复续费和退款测试；用户明确没有独立环境",
+    "execution": "Stripe官方API，仅原测试订阅和原999美分付款；所有支付对象验证livemode=false、客户与付款归属；写操作使用固定幂等键",
+    "observations": {
+      "before": {
+        "id": "sub_1UOAUHGj38FUksqYsl1pvYdk",
+        "status": "active",
+        "livemode": false,
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+      },
+      "cancel": {
+        "label": "cancel",
+        "utc": "2026-10-08T13:31:44.200641+00:00",
+        "stripe": {
+          "status": "active",
+          "livemode": false,
+          "cancel_at_period_end": true,
+          "cancel_at": 1794118047,
+          "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+        },
+        "database": {
+          "subscription": [
+            [
+              {
+                "status": "active",
+                "cancel_at_period_end": 0
+              }
+            ]
+          ],
+          "grants": [
+            [
+              {
+                "provider": "internal",
+                "plan_key": "welcome",
+                "allowance": 10,
+                "revoked": 0,
+                "created_at": "2026-10-04 17:13:26"
+              },
+              {
+                "provider": "stripe",
+                "plan_key": "starter",
+                "allowance": 300,
+                "revoked": 0,
+                "created_at": "2026-10-08 06:41:55"
+              }
+            ]
+          ],
+          "events": [
+            [
+              {
+                "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:31:42"
+              }
+            ]
+          ]
+        }
+      },
+      "cancel-check": {
+        "label": "cancel-check",
+        "utc": "2026-10-08T13:32:16.244218+00:00",
+        "stripe": {
+          "status": "active",
+          "livemode": false,
+          "cancel_at_period_end": true,
+          "cancel_at": 1794118047,
+          "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+        },
+        "database": {
+          "subscription": [
+            [
+              {
+                "status": "active",
+                "cancel_at_period_end": 1
+              }
+            ]
+          ],
+          "grants": [
+            [
+              {
+                "provider": "internal",
+                "plan_key": "welcome",
+                "allowance": 10,
+                "revoked": 0,
+                "created_at": "2026-10-04 17:13:26"
+              },
+              {
+                "provider": "stripe",
+                "plan_key": "starter",
+                "allowance": 300,
+                "revoked": 0,
+                "created_at": "2026-10-08 06:41:55"
+              }
+            ]
+          ],
+          "events": [
+            [
+              {
+                "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:31:42"
+              }
+            ]
+          ]
+        }
+      },
+      "resume": {
+        "label": "resume",
+        "utc": "2026-10-08T13:32:45.641977+00:00",
+        "stripe": {
+          "status": "active",
+          "livemode": false,
+          "cancel_at_period_end": false,
+          "cancel_at": null,
+          "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+        },
+        "database": {
+          "subscription": [
+            [
+              {
+                "status": "active",
+                "cancel_at_period_end": 0
+              }
+            ]
+          ],
+          "grants": [
+            [
+              {
+                "provider": "internal",
+                "plan_key": "welcome",
+                "allowance": 10,
+                "revoked": 0,
+                "created_at": "2026-10-04 17:13:26"
+              },
+              {
+                "provider": "stripe",
+                "plan_key": "starter",
+                "allowance": 300,
+                "revoked": 0,
+                "created_at": "2026-10-08 06:41:55"
+              }
+            ]
+          ],
+          "events": [
+            [
+              {
+                "event_id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:32:43"
+              },
+              {
+                "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:31:42"
+              }
+            ]
+          ]
+        }
+      },
+      "refund-object": {
+        "id": "re_3UOARTGj38FUksqY0qH7KgN4",
+        "status": "succeeded",
+        "amount": 999,
+        "currency": "usd",
+        "created": 1791466384,
+        "payment_intent": "pi_3UOARTGj38FUksqY0XH6CBWc",
+        "charge": "ch_3UOARTGj38FUksqY02cZKE1L"
+      },
+      "refund": {
+        "label": "refund",
+        "utc": "2026-10-08T13:33:09.123992+00:00",
+        "stripe": {
+          "status": "active",
+          "livemode": false,
+          "cancel_at_period_end": false,
+          "cancel_at": null,
+          "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+        },
+        "database": {
+          "subscription": [
+            [
+              {
+                "status": "active",
+                "cancel_at_period_end": 0
+              }
+            ]
+          ],
+          "grants": [
+            [
+              {
+                "provider": "internal",
+                "plan_key": "welcome",
+                "allowance": 10,
+                "revoked": 0,
+                "created_at": "2026-10-04 17:13:26"
+              },
+              {
+                "provider": "stripe",
+                "plan_key": "starter",
+                "allowance": 300,
+                "revoked": 1,
+                "created_at": "2026-10-08 06:41:55"
+              }
+            ]
+          ],
+          "events": [
+            [
+              {
+                "event_id": "evt_3UOARTGj38FUksqY0JLtMwCh",
+                "event_type": "charge.refunded",
+                "processed_at": "2026-10-08 13:33:06"
+              },
+              {
+                "event_id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:32:43"
+              },
+              {
+                "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:31:42"
+              }
+            ]
+          ]
+        }
+      },
+      "events": [
+        {
+          "id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+          "type": "customer.subscription.updated",
+          "created": 1791466361,
+          "pending_webhooks": 0,
+          "livemode": false,
+          "object": {
+            "id": "sub_1UOAUHGj38FUksqYsl1pvYdk",
+            "cancel_at_period_end": false,
+            "status": "active",
+            "refunded": null,
+            "amount_refunded": null
+          }
+        },
+        {
+          "id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+          "type": "customer.subscription.updated",
+          "created": 1791466300,
+          "pending_webhooks": 0,
+          "livemode": false,
+          "object": {
+            "id": "sub_1UOAUHGj38FUksqYsl1pvYdk",
+            "cancel_at_period_end": true,
+            "status": "active",
+            "refunded": null,
+            "amount_refunded": null
+          }
+        },
+        {
+          "id": "evt_3UOARTGj38FUksqY0JLtMwCh",
+          "type": "charge.refunded",
+          "created": 1791466385,
+          "pending_webhooks": 0,
+          "livemode": false,
+          "object": {
+            "id": "ch_3UOARTGj38FUksqY02cZKE1L",
+            "cancel_at_period_end": null,
+            "status": "succeeded",
+            "refunded": true,
+            "amount_refunded": 999
+          }
+        },
+        {
+          "id": "evt_3UOARTGj38FUksqY0EwmqnTq",
+          "type": "refund.created",
+          "created": 1791466385,
+          "pending_webhooks": 0,
+          "livemode": false,
+          "object": {
+            "id": "re_3UOARTGj38FUksqY0qH7KgN4",
+            "cancel_at_period_end": null,
+            "status": "succeeded",
+            "refunded": null,
+            "amount_refunded": null
+          }
+        }
+      ],
+      "final-check": {
+        "label": "final-check",
+        "utc": "2026-10-08T13:34:46.939613+00:00",
+        "stripe": {
+          "status": "active",
+          "livemode": false,
+          "cancel_at_period_end": false,
+          "cancel_at": null,
+          "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+        },
+        "database": {
+          "subscription": [
+            [
+              {
+                "status": "active",
+                "cancel_at_period_end": 0
+              }
+            ]
+          ],
+          "grants": [
+            [
+              {
+                "provider": "internal",
+                "plan_key": "welcome",
+                "allowance": 10,
+                "revoked": 0,
+                "created_at": "2026-10-04 17:13:26"
+              },
+              {
+                "provider": "stripe",
+                "plan_key": "starter",
+                "allowance": 300,
+                "revoked": 1,
+                "created_at": "2026-10-08 06:41:55"
+              }
+            ]
+          ],
+          "events": [
+            [
+              {
+                "event_id": "evt_3UOARTGj38FUksqY0JLtMwCh",
+                "event_type": "charge.refunded",
+                "processed_at": "2026-10-08 13:33:06"
+              },
+              {
+                "event_id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:32:43"
+              },
+              {
+                "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+                "event_type": "customer.subscription.updated",
+                "processed_at": "2026-10-08 13:31:42"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "browserChecks": [
+      {
+        "scenario": "取消标签",
+        "observed": "已取消续费、有效至2026-11-08 14:07、310积分",
+        "limitations": "页面读取对应较早取消状态；后续恢复经刷新验证"
+      },
+      {
+        "scenario": "恢复及退款后状态",
+        "observed": "已订阅、下次续费2026-11-08 14:07、10积分"
+      },
+      {
+        "scenario": "退款明细",
+        "observed": "可用10；体验10永久；积分发放已撤销 2026-10-08 14:41 0",
+        "problem": "撤回金额和时间表达不完整"
+      }
+    ],
+    "finalState": "订阅active且恢复自动续费；本期300积分revoked=1；体验10保留；沙盒全额退款999美分succeeded",
+    "remainingLimitations": "门户页面未稳定加载，取消恢复经官方API完成，不算门户按钮完整验收；没有注入故障、改共享配置、执行真实音乐生成或改其他账号"
+  }
 }
