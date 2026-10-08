@@ -6464,5 +6464,13 @@
     },
     "limitations": "未获取取消时billing/status响应正文；Stripe事件模型及本地真实服务复现共同确定cancel_at遗漏。最终数据库已恢复cancel_at_period_end=0，原300分grant仍revoked=1，体验10未撤销。",
     "screenshot": "/tmp/storyai-restored-subscription.png"
+  },
+  "coreJourneyAcceptance": {
+    "cancellationChannel": "通过实际取消及恢复",
+    "cancellationWebsite": "未通过：明确cancel_at未识别，R21",
+    "restoredDatabaseAndCredits": "实际核对通过，同一订阅active取消标记0，欢迎10，原300仍撤销",
+    "newPurchase": "未执行：旧订阅有效，未创建重复订阅",
+    "refundRepeat": "未执行：原付款已全额退款",
+    "complete": false
   }
 }
