@@ -77,6 +77,26 @@ class BillingScenarioHttpRegressionTest {
         verify(billing).webhook(" {\"fixture\":true} ","fixture-signature");verifyNoInteractions(client,auth);
     }
 
+    @ParameterizedTest
+    @ValueSource(ints={400,401,404,409,402,502,503})
+    void B11_apiErrorPreservesStatusCodeRetryabilityAndDetails(int code) throws Exception {
+        when(auth.requireUserId(any())).thenReturn("u");
+        when(billing.status("u",null)).thenThrow(new ApiException(HttpStatus.valueOf(code),
+            "BILLING_FIXTURE","Safe message",true,map("reference","fixture")));
+        mvc.perform(get(base("status"))).andExpect(status().is(code))
+            .andExpect(jsonPath("$.code").value("BILLING_FIXTURE"))
+            .andExpect(jsonPath("$.retryable").value(true))
+            .andExpect(jsonPath("$.details.reference").value("fixture"));
+    }
+
+    @Test void B11_RISK_unexpectedDatabaseErrorHasNoScopedSafeResponse() {
+        when(auth.requireUserId(any())).thenReturn("u");
+        when(billing.status("u",null)).thenThrow(new IllegalStateException("fixture-private-database-info"));
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->mvc.perform(get(base("status"))))
+            .hasRootCauseInstanceOf(IllegalStateException.class)
+            .hasRootCauseMessage("fixture-private-database-info");
+    }
+
     private String base(String endpoint) { return "/api/music-mv/v1/billing/"+endpoint; }
     private MockHttpServletRequestBuilder request(String endpoint) {
         if(endpoint.equals("checkout") || endpoint.equals("portal") || endpoint.equals("welcome-notice/ack"))
