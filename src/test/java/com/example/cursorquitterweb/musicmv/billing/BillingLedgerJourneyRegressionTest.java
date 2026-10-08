@@ -967,6 +967,57 @@ class BillingLedgerJourneyRegressionTest {
         verifyNoInteractions(stripe);
     }
 
+    @ParameterizedTest(name="H07 套餐变更={0}→{2}")
+    @CsvSource({"starter,300,creator,1000","creator,1000,starter,300"})
+    void externalPlanChangeAndManualInvoiceGrantOnlyNextMonthlyCycle(String oldPlan,int oldAllowance,String newPlan,int newAllowance) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("plan-change.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
+        settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        ledger.saveCustomer("stripe","u","cus_u");ledger.ensureWelcomeCredits("u");
+        ObjectNode subscription=json.createObjectNode().put("id","sub_u").put("status","active");
+        subscription.set("items",json.createObjectNode().set("data",json.createArrayNode().add(json.createObjectNode().put("current_period_end",200).set("price",json.createObjectNode().put("id","price_"+oldPlan)))));
+        when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(subscription)));
+        ObjectNode invoice=json.createObjectNode().put("id","in_initial").put("customer","cus_u").put("livemode",false).put("status","paid").put("billing_reason","subscription_create");
+        invoice.set("parent",json.createObjectNode().set("subscription_details",json.createObjectNode().put("subscription","sub_u")));
+        ObjectNode line=json.createObjectNode().put("quantity",1);
+        line.set("pricing",json.createObjectNode().set("price_details",json.createObjectNode().put("price","price_"+oldPlan)));
+        line.set("parent",json.createObjectNode().set("subscription_item_details",json.createObjectNode().put("subscription","sub_u").put("proration",false)));
+        line.set("period",json.createObjectNode().put("start",100).put("end",200));
+        invoice.set("lines",json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(line)));
+        when(stripe.invoice("in_initial")).thenReturn(invoice);
+        send(service,settings,"evt_initial","invoice.paid",json.createObjectNode().put("id","in_initial"));
+        ObjectNode manual=invoice.deepCopy().put("id","in_manual").put("billing_reason","manual");
+        when(stripe.invoice("in_manual")).thenReturn(manual);
+        send(service,settings,"evt_manual","invoice.paid",json.createObjectNode().put("id","in_manual"));
+        ObjectNode adjustment=invoice.deepCopy().put("id","in_adjustment").put("billing_reason","subscription_update");
+        ObjectNode adjustmentLine=(ObjectNode)adjustment.path("lines").path("data").get(0);
+        ((ObjectNode)adjustmentLine.path("parent").path("subscription_item_details")).put("proration",true);
+        ((ObjectNode)adjustmentLine.path("pricing").path("price_details")).put("price","price_"+newPlan);
+        when(stripe.invoice("in_adjustment")).thenReturn(adjustment);
+        send(service,settings,"evt_adjustment","invoice.paid",json.createObjectNode().put("id","in_adjustment"));
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(3);
+        assertThat(((Number)ledger.balance("u",150).get("remaining")).intValue()).isEqualTo(oldAllowance+10);
+        ObjectNode cycle=adjustment.deepCopy().put("id","in_cycle").put("billing_reason","subscription_cycle");
+        ObjectNode cycleLine=(ObjectNode)cycle.path("lines").path("data").get(0);
+        ((ObjectNode)cycleLine.path("parent").path("subscription_item_details")).put("proration",false);
+        cycleLine.set("period",json.createObjectNode().put("start",200).put("end",300));
+        ((ObjectNode)subscription.path("items").path("data").get(0)).put("current_period_end",300);
+        ((ObjectNode)subscription.path("items").path("data").get(0).path("price")).put("id","price_"+newPlan);
+        when(stripe.invoice("in_cycle")).thenReturn(cycle);
+        send(service,settings,"evt_cycle","invoice.paid",json.createObjectNode().put("id","in_cycle"));
+        send(service,settings,"evt_cycle","invoice.paid",json.createObjectNode().put("id","in_cycle"));
+        send(service,settings,"evt_cycle_duplicate","invoice.paid",json.createObjectNode().put("id","in_cycle"));
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(2);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(5);
+        assertThat(db.query("SELECT plan_key,allowance FROM music_mv_billing_grants WHERE payment_id='in_cycle'").firstRow()).containsEntry("plan_key",newPlan).containsEntry("allowance",newAllowance);
+        assertThat(((Number)ledger.balance("u",199).get("remaining")).intValue()).isEqualTo(oldAllowance+10);
+        assertThat(((Number)ledger.balance("u",200).get("remaining")).intValue()).isEqualTo(newAllowance+10);
+        assertThat(((Number)ledger.balance("u",250).get("remaining")).intValue()).isEqualTo(newAllowance+10);
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
