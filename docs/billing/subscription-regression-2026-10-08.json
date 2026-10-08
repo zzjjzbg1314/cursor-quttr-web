@@ -115,6 +115,14 @@
       "errors": 0,
       "skipped": 0,
       "reportSha256": "9ef901feb0307970df419fc724e331fa74c64b7e5841f1ca8b6ffa27026f061c"
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "ef1b7e5198508668d1a717a9a69816732c3fe3438c56402161225116a65d2cf9"
     }
   ],
   "tests": [
@@ -1944,6 +1952,20 @@
       "seconds": 0.004,
       "result": "pass",
       "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+      "seconds": 1.851,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
+      "seconds": 1.333,
+      "result": "pass",
+      "characterization": false
     }
   ],
   "cases": [
@@ -2319,9 +2341,11 @@
       "expected": "同用户客户幂等键；保存唯一customer；共享slot；mode=subscription、quantity=1、服务器Price",
       "status": "部分验证",
       "evidence": [
-        "StripeGatewayTest.officialSdkSendsSubscriptionContractWithStableIdempotency"
+        "StripeGatewayTest.officialSdkSendsSubscriptionContractWithStableIdempotency",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "C02",
@@ -2332,9 +2356,11 @@
       "evidence": [
         "StripeGatewayTest.officialSdkSendsSubscriptionContractWithStableIdempotency",
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
-        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]"
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "C03",
@@ -2593,9 +2619,11 @@
       "evidence": [
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
-        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance"
+        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "D02",
@@ -2606,9 +2634,11 @@
       "evidence": [
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
-        "MusicBillingServiceTest.ordinaryStatusRecoversSavedOrderWithoutReturnQuery"
+        "MusicBillingServiceTest.ordinaryStatusRecoversSavedOrderWithoutReturnQuery",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "D03",
@@ -2639,9 +2669,11 @@
       "expected": "核实customer/user/sub/invoice/mode；grant一次；重读余额并确认",
       "status": "本地核心通过",
       "evidence": [
-        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance"
+        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "D06",
@@ -2673,9 +2705,11 @@
       "status": "部分验证",
       "evidence": [
         "MusicBillingServiceTest.renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
-        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering"
+        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "D09",
@@ -2998,9 +3032,11 @@
       "expected": "成功event最多1、grant最多1；并发时DB约束有效",
       "status": "部分验证",
       "evidence": [
-        "MusicBillingServiceTest.paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents"
+        "MusicBillingServiceTest.paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "F05",
@@ -3009,9 +3045,11 @@
       "expected": "invoice唯一键保证一次；每合法事件可有独立processed",
       "status": "部分验证",
       "evidence": [
-        "MusicBillingServiceTest.renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity"
+        "MusicBillingServiceTest.renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "F06",
@@ -3447,9 +3485,11 @@
       "expected": "welcome:<A>唯一；10一次，永久，不按日补；B独立",
       "status": "本地核心通过",
       "evidence": [
-        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits"
+        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "I02",
@@ -3469,9 +3509,11 @@
       "expected": "先最早到期月度，后welcome；reservation.grant_id准确",
       "status": "本地核心通过",
       "evidence": [
-        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits"
+        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "I04",
@@ -3513,9 +3555,11 @@
       "expected": "reserved→released一次；同原账期恢复10；无消费",
       "status": "部分验证",
       "evidence": [
-        "BillingRepositoryTest.creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod"
+        "BillingRepositoryTest.creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "I08",
@@ -3691,9 +3735,11 @@
       "expected": "revoke先于processed；revocation唯一；I1剩余额度不可用",
       "status": "部分验证",
       "evidence": [
-        "MusicBillingServiceTest.creditNotesRecordRevocationBeforeEventAcknowledgement"
+        "MusicBillingServiceTest.creditNotesRecordRevocationBeforeEventAcknowledgement",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "J04",
@@ -3702,9 +3748,11 @@
       "expected": "后建grant默认revoked=1；不能恢复额度",
       "status": "本地核心通过",
       "evidence": [
-        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。"
     },
     {
       "id": "J05",
@@ -4031,7 +4079,7 @@
     "沙盒待环境": 9,
     "边界已复现": 3
   },
-  "totalBackendTests": 261,
+  "totalBackendTests": 263,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
   "remoteMutationCount": 1,
@@ -4083,7 +4131,8 @@
   "additionalCommits": [
     "43e1021",
     "7c1e847",
-    "frontend:9c1f604"
+    "frontend:9c1f604",
+    "46bac5b"
   ],
   "currentPaymentReadOnlyAudit": {
     "database": {
