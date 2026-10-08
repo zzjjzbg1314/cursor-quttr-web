@@ -323,6 +323,47 @@ class BillingLedgerJourneyRegressionTest {
         } finally {com.stripe.Stripe.overrideApiBase(original);server.stop(0);}
     }
 
+    @ParameterizedTest(name="R18 旧查询晚返回={0}")
+    @ValueSource(strings={"empty","canceled-flag","old-subscription"})
+    void R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot(String staleKind) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("stale-snapshot.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";
+        settings.portalConfiguration="bpc_fixture";settings.siteUrl="https://www.example.test";
+        ledger.saveCustomer("stripe","u","cus_u");
+        ObjectNode fresh=json.createObjectNode().put("has_more",false);
+        ObjectNode current=json.createObjectNode().put("id","sub_new").put("status","active").put("cancel_at_period_end",false);
+        current.set("items",json.createObjectNode().set("data",json.createArrayNode().add(
+            json.createObjectNode().put("current_period_end",2000000000L).set("price",json.createObjectNode().put("id","price_starter")))));
+        fresh.set("data",json.createArrayNode().add(current));
+        ObjectNode stale=fresh.deepCopy();
+        if(staleKind.equals("empty"))stale.set("data",json.createArrayNode());
+        else if(staleKind.equals("canceled-flag"))((ObjectNode)stale.path("data").get(0)).put("cancel_at_period_end",true);
+        else ((ObjectNode)stale.path("data").get(0)).put("id","sub_old");
+        java.util.concurrent.CountDownLatch captured=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicInteger reads=new java.util.concurrent.atomic.AtomicInteger();
+        when(stripe.subscriptions("cus_u")).thenAnswer(invocation->{
+            if(reads.getAndIncrement()==0){captured.countDown();if(!release.await(5,TimeUnit.SECONDS))throw new IllegalStateException("测试旧查询等待超时");return stale;}
+            return fresh;
+        });
+        MusicBillingService slow=new MusicBillingService(settings,ledger,stripe,json);
+        MusicBillingService fast=new MusicBillingService(settings,new BillingRepository(db),stripe,json);
+        java.util.concurrent.ExecutorService worker=java.util.concurrent.Executors.newSingleThreadExecutor();
+        java.util.concurrent.Future<Map<String,Object>> pending=worker.submit(()->slow.status("u"));
+        try {
+            assertThat(captured.await(5,TimeUnit.SECONDS)).isTrue();
+            fast.status("u");
+            assertThat(ledger.subscription("u")).containsEntry("subscription_id","sub_new").containsEntry("cancel_at_period_end",0);
+            release.countDown();pending.get(5,TimeUnit.SECONDS);
+            Map<String,Object> finalSnapshot=ledger.subscription("u");
+            if(staleKind.equals("empty"))assertThat(finalSnapshot).containsEntry("subscription_id",null).containsEntry("status",null);
+            else if(staleKind.equals("canceled-flag"))assertThat(finalSnapshot).containsEntry("subscription_id","sub_new").containsEntry("cancel_at_period_end",1);
+            else assertThat(finalSnapshot).containsEntry("subscription_id","sub_old");
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isZero();
+        } finally {release.countDown();worker.shutdownNow();assertThat(worker.awaitTermination(5,TimeUnit.SECONDS)).isTrue();}
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
