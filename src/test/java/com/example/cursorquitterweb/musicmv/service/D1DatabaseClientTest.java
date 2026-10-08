@@ -95,4 +95,39 @@ class D1DatabaseClientTest {
         verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"missing-result","statement-failed","timeout"})
+    void billingCreditsPropagatesIncompleteFailedOrTimedOutBatch(String scenario) {
+        com.example.cursorquitterweb.musicmv.billing.BillingSettings settings=new com.example.cursorquitterweb.musicmv.billing.BillingSettings();settings.enabled=true;
+        com.example.cursorquitterweb.musicmv.billing.StripeGateway stripe=mock(com.example.cursorquitterweb.musicmv.billing.StripeGateway.class);
+        com.example.cursorquitterweb.musicmv.billing.MusicBillingService billing=new com.example.cursorquitterweb.musicmv.billing.MusicBillingService(settings,
+            new com.example.cursorquitterweb.musicmv.billing.BillingRepository(client),stripe,new ObjectMapper());
+        if(scenario.equals("timeout"))when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
+            .thenThrow(new ResourceAccessException("测试批次读取超时"));
+        else {
+            String results=scenario.equals("missing-result")?"[{\"success\":true,\"results\":[]},{\"success\":true,\"results\":[]}]":
+                "[{\"success\":true,\"results\":[]},{\"success\":false,\"error\":\"fixture statement failure\"},{\"success\":true,\"results\":[{\"remaining\":10}]}]";
+            when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
+                .thenReturn(new ResponseEntity<String>("{\"success\":true,\"result\":"+results+"}",HttpStatus.OK));
+        }
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->billing.credits("u")).isInstanceOf(RuntimeException.class);
+        verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class));
+        org.mockito.Mockito.verifyNoInteractions(stripe);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"missing-rows","empty-rows","object-rows"})
+    void I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero(String shape) {
+        String last=shape.equals("missing-rows")?"{\"success\":true}":shape.equals("empty-rows")?"{\"success\":true,\"results\":[]}":"{\"success\":true,\"results\":{\"remaining\":999}}";
+        when(restTemplate.exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class)))
+            .thenReturn(new ResponseEntity<String>("{\"success\":true,\"result\":[{\"success\":true,\"results\":[]},{\"success\":true,\"results\":[]},"+last+"]}",HttpStatus.OK));
+        com.example.cursorquitterweb.musicmv.billing.BillingSettings settings=new com.example.cursorquitterweb.musicmv.billing.BillingSettings();settings.enabled=true;
+        com.example.cursorquitterweb.musicmv.billing.StripeGateway stripe=mock(com.example.cursorquitterweb.musicmv.billing.StripeGateway.class);
+        com.example.cursorquitterweb.musicmv.billing.MusicBillingService billing=new com.example.cursorquitterweb.musicmv.billing.MusicBillingService(settings,
+            new com.example.cursorquitterweb.musicmv.billing.BillingRepository(client),stripe,new ObjectMapper());
+        org.assertj.core.api.Assertions.assertThat(billing.credits("u")).containsEntry("remaining",0).containsEntry("allowance",0).containsEntry("enabled",true);
+        verify(restTemplate,times(1)).exchange(any(String.class),eq(HttpMethod.POST),any(HttpEntity.class),eq(String.class));
+        org.mockito.Mockito.verifyNoInteractions(stripe);
+    }
+
 }

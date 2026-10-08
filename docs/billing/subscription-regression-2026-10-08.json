@@ -26,7 +26,7 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "8f9ba4a92fdab23a82d6e4092bb43d39be01b8a3ff2669395c5f47be0a2c797e"
+      "reportSha256": "f0d5da5d7b25003a8881b063ec0140684cb4a7015ed6d7d68a91037ddc612624"
     },
     {
       "class": "MusicBillingControllerTest",
@@ -102,11 +102,11 @@
     },
     {
       "class": "D1DatabaseClientTest",
-      "tests": 4,
+      "tests": 10,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "64bf7eb864af385c15e6f6aa711599cf80489abdf3e774f1ecb7147e112b1bce"
+      "reportSha256": "69fe81742b11245d84ce76a99ab56c53401187ab4411611a22fa16a6fbc686a8"
     },
     {
       "class": "MusicMvAccessTokenServiceTest",
@@ -126,83 +126,6 @@
     }
   ],
   "tests": [
-    {
-      "class": "BillingRepositoryTest",
-      "name": "incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "reminderRequiresUntouchedWelcomeAndNoPendingGeneration",
-      "seconds": 0.02,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "reconciliationOnlyChangesRequestedOwner",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod",
-      "seconds": 0.025,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "welcomeIsPermanentUniqueAndSpentAfterExpiringCredits",
-      "seconds": 0.025,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "usageCountsEachGenerationOnceAndFiltersBeforePagination",
-      "seconds": 0.024,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription",
-      "seconds": 0.025,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "balanceRefreshBatchesGrantReconciliationAndReadInOrder",
-      "seconds": 0.032,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingRepositoryTest",
-      "name": "providersHaveIndependentPaymentsButShareOneSubscriptionSlot",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": false
-    },
     {
       "class": "MusicBillingControllerTest",
       "name": "identityAlwaysComesFromAuthenticatedSession",
@@ -487,34 +410,6 @@
       "class": "MusicMvAuthServiceTest",
       "name": "signedInSessionOverridesCallerSuppliedWorkspace",
       "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "D1DatabaseClientTest",
-      "name": "retriesOneTransientReadFailure",
-      "seconds": 0.073,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "D1DatabaseClientTest",
-      "name": "doesNotRetryMutatingQueries",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "D1DatabaseClientTest",
-      "name": "billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "D1DatabaseClientTest",
-      "name": "preservesExecutionStatisticsWithoutExposingQueryValuesAsMetricTags",
-      "seconds": 0.002,
       "result": "pass",
       "characterization": false
     },
@@ -2834,6 +2729,153 @@
       "seconds": 0.879,
       "result": "pass",
       "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "billingCreditsPropagatesIncompleteFailedOrTimedOutBatch{String}[1]",
+      "seconds": 0.479,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "billingCreditsPropagatesIncompleteFailedOrTimedOutBatch{String}[2]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "billingCreditsPropagatesIncompleteFailedOrTimedOutBatch{String}[3]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "retriesOneTransientReadFailure",
+      "seconds": 0.014,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero{String}[1]",
+      "seconds": 0.005,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "doesNotRetryMutatingQueries",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "preservesExecutionStatisticsWithoutExposingQueryValuesAsMetricTags",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance",
+      "seconds": 0.11,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "reminderRequiresUntouchedWelcomeAndNoPendingGeneration",
+      "seconds": 0.079,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "reconciliationOnlyChangesRequestedOwner",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod",
+      "seconds": 0.029,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "welcomeIsPermanentUniqueAndSpentAfterExpiringCredits",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "usageCountsEachGenerationOnceAndFiltersBeforePagination",
+      "seconds": 0.027,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription",
+      "seconds": 0.046,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "balanceRefreshBatchesGrantReconciliationAndReadInOrder",
+      "seconds": 0.041,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "providersHaveIndependentPaymentsButShareOneSubscriptionSlot",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
     }
   ],
   "cases": [
@@ -4706,12 +4748,14 @@
       "priority": "P0",
       "action": "refreshBalance batch缺项/某语句失败/DB超时",
       "expected": "不返回未经核实余额；异常必须可追踪；无假0",
-      "status": "部分验证",
+      "status": "安全目标未通过",
       "evidence": [
         "BillingRepositoryTest.incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance",
-        "D1DatabaseClientTest.billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites"
+        "D1DatabaseClientTest.billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites",
+        "D1DatabaseClientTest.billingCreditsPropagatesIncompleteFailedOrTimedOutBatch",
+        "D1DatabaseClientTest.I19_RISK_emptyOrMalformedBalanceResultReturnsSuccessfulZero"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "缺项、显式失败和超时会报错；但余额结果缺失或结构损坏被当作成功零余额。仅本地模拟，未证明线上发生。"
     },
     {
       "id": "I20",
@@ -5152,15 +5196,15 @@
   "summary": {
     "本地核心通过": 105,
     "本地配置失败/沙盒待环境": 1,
-    "安全目标未通过": 14,
-    "部分验证": 35,
+    "安全目标未通过": 15,
+    "部分验证": 34,
     "已确认边界": 6,
     "沙盒待环境": 8,
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 387,
-  "riskCharacterizations": 26,
+  "totalBackendTests": 393,
+  "riskCharacterizations": 29,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
   "onlineBrowserRegression": {
@@ -6231,5 +6275,9 @@
       "I16"
     ],
     "scope": "两档已授最新账单日常刷新不重复查询；过期/未来/已撤回/他人额度不能预占；实际服务与SQLite，支付模拟"
+  },
+  "coreJourneyPresentation": {
+    "scope": "核心用户流程优先，原174项保留为证据索引；不以异常参数数量衡量进度",
+    "complete": false
   }
 }
