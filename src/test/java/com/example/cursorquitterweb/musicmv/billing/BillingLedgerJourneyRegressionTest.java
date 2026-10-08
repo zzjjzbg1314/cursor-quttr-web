@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -607,6 +608,36 @@ class BillingLedgerJourneyRegressionTest {
             assertThat(billing.history("u",0,settled).get("items")).asList().hasSize(1);
             verifyNoInteractions(providers,storage,stripe);
         } finally {music.close();}
+    }
+
+    @Test
+    void partiallySpentRefundRevokesRemainderKeepsConsumptionAndRequiresSeparateCancellation() throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("partial-spend-refund.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        MusicBillingService billing=new MusicBillingService(settings,ledger,stripe,json);
+        long now=Instant.now().getEpochSecond(),end=now+3600;
+        ledger.ensureWelcomeCredits("u");ledger.syncSubscription("stripe","u","sub_u","active",false);
+        ledger.grant("stripe","in_u","u","sub_u","starter",300,now-10,end);
+        for(int i=0;i<5;i++){billing.reserve("u","request_"+i,"job_"+i);billing.settle("job_"+i,"completed");}
+        assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(260);
+        when(stripe.invoicePayments("pi_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",
+            json.createArrayNode().add(json.createObjectNode().put("invoice","in_u"))));
+        ObjectNode charge=json.createObjectNode().put("payment_intent","pi_u").put("amount",999).put("amount_refunded",999).put("refunded",true);
+        send(billing,settings,"evt_refund","charge.refunded",charge);
+        send(billing,settings,"evt_refund","charge.refunded",charge);
+        assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(10);
+        assertThat(((Number)ledger.usage("u").get("spent")).intValue()).isEqualTo(50);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='consumed' AND credits=10")).isEqualTo(5);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='released'")).isZero();
+        assertThat(ledger.subscription("u")).containsEntry("subscription_id","sub_u").containsEntry("status","active").containsEntry("cancel_at_period_end",0);
+        Map<String,Object> refundedGrant=db.query("SELECT revoked,period_end FROM music_mv_billing_grants WHERE payment_id='in_u'").firstRow();
+        assertThat(refundedGrant).containsEntry("revoked",1);
+        assertThat(((Number)refundedGrant.get("period_end")).longValue()).isEqualTo(end);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_revocations")).isEqualTo(1);
+        verify(stripe).invoicePayments("pi_u");verifyNoMoreInteractions(stripe);
     }
 
     @ParameterizedTest(name="J08 已消费全部额度套餐={0}")
