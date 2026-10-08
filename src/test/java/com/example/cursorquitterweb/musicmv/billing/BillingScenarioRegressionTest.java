@@ -392,6 +392,21 @@ class BillingScenarioRegressionTest {
         verify(repo).syncSubscription("stripe","u","sub_u","active",false);
     }
 
+    @Test void C21_checkoutContentionStopsAfterThreeRoundsWithoutCreatingAnotherSession() throws Exception {
+        customer();
+        when(repo.subscription("u")).thenReturn(map("provider","stripe","checkout_token","old-token","checkout_plan","starter",
+            "checkout_expires",Instant.now().getEpochSecond()+600,"checkout_id","cs_old","checkout_return_url",settings.returnUrl("en")));
+        when(stripe.checkoutSession("cs_old")).thenReturn(json.createObjectNode().put("id","cs_old").put("status","expired")
+            .put("client_reference_id","u").put("customer","cus_u").put("livemode",false).put("mode","subscription"));
+        when(repo.clearCheckout("stripe","u","old-token")).thenReturn(false);
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOfSatisfying(ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(409);assertThat(e.getCode()).isEqualTo("BILLING_CHECKOUT_RETRY");});
+        verify(stripe,times(3)).checkoutSession("cs_old");verify(repo,times(3)).clearCheckout("stripe","u","old-token");
+        verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+        verify(repo,never()).claimCheckout(anyString(),anyString(),anyString(),anyString(),anyString(),anyLong());
+        verify(repo,never()).saveCheckout(anyString(),anyString(),anyString(),anyString(),anyString());
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");

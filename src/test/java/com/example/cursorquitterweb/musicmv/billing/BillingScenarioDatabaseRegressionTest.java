@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
@@ -174,6 +175,36 @@ class BillingScenarioDatabaseRegressionTest {
             " assert d.execute('SELECT COUNT(*) FROM music_mv_billing_events').fetchone()[0]==2",
             " assert d.execute('SELECT COUNT(*) FROM music_mv_billing_revocations').fetchone()[0]==1",
             " balance=d.execute(s[5]['sql'],s[5]['params']).fetchone();assert balance['remaining']==10 and balance['reserved']==0;d.close()"));
+    }
+
+    @ParameterizedTest(name="C21 清理时现状={0}")
+    @ValueSource(strings={"same","new-token","new-subscription","new-provider"})
+    void staleCheckoutClearPreservesNewerState(String change) throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.clearCheckout("stripe","u","old-token");
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row;d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "change='"+change+"';provider='paypal' if change=='new-provider' else 'stripe';token='new-token' if change=='new-token' else 'old-token';subscription='sub_new' if change=='new-subscription' else None",
+            "d.execute(\"INSERT INTO music_mv_billing_subscriptions(user_id,provider,subscription_id,status,checkout_token,checkout_plan,checkout_expires,checkout_id,checkout_url,checkout_return_url) VALUES('u',?,?,'active',?,'creator',200,'cs_new','https://checkout.test/new','https://site.test/pricing')\",(provider,subscription,token))",
+            "before=dict(d.execute('SELECT * FROM music_mv_billing_subscriptions').fetchone())",
+            "result=d.execute(s[0]['sql'],s[0]['params']).fetchall();after=dict(d.execute('SELECT * FROM music_mv_billing_subscriptions').fetchone())",
+            "if change=='same':",
+            " assert len(result)==1;assert all(after[k] is None for k in ('checkout_token','checkout_plan','checkout_expires','checkout_id','checkout_url','checkout_return_url'));assert after['provider']=='stripe'",
+            "else: assert result==[] and after==before,(result,before,after)"));
+    }
+
+    @ParameterizedTest(name="C23 接管时刻={0} 成功={1}")
+    @CsvSource({"99,false","100,false","101,true"})
+    void crossProviderCheckoutClaimUsesStrictExpiryBoundary(long now,boolean accepted) throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.claimCheckout("stripe","u","new-token","starter","https://site.test/pricing",now);
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib",
+            "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row;d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
+            "d.execute(\"INSERT INTO music_mv_billing_subscriptions(user_id,provider,status,cancel_at_period_end,checkout_token,checkout_plan,checkout_expires,checkout_id,checkout_url) VALUES('u','paypal','old',1,'old-token','creator',100,'old_id','old_url')\")",
+            "before=dict(d.execute('SELECT * FROM music_mv_billing_subscriptions').fetchone());result=d.execute(s[0]['sql'],s[0]['params']).fetchall();after=dict(d.execute('SELECT * FROM music_mv_billing_subscriptions').fetchone())",
+            accepted?"assert len(result)==1;assert after['provider']=='stripe' and after['checkout_token']=='new-token' and after['checkout_plan']=='starter';assert after['checkout_expires']=="+(now+3600)+";assert after['checkout_id'] is None and after['checkout_url'] is None and after['status'] is None and after['cancel_at_period_end']==0":"assert result==[] and after==before"));
     }
 
     private void run(BillingRepositoryTest.Capture db,String script) throws Exception {

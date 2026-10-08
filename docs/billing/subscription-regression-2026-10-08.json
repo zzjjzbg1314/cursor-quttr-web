@@ -46,19 +46,19 @@
     },
     {
       "class": "BillingScenarioRegressionTest",
-      "tests": 115,
+      "tests": 116,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "700822d3bcfe34cdfa19f9d9079a7a9d6d63b49f560934fd8d0a61b10dcf12cf"
+      "reportSha256": "6dda5bf4e1b930715abdd83fdad3c55c51f447df636ec0aea4b55f9bf06796c0"
     },
     {
       "class": "BillingScenarioDatabaseRegressionTest",
-      "tests": 12,
+      "tests": 19,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "2cb488361f4fb289486bb2cd357814fc8501cd1bb6ea056fc09d1dc1d439d1e9"
+      "reportSha256": "25530fc00d6e54adabf44762059ecb96fb642c86e95f021131ab5e48ac9aede7"
     },
     {
       "class": "BillingScenarioHttpRegressionTest",
@@ -529,811 +529,6 @@
       "class": "MusicBillingControllerTest",
       "name": "missingSessionReturnsUnauthorizedThroughScopedHandler",
       "seconds": 0.008,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything",
-      "seconds": 0.257,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "E10_missingLineSubscriptionUsesVerifiedInvoiceParent",
-      "seconds": 0.003,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
-      "seconds": 0.003,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "A12_databaseFailureCannotBecomeSuccessfulZeroBalance",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "missingConfigurationNeverCreatesCheckout{String}[1]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "missingConfigurationNeverCreatesCheckout{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "missingConfigurationNeverCreatesCheckout{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "missingConfigurationNeverCreatesCheckout{String}[4]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "missingConfigurationNeverCreatesCheckout{String}[5]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F09_refundFailureDoesNotCompleteAndRetryRepeatsSameInvoice{String}[1]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F09_refundFailureDoesNotCompleteAndRetryRepeatsSameInvoice{String}[2]",
-      "seconds": 0.004,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "J06_paginatedRefundCannotBeAcknowledged",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "H04_RISK_emptyPortalUrlReturnsSuccess",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[3]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[4]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[5]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[6]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[7]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[8]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[9]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "configurationModeMatrix{String, String, boolean}[10]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "E07_prorationAndOneRegularLineGrantOnlyOneAllowance",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "G15_RISK_malformedSubscriptionListClearsCurrentSnapshot",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[4]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[5]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[6]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[2]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[4]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[5]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[6]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "badSignatureDoesNotTouchLedger{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "badSignatureDoesNotTouchLedger{String}[2]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "badSignatureDoesNotTouchLedger{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "badSignatureDoesNotTouchLedger{String}[4]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[4]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[5]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[6]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[7]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "J07_RISK_missingRefundPaymentIsAcknowledgedWithoutRevocation",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F08_processedFailureReplaysGrantWithSameInvoiceIdentity",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F01_bodyTamperingFailsSignature",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F11_unmappedCustomerDoesNotAcknowledgeSubscription",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "A07_RISK_identicalPricesRemainReadyAndCreatorGetsStarterAllowance",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[1]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[4]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[5]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[6]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[7]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[8]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "J07_RISK_wrongEnvironmentDisputeChargeStillRevokes",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "G03_staleCancellationEventsUseLatestResumedState",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "C11_duplicateRecoveredSessionsRequireReviewAndKeepSlot",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "G18_providerOutagePreservesSnapshotAndLedgerReadsRemainIndependent",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "G17_RISK_multipleItemsSelectFirstAndIgnoreItemPagination",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "I20_disabledBillingSkipsReservationAndSettlementButCanResumeSettlement",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "C24_customerSaveFailureRetriesSameOwnerBeforeCreatingOrder",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[2]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[4]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[5]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[6]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F14_RISK_creditNoteWithoutInvoiceRevokesEmptyIdentityAndAcknowledges",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "E03_RISK_fractionalQuantityIsTruncatedAndGranted",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "E12_RISK_retrievedInvoiceIdentityIsNotComparedWithEvent",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "G14_RISK_multipleActiveSubscriptionsSelectFirstWithoutReview",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[4]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[4]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[5]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[6]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[7]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[8]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[9]",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "H02_missingCustomerNeverCreatesPortal",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "B07_nullPlanNeverCreatesCustomer",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[1]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[2]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[3]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[4]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[5]",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "invalidPlanNeverCreatesCustomer{String}[6]",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioRegressionTest",
-      "name": "F08_grantFailureDoesNotMarkProcessedAndRetryCanSucceed",
-      "seconds": 0.002,
       "result": "pass",
       "characterization": false
     },
@@ -1863,90 +1058,6 @@
       "characterization": false
     },
     {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K10_initializationReplayPreservesExistingLedger",
-      "seconds": 0.348,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I15_RISK_splitAllowancesCannotCoverOneReservation",
-      "seconds": 0.029,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
-      "seconds": 0.03,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[1]",
-      "seconds": 0.036,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[2]",
-      "seconds": 0.027,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "I04_actualSqlConcurrentReservationsNeverOverdraw",
-      "seconds": 0.184,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
-      "seconds": 0.03,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner",
-      "seconds": 0.048,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner",
-      "seconds": 0.026,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert",
-      "seconds": 0.025,
-      "result": "pass",
-      "characterization": true
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
-      "seconds": 0.164,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingScenarioDatabaseRegressionTest",
-      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
-      "seconds": 0.154,
-      "result": "pass",
-      "characterization": false
-    },
-    {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[1]",
       "seconds": 0.823,
@@ -2097,6 +1208,951 @@
       "class": "StripeGatewayTest",
       "name": "recoveryListsCustomerSessionsAndExpiresVerifiedSessionThroughSdk",
       "seconds": 0.012,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "staleCheckoutClearPreservesNewerState{String}[1]",
+      "seconds": 0.368,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "staleCheckoutClearPreservesNewerState{String}[2]",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "staleCheckoutClearPreservesNewerState{String}[3]",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "staleCheckoutClearPreservesNewerState{String}[4]",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K10_initializationReplayPreservesExistingLedger",
+      "seconds": 0.027,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I15_RISK_splitAllowancesCannotCoverOneReservation",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[1]",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I17_J08_K05_refundKeepsSettlementHistoryAndNeverRestoresRevokedBalance{String}[2]",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[1]",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[2]",
+      "seconds": 0.027,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[3]",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I04_actualSqlConcurrentReservationsNeverOverdraw",
+      "seconds": 0.186,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner",
+      "seconds": 0.049,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner",
+      "seconds": 0.027,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
+      "seconds": 0.153,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
+      "seconds": 0.151,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "C21_checkoutContentionStopsAfterThreeRoundsWithoutCreatingAnotherSession",
+      "seconds": 0.232,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E10_missingLineSubscriptionUsesVerifiedInvoiceParent",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "A12_databaseFailureCannotBecomeSuccessfulZeroBalance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F09_refundFailureDoesNotCompleteAndRetryRepeatsSameInvoice{String}[1]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F09_refundFailureDoesNotCompleteAndRetryRepeatsSameInvoice{String}[2]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J06_paginatedRefundCannotBeAcknowledged",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "H04_RISK_emptyPortalUrlReturnsSuccess",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[7]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[8]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[9]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[10]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E07_prorationAndOneRegularLineGrantOnlyOneAllowance",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G15_RISK_malformedSubscriptionListClearsCurrentSnapshot",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[3]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[7]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J07_RISK_missingRefundPaymentIsAcknowledgedWithoutRevocation",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F08_processedFailureReplaysGrantWithSameInvoiceIdentity",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F12_ignoredEventsAcknowledgeWithoutGrantOrRevoke{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F01_bodyTamperingFailsSignature",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F11_unmappedCustomerDoesNotAcknowledgeSubscription",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "A07_RISK_identicalPricesRemainReadyAndCreatorGetsStarterAllowance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[7]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[8]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J07_RISK_wrongEnvironmentDisputeChargeStillRevokes",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G03_staleCancellationEventsUseLatestResumedState",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "C11_duplicateRecoveredSessionsRequireReviewAndKeepSlot",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G18_providerOutagePreservesSnapshotAndLedgerReadsRemainIndependent",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G17_RISK_multipleItemsSelectFirstAndIgnoreItemPagination",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "I20_disabledBillingSkipsReservationAndSettlementButCanResumeSettlement",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "C24_customerSaveFailureRetriesSameOwnerBeforeCreatingOrder",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F14_RISK_creditNoteWithoutInvoiceRevokesEmptyIdentityAndAcknowledges",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E03_RISK_fractionalQuantityIsTruncatedAndGranted",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E12_RISK_retrievedInvoiceIdentityIsNotComparedWithEvent",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G14_RISK_multipleActiveSubscriptionsSelectFirstWithoutReview",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[1]",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[7]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[8]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[9]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "H02_missingCustomerNeverCreatesPortal",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "B07_nullPlanNeverCreatesCustomer",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F08_grantFailureDoesNotMarkProcessedAndRetryCanSucceed",
+      "seconds": 0.001,
       "result": "pass",
       "characterization": false
     }
@@ -2718,9 +2774,14 @@
       "expected": "clear条件写入不能擦新数据；最多3轮后安全409",
       "status": "部分验证",
       "evidence": [
-        "BillingRepositoryTest.clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription"
+        "BillingRepositoryTest.clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription",
+        "BillingScenarioDatabaseRegressionTest.staleCheckoutClearPreservesNewerState{String}[1]",
+        "BillingScenarioDatabaseRegressionTest.staleCheckoutClearPreservesNewerState{String}[2]",
+        "BillingScenarioDatabaseRegressionTest.staleCheckoutClearPreservesNewerState{String}[3]",
+        "BillingScenarioDatabaseRegressionTest.staleCheckoutClearPreservesNewerState{String}[4]",
+        "BillingScenarioRegressionTest.C21_checkoutContentionStopsAfterThreeRoundsWithoutCreatingAnotherSession"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "实际clear SQL验证同token可释放、新token/新subscription/新provider均保留整行；服务持续争用最多3轮后409 BILLING_CHECKOUT_RETRY且不新建或保存订单。订阅快照sync与clear整个流程的真实多节点交错尚未闭环，保持部分验证。"
     },
     {
       "id": "C22",
@@ -2739,11 +2800,14 @@
       "priority": "P1",
       "action": "另一渠道过期slot且无订阅；尝试Stripe",
       "expected": "条件claim才允许接管；临界expires=now需专测",
-      "status": "部分验证",
+      "status": "本地核心通过",
       "evidence": [
-        "BillingRepositoryTest.providersHaveIndependentPaymentsButShareOneSubscriptionSlot"
+        "BillingRepositoryTest.providersHaveIndependentPaymentsButShareOneSubscriptionSlot",
+        "BillingScenarioDatabaseRegressionTest.crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[1]",
+        "BillingScenarioDatabaseRegressionTest.crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[2]",
+        "BillingScenarioDatabaseRegressionTest.crossProviderCheckoutClaimUsesStrictExpiryBoundary{long, boolean}[3]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "实际claim SQL验证外渠道slot expiry=100：now=99、100拒绝且保留所有字段，101成功转Stripe并清旧ID/URL/status/cancel标记。严格小于now后才可接管；独立SQLite，不替代远程多节点。"
     },
     {
       "id": "C24",
@@ -4266,16 +4330,16 @@
     ]
   },
   "summary": {
-    "本地核心通过": 63,
+    "本地核心通过": 64,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 11,
-    "部分验证": 80,
+    "部分验证": 79,
     "已确认边界": 6,
     "沙盒待环境": 8,
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 282,
+  "totalBackendTests": 290,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
@@ -4965,6 +5029,28 @@
     "skipped": 0,
     "newTestCases": 0,
     "command": "mvn -q -Dtest=BillingLedgerJourneyRegressionTest,StripeGatewayTest test",
+    "productionChanges": false
+  },
+  "localCheckoutSlotBoundaryRegression": {
+    "testsAdded": 8,
+    "focusedSuites": [
+      {
+        "class": "BillingScenarioDatabaseRegressionTest",
+        "tests": 19,
+        "seconds": 1.309
+      },
+      {
+        "class": "BillingScenarioRegressionTest",
+        "tests": 116,
+        "seconds": 0.38
+      }
+    ],
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "实际claim/clear SQL与服务三轮争用；临时SQLite/模拟Stripe",
+    "command": "mvn -q -Dtest=BillingScenarioDatabaseRegressionTest,BillingScenarioRegressionTest test",
+    "fixtureRepair": "首轮测试SQL字符串引号未正确转义导致testCompile失败；修正测试源码后最终135条通过，不计生产故障",
     "productionChanges": false
   }
 }
