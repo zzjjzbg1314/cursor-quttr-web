@@ -27,6 +27,12 @@ public class BillingRepository {
         // 仅使用当前渠道查证的状态，不能覆盖其他渠道的订阅或结账占用。
         db.query("INSERT INTO music_mv_billing_subscriptions(user_id,provider,subscription_id,status,cancel_at_period_end) VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET subscription_id=excluded.subscription_id,status=excluded.status,cancel_at_period_end=excluded.cancel_at_period_end WHERE music_mv_billing_subscriptions.provider=excluded.provider",user,provider,id,status,canceled?1:0);
     }
+    public void beginSubscriptionRead(String user,String token) {
+        db.query("INSERT INTO music_mv_billing_subscription_reads(user_id,read_token) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET read_token=excluded.read_token",user,token);
+    }
+    public boolean syncSubscriptionRead(String provider,String user,String id,String status,boolean canceled,String token) {
+        return db.query("INSERT INTO music_mv_billing_subscriptions(user_id,provider,subscription_id,status,cancel_at_period_end) SELECT ?,?,?,?,? WHERE EXISTS(SELECT 1 FROM music_mv_billing_subscription_reads WHERE user_id=? AND read_token=?) ON CONFLICT(user_id) DO UPDATE SET subscription_id=excluded.subscription_id,status=excluded.status,cancel_at_period_end=excluded.cancel_at_period_end WHERE music_mv_billing_subscriptions.provider=excluded.provider RETURNING user_id",user,provider,id,status,canceled?1:0,user,token).firstRow()!=null;
+    }
     public boolean claimCheckout(String provider,String user,String token,String plan,String returnUrl,long now) {
         return db.query("INSERT INTO music_mv_billing_subscriptions(user_id,provider,checkout_token,checkout_plan,checkout_expires,checkout_return_url) VALUES(?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET provider=excluded.provider,checkout_token=excluded.checkout_token,checkout_plan=excluded.checkout_plan,checkout_expires=excluded.checkout_expires,checkout_return_url=excluded.checkout_return_url,checkout_id=NULL,checkout_url=NULL,status=NULL,cancel_at_period_end=0 WHERE music_mv_billing_subscriptions.subscription_id IS NULL AND (music_mv_billing_subscriptions.checkout_expires IS NULL OR music_mv_billing_subscriptions.checkout_expires<?) RETURNING user_id",user,provider,token,plan,now+3600,returnUrl,now).firstRow()!=null;
     }

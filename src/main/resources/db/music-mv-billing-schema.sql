@@ -36,3 +36,7 @@ CREATE TABLE IF NOT EXISTS music_mv_billing_events (
 CREATE TABLE IF NOT EXISTS music_mv_billing_revocations (
  provider TEXT NOT NULL, payment_id TEXT NOT NULL, PRIMARY KEY(provider,payment_id)
 );
+-- 跨实例查询令牌：旧查询不能覆盖较晚开始的订阅核对。
+CREATE TABLE IF NOT EXISTS music_mv_billing_subscription_reads (
+ user_id TEXT PRIMARY KEY, read_token TEXT NOT NULL
+);

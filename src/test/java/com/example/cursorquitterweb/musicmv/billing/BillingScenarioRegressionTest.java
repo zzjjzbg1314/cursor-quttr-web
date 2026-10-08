@@ -34,6 +34,7 @@ class BillingScenarioRegressionTest {
         settings.portalConfiguration = "bpc_fixture"; settings.siteUrl = "https://www.example.test";
         repo = mock(BillingRepository.class); stripe = mock(StripeGateway.class);
         service = new MusicBillingService(settings, repo, stripe, json);
+        when(repo.syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString())).thenReturn(true);
         when(repo.customer(anyString(),anyString())).thenReturn(null);
         when(repo.subscription(anyString())).thenReturn(null);
     }
@@ -266,13 +267,13 @@ class BillingScenarioRegressionTest {
         ObjectNode another=list.path("data").get(0).deepCopy();another.put("id","sub_other");((ArrayNode)list.path("data")).add(another);
         when(stripe.subscriptions("cus_u")).thenReturn(list);
         assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
-        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
+        verify(repo,never()).syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString());
     }
 
     @Test void G15_malformedSubscriptionListPreservesKnownSnapshot() throws Exception {
         customer();when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode());
         assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
-        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
+        verify(repo,never()).syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString());
     }
 
     @Test void H04_emptyPortalUrlIsRetryableFailure() throws Exception {
@@ -365,7 +366,7 @@ class BillingScenarioRegressionTest {
         customer(); when(stripe.subscriptions("cus_u")).thenReturn(subscriptions("active"));
         ObjectNode old=json.createObjectNode().put("customer","cus_u").put("cancel_at_period_end",true);
         send("customer.subscription.updated",old); send("customer.subscription.updated",old);
-        verify(repo,times(2)).syncSubscription("stripe","u","sub_u","active",false);
+        verify(repo,times(2)).syncSubscriptionRead(eq("stripe"),eq("u"),eq("sub_u"),eq("active"),eq(false),anyString());
         verify(repo,never()).revoke(anyString(),anyString());
     }
 
@@ -374,7 +375,7 @@ class BillingScenarioRegressionTest {
             org.springframework.http.HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","retry"));
         assertThatThrownBy(()->service.status("u")).isInstanceOfSatisfying(ApiException.class,
             e->assertThat(e.getCode()).isEqualTo("BILLING_PROVIDER_UNAVAILABLE"));
-        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
+        verify(repo,never()).syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString());
         clearInvocations(stripe); service.credits("u"); service.history("u",0);
         verifyNoInteractions(stripe);
     }
@@ -392,7 +393,7 @@ class BillingScenarioRegressionTest {
             .set("price",json.createObjectNode().put("id","price_creator")));
         when(stripe.subscriptions("cus_u")).thenReturn(list);
         assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
-        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
+        verify(repo,never()).syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString());
     }
 
     @Test void C21_checkoutContentionStopsAfterThreeRoundsWithoutCreatingAnotherSession() throws Exception {

@@ -305,8 +305,11 @@ public class MusicBillingService {
         }
     }
     private Map<String,Object> refreshSubscription(String user,String customer) {
+        String token=UUID.randomUUID().toString();
+        repo.beginSubscriptionRead(user,token);
         Map<String,Object> active=activeSubscription(stripe.subscriptions(customer));
-        repo.syncSubscription(PROVIDER,user,active==null?null:String.valueOf(active.get("id")),active==null?null:String.valueOf(active.get("status")),active!=null && Boolean.TRUE.equals(active.get("cancelAtPeriodEnd")));
+        if(!repo.syncSubscriptionRead(PROVIDER,user,active==null?null:String.valueOf(active.get("id")),active==null?null:String.valueOf(active.get("status")),active!=null && Boolean.TRUE.equals(active.get("cancelAtPeriodEnd")),token))
+            throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_RETRY","Subscription changed during this request. Please refresh.");
         return active;
     }
     private Map<String,Object> activeSubscription(JsonNode list) {

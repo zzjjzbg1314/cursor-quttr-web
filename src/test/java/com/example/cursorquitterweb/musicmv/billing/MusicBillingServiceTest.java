@@ -17,6 +17,7 @@ class MusicBillingServiceTest {
         settings=new BillingSettings(); settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
         settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";settings.siteUrl="http://localhost:3000";
         repo=mock(BillingRepository.class); stripe=mock(StripeGateway.class);service=new MusicBillingService(settings,repo,stripe,json);
+        when(repo.syncSubscriptionRead(anyString(),anyString(),any(),any(),anyBoolean(),anyString())).thenReturn(true);
     }
     @Test void reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase() {
         when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("unused_welcome_id","gift","welcome_remaining",10));
@@ -148,7 +149,7 @@ class MusicBillingServiceTest {
         when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[{\"id\":\"sub_1\",\"status\":\"canceled\",\"latest_invoice\":\"in_old\"}]}"));
         assertThat(service.status("u")).doesNotContainKey("subscription");
         verify(stripe,never()).invoice(anyString());
-        verify(repo).syncSubscription("stripe","u",null,null,false);
+        verify(repo).syncSubscriptionRead(eq("stripe"),eq("u"),isNull(),isNull(),eq(false),anyString());
     }
     @Test void unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix() throws Exception {
         paidCheckoutFixture("price_changed");
@@ -269,7 +270,7 @@ class MusicBillingServiceTest {
         assertThat(shown.get("cancelAt")).isEqualTo(end);
         assertThat(shown.get("periodEnd")).isEqualTo(end);
         assertThat(result).containsEntry("remaining",10);
-        verify(repo).syncSubscription("stripe","u","sub_1","active",true);
+        verify(repo).syncSubscriptionRead(eq("stripe"),eq("u"),eq("sub_1"),eq("active"),eq(true),anyString());
         subscription.putNull("cancel_at");
         java.util.Map<String,Object> resumed=service.status("u");
         java.util.Map<?,?> restored=(java.util.Map<?,?>)resumed.get("subscription");
@@ -277,7 +278,7 @@ class MusicBillingServiceTest {
         assertThat(restored.get("cancelAt")).isNull();
         assertThat(restored.get("periodEnd")).isEqualTo(end);
         assertThat(resumed).containsEntry("remaining",10);
-        verify(repo).syncSubscription("stripe","u","sub_1","active",false);
+        verify(repo).syncSubscriptionRead(eq("stripe"),eq("u"),eq("sub_1"),eq("active"),eq(false),anyString());
         verify(repo,never()).revoke(anyString(),anyString());
     }
     @Test void anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout() {
@@ -434,7 +435,7 @@ class MusicBillingServiceTest {
         when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"));
         String payload=event("customer.subscription.updated","{\"customer\":\"cus_1\",\"status\":\"active\"}",false);
         service.webhook(payload,sign(payload,Instant.now().getEpochSecond()));
-        verify(repo).syncSubscription("stripe","u",null,null,false);
+        verify(repo).syncSubscriptionRead(eq("stripe"),eq("u"),isNull(),isNull(),eq(false),anyString());
         verify(repo).processed("stripe","evt_1","customer.subscription.updated");
     }
     @Test void creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery() {

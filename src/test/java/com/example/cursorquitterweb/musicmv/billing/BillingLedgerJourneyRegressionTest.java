@@ -342,7 +342,7 @@ class BillingLedgerJourneyRegressionTest {
 
     @ParameterizedTest(name="R18 旧查询晚返回={0}")
     @ValueSource(strings={"empty","canceled-flag","old-subscription"})
-    void R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot(String staleKind) throws Exception {
+    void R18_lateSubscriptionQueryCannotOverwriteNewerSnapshot(String staleKind) throws Exception {
         SqliteClient db=new SqliteClient(directory.resolve("stale-snapshot.sqlite"));
         BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
         BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
@@ -372,11 +372,9 @@ class BillingLedgerJourneyRegressionTest {
             assertThat(captured.await(5,TimeUnit.SECONDS)).isTrue();
             fast.status("u");
             assertThat(ledger.subscription("u")).containsEntry("subscription_id","sub_new").containsEntry("cancel_at_period_end",0);
-            release.countDown();pending.get(5,TimeUnit.SECONDS);
+            release.countDown();assertThatThrownBy(()->pending.get(5,TimeUnit.SECONDS)).hasCauseInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
             Map<String,Object> finalSnapshot=ledger.subscription("u");
-            if(staleKind.equals("empty"))assertThat(finalSnapshot).containsEntry("subscription_id",null).containsEntry("status",null);
-            else if(staleKind.equals("canceled-flag"))assertThat(finalSnapshot).containsEntry("subscription_id","sub_new").containsEntry("cancel_at_period_end",1);
-            else assertThat(finalSnapshot).containsEntry("subscription_id","sub_old");
+            assertThat(finalSnapshot).containsEntry("subscription_id","sub_new").containsEntry("cancel_at_period_end",0).containsEntry("status","active");
             assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isZero();
         } finally {release.countDown();worker.shutdownNow();assertThat(worker.awaitTermination(5,TimeUnit.SECONDS)).isTrue();}
     }
