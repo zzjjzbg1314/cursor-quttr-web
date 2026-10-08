@@ -1,6 +1,8 @@
 package com.example.cursorquitterweb.musicmv.billing;
 
 import com.example.cursorquitterweb.musicmv.service.D1DatabaseClient;
+import com.example.cursorquitterweb.musicmv.aimusic.*;
+import com.example.cursorquitterweb.musicmv.repository.AiMusicJobRepository;
 import com.example.cursorquitterweb.musicmv.service.D1QueryResult;
 import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -136,6 +138,60 @@ class BillingLedgerJourneyRegressionTest {
         verifyNoInteractions(stripe);
     }
 
+    @ParameterizedTest(name="I10/I11 终态={0} 结算中断={1}")
+    @CsvSource({"completed,false","failed,false","completed,true","failed,true"})
+    void terminalCallbackAndInterruptedSettlementKeepJobsAndLedgerConsistent(String terminal,boolean interrupt) {
+        AtomicBoolean failNextSettlement=new AtomicBoolean(false);
+        SqliteClient db=new SqliteClient(directory.resolve("terminal.sqlite")) {
+            @Override public D1QueryResult query(String sql,Object...params) {
+                if(sql.startsWith("UPDATE music_mv_billing_reservations SET state=?")&&failNextSettlement.compareAndSet(true,false))
+                    throw new IllegalStateException("测试注入一次结算写入中断");
+                return super.query(sql,params);
+            }
+        };
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        BillingRepository ledger=new BillingRepository(db);
+        MusicBillingService billing=new MusicBillingService(settings,ledger,mock(StripeGateway.class),json);
+        ledger.ensureWelcomeCredits("u");ledger.ensureWelcomeCredits("other");
+        ledger.reserve("u","r","j",150,10);ledger.reserve("other","r_other","j_other",150,10);
+        for(String owner:Arrays.asList("u","other")) {
+            String job=owner.equals("u")?"j":"j_other";
+            db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES(?,?,?,'2026-10-08','2026-10-08','2026-10-08')",owner,owner,owner);
+            db.query("INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,active_attempt_id,request_fingerprint,request_json,created_at,updated_at) VALUES(?,?,?,?,?,'queued','sunoapi',?,'fp','{}','2026-10-08','2026-10-08')",
+                job,owner,owner,"req_"+owner,owner.equals("u")?"queued":"failed","attempt_"+owner);
+            db.query("INSERT INTO ai_music_provider_attempts(attempt_id,job_id,provider_code,provider_task_id,status,attempt_number,request_json,created_at,updated_at) VALUES(?,?,'sunoapi',?,'queued',1,'{}','2026-10-08','2026-10-08')","attempt_"+owner,job,"task_"+owner);
+        }
+        AiMusicJobRepository jobs=new AiMusicJobRepository(db);
+        AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        AiMusicCandidateStorageService storage=mock(AiMusicCandidateStorageService.class);
+        AiMusicGenerationService music=new AiMusicGenerationService(jobs,providers,storage,json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        AiMusicProvider.TaskSnapshot first=new AiMusicProvider.TaskSnapshot();first.setProviderTaskId("task_u");first.setStatus(terminal);
+        try {
+            failNextSettlement.set(interrupt);
+            if(interrupt) {
+                assertThatThrownBy(()->music.acceptProviderCallback("sunoapi","j",first)).isInstanceOf(IllegalStateException.class);
+                assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='j'").firstRow()).containsEntry("state","reserved");
+            } else music.acceptProviderCallback("sunoapi","j",first);
+            assertThat(jobs.byId("j")).containsEntry("status",terminal);
+            String settled=terminal.equals("completed")?"consumed":"released";
+            Map<String,Object> balance=billing.credits("u");
+            assertThat(((Number)balance.get("remaining")).intValue()).isEqualTo(terminal.equals("completed")?0:10);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='j'").firstRow()).containsEntry("state",settled);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='j_other'").firstRow()).containsEntry("state","reserved");
+            AiMusicProvider.TaskSnapshot late=new AiMusicProvider.TaskSnapshot();late.setProviderTaskId("task_u");late.setStatus(terminal.equals("completed")?"failed":"completed");
+            music.acceptProviderCallback("sunoapi","j",late);
+            music.acceptProviderCallback("sunoapi","j",first);
+            jobs.applySnapshot("j","attempt_u",late.getStatus(),"{}",null,null,false);
+            assertThat(jobs.byId("j")).containsEntry("status",terminal);
+            assertThat(db.query("SELECT status FROM ai_music_provider_attempts WHERE attempt_id='attempt_u'").firstRow()).containsEntry("status",terminal);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='j'").firstRow()).containsEntry("state",settled);
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE user_id='u'")).isEqualTo(1);
+            assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(terminal.equals("completed")?0:10);
+            verifyNoInteractions(providers,storage);
+        } finally { music.close(); }
+    }
+
     private int count(SqliteClient db,String sql){return ((Number)db.query(sql).firstRow().get("n")).intValue();}
     private ObjectNode session(String status){return json.createObjectNode().put("id","cs_test_fixture").put("status",status)
         .put("client_reference_id","u").put("customer","cus_u").put("livemode",false).put("mode","subscription")
@@ -160,7 +216,7 @@ class BillingLedgerJourneyRegressionTest {
             String script=String.join("\n","import sqlite3,json,sys,pathlib",
                 "d=sqlite3.connect(sys.argv[1]);d.row_factory=sqlite3.Row;d.execute('PRAGMA foreign_keys=ON')",
                 "d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
-                "d.execute('CREATE TABLE IF NOT EXISTS ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')",
+                "d.executescript(pathlib.Path('src/main/resources/db/music-mv-d1-schema.sql').read_text())",
                 "result=[]",
                 "with d:"," for s in json.loads(sys.argv[2]): result.append([dict(r) for r in d.execute(s['sql'],s['params']).fetchall()])",
                 "print(json.dumps(result))");
