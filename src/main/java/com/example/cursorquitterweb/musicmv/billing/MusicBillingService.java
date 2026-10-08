@@ -61,7 +61,18 @@ public class MusicBillingService {
         }
         Map<String,Object> customer=repo.customer(PROVIDER,user);
         result.put("canManage",customer!=null);
-        if(customer!=null) result.put("subscription",refreshSubscription(user,text(customer,"customer_id")));
+        Map<String,Object> currentSubscription=customer==null?null:refreshSubscription(user,text(customer,"customer_id"));
+        String latestInvoice=currentSubscription==null?"":text(currentSubscription,"_latestInvoice");
+        if(currentSubscription!=null) {
+            currentSubscription.remove("_latestInvoice");
+            result.put("subscription",currentSubscription);
+            if(!latestInvoice.isEmpty()) {
+                if(reconcileSubscriptionInvoice(user,text(customer,"customer_id"),text(currentSubscription,"id"),latestInvoice))
+                    result.putAll(credits(user));
+            }
+        }
+        // 日常刷新直接核对订阅最新发票，不再依赖首购收银台仍可读取。
+        if((checkoutId==null || checkoutId.isEmpty()) && !latestInvoice.isEmpty()) return result;
         if(checkoutId==null || checkoutId.isEmpty()) {
             Map<String,Object> saved=repo.subscription(user);
             if(saved!=null && PROVIDER.equals(text(saved,"provider"))) checkoutId=text(saved,"checkout_id");
@@ -211,13 +222,27 @@ public class MusicBillingService {
         // 发放与撤回本身幂等；中途失败返回非成功，由 Stripe 重试。
         repo.processed(PROVIDER,id,type);
     }
-    private void grantInvoice(JsonNode invoice) {
+    private boolean reconcileSubscriptionInvoice(String user,String customer,String subscription,String invoiceId) {
+        if(repo.paymentGranted(user,invoiceId)) return false;
+        JsonNode invoice=stripe.invoice(invoiceId);
+        if(!invoiceId.equals(invoice.path("id").asText()) || !customer.equals(invoice.path("customer").asText())
+                || !user.equals(repo.owner(PROVIDER,customer)) || !invoice.has("livemode") || invoice.path("livemode").asBoolean()!=settings.live()
+                || !subscription.equals(invoice.path("parent").path("subscription_details").path("subscription").asText()))
+            throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Subscription invoice ownership could not be verified.");
+        // 未付款或差价发票不授予月度额度；迟到回调与刷新共用发票唯一键。
+        String reason=invoice.path("billing_reason").asText();
+        if(!"paid".equals(invoice.path("status").asText()) || (!"subscription_create".equals(reason) && !"subscription_cycle".equals(reason))) return false;
+        grantInvoice(invoice,false);
+        return true;
+    }
+    private void grantInvoice(JsonNode invoice) { grantInvoice(invoice,true); }
+    private void grantInvoice(JsonNode invoice,boolean refresh) {
         if(!invoice.has("livemode") || invoice.path("livemode").asBoolean()!=settings.live() || !"paid".equals(invoice.path("status").asText())) throw new IllegalStateException("Unexpected invoice state");
         String reason=invoice.path("billing_reason").asText();
         if(!"subscription_create".equals(reason) && !"subscription_cycle".equals(reason)) return;
         String user=repo.owner(PROVIDER,invoice.path("customer").asText());
         if(user==null) throw new IllegalStateException("Unmapped billing customer");
-        refreshSubscription(user,invoice.path("customer").asText());
+        if(refresh) refreshSubscription(user,invoice.path("customer").asText());
         if(invoice.path("lines").path("has_more").asBoolean()) throw new IllegalStateException("Unsupported invoice lines");
         JsonNode allowanceLine=null;
         for(JsonNode line:invoice.path("lines").path("data")) {
@@ -255,7 +280,7 @@ public class MusicBillingService {
         for(JsonNode sub:list.path("data")) {
             String status=sub.path("status").asText();
             if(!"canceled".equals(status) && !"incomplete_expired".equals(status))
-                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub));
+                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub),"_latestInvoice",sub.path("latest_invoice").asText(""));
         }
         return null;
     }

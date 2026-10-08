@@ -88,6 +88,68 @@ class MusicBillingServiceTest {
         }
         verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
     }
+    private void renewalFixture(String status,String invoiceStatus,String price) throws Exception {
+        paidCheckoutFixture(price);
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[{\"id\":\"sub_1\",\"status\":\""+status+"\",\"latest_invoice\":\"in_renewal\",\"items\":{\"data\":[{\"price\":{\"id\":\""+price+"\"},\"current_period_end\":200}]}}]}"));
+        com.fasterxml.jackson.databind.node.ObjectNode invoice=(com.fasterxml.jackson.databind.node.ObjectNode)stripe.invoice("in_1").deepCopy();
+        invoice.put("id","in_renewal").put("billing_reason","subscription_cycle").put("status",invoiceStatus);
+        when(stripe.invoice("in_renewal")).thenReturn(invoice);
+    }
+    @Test void latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId() throws Exception {
+        renewalFixture("active","paid","price_creator");
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10),map("remaining",1010));
+        when(repo.paymentGranted("u","in_renewal")).thenReturn(false,true);
+        java.util.Map<String,Object> result=service.status("u");
+        assertThat(result).containsEntry("remaining",1010);
+        assertThat(((java.util.Map<?,?>)result.get("subscription")).containsKey("_latestInvoice")).isFalse();
+        service.status("u");
+        verify(repo,times(1)).grant("stripe","in_renewal","u","sub_1","creator",1000,100,200);
+        verify(stripe,never()).checkoutSession(anyString());
+        verify(stripe,times(1)).invoice("in_renewal");
+        verify(stripe,times(2)).subscriptions("cus_1");
+    }
+    @Test void failedOrPendingRenewalPreservesStatusAndNeverGrants() throws Exception {
+        for(String status:new String[]{"past_due","unpaid","incomplete","paused"}) {
+            renewalFixture(status,"open","price_starter");
+            when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10));
+            java.util.Map<String,Object> result=service.status("u");
+            assertThat(result).containsEntry("remaining",10);
+            assertThat(((java.util.Map<?,?>)result.get("subscription")).get("status")).isEqualTo(status);
+        }
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void foreignOrWrongEnvironmentRenewalCannotGrant() throws Exception {
+        for(String field:new String[]{"customer","subscription","livemode","id"}) {
+            renewalFixture("active","paid","price_starter");
+            com.fasterxml.jackson.databind.node.ObjectNode invoice=(com.fasterxml.jackson.databind.node.ObjectNode)stripe.invoice("in_renewal");
+            if(field.equals("livemode")) invoice.put(field,true);
+            else if(field.equals("subscription")) ((com.fasterxml.jackson.databind.node.ObjectNode)invoice.path("parent").path("subscription_details")).put(field,"sub_other");
+            else invoice.put(field,"other");
+            assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
+        }
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void paidProrationDoesNotReceiveMonthlyAllowance() throws Exception {
+        renewalFixture("active","paid","price_creator");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)stripe.invoice("in_renewal")).put("billing_reason","subscription_update");
+        service.status("u");
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity() throws Exception {
+        renewalFixture("active","paid","price_starter");
+        service.status("u");
+        String payload=event("invoice.paid","{\"id\":\"in_renewal\"}",false);
+        service.webhook(payload,sign(payload,Instant.now().getEpochSecond()));
+        verify(repo,times(2)).grant("stripe","in_renewal","u","sub_1","starter",300,100,200);
+        verify(repo).processed("stripe","evt_1","invoice.paid");
+    }
+    @Test void endedSubscriptionDoesNotReconcileInvoicesAndAllowsPlanSelection() throws Exception {
+        checkoutCustomer();
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[{\"id\":\"sub_1\",\"status\":\"canceled\",\"latest_invoice\":\"in_old\"}]}"));
+        assertThat(service.status("u")).doesNotContainKey("subscription");
+        verify(stripe,never()).invoice(anyString());
+        verify(repo).syncSubscription("stripe","u",null,null,false);
+    }
     @Test void unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix() throws Exception {
         paidCheckoutFixture("price_changed");
         String payload=event("invoice.paid","{\"id\":\"in_1\"}",false);
