@@ -179,6 +179,12 @@ class MusicBillingServiceTest {
                 .containsEntry("reserved",20).containsEntry("periodEnd",200L);
         verifyNoInteractions(stripe);
     }
+    @Test void subscriptionDateUsesStripeItemPeriodInsteadOfCreditGrantExpiry() throws Exception {
+        checkoutCustomer();
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("period_end",200L));
+        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[{\"id\":\"sub_1\",\"status\":\"active\",\"items\":{\"data\":[{\"price\":{\"id\":\"price_starter\"},\"current_period_end\":300}]}}]}"));
+        assertThat(((java.util.Map<?,?>)service.status("u").get("subscription")).get("periodEnd")).isEqualTo(300L);
+    }
     @Test void cancellationKeepsPaidPeriodAndDoesNotRevokeCredits() throws Exception {
         when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",20,"reserved",0,"allowance",300,"period_end",200L));
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));

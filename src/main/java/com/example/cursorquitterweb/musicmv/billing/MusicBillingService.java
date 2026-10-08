@@ -255,7 +255,16 @@ public class MusicBillingService {
         for(JsonNode sub:list.path("data")) {
             String status=sub.path("status").asText();
             if(!"canceled".equals(status) && !"incomplete_expired".equals(status))
-                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub));
+                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub));
+        }
+        return null;
+    }
+    private Long subscriptionPeriodEnd(JsonNode sub) {
+        for(JsonNode item:sub.path("items").path("data")) {
+            if(settings.allowance(item.path("price").path("id").asText())>0) {
+                long end=item.path("current_period_end").asLong();
+                return end>0?end:null;
+            }
         }
         return null;
     }
