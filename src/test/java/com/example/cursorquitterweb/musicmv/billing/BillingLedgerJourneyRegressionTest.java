@@ -70,6 +70,15 @@ class BillingLedgerJourneyRegressionTest {
         send(service,settings,"evt_paid","invoice.paid",json.createObjectNode().put("id","in_u"));
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'" )).isEqualTo(1);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events WHERE event_id='evt_paid'" )).isEqualTo(1);
+        send(service,settings,"evt_paid_second","invoice.paid",json.createObjectNode().put("id","in_u"));
+        assertThat(service.status("u","cs_test_fixture")).containsEntry("paymentConfirmed",true).containsEntry("remaining",allowance+10);
+        assertThat(service.credits("u")).containsEntry("remaining",allowance+10);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events WHERE event_type='invoice.paid'")).isEqualTo(2);
+        @SuppressWarnings("unchecked") List<Map<String,Object>> income=(List<Map<String,Object>>)service.history("u",0).get("items");
+        assertThat(income).hasSize(2);
+        assertThat(income).extracting(row->row.get("kind")).containsExactlyInAnyOrder("welcome","subscription");
+        for(Map<String,Object> row:income)assertThat(((Number)row.get("amount")).intValue()).isEqualTo(row.get("kind").equals("welcome")?10:allowance);
         service.reserve("u","request_1","job_1");service.settle("job_1","completed");
         assertThat(((Number)service.credits("u").get("remaining")).intValue()).isEqualTo(allowance);
         assertThat(db.query("SELECT g.payment_id FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.job_id='job_1'").firstRow()).containsEntry("payment_id","in_u");
