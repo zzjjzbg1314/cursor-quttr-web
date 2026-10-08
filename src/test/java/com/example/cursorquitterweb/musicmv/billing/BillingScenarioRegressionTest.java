@@ -443,6 +443,16 @@ class BillingScenarioRegressionTest {
         verify(repo).processed("stripe","evt_fixture","invoice.paid");
     }
 
+    @Test void K02_unknownHistoryFiltersAreRejectedWithoutDatabaseOrProviderCalls() {
+        for(String kind:new String[]{null,"","ALL","unknown","welcome; DROP TABLE ledger","' OR 1=1 --"})
+            assertThatThrownBy(()->service.history("u",0,kind)).isInstanceOfSatisfying(ApiException.class,
+                e->{assertThat(e.getStatus().value()).isEqualTo(400);assertThat(e.getCode()).isEqualTo("BILLING_HISTORY_INVALID");});
+        verifyNoInteractions(repo,stripe);
+        when(repo.history("u",21,0,"all")).thenReturn(java.util.Collections.emptyList());
+        assertThat(service.history("u",0,"all")).containsEntry("hasMore",false);
+        verify(repo).history("u",21,0,"all");
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");

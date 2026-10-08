@@ -49,12 +49,17 @@ class BillingScenarioHttpRegressionTest {
     void malformedOrAbsentBodyCannotReachBilling(String endpoint) throws Exception {
         mvc.perform(post(base(endpoint)).contentType("application/json").content("{")).andExpect(status().isBadRequest());
         mvc.perform(post(base(endpoint)).contentType("application/json")).andExpect(status().isBadRequest());
+        for(String body:new String[]{"[]","true","42","\"scalar\"","null"})
+            mvc.perform(post(base(endpoint)).contentType("application/json").content(body)).andExpect(status().isBadRequest());
         verifyNoInteractions(billing);
     }
 
     @Test void B08_nonNumericOffsetAndWrongMethodAreRejected() throws Exception {
         mvc.perform(get(base("history")).param("offset","abc")).andExpect(status().isBadRequest());
-        mvc.perform(get(base("checkout"))).andExpect(status().isMethodNotAllowed());
+        for(String endpoint:new String[]{"checkout","portal","welcome-notice/ack"})
+            mvc.perform(get(base(endpoint))).andExpect(status().isMethodNotAllowed());
+        for(String endpoint:new String[]{"credits","history","usage","status"})
+            mvc.perform(post(base(endpoint)).contentType("application/json").content("{}")).andExpect(status().isMethodNotAllowed());
         verifyNoInteractions(billing);
     }
 
