@@ -3122,9 +3122,11 @@
       "priority": "P1",
       "action": "沙盒回调真实端点经www/CDN/WAF/代理",
       "expected": "直达2xx，不301/308或登录重定向；保留原文及Stripe-Signature",
-      "status": "沙盒待环境",
-      "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "status": "部分验证",
+      "evidence": [
+        "currentPaymentReadOnlyAudit:invoice.paid processed and pending_webhooks=0"
+      ],
+      "limitations": "已知真实沙盒事件在D1处理成功且Stripe pending_webhooks=0；未核对每次HTTP投递路径、响应码及其他事件，不代表全链路重试全部验收。"
     },
     {
       "id": "F16",
@@ -3389,9 +3391,11 @@
       "priority": "P1",
       "action": "门户查看账单/更新卡/账期末取消/返回站点",
       "expected": "权限与商户配置一致；回站同步真实状态；账本不多授",
-      "status": "沙盒待环境",
-      "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "status": "部分验证",
+      "evidence": [
+        "onlineBrowserRegression:Portal账单与返回"
+      ],
+      "limitations": "真实Portal套餐/已付账单可见，返回/pricing恢复310已验证；改卡与确认取消尚未执行。"
     },
     {
       "id": "H06",
@@ -4022,9 +4026,9 @@
     "本地核心通过": 55,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 11,
-    "部分验证": 87,
+    "部分验证": 89,
     "已确认边界": 6,
-    "沙盒待环境": 11,
+    "沙盒待环境": 9,
     "边界已复现": 3
   },
   "totalBackendTests": 261,
@@ -4065,6 +4069,11 @@
         "scenario": "管理订阅跳转",
         "result": "通过",
         "evidence": "线上点击管理订阅成功进入Stripe沙盒Portal，Starter 9.99/月、下个账单2026-11-08、已付账单记录与站内一致。取消入口能进入原因选择页；未提交取消。"
+      },
+      {
+        "scenario": "Portal返回订阅页",
+        "result": "通过",
+        "evidence": "返回/pricing后恢复轻享版、已订阅、310积分及11月8日续费日期；没有提交取消。"
       }
     ]
   },
@@ -4075,5 +4084,84 @@
     "43e1021",
     "7c1e847",
     "frontend:9c1f604"
-  ]
+  ],
+  "currentPaymentReadOnlyAudit": {
+    "database": {
+      "queriedAtUtc": "2026-10-08T12:59:43.917922+00:00",
+      "configuration": "existing-local-run-configuration",
+      "readOnly": true,
+      "observations": {
+        "grant": [
+          [
+            {
+              "allowance": 300,
+              "period_start": 1791439647,
+              "period_end": 1794118047,
+              "revoked": 0,
+              "created_at": "2026-10-08 06:41:55"
+            }
+          ]
+        ],
+        "event": [
+          [
+            {
+              "event_type": "invoice.paid",
+              "processed_at": "2026-10-08 07:08:24"
+            }
+          ]
+        ],
+        "subscription": [
+          [
+            {
+              "provider": "stripe",
+              "status": "active",
+              "cancel_at_period_end": 0
+            }
+          ]
+        ],
+        "reservations": [
+          []
+        ],
+        "grants": [
+          [
+            {
+              "provider": "internal",
+              "plan_key": "welcome",
+              "count": 1,
+              "allowance": 10
+            },
+            {
+              "provider": "stripe",
+              "plan_key": "starter",
+              "count": 1,
+              "allowance": 300
+            }
+          ]
+        ]
+      }
+    },
+    "stripe": {
+      "invoices": {
+        "status": "paid",
+        "livemode": false,
+        "amount_paid": 999,
+        "currency": "usd",
+        "billing_reason": "subscription_create",
+        "status_transitions": {
+          "finalized_at": 1791439647,
+          "marked_uncollectible_at": null,
+          "paid_at": 1791439647,
+          "voided_at": null
+        }
+      },
+      "events": {
+        "type": "invoice.paid",
+        "livemode": false,
+        "created": 1791439650,
+        "pending_webhooks": 0
+      }
+    },
+    "mutations": 0,
+    "limitations": "现有运行配置选择的D1；读到已知原始发票/事件和当前用户数据，与站内310一致。未检查全部Stripe投递尝试和请求日志，不断言首次grant具体入口。"
+  }
 }
