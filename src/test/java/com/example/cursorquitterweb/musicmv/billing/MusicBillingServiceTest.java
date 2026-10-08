@@ -36,15 +36,83 @@ class MusicBillingServiceTest {
         assertThat(service.credits("u")).containsEntry("remaining",10).containsEntry("welcomeRemaining",10).containsEntry("available",true).containsEntry("checkoutAvailable",false);
         verify(repo).refreshBalance(eq("u"),anyLong());verifyNoInteractions(stripe);
     }
-    @Test void checkoutConfirmationRequiresOwnedSessionAndPersistedGrant() throws Exception {
-        when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
-        when(stripe.subscriptions("cus_1")).thenReturn(json.readTree("{\"data\":[]}"));
-        when(stripe.checkoutSession("cs_test_1")).thenReturn(json.readTree("{\"customer\":\"cus_1\",\"client_reference_id\":\"u\",\"livemode\":false,\"payment_status\":\"paid\",\"invoice\":\"in_1\"}"));
+    private void paidCheckoutFixture(String price) throws Exception {
+        checkoutCustomer();
+        when(repo.owner("stripe","cus_1")).thenReturn("u");
+        JsonNode paid=session("cs_test_1","complete");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)paid).put("payment_status","paid").put("invoice","in_1").put("subscription","sub_1");
+        when(stripe.checkoutSession("cs_test_1")).thenReturn(paid);
+        when(stripe.invoice("in_1")).thenReturn(json.readTree("{\"id\":\"in_1\",\"livemode\":false,\"status\":\"paid\",\"billing_reason\":\"subscription_create\",\"customer\":\"cus_1\",\"parent\":{\"subscription_details\":{\"subscription\":\"sub_1\"}},\"lines\":{\"data\":[{\"quantity\":1,\"pricing\":{\"price_details\":{\"price\":\""+price+"\"}},\"parent\":{\"subscription_item_details\":{\"subscription\":\"sub_1\"}},\"period\":{\"start\":100,\"end\":200}}]}}"));
+    }
+    @Test void paidCheckoutRepairsMissingGrantAndReturnsFreshBalance() throws Exception {
+        paidCheckoutFixture("price_starter");
+        when(repo.paymentGranted("u","in_1")).thenReturn(false,true);
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10),map("remaining",310));
+        assertThat(service.status("u","cs_test_1")).containsEntry("paymentConfirmed",true).containsEntry("remaining",310);
+        verify(repo).grant("stripe","in_1","u","sub_1","starter",300,100,200);
+        service.status("u","cs_test_1");
+        verify(stripe,times(1)).invoice("in_1");
+        verify(repo,times(1)).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void ordinaryStatusRecoversSavedOrderWithoutReturnQuery() throws Exception {
+        paidCheckoutFixture("price_creator");
+        when(repo.subscription("u")).thenReturn(pending("creator",200,"cs_test_1"));
+        when(repo.paymentGranted("u","in_1")).thenReturn(false,true);
+        assertThat(service.status("u")).containsEntry("paymentConfirmed",true);
+        verify(repo).grant("stripe","in_1","u","sub_1","creator",1000,100,200);
+    }
+    @Test void unpaidCheckoutNeverRetrievesInvoiceOrGrants() throws Exception {
+        paidCheckoutFixture("price_starter");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)stripe.checkoutSession("cs_test_1")).put("payment_status","unpaid");
         assertThat(service.status("u","cs_test_1")).containsEntry("paymentConfirmed",false);
-        when(repo.paymentGranted("u","in_1")).thenReturn(true);
-        assertThat(service.status("u","cs_test_1")).containsEntry("paymentConfirmed",true);
-        when(stripe.checkoutSession("cs_test_1")).thenReturn(json.readTree("{\"customer\":\"cus_1\",\"client_reference_id\":\"other\",\"livemode\":false}"));
+        verify(stripe,never()).invoice(anyString());
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void foreignCheckoutOrInvoiceCannotGrant() throws Exception {
+        for(String field:new String[]{"client_reference_id","customer","subscription"}) {
+            paidCheckoutFixture("price_starter");
+            ((com.fasterxml.jackson.databind.node.ObjectNode)stripe.checkoutSession("cs_test_1")).put(field,"other");
+            assertThatThrownBy(()->service.status("u","cs_test_1")).isInstanceOf(ApiException.class);
+        }
+        paidCheckoutFixture("price_starter");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)stripe.invoice("in_1")).put("customer","cus_other");
         assertThatThrownBy(()->service.status("u","cs_test_1")).isInstanceOf(ApiException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void invalidInvoiceStateNeverGrantsDuringReconciliation() throws Exception {
+        for(String field:new String[]{"status","livemode"}) {
+            paidCheckoutFixture("price_starter");
+            com.fasterxml.jackson.databind.node.ObjectNode invoice=(com.fasterxml.jackson.databind.node.ObjectNode)stripe.invoice("in_1");
+            if(field.equals("status")) invoice.put(field,"open");else invoice.put(field,true);
+            assertThatThrownBy(()->service.status("u","cs_test_1")).isInstanceOf(IllegalStateException.class);
+        }
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+    @Test void unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix() throws Exception {
+        paidCheckoutFixture("price_changed");
+        String payload=event("invoice.paid","{\"id\":\"in_1\"}",false);
+        assertThatThrownBy(()->service.webhook(payload,sign(payload,Instant.now().getEpochSecond()))).isInstanceOf(ApiException.class);
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
+        settings.starterPrice="price_changed";
+        service.webhook(payload,sign(payload,Instant.now().getEpochSecond()));
+        verify(repo).grant("stripe","in_1","u","sub_1","starter",300,100,200);
+        verify(repo).processed("stripe","evt_1","invoice.paid");
+    }
+    @Test void malformedOrAmbiguousAllowanceDoesNotGrantOrAcknowledge() throws Exception {
+        for(String issue:new String[]{"empty","quantity","period","duplicate","subscription"}) {
+            paidCheckoutFixture("price_starter");
+            com.fasterxml.jackson.databind.node.ArrayNode lines=(com.fasterxml.jackson.databind.node.ArrayNode)stripe.invoice("in_1").path("lines").path("data");
+            com.fasterxml.jackson.databind.node.ObjectNode line=(com.fasterxml.jackson.databind.node.ObjectNode)lines.get(0);
+            if(issue.equals("empty")) lines.removeAll();
+            if(issue.equals("quantity")) line.put("quantity",2);
+            if(issue.equals("period")) ((com.fasterxml.jackson.databind.node.ObjectNode)line.path("period")).put("end",99);
+            if(issue.equals("duplicate")) lines.add(line.deepCopy());
+            if(issue.equals("subscription")) ((com.fasterxml.jackson.databind.node.ObjectNode)line.path("parent").path("subscription_item_details")).put("subscription","sub_other");
+            String payload=event("invoice.paid","{\"id\":\"in_1\"}",false);
+            assertThatThrownBy(()->service.webhook(payload,sign(payload,Instant.now().getEpochSecond()))).isInstanceOf(ApiException.class);
+        }
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
     }
     @Test void liveModeMustBeExplicitAndMatchTheKey() {
         settings.secretKey="sk_live_fixture";assertThat(settings.ready()).isFalse();

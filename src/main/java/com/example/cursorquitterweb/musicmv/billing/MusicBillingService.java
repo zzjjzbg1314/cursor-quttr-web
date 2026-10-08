@@ -52,25 +52,40 @@ public class MusicBillingService {
         if(settings.enabled) { result.put("totals",repo.usage(user));result.put("generations",repo.generationSpend(user)); }
         return result;
     }
-    public Map<String,Object> status(String user) {
+    public Map<String,Object> status(String user) { return status(user,null); }
+    public Map<String,Object> status(String user,String checkoutId) {
         Map<String,Object> result=credits(user);
-        if(!settings.ready()) return result;
+        if(!settings.ready()) {
+            if(checkoutId!=null && !checkoutId.isEmpty()) settings.requireReady();
+            return result;
+        }
         Map<String,Object> customer=repo.customer(PROVIDER,user);
         result.put("canManage",customer!=null);
         if(customer!=null) result.put("subscription",refreshSubscription(user,text(customer,"customer_id")));
-        return result;
-    }
-    public Map<String,Object> status(String user,String checkoutId) {
-        Map<String,Object> result=status(user);
+        if(checkoutId==null || checkoutId.isEmpty()) {
+            Map<String,Object> saved=repo.subscription(user);
+            if(saved!=null && PROVIDER.equals(text(saved,"provider"))) checkoutId=text(saved,"checkout_id");
+        }
         if(checkoutId==null || checkoutId.isEmpty()) return result;
-        settings.requireReady();
         if(!checkoutId.matches("cs_[A-Za-z0-9_]{1,240}")) throw error(HttpStatus.BAD_REQUEST,"BILLING_CHECKOUT_INVALID","Invalid checkout.");
         JsonNode session=stripe.checkoutSession(checkoutId);
-        Map<String,Object> customer=repo.customer(PROVIDER,user);
         if(customer==null || !user.equals(session.path("client_reference_id").asText()) || !text(customer,"customer_id").equals(session.path("customer").asText()) || !session.has("livemode") || session.path("livemode").asBoolean()!=settings.live())
             throw error(HttpStatus.NOT_FOUND,"BILLING_CHECKOUT_INVALID","Checkout not found.");
-        String invoice=session.path("invoice").asText();
-        result.put("paymentConfirmed","paid".equals(session.path("payment_status").asText()) && !invoice.isEmpty() && repo.paymentGranted(user,invoice));
+        String invoiceId=session.path("invoice").asText("");
+        boolean paid="complete".equals(session.path("status").asText()) && "subscription".equals(session.path("mode").asText())
+                && "paid".equals(session.path("payment_status").asText()) && !invoiceId.isEmpty();
+        if(paid && !repo.paymentGranted(user,invoiceId)) {
+            JsonNode invoice=stripe.invoice(invoiceId);
+            String subscription=session.path("subscription").asText("");
+            if(!invoiceId.equals(invoice.path("id").asText()) || !text(customer,"customer_id").equals(invoice.path("customer").asText())
+                    || !user.equals(repo.owner(PROVIDER,invoice.path("customer").asText())) || subscription.isEmpty()
+                    || !subscription.equals(invoice.path("parent").path("subscription_details").path("subscription").asText()))
+                throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Payment ownership could not be verified.");
+            // 仅使用渠道核实的已支付发票补偿，复用发票唯一键防止与回调重复发放。
+            grantInvoice(invoice);
+            result.putAll(credits(user));
+        }
+        result.put("paymentConfirmed",paid && repo.paymentGranted(user,invoiceId));
         return result;
     }
     public Map<String,Object> checkout(String user,String plan,String locale) {
@@ -204,18 +219,24 @@ public class MusicBillingService {
         if(user==null) throw new IllegalStateException("Unmapped billing customer");
         refreshSubscription(user,invoice.path("customer").asText());
         if(invoice.path("lines").path("has_more").asBoolean()) throw new IllegalStateException("Unsupported invoice lines");
+        JsonNode allowanceLine=null;
         for(JsonNode line:invoice.path("lines").path("data")) {
-            String price=line.path("pricing").path("price_details").path("price").asText();
-            int allowance=settings.allowance(price); if(allowance==0) continue;
             JsonNode details=line.path("parent").path("subscription_item_details");
-            if(details.path("proration").asBoolean() || line.path("quantity").asInt()!=1) continue;
-            String sub=details.path("subscription").asText();
-            if(sub.isEmpty()) sub=invoice.path("parent").path("subscription_details").path("subscription").asText();
-            long start=line.path("period").path("start").asLong(),end=line.path("period").path("end").asLong();
-            if(sub.isEmpty() || start<=0 || end<=start) throw new IllegalStateException("Invalid invoice allowance period");
-            repo.grant(PROVIDER,invoice.path("id").asText(),user,sub,price.equals(settings.starterPrice)?"starter":"creator",allowance,start,end);
-            return;
+            if(details.path("proration").asBoolean()) continue;
+            String price=line.path("pricing").path("price_details").path("price").asText();
+            if(settings.allowance(price)==0 || line.path("quantity").asInt()!=1 || allowanceLine!=null)
+                throw error(HttpStatus.BAD_GATEWAY,"BILLING_REVIEW_REQUIRED","Invoice allowance requires review.");
+            allowanceLine=line;
         }
+        if(allowanceLine==null) throw error(HttpStatus.BAD_GATEWAY,"BILLING_REVIEW_REQUIRED","Invoice allowance is missing.");
+        String price=allowanceLine.path("pricing").path("price_details").path("price").asText();
+        String sub=allowanceLine.path("parent").path("subscription_item_details").path("subscription").asText();
+        String invoiceSub=invoice.path("parent").path("subscription_details").path("subscription").asText();
+        if(sub.isEmpty()) sub=invoiceSub;
+        long start=allowanceLine.path("period").path("start").asLong(),end=allowanceLine.path("period").path("end").asLong();
+        if(sub.isEmpty() || (!invoiceSub.isEmpty() && !sub.equals(invoiceSub)) || start<=0 || end<=start)
+            throw error(HttpStatus.BAD_GATEWAY,"BILLING_REVIEW_REQUIRED","Invalid invoice allowance period.");
+        repo.grant(PROVIDER,invoice.path("id").asText(),user,sub,price.equals(settings.starterPrice)?"starter":"creator",settings.allowance(price),start,end);
     }
     private void requireStripeOwner(String user) {
         Map<String,Object> current=repo.subscription(user);
