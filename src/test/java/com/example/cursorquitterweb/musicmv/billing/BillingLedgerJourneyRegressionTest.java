@@ -690,6 +690,53 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(((Number)ledger.balance("u",150).get("remaining")).intValue()).isZero();
     }
 
+    @ParameterizedTest(name="F08 到账套餐={0} 写入中断={2}")
+    @CsvSource({"starter,300,grant_before","starter,300,grant_after","starter,300,processed_before","creator,1000,grant_before","creator,1000,grant_after","creator,1000,processed_before"})
+    void paidInvoiceWriteFailureRecreatedServiceCompletesExactlyOneGrant(String plan,int allowance,String point) throws Exception {
+        AtomicBoolean armed=new AtomicBoolean(false);
+        SqliteClient db=new SqliteClient(directory.resolve("paid-retry.sqlite")) {
+            @Override public D1QueryResult query(String sql,Object...params) {
+                boolean grant=sql.startsWith("INSERT INTO music_mv_billing_grants")&&sql.contains("EXISTS(SELECT 1 FROM music_mv_billing_revocations");
+                boolean processed=sql.startsWith("INSERT INTO music_mv_billing_events");
+                if(((point.startsWith("grant_")&&grant)||(point.equals("processed_before")&&processed))&&armed.compareAndSet(true,false)) {
+                    if(point.equals("grant_after"))super.query(sql,params);
+                    throw new IllegalStateException("测试注入付款到账写入响应中断");
+                }
+                return super.query(sql,params);
+            }
+        };
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
+        settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        ledger.saveCustomer("stripe","u","cus_u");ledger.ensureWelcomeCredits("u");
+        ledger.grant("stripe","in_other","other","sub_other","starter",300,100,200);
+        ObjectNode sub=json.createObjectNode().put("id","sub_u").put("status","active").put("cancel_at_period_end",false);
+        sub.set("items",json.createObjectNode().set("data",json.createArrayNode().add(json.createObjectNode().put("current_period_end",200).set("price",json.createObjectNode().put("id","price_"+plan)))));
+        when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(sub)));
+        ObjectNode invoice=json.createObjectNode().put("id","in_u").put("customer","cus_u").put("livemode",false).put("status","paid").put("billing_reason","subscription_create");
+        invoice.set("parent",json.createObjectNode().set("subscription_details",json.createObjectNode().put("subscription","sub_u")));
+        ObjectNode line=json.createObjectNode().put("quantity",1);
+        line.set("pricing",json.createObjectNode().set("price_details",json.createObjectNode().put("price","price_"+plan)));
+        line.set("parent",json.createObjectNode().set("subscription_item_details",json.createObjectNode().put("subscription","sub_u").put("proration",false)));
+        line.set("period",json.createObjectNode().put("start",100).put("end",200));
+        invoice.set("lines",json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(line)));
+        when(stripe.invoice("in_u")).thenReturn(invoice);
+        MusicBillingService first=new MusicBillingService(settings,ledger,stripe,json);
+        ObjectNode object=json.createObjectNode().put("id","in_u");armed.set(true);
+        assertThatThrownBy(()->send(first,settings,"evt_paid_retry","invoice.paid",object)).isInstanceOf(IllegalStateException.class);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isZero();
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_u'")).isEqualTo(point.equals("grant_before")?0:1);
+        MusicBillingService restarted=new MusicBillingService(settings,new BillingRepository(db),stripe,json);
+        send(restarted,settings,"evt_paid_retry","invoice.paid",object);
+        send(restarted,settings,"evt_paid_retry","invoice.paid",object);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_u'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(1);
+        assertThat(((Number)ledger.balance("u",150).get("remaining")).intValue()).isEqualTo(allowance+10);
+        assertThat(((Number)ledger.balance("other",150).get("remaining")).intValue()).isEqualTo(300);
+        assertThat(ledger.subscription("u")).containsEntry("subscription_id","sub_u").containsEntry("status","active");
+        verify(stripe,times(2)).invoice("in_u");
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
