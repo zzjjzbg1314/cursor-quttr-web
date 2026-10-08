@@ -805,6 +805,47 @@ class BillingLedgerJourneyRegressionTest {
         verify(stripe).invoice("in_u");
     }
 
+    @org.junit.jupiter.api.Test
+    void cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase() {
+        SqliteClient db=new SqliteClient(directory.resolve("cancel-resume-expiry.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
+        settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.siteUrl="https://example.test";settings.portalConfiguration="bpc_fixture";
+        long now=Instant.now().getEpochSecond();ledger.saveCustomer("stripe","u","cus_u");
+        ledger.grant("stripe","in_paid","u","sub_u","starter",300,now-3600,now+3600);
+        ObjectNode sub=json.createObjectNode().put("id","sub_u").put("status","active").put("cancel_at_period_end",true);
+        sub.set("items",json.createObjectNode().set("data",json.createArrayNode().add(json.createObjectNode()
+            .put("current_period_end",now+3600).set("price",json.createObjectNode().put("id","price_starter")))));
+        when(stripe.subscriptions("cus_u")).thenAnswer(i->json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(sub)));
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        Map<String,Object> canceled=service.status("u");
+        assertThat(canceled).containsEntry("remaining",310);
+        assertThat(((Map<?,?>)canceled.get("subscription")).get("cancelAtPeriodEnd")).isEqualTo(true);
+        assertThatThrownBy(()->service.checkout("u","creator","zh-CN"))
+            .isInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
+        assertThat(ledger.subscription("u")).containsEntry("cancel_at_period_end",1);
+        sub.put("cancel_at_period_end",false);
+        Map<String,Object> resumed=service.status("u");
+        assertThat(resumed).containsEntry("remaining",310);
+        assertThat(((Map<?,?>)resumed.get("subscription")).get("cancelAtPeriodEnd")).isEqualTo(false);
+        assertThat(ledger.subscription("u")).containsEntry("cancel_at_period_end",0);
+        sub.put("cancel_at_period_end",true);service.status("u");
+        // 在独立夹具推进账期，不修改线上时间或用户数据。
+        db.query("UPDATE music_mv_billing_grants SET period_end=? WHERE payment_id='in_paid'",now-1);
+        sub.put("status","canceled");
+        Map<String,Object> expired=service.status("u");
+        assertThat(expired).containsEntry("remaining",10);assertThat(expired.get("subscription")).isNull();
+        assertThat(ledger.subscription("u").get("subscription_id")).isNull();
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe' AND revoked=1")).isZero();
+        when(stripe.checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString()))
+            .thenAnswer(i->session("open").put("expires_at",(Long)i.getArgument(4)));
+        assertThat(service.checkout("u","creator","zh-CN")).containsEntry("url","https://checkout.stripe.com/fixture");
+        assertThat(ledger.subscription("u")).containsEntry("checkout_plan","creator");
+        assertThat(service.credits("u")).containsEntry("remaining",10);
+        verify(stripe,times(1)).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+    }
+
     @ParameterizedTest(name="G07 续费未付状态={0}")
     @ValueSource(strings={"past_due","unpaid"})
     void failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement(String state) {

@@ -118,11 +118,24 @@
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
-      "tests": 80,
+      "tests": 81,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "c90f3fba4004f1231bd062ba7fbd50ee219f65ab7ff70046e8ff09fa98a3b01e"
+      "reportSha256": "c90f3fba4004f1231bd062ba7fbd50ee219f65ab7ff70046e8ff09fa98a3b01e",
+      "supplementalReports": [
+        {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "f179c141a03d42d242be5b59a4b881308c3f6e52f5fca72e961d34e5f05d4112",
+          "methods": [
+            "cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase"
+          ]
+        }
+      ],
+      "reportScope": "reportSha256记录此前80项整类报告；supplementalReports记录本轮1项针对性报告，合计81项独立证据。"
     }
   ],
   "tests": [
@@ -2876,6 +2889,13 @@
       "seconds": 0.028,
       "result": "pass",
       "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase",
+      "seconds": 1.515,
+      "result": "pass",
+      "characterization": false
     }
   ],
   "cases": [
@@ -4193,9 +4213,10 @@
       "status": "部分验证",
       "evidence": [
         "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
-        "authorizedSandboxLifecycle:G02"
+        "authorizedSandboxLifecycle:G02",
+        "BillingLedgerJourneyRegressionTest.cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 真实API账期末取消后active且月积分保留，D1最终同步1；短暂旧状态已记录；门户操作尚未验收。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 真实API账期末取消后active且月积分保留，D1最终同步1；短暂旧状态已记录；门户操作尚未验收。 新增真实服务/临时SQLite串联取消、恢复、当期保留、重复购买阻止、到期及新购买入口；时间与Stripe响应模拟，未替代真实渠道到期。"
     },
     {
       "id": "G03",
@@ -4208,9 +4229,10 @@
         "authorizedSandboxLifecycle:G03",
         "BillingLedgerJourneyRegressionTest.R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot{String}[1]",
         "BillingLedgerJourneyRegressionTest.R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot{String}[2]",
-        "BillingLedgerJourneyRegressionTest.R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot{String}[3]"
+        "BillingLedgerJourneyRegressionTest.R18_RISK_lateSubscriptionQueryOverwritesNewerSnapshot{String}[3]",
+        "BillingLedgerJourneyRegressionTest.cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase"
       ],
-      "limitations": "真实串行取消/恢复已通过；新增实际服务/SQL并发复现：已恢复cancel=false的新快照会被较早查询、较晚返回的cancel=true覆盖（R18）。测试网关仅控制两个响应时序；不是线上Stripe事故或门户按钮全验收。"
+      "limitations": "真实串行取消/恢复已通过；新增实际服务/SQL并发复现：已恢复cancel=false的新快照会被较早查询、较晚返回的cancel=true覆盖（R18）。测试网关仅控制两个响应时序；不是线上Stripe事故或门户按钮全验收。 新增真实服务/临时SQLite串联取消、恢复、当期保留、重复购买阻止、到期及新购买入口；时间与Stripe响应模拟，未替代真实渠道到期。"
     },
     {
       "id": "G04",
@@ -5203,7 +5225,7 @@
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 393,
+  "totalBackendTests": 394,
   "riskCharacterizations": 29,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
@@ -6279,5 +6301,10 @@
   "coreJourneyPresentation": {
     "scope": "核心用户流程优先，原174项保留为证据索引；不以异常参数数量衡量进度",
     "complete": false
+  },
+  "coreCancellationExpiryEvidence": {
+    "test": "cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase",
+    "passed": true,
+    "scope": "真实服务及临时SQLite，Stripe与时间为夹具；非线上到期验收"
   }
 }
