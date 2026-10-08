@@ -407,6 +407,67 @@ class BillingLedgerJourneyRegressionTest {
         } finally {music.close();}
     }
 
+    @ParameterizedTest(name="I08 提交结果不确定={0}")
+    @ValueSource(strings={"timeout","missing-task","unexpected-exception","attempt-save","job-save","accepted-event"})
+    void uncertainSubmissionAndAcceptedWriteFailuresKeepHoldAcrossServiceRecreation(String scenario) throws Exception {
+        AtomicBoolean failOnce=new AtomicBoolean(true);
+        SqliteClient db=new SqliteClient(directory.resolve("unknown-submit.sqlite")) {
+            @Override public D1QueryResult query(String sql,Object...params) {
+                boolean target=scenario.equals("attempt-save")?sql.startsWith("UPDATE ai_music_provider_attempts SET provider_task_id=?"):
+                    scenario.equals("job-save")?sql.startsWith("UPDATE ai_music_jobs SET status='queued'"):
+                    scenario.equals("accepted-event")&&sql.startsWith("INSERT INTO ai_music_job_events ")&&params.length>2&&"provider_submitted".equals(params[2]);
+                if(target&&failOnce.compareAndSet(true,false))throw new IllegalStateException("测试注入受理后写入失败");
+                return super.query(sql,params);
+            }
+        };
+        db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES('u','u','u','2026-10-08','2026-10-08','2026-10-08')");
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        BillingRepository ledger=new BillingRepository(db);
+        MusicBillingService billing=new MusicBillingService(settings,ledger,mock(StripeGateway.class),json);
+        org.springframework.test.web.client.MockRestServiceServer http=null;
+        AiMusicProvider provider;
+        boolean realAdapter=scenario.equals("timeout")||scenario.equals("missing-task");
+        if(realAdapter) {
+            org.springframework.web.client.RestTemplate client=new org.springframework.web.client.RestTemplate();
+            http=org.springframework.test.web.client.MockRestServiceServer.bindTo(client).build();
+            org.springframework.test.web.client.ResponseActions response=http.expect(org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo("https://sunoapi.test/api/v1/generate"))
+                .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.method(org.springframework.http.HttpMethod.POST));
+            if(scenario.equals("missing-task"))response.andRespond(org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess("{\"code\":200,\"data\":{}}",org.springframework.http.MediaType.APPLICATION_JSON));
+            else response.andRespond(request->{throw new java.net.SocketTimeoutException("测试提交超时");});
+            provider=new SunoApiAiMusicProvider(json,"https://sunoapi.test","fixture-api-key","fixture-callback-secret-long-enough","V6");
+            org.springframework.test.util.ReflectionTestUtils.setField(provider,"restTemplate",client);
+        } else {
+            provider=mock(AiMusicProvider.class);when(provider.providerCode()).thenReturn("sunoapi");when(provider.defaultModel()).thenReturn("V6");
+            if(scenario.equals("unexpected-exception"))when(provider.submit(any())).thenThrow(new IllegalStateException("未知提交结果"));
+            else when(provider.submit(any())).thenReturn(new AiMusicProvider.Submission("accepted-task",Collections.emptyMap()));
+        }
+        AiMusicProviderRegistry registry=new AiMusicProviderRegistry(Collections.singletonList(provider));
+        AiMusicCandidateStorageService storage=mock(AiMusicCandidateStorageService.class);
+        AiMusicGenerationService music=new AiMusicGenerationService(new AiMusicJobRepository(db),registry,storage,json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest request=new com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest();
+        request.setRequestId("req");request.setStory("A birthday song");
+        boolean unknown=realAdapter||scenario.equals("unexpected-exception");
+        try {
+            if(unknown)assertThat(music.create("u",request,"https://example.test")).containsEntry("status","submission_unknown");
+            else assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOf(IllegalStateException.class);
+            assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isZero();
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations").firstRow()).containsEntry("state","reserved");
+            AiMusicGenerationService recreated=new AiMusicGenerationService(new AiMusicJobRepository(db),registry,storage,json,"sunoapi","https://example.test");
+            org.springframework.test.util.ReflectionTestUtils.setField(recreated,"billing",billing);
+            try {assertThat(recreated.create("u",request,"https://example.test")).containsEntry("idempotentReplay",true);}
+            finally {recreated.close();}
+            ledger.reconcile();assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations")).isEqualTo(1);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations").firstRow()).containsEntry("state","reserved");
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_jobs")).isEqualTo(1);
+            Map<String,Object> attempt=db.query("SELECT provider_task_id,submission_unknown FROM ai_music_provider_attempts").firstRow();
+            if(unknown)assertThat(attempt).containsEntry("provider_task_id",null).containsEntry("submission_unknown",1);
+            else if(scenario.equals("attempt-save"))assertThat(attempt).containsEntry("provider_task_id",null);
+            else assertThat(attempt).containsEntry("provider_task_id","accepted-task");
+            if(http!=null)http.verify();else verify(provider,times(1)).submit(any());
+        } finally {music.close();}
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
