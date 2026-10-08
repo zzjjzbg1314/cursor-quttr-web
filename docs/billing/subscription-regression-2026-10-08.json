@@ -14,11 +14,11 @@
     },
     {
       "class": "MusicBillingServiceTest",
-      "tests": 44,
+      "tests": 45,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "dc72f0628c0609493e5509f30d4f93eeaa3570bda56a744ff956a060987ee042"
+      "reportSha256": "9f6a8b7a13284043346c45fb6904e8b57077d80a6fe84a08f4a3f29d9d5934dd"
     },
     {
       "class": "BillingRepositoryTest",
@@ -776,314 +776,6 @@
       "class": "BillingScenarioDatabaseRegressionTest",
       "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
       "seconds": 0.148,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "foreignOrWrongEnvironmentRenewalCannotGrant",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "creditBalanceNeverCallsStripeAndIncludesPendingHolds",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "changingPlanExpiresOldCheckoutBeforeOpeningNewOne",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "failedExpiryDoesNotReleaseOrReplaceCheckout",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "paidCheckoutRepairsMissingGrantAndReturnsFreshBalance",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "productionKeysAndIncompleteConfigurationRemainDisabled",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "subscriptionDateUsesStripeItemPeriodInsteadOfCreditGrantExpiry",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "incompleteChannelSearchCannotReleaseUnknownCheckout",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "invalidInvoiceStateNeverGrantsDuringReconciliation",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "checkoutReadsSharedSlotAndVerifiesTheSameSession",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "nonEndedOrForeignOldSubscriptionNeverReleasesPaidCheckout",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "expiredValidationWithoutChannelOrderAllowsFreshCheckout",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "foreignCheckoutOrInvoiceCannotGrant",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "invalidStaleAndLiveEventsNeverGrant",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "completedOrForeignCheckoutCannotBeReplaced",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "providerTimeoutPreservesOriginalTokenInsteadOfCreatingAnotherOrder",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "malformedOrAmbiguousAllowanceDoesNotGrantOrAcknowledge",
-      "seconds": 0.002,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "failedOrPendingRenewalPreservesStatusAndNeverGrants",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "liveWebhookOnlyGrantsMatchingLiveInvoice",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "reserveFailsClosedAndUnknownRequestsAreNotReleased",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "expiredValidationRecoversLegacyOrderAndDoesNotClearIt",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "subscriptionNotificationUsesVerifiedCurrentStateNotStalePayload",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "liveModeMustBeExplicitAndMatchTheKey",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "ordinaryStatusRecoversSavedOrderWithoutReturnQuery",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "legacyAccountReturnIsExpiredBeforeNewPricingCheckout",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "unpaidCheckoutNeverRetrievesInvoiceOrGrants",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "paidProrationDoesNotReceiveMonthlyAllowance",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "disabledBillingDoesNotTouchUninitializedTables",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "welcomeCreditsDoNotDependOnPaymentConfiguration",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "creditNotesRecordRevocationBeforeEventAcknowledgement",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "existingSubscriptionCannotPurchaseAnother",
-      "seconds": 0.001,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "endedSubscriptionDoesNotReconcileInvoicesAndAllowsPlanSelection",
-      "seconds": 0.0,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "MusicBillingServiceTest",
-      "name": "providerFailureDoesNotAcknowledgeEvent",
-      "seconds": 0.0,
       "result": "pass",
       "characterization": false
     },
@@ -2885,6 +2577,321 @@
       "seconds": 0.869,
       "result": "pass",
       "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase",
+      "seconds": 0.394,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "foreignOrWrongEnvironmentRenewalCannotGrant",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditBalanceNeverCallsStripeAndIncludesPendingHolds",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "changingPlanExpiresOldCheckoutBeforeOpeningNewOne",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "G02_RISK_portalScheduledCancelAtIsIgnoredWhenPeriodEndFlagIsFalse",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "failedExpiryDoesNotReleaseOrReplaceCheckout",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidCheckoutRepairsMissingGrantAndReturnsFreshBalance",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "productionKeysAndIncompleteConfigurationRemainDisabled",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents",
+      "seconds": 0.049,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "subscriptionDateUsesStripeItemPeriodInsteadOfCreditGrantExpiry",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "incompleteChannelSearchCannotReleaseUnknownCheckout",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "invalidInvoiceStateNeverGrantsDuringReconciliation",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "checkoutReadsSharedSlotAndVerifiesTheSameSession",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "nonEndedOrForeignOldSubscriptionNeverReleasesPaidCheckout",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "expiredValidationWithoutChannelOrderAllowsFreshCheckout",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "foreignCheckoutOrInvoiceCannotGrant",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "invalidStaleAndLiveEventsNeverGrant",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "completedOrForeignCheckoutCannotBeReplaced",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "providerTimeoutPreservesOriginalTokenInsteadOfCreatingAnotherOrder",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "malformedOrAmbiguousAllowanceDoesNotGrantOrAcknowledge",
+      "seconds": 0.005,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "failedOrPendingRenewalPreservesStatusAndNeverGrants",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "liveWebhookOnlyGrantsMatchingLiveInvoice",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "reserveFailsClosedAndUnknownRequestsAreNotReleased",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "expiredValidationRecoversLegacyOrderAndDoesNotClearIt",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "subscriptionNotificationUsesVerifiedCurrentStateNotStalePayload",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "liveModeMustBeExplicitAndMatchTheKey",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "ordinaryStatusRecoversSavedOrderWithoutReturnQuery",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "legacyAccountReturnIsExpiredBeforeNewPricingCheckout",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "unpaidCheckoutNeverRetrievesInvoiceOrGrants",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidProrationDoesNotReceiveMonthlyAllowance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "disabledBillingDoesNotTouchUninitializedTables",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "welcomeCreditsDoNotDependOnPaymentConfiguration",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditNotesRecordRevocationBeforeEventAcknowledgement",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "existingSubscriptionCannotPurchaseAnother",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "endedSubscriptionDoesNotReconcileInvoicesAndAllowsPlanSelection",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "providerFailureDoesNotAcknowledgeEvent",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
     }
   ],
   "cases": [
@@ -4199,13 +4206,15 @@
       "priority": "P1",
       "action": "cancel_at_period_end=true，账期未结束",
       "expected": "active保留、取消标记true；当期余额不变；不能买第二订阅",
-      "status": "部分验证",
+      "status": "安全目标未通过",
       "evidence": [
         "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
         "authorizedSandboxLifecycle:G02",
-        "BillingLedgerJourneyRegressionTest.cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase"
+        "BillingLedgerJourneyRegressionTest.cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase",
+        "MusicBillingServiceTest.G02_RISK_portalScheduledCancelAtIsIgnoredWhenPeriodEndFlagIsFalse",
+        "browserLifecycleRecheck20261008"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 真实API账期末取消后active且月积分保留，D1最终同步1；短暂旧状态已记录；门户操作尚未验收。 新增真实服务/临时SQLite串联取消、恢复、当期保留、重复购买阻止、到期及新购买入口；时间与Stripe响应模拟，未替代真实渠道到期。"
+      "limitations": "真实Stripe Portal取消成功但cancel_at_period_end=false、cancel_at等于账期末，后端只读布尔标记，回站及刷新仍显示下次续费（R21）。当期积分未被额外撤销；已恢复续费。未验证自然到期。"
     },
     {
       "id": "G03",
@@ -5210,15 +5219,15 @@
   "summary": {
     "本地核心通过": 105,
     "本地配置失败/沙盒待环境": 1,
-    "安全目标未通过": 15,
-    "部分验证": 34,
+    "安全目标未通过": 16,
+    "部分验证": 33,
     "已确认边界": 6,
     "沙盒待环境": 8,
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 394,
-  "riskCharacterizations": 29,
+  "totalBackendTests": 395,
+  "riskCharacterizations": 30,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
   "onlineBrowserRegression": {
@@ -6310,12 +6319,12 @@
   "evidenceIndexAudit": {
     "date": "2026-10-08",
     "cases": 174,
-    "uniqueTestRecords": 394,
-    "testMethodReferencesChecked": 546,
+    "uniqueTestRecords": 395,
+    "testMethodReferencesChecked": 547,
     "markdownStatusesMatch": true,
     "missingMethods": [],
     "sourceSha256": {
-      "src/test/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingServiceTest.java": "92f38b3c6693fd88d2d5441933b85d76a083c3008e39b7a3379d33fddd5aa8fe",
+      "src/test/java/com/example/cursorquitterweb/musicmv/billing/MusicBillingServiceTest.java": "1d29cb7a4fba9dc88d6a64963b2781c70e3d3844c54c5c8537e194a2bff3b934",
       "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingScenarioRegressionTest.java": "3bf0c6129d1bcd4b23cd88568d30da64a114ea61a5361931742b09e6eabd4967",
       "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingSettingsTest.java": "47dba0c2d6badc23ef80fd3517c557b87fa06fb46751d0ac2a91436eba1c61db",
       "src/test/java/com/example/cursorquitterweb/musicmv/billing/BillingScenarioHttpRegressionTest.java": "e2f2905b3795d89ddfeb14a896670e26c89678a6334cca97b21324745d0bb114",
@@ -6339,5 +6348,121 @@
     "seconds": 68.456,
     "productionMutations": 0,
     "scope": "账务连续流程测试类；并非全部线上场景验收"
+  },
+  "browserLifecycleRecheck20261008": {
+    "authorization": "用户允许旧账号沙盒新购、取消、恢复及退款，明确仅限Stripe测试模式",
+    "operations": [
+      "打开Portal",
+      "真实取消续费",
+      "回站并刷新检查",
+      "真实恢复续费",
+      "积分明细检查"
+    ],
+    "notExecuted": [
+      "新购（有效订阅不允许重复购买）",
+      "再次退款（原付款已全额退）",
+      "时钟推进",
+      "付费生成"
+    ],
+    "stripeEvents": [
+      {
+        "event_id": "evt_1UOJIgGj38FUksqYloLzSPLy",
+        "created": 1791473525,
+        "subscription": {
+          "cancel_at_period_end": false,
+          "cancel_at": 1794118047,
+          "canceled_at": 1791473525,
+          "status": "active"
+        },
+        "previous_attributes": {
+          "cancel_at": null,
+          "canceled_at": null
+        },
+        "item_period_ends": [
+          1794118047
+        ]
+      },
+      {
+        "event_id": "evt_1UOJLCGj38FUksqYppOcYb16",
+        "created": 1791473682,
+        "subscription": {
+          "cancel_at_period_end": false,
+          "cancel_at": null,
+          "canceled_at": null,
+          "status": "active"
+        },
+        "previous_attributes": {
+          "cancel_at": 1794118047,
+          "canceled_at": 1791473525
+        },
+        "item_period_ends": [
+          1794118047
+        ]
+      }
+    ],
+    "finalReadOnlySnapshot": {
+      "utc": "2026-10-08T15:35:54.424850+00:00",
+      "stripe": {
+        "status": "active",
+        "livemode": false,
+        "cancel_at_period_end": false
+      },
+      "database": {
+        "subscription": [
+          {
+            "status": "active",
+            "cancel_at_period_end": 0,
+            "subscription_id": "sub_1UOAUHGj38FUksqYsl1pvYdk"
+          }
+        ],
+        "grants": [
+          {
+            "provider": "internal",
+            "plan_key": "welcome",
+            "allowance": 10,
+            "revoked": 0,
+            "created_at": "2026-10-04 17:13:26"
+          },
+          {
+            "provider": "stripe",
+            "plan_key": "starter",
+            "allowance": 300,
+            "revoked": 1,
+            "created_at": "2026-10-08 06:41:55"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "evt_1UOJLCGj38FUksqYppOcYb16",
+            "event_type": "customer.subscription.updated",
+            "processed_at": "2026-10-08 15:34:44"
+          },
+          {
+            "event_id": "evt_1UOJIgGj38FUksqYloLzSPLy",
+            "event_type": "customer.subscription.updated",
+            "processed_at": "2026-10-08 15:32:08"
+          },
+          {
+            "event_id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+            "event_type": "customer.subscription.updated",
+            "processed_at": "2026-10-08 13:32:43"
+          },
+          {
+            "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+            "event_type": "customer.subscription.updated",
+            "processed_at": "2026-10-08 13:31:42"
+          }
+        ]
+      }
+    },
+    "websiteObservations": {
+      "canceledState": "已订阅，下次续费2026-11-08 14:07；未识别cancel_at",
+      "restoredState": "已订阅，下次续费2026-11-08 14:07",
+      "remaining": 10,
+      "history": "积分发放已撤销，金额0，显示原grant时间2026-10-08 14:41",
+      "portalRequest": "200，1.52秒；单次浏览器观测"
+    },
+    "limitations": "未获取取消时billing/status响应正文；Stripe事件模型及本地真实服务复现共同确定cancel_at遗漏。最终数据库已恢复cancel_at_period_end=0，原300分grant仍revoked=1，体验10未撤销。",
+    "screenshot": "/tmp/storyai-restored-subscription.png"
   }
 }

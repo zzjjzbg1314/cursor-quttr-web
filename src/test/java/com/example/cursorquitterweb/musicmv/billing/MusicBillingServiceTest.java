@@ -254,6 +254,24 @@ class MusicBillingServiceTest {
         assertThat(service.status("u")).containsEntry("remaining",20);
         verify(repo,never()).revoke(anyString(),anyString());
     }
+    @Test void G02_RISK_portalScheduledCancelAtIsIgnoredWhenPeriodEndFlagIsFalse() throws Exception {
+        long end=java.time.Instant.now().getEpochSecond()+3600;
+        when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10,"reserved",0,"allowance",10));
+        when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
+        com.fasterxml.jackson.databind.node.ObjectNode subscription=json.createObjectNode().put("id","sub_1")
+            .put("status","active").put("cancel_at_period_end",false).put("cancel_at",end);
+        subscription.set("items",json.createObjectNode().set("data",json.createArrayNode().add(
+            json.createObjectNode().put("current_period_end",end).set("price",json.createObjectNode().put("id","price_starter")))));
+        when(stripe.subscriptions("cus_1")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(subscription)));
+        java.util.Map<String,Object> result=service.status("u");
+        java.util.Map<?,?> shown=(java.util.Map<?,?>)result.get("subscription");
+        assertThat(shown.get("cancelAtPeriodEnd")).isEqualTo(false);
+        assertThat(shown.containsKey("cancelAt")).isFalse();
+        assertThat(shown.get("periodEnd")).isEqualTo(end);
+        assertThat(result).containsEntry("remaining",10);
+        verify(repo).syncSubscription("stripe","u","sub_1","active",false);
+        verify(repo,never()).revoke(anyString(),anyString());
+    }
     @Test void anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout() {
         when(repo.subscription("u")).thenReturn(map("provider","paypal","subscription_id","sub_other"));
         assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
