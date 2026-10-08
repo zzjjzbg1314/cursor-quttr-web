@@ -554,6 +554,69 @@ class BillingLedgerJourneyRegressionTest {
         verify(stripe,times(2)).invoicePayments("pi_1");
     }
 
+    @ParameterizedTest(name="I17 退款后任务终态={0}")
+    @ValueSource(strings={"completed","failed"})
+    void refundedReservedJobCallbackNeverRestoresMonthlyGrant(String terminal) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("reserved-refund.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        MusicBillingService billing=new MusicBillingService(settings,ledger,stripe,json);
+        long now=Instant.now().getEpochSecond();
+        ledger.ensureWelcomeCredits("u");ledger.grant("stripe","in_u","u","sub_u","starter",300,now-10,now+3600);
+        billing.reserve("u","request_u","job_u");
+        db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES('u','u','u','2026-10-08','2026-10-08','2026-10-08')");
+        db.query("INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,active_attempt_id,request_fingerprint,request_json,created_at,updated_at) VALUES('job_u','u','u','request_u','queued','queued','sunoapi','attempt_u','fp','{}','2026-10-08','2026-10-08')");
+        db.query("INSERT INTO ai_music_provider_attempts(attempt_id,job_id,provider_code,provider_task_id,status,attempt_number,request_json,created_at,updated_at) VALUES('attempt_u','job_u','sunoapi','task_u','queued',1,'{}','2026-10-08','2026-10-08')");
+        send(billing,settings,"evt_refund","credit_note.created",json.createObjectNode().put("invoice","in_u"));
+        assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='job_u'").firstRow()).containsEntry("state","reserved");
+        assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(10);
+        AiMusicJobRepository jobs=new AiMusicJobRepository(db);
+        AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        AiMusicCandidateStorageService storage=mock(AiMusicCandidateStorageService.class);
+        AiMusicGenerationService music=new AiMusicGenerationService(jobs,providers,storage,json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        try {
+            AiMusicProvider.TaskSnapshot snapshot=new AiMusicProvider.TaskSnapshot();snapshot.setProviderTaskId("task_u");snapshot.setStatus(terminal);
+            music.acceptProviderCallback("sunoapi","job_u",snapshot);
+            music.acceptProviderCallback("sunoapi","job_u",snapshot);
+            send(billing,settings,"evt_refund","credit_note.created",json.createObjectNode().put("invoice","in_u"));
+            String settled=terminal.equals("completed")?"consumed":"released";
+            assertThat(jobs.byId("job_u")).containsEntry("status",terminal);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE job_id='job_u'").firstRow()).containsEntry("state",settled);
+            assertThat(db.query("SELECT revoked FROM music_mv_billing_grants WHERE payment_id='in_u'").firstRow()).containsEntry("revoked",1);
+            assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(10);
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations")).isEqualTo(1);
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_revocations")).isEqualTo(1);
+            assertThat(billing.history("u",0,settled).get("items")).asList().hasSize(1);
+            verifyNoInteractions(providers,storage,stripe);
+        } finally {music.close();}
+    }
+
+    @ParameterizedTest(name="J08 已消费全部额度套餐={0}")
+    @CsvSource({"starter,300","creator,1000"})
+    void fullySpentMonthlyGrantRefundPreservesConsumptionWithoutNegativeReturn(String plan,int allowance) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("spent-refund.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
+        MusicBillingService billing=new MusicBillingService(settings,ledger,stripe,json);
+        long now=Instant.now().getEpochSecond();
+        ledger.ensureWelcomeCredits("u");ledger.grant("stripe","in_u","u","sub_u",plan,allowance,now-10,now+3600);
+        for(int i=0;i<allowance/10;i++){billing.reserve("u","request_"+i,"job_"+i);billing.settle("job_"+i,"completed");}
+        assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(10);
+        send(billing,settings,"evt_refund","credit_note.created",json.createObjectNode().put("invoice","in_u"));
+        send(billing,settings,"evt_refund","credit_note.created",json.createObjectNode().put("invoice","in_u"));
+        assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isEqualTo(10);
+        assertThat(((Number)ledger.usage("u").get("spent")).intValue()).isEqualTo(allowance);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='consumed' AND credits=10")).isEqualTo(allowance/10);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='released'")).isZero();
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_revocations")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(1);
+        assertThat(billing.history("u",0,"revoked").get("items")).asList().hasSize(1);
+        assertThat(ledger.paymentGranted("u","in_u")).isFalse();
+        verifyNoInteractions(stripe);
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
