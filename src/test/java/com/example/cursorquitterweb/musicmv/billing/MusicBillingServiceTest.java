@@ -172,6 +172,19 @@ class MusicBillingServiceTest {
         order.verify(repo).claimCheckout(eq("stripe"),eq("u"),anyString(),eq("creator"),eq("http://localhost:3000/ja/pricing"),anyLong());
         order.verify(stripe).checkout(anyString(),anyString(),eq("price_creator"),eq("new-token"),anyLong(),anyString());
     }
+    @Test void legacyAccountReturnIsExpiredBeforeNewPricingCheckout() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()+600;
+        java.util.Map<String,Object> old=pending("starter",expires,"cs_old"),fresh=pending("starter",expires+3600,null);
+        old.put("checkout_return_url","https://suno.film/zh-cn/account");fresh.put("checkout_token","new-token");
+        when(repo.subscription("u")).thenReturn(old,old,map("provider","stripe"),fresh);
+        when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","open"));
+        when(stripe.expireCheckout("cs_old")).thenReturn(session("cs_old","expired"));
+        when(stripe.checkout(anyString(),anyString(),eq("price_starter"),eq("new-token"),anyLong(),anyString())).thenReturn(session("cs_new","open"));
+        assertThat(service.checkout("u","starter","zh-CN")).containsKey("url");
+        org.mockito.InOrder order=inOrder(stripe,repo);
+        order.verify(stripe).expireCheckout("cs_old");order.verify(repo).clearCheckout("stripe","u","token");
+        order.verify(repo).claimCheckout(eq("stripe"),eq("u"),anyString(),eq("starter"),eq("http://localhost:3000/zh-cn/pricing"),anyLong());
+    }
     @Test void failedExpiryDoesNotReleaseOrReplaceCheckout() throws Exception {
         checkoutCustomer();when(repo.subscription("u")).thenReturn(pending("starter",Instant.now().getEpochSecond()+600,"cs_old"));
         when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","open"));

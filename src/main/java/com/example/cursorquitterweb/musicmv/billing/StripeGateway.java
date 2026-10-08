@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 @Service
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class StripeGateway {
+    private static final org.slf4j.Logger log=org.slf4j.LoggerFactory.getLogger(StripeGateway.class);
     private final BillingSettings settings;
     private final ObjectMapper mapper;
     public StripeGateway(BillingSettings settings,ObjectMapper mapper) { this.settings=settings; this.mapper=mapper; }
@@ -55,11 +56,22 @@ public class StripeGateway {
         try { return mapper.readTree(request.run().toJson()); }
         catch(com.stripe.exception.InvalidRequestException e) {
             if("expires_at".equals(e.getParam())) throw new CheckoutExpiryRejectedException();
+            logFailure(e);
             throw unavailable();
         }
         catch(Exception e) {
             // 不向浏览器暴露供应商响应、请求参数或凭据。
+            logFailure(e);
             throw unavailable();
+        }
+    }
+    private void logFailure(Exception e) {
+        if(e instanceof StripeException) {
+            StripeException stripeError=(StripeException)e;
+            log.warn("Stripe请求失败 type={} status={} code={} requestId={}",e.getClass().getSimpleName(),
+                    stripeError.getStatusCode(),stripeError.getStripeError()==null?null:stripeError.getStripeError().getCode(),stripeError.getRequestId());
+        } else {
+            log.warn("Stripe响应处理失败 type={}",e.getClass().getSimpleName());
         }
     }
     private ApiException unavailable() {

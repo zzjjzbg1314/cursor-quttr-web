@@ -1,5 +1,23 @@
 # Suno Film：Stripe 沙盒接入
 
+## 2026-10-08 线上支付故障核对
+
+在用户已登录的线上定价页复现，`POST /api/music-mv/v1/billing/checkout` 在约 2.17 秒后返回 `502 BILLING_PROVIDER_UNAVAILABLE`。同一时间 Stripe 沙盒请求 `req_Kx8cll8GwbE6Jp` 返回 `400 resource_missing`，原因是 `No such price: 'price_prod_VNA4395gn0DxYJ'`，错误参数为 `line_items[0][price]`。不能把这个配置错误当作网络超时或订单占用问题。
+
+当前正在使用的沙盒账户为 `acct_1UIKSVGj38FUksqY`。通过其商品目录核实：
+
+| 套餐 | 产品 ID | 真实价格 ID | 当前价格 |
+| --- | --- | --- | --- |
+| Starter | `prod_VNA4395gn0DxYJ` | `price_1UMPkKGj38FUksqYWIrrL0pl` | USD 9.99/月 |
+| Creator | `prod_VNA5XRt9QLg7em` | `price_1UMPkwGj38FUksqYiwoc3b5J` | HKD 29.99/月，不能用于网站展示的 USD 29.99 套餐 |
+
+修复部署环境中的现有 `STRIPE_STARTER_PRICE_ID`，填入真实价格 ID，不能给产品 ID 加上 `price_` 来构造。Creator 需先在同一沙盒核对或创建 USD 29.99/月的价格，再配置 `STRIPE_CREATOR_PRICE_ID`。此处列出的 Creator 港币价格不能直接替换使用。API 密钥、价格、客户门户配置与 Webhook 必须属于同一沙盒；以下历史沙盒记录属于另一个账户，不能与当前账户混用。
+
+这次失败请求还携带了已删除的 `/zh-cn/account` 支付返回地址。新订单应返回 `/zh-cn/pricing`；已保存旧地址的未支付收银台需先在 Stripe 核实并关闭，才能释放原订单标识并重新创建，不能直接修改原幂等请求参数或删除未知订单。服务端日志只保留供应商异常类型、状态码、错误码和请求 ID，不记录密钥或完整请求体。
+
+验收需使用实际部署后的页面：点击后进入 Stripe 托管收银台，核对币种、月付金额及返回地址；完成测试支付后再确认 Webhook 发放积分。单元测试和配置前缀检查不证明这条线上流程可用。
+
+
 ## 当前边界
 
 仅支持 Sandbox。正式环境密钥会被拒绝；默认不开启计费。不能将此版本作为正式收费上线验收。

@@ -98,14 +98,14 @@ public class MusicBillingService {
                 String state=checkout.path("status").asText();
                 if("complete".equals(state))
                     throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
-                if("open".equals(state) && plan.equals(text(row,"checkout_plan"))) {
+                if("open".equals(state) && plan.equals(text(row,"checkout_plan")) && !legacyCheckoutReturn(row)) {
                     String checkoutUrl=checkout.path("url").asText("");
                     if(checkoutUrl.isEmpty()) throw error(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Checkout URL is unavailable.");
                     repo.saveCheckout(PROVIDER,user,token,checkout.path("id").asText(),checkoutUrl);
                     return map("url",checkoutUrl);
                 }
                 if("open".equals(state)) {
-                    // 切换套餐前先关闭原收银台；关闭失败时保留占用，避免同时存在两笔可支付订单。
+                    // 切换套餐或迁移旧返回路径前先关闭原收银台，避免同时存在两笔可支付订单。
                     checkout=stripe.expireCheckout(checkout.path("id").asText());
                     verifyCheckoutOwner(user,customer,checkout);
                     state=checkout.path("status").asText();
@@ -137,6 +137,10 @@ public class MusicBillingService {
             }
             return found;
         }
+    }
+    private boolean legacyCheckoutReturn(Map<String,Object> row) {
+        String path=java.net.URI.create(text(row,"checkout_return_url")).getPath();
+        return path!=null && path.endsWith("/account");
     }
     private void verifyCheckoutOwner(String user,String customer,JsonNode session) {
         if(!user.equals(session.path("client_reference_id").asText()) || !customer.equals(session.path("customer").asText())
