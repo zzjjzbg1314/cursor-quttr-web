@@ -122,8 +122,13 @@ public class MusicBillingService {
             if(checkout!=null) {
                 verifyCheckoutOwner(user,customer,checkout);
                 String state=checkout.path("status").asText();
-                if("complete".equals(state))
-                    throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
+                if("complete".equals(state)) {
+                    if(!checkoutSubscriptionEnded(customer,checkout) || refreshSubscription(user,customer)!=null)
+                        throw error(HttpStatus.CONFLICT,"BILLING_ALREADY_SUBSCRIBED","Manage your existing subscription first.");
+                    // 已支付订单不可重用；仅在原订阅确已结束且无其他订阅时释放旧占用。
+                    repo.clearCheckout(PROVIDER,user,token);
+                    continue;
+                }
                 if("open".equals(state) && plan.equals(text(row,"checkout_plan")) && !legacyCheckoutReturn(row)) {
                     String checkoutUrl=checkout.path("url").asText("");
                     if(checkoutUrl.isEmpty()) throw error(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Checkout URL is unavailable.");
@@ -143,6 +148,16 @@ public class MusicBillingService {
             repo.clearCheckout(PROVIDER,user,token);
         }
         throw error(HttpStatus.CONFLICT,"BILLING_CHECKOUT_RETRY","Checkout changed during this request. Please retry.");
+    }
+    private boolean checkoutSubscriptionEnded(String customer,JsonNode checkout) {
+        String id=checkout.path("subscription").asText("");
+        if(id.isEmpty()) return false;
+        JsonNode subscription=stripe.subscription(id);
+        if(!id.equals(subscription.path("id").asText()) || !customer.equals(subscription.path("customer").asText())
+                || !subscription.has("livemode") || subscription.path("livemode").asBoolean()!=settings.live())
+            throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Previous subscription ownership could not be verified.");
+        String status=subscription.path("status").asText();
+        return "canceled".equals(status) || "incomplete_expired".equals(status);
     }
     private JsonNode restoreCheckout(String user,String customer,Map<String,Object> row) {
         if(!text(row,"checkout_id").isEmpty()) return stripe.checkoutSession(text(row,"checkout_id"));

@@ -368,6 +368,33 @@ class MusicBillingServiceTest {
         assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
         verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
     }
+    @Test void endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase() throws Exception {
+        checkoutCustomer();long expires=Instant.now().getEpochSecond()-60;
+        java.util.Map<String,Object> old=pending("starter",expires,"cs_old"),fresh=pending("starter",expires+3600,null);
+        fresh.put("checkout_token","new-token");
+        when(repo.subscription("u")).thenReturn(old,old,map("provider","stripe"),fresh);
+        JsonNode completed=session("cs_old","complete");((com.fasterxml.jackson.databind.node.ObjectNode)completed).put("subscription","sub_old");
+        when(stripe.checkoutSession("cs_old")).thenReturn(completed);
+        when(stripe.subscription("sub_old")).thenReturn(json.readTree("{\"id\":\"sub_old\",\"customer\":\"cus_1\",\"livemode\":false,\"status\":\"canceled\"}"));
+        when(stripe.checkout(anyString(),anyString(),eq("price_starter"),eq("new-token"),anyLong(),anyString())).thenReturn(session("cs_new","open"));
+        assertThat(service.checkout("u","starter","en")).containsKey("url");
+        org.mockito.InOrder order=inOrder(repo,stripe);
+        order.verify(stripe).subscription("sub_old");order.verify(repo).clearCheckout("stripe","u","token");
+        order.verify(repo).claimCheckout(eq("stripe"),eq("u"),anyString(),eq("starter"),anyString(),anyLong());
+    }
+    @Test void nonEndedOrForeignOldSubscriptionNeverReleasesPaidCheckout() throws Exception {
+        checkoutCustomer();when(repo.subscription("u")).thenReturn(pending("starter",100,"cs_old"));
+        JsonNode completed=session("cs_old","complete");((com.fasterxml.jackson.databind.node.ObjectNode)completed).put("subscription","sub_old");
+        when(stripe.checkoutSession("cs_old")).thenReturn(completed);
+        for(String status:new String[]{"active","past_due","unpaid","paused","incomplete"}) {
+            when(stripe.subscription("sub_old")).thenReturn(json.readTree("{\"id\":\"sub_old\",\"customer\":\"cus_1\",\"livemode\":false,\"status\":\""+status+"\"}"));
+            assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        }
+        when(stripe.subscription("sub_old")).thenReturn(json.readTree("{\"id\":\"sub_old\",\"customer\":\"other\",\"livemode\":false,\"status\":\"canceled\"}"));
+        assertThatThrownBy(()->service.checkout("u","starter","en")).isInstanceOf(ApiException.class);
+        verify(repo,never()).clearCheckout(anyString(),anyString(),anyString());
+        verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+    }
     @Test void completedOrForeignCheckoutCannotBeReplaced() throws Exception {
         checkoutCustomer();when(repo.subscription("u")).thenReturn(pending("starter",Instant.now().getEpochSecond()+600,"cs_old"));
         when(stripe.checkoutSession("cs_old")).thenReturn(session("cs_old","complete"));
