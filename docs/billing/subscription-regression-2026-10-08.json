@@ -1,6 +1,6 @@
 {
   "date": "2026-10-08",
-  "goalStatus": "blocked",
+  "goalStatus": "active",
   "baselineCommit": "98cd6e1",
   "planCases": 174,
   "testSuites": [
@@ -2756,9 +2756,10 @@
       "status": "部分验证",
       "evidence": [
         "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
-        "authorizedSandboxLifecycle:D11"
+        "authorizedSandboxLifecycle:D11",
+        "actualWebhookReplay:D11"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 原真实grant撤回后刷新网站仍只有10分，未复活；真实旧paid事件重放与显式原Checkout返回尚未执行。"
+      "limitations": "真实原grant退款撤销后显式原Checkout返回页仍10分，原paid事件重放后grant仍revoked，原event和原invoice grant计数各1。页面未宣称到账，但已退款被错误呈现为支付待确认（R17）；其他故障组合仍未闭环。"
     },
     {
       "id": "D12",
@@ -3051,9 +3052,10 @@
         "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
         "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
         "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[1]",
-        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]"
+        "BillingScenarioDatabaseRegressionTest.F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
+        "actualWebhookReplay:F04"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。 已完成真实SQL的两种首事件顺序、8个独立连接、支付/退款各100次交错重放；非真实HTTP通知并发或D1远程并发。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。 已完成真实SQL的两种首事件顺序、8个独立连接、支付/退款各100次交错重放；非真实HTTP通知并发或D1远程并发。 规范www端点直接返回200，有效签名UTF-8/空白原文通过，篡改400；原event及grant计数各1。未验证真实HTTP并发、全部域名路径或Stripe控制台重发。"
     },
     {
       "id": "F05",
@@ -3182,9 +3184,10 @@
       "status": "部分验证",
       "evidence": [
         "currentPaymentReadOnlyAudit:invoice.paid processed and pending_webhooks=0",
-        "authorizedSandboxLifecycle:F15"
+        "authorizedSandboxLifecycle:F15",
+        "actualWebhookReplay:F15"
       ],
-      "limitations": "已知真实沙盒事件在D1处理成功且Stripe pending_webhooks=0；未核对每次HTTP投递路径、响应码及其他事件，不代表全链路重试全部验收。 本轮两条subscription.updated和charge.refunded均D1 processed、Stripe待投递0；原始HTTP投递明细和完整路径仍未获取。"
+      "limitations": "已知真实沙盒事件在D1处理成功且Stripe pending_webhooks=0；未核对每次HTTP投递路径、响应码及其他事件，不代表全链路重试全部验收。 本轮两条subscription.updated和charge.refunded均D1 processed、Stripe待投递0；原始HTTP投递明细和完整路径仍未获取。 规范www端点直接返回200，有效签名UTF-8/空白原文通过，篡改400；原event及grant计数各1。未验证真实HTTP并发、全部域名路径或Stripe控制台重发。"
     },
     {
       "id": "F16",
@@ -3973,9 +3976,13 @@
       "priority": "P0",
       "action": "原始JSON含空白/Unicode，经网站代理发送有效签名",
       "expected": "后端验签成功；不重新序列化；原字节、签名正确转发",
-      "status": "沙盒待环境",
-      "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "status": "沙盒核心通过",
+      "evidence": [
+        "actualWebhookReplay:original-event200",
+        "actualWebhookReplay:utf8-whitespace200",
+        "actualWebhookReplay:tampered-body400"
+      ],
+      "limitations": "真实网站代理原始空白/UTF-8签名校验通过，正文追加空格被拒绝；重放已处理原事件，没有用新发票验收授予路径。"
     },
     {
       "id": "L02",
@@ -4100,9 +4107,9 @@
     "安全目标未通过": 11,
     "部分验证": 88,
     "已确认边界": 6,
-    "沙盒待环境": 9,
+    "沙盒待环境": 8,
     "边界已复现": 3,
-    "沙盒核心通过": 1
+    "沙盒核心通过": 2
   },
   "totalBackendTests": 265,
   "riskCharacterizations": 15,
@@ -4607,5 +4614,111 @@
     ],
     "finalState": "订阅active且恢复自动续费；本期300积分revoked=1；体验10保留；沙盒全额退款999美分succeeded",
     "remainingLimitations": "门户页面未稳定加载，取消恢复经官方API完成，不算门户按钮完整验收；没有注入故障、改共享配置、执行真实音乐生成或改其他账号"
+  },
+  "actualWebhookReplay": {
+    "execution": "使用原已processed真实invoice.paid事件，在本地以现有端点密钥生成新时间戳签名，直接POST网站www规范Webhook；不是Stripe控制台重发，不包含新发票业务处理。",
+    "probes": [
+      {
+        "variant": "original-event",
+        "http": 200,
+        "bodySha256": "477f5bc2d506683a566a6f40f531fdbdbdf88944da4041e83102f1c9c3fb1267",
+        "response": {
+          "received": true
+        }
+      },
+      {
+        "variant": "utf8-whitespace",
+        "http": 200,
+        "bodySha256": "f1978a45d4e3b87cd7e848794d699dad4c725fcfbf3b416e5db211d53ca3a5c7",
+        "response": {
+          "received": true
+        }
+      },
+      {
+        "variant": "tampered-body",
+        "http": 400,
+        "bodySha256": "496199fafc578279d366647f266ed7a3732d5db38c3cbf99a2681326db4b0367",
+        "response": {
+          "code": "BILLING_SIGNATURE_INVALID",
+          "retryable": false
+        }
+      }
+    ],
+    "finalDatabase": {
+      "label": "after-replay-final",
+      "utc": "2026-10-08T13:39:59.529973+00:00",
+      "stripe": {
+        "status": "active",
+        "livemode": false,
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "latest_invoice": "in_1UOAUFGj38FUksqYQ2Asi5Hk"
+      },
+      "database": {
+        "subscription": [
+          [
+            {
+              "status": "active",
+              "cancel_at_period_end": 0
+            }
+          ]
+        ],
+        "grants": [
+          [
+            {
+              "provider": "internal",
+              "plan_key": "welcome",
+              "allowance": 10,
+              "revoked": 0,
+              "created_at": "2026-10-04 17:13:26"
+            },
+            {
+              "provider": "stripe",
+              "plan_key": "starter",
+              "allowance": 300,
+              "revoked": 1,
+              "created_at": "2026-10-08 06:41:55"
+            }
+          ]
+        ],
+        "events": [
+          [
+            {
+              "event_id": "evt_3UOARTGj38FUksqY0JLtMwCh",
+              "event_type": "charge.refunded",
+              "processed_at": "2026-10-08 13:33:06"
+            },
+            {
+              "event_id": "evt_1UOHR8Gj38FUksqY1fRsTXkU",
+              "event_type": "customer.subscription.updated",
+              "processed_at": "2026-10-08 13:32:43"
+            },
+            {
+              "event_id": "evt_1UOHQ8Gj38FUksqY1i0KRgpF",
+              "event_type": "customer.subscription.updated",
+              "processed_at": "2026-10-08 13:31:42"
+            }
+          ]
+        ],
+        "original_event_count": [
+          [
+            {
+              "count": 1
+            }
+          ]
+        ],
+        "refund_ledger": [
+          [
+            {
+              "count": 1
+            }
+          ]
+        ]
+      }
+    },
+    "oldCheckoutReturnBrowser": {
+      "result": "已订阅、下次续费11月8日14:07、10积分；提示支付确认暂未完成，请稍后刷新，不要重复付款。",
+      "limitation": "未取得该次billing/status响应正文；不能从页面断言响应字段值。退款状态被呈现为待确认，记录R17。"
+    }
   }
 }
