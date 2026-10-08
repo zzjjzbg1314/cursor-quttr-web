@@ -1,0 +1,3837 @@
+{
+  "date": "2026-10-08",
+  "goalStatus": "active",
+  "baselineCommit": "98cd6e1",
+  "planCases": 174,
+  "testSuites": [
+    {
+      "class": "BillingSettingsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "1b6e59f2bbc4ff7571a1a08cbfaf692ad071d53086d5af6875f3e9cc027c3584"
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "c44b65679fee8744759f07c574793ac6a01416ecce5ad4755777c3f693de982e"
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "00b0b4be26e3dbd796c838fa60642144b5db6063e05da223bff8e6a4930ef0fa"
+    },
+    {
+      "class": "MusicBillingControllerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "02a107e1bd1f5f40030f55b33311a00774a7fd322bfbf7657aa671dccac557f6"
+    },
+    {
+      "class": "StripeGatewayTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "13771f59aebfafd8d5fea719c78adfb6062f46a17ed8c86af18b7137b7e6d170"
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "tests": 103,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "6916286fb278d03f96e65661cedea5e627de4f421848fab2670e5c9fca6c9783"
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "bebfda12ea37c53c11f423ffab6699e71932aaaedb2cabaf7eac0e3c950b2175"
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "3ac2cc3fb68d5f95ca46fd7a196f35ef1f804d5dd4533e4c7f99af1df77e811e"
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "3cbf4e3d3d841fb34eb07b2c8bdd1f8be664ae7ba56d675b82c0511778c01ed7"
+    },
+    {
+      "class": "PaidSubmissionSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "b3b724e17bd77ff4e8091911cf85d60f9655156c3d7638086ae208c410af599e"
+    },
+    {
+      "class": "MusicMvAuthenticationIsolationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "f089514bdc9a749172bc8e0a00e74057f14198403893d59eea4d81960fe785a4"
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "690e223061c7ada427874fae76d91879e8aa7f55c9025f0ab7d35bb0c30e010e"
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "64bf7eb864af385c15e6f6aa711599cf80489abdf3e774f1ecb7147e112b1bce"
+    },
+    {
+      "class": "MusicMvAccessTokenServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "9ef901feb0307970df419fc724e331fa74c64b7e5841f1ca8b6ffa27026f061c"
+    }
+  ],
+  "tests": [
+    {
+      "class": "BillingSettingsTest",
+      "name": "returnUrlsPreserveAllSupportedLanguages",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "foreignOrWrongEnvironmentRenewalCannotGrant",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditBalanceNeverCallsStripeAndIncludesPendingHolds",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "changingPlanExpiresOldCheckoutBeforeOpeningNewOne",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "failedExpiryDoesNotReleaseOrReplaceCheckout",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidCheckoutRepairsMissingGrantAndReturnsFreshBalance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "productionKeysAndIncompleteConfigurationRemainDisabled",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "subscriptionDateUsesStripeItemPeriodInsteadOfCreditGrantExpiry",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "incompleteChannelSearchCannotReleaseUnknownCheckout",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "invalidInvoiceStateNeverGrantsDuringReconciliation",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "checkoutReadsSharedSlotAndVerifiesTheSameSession",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "nonEndedOrForeignOldSubscriptionNeverReleasesPaidCheckout",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "expiredValidationWithoutChannelOrderAllowsFreshCheckout",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "foreignCheckoutOrInvoiceCannotGrant",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "invalidStaleAndLiveEventsNeverGrant",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "completedOrForeignCheckoutCannotBeReplaced",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "providerTimeoutPreservesOriginalTokenInsteadOfCreatingAnotherOrder",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "malformedOrAmbiguousAllowanceDoesNotGrantOrAcknowledge",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "failedOrPendingRenewalPreservesStatusAndNeverGrants",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "liveWebhookOnlyGrantsMatchingLiveInvoice",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "reserveFailsClosedAndUnknownRequestsAreNotReleased",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "expiredValidationRecoversLegacyOrderAndDoesNotClearIt",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "subscriptionNotificationUsesVerifiedCurrentStateNotStalePayload",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "liveModeMustBeExplicitAndMatchTheKey",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "cancellationKeepsPaidPeriodAndDoesNotRevokeCredits",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "ordinaryStatusRecoversSavedOrderWithoutReturnQuery",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "legacyAccountReturnIsExpiredBeforeNewPricingCheckout",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "unpaidCheckoutNeverRetrievesInvoiceOrGrants",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "paidProrationDoesNotReceiveMonthlyAllowance",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "disabledBillingDoesNotTouchUninitializedTables",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "welcomeCreditsDoNotDependOnPaymentConfiguration",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "creditNotesRecordRevocationBeforeEventAcknowledgement",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "existingSubscriptionCannotPurchaseAnother",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "endedSubscriptionDoesNotReconcileInvoicesAndAllowsPlanSelection",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingServiceTest",
+      "name": "providerFailureDoesNotAcknowledgeEvent",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "reminderRequiresUntouchedWelcomeAndNoPendingGeneration",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "reconciliationOnlyChangesRequestedOwner",
+      "seconds": 0.024,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "welcomeIsPermanentUniqueAndSpentAfterExpiringCredits",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "usageCountsEachGenerationOnceAndFiltersBeforePagination",
+      "seconds": 0.024,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription",
+      "seconds": 0.025,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "balanceRefreshBatchesGrantReconciliationAndReadInOrder",
+      "seconds": 0.024,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingRepositoryTest",
+      "name": "providersHaveIndependentPaymentsButShareOneSubscriptionSlot",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingControllerTest",
+      "name": "identityAlwaysComesFromAuthenticatedSession",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicBillingControllerTest",
+      "name": "missingSessionReturnsUnauthorizedThroughScopedHandler",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "StripeGatewayTest",
+      "name": "onlyExplicitExpiryValidationAllowsCheckoutReconciliation",
+      "seconds": 0.087,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "StripeGatewayTest",
+      "name": "officialSdkSendsSubscriptionContractWithStableIdempotency",
+      "seconds": 0.026,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "StripeGatewayTest",
+      "name": "recoveryListsCustomerSessionsAndExpiresVerifiedSessionThroughSdk",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything",
+      "seconds": 0.037,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E10_missingLineSubscriptionUsesVerifiedInvoiceParent",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+      "seconds": 0.006,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "missingConfigurationNeverCreatesCheckout{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J06_paginatedRefundCannotBeAcknowledged",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "H04_RISK_emptyPortalUrlReturnsSuccess",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[7]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[8]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[9]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "configurationModeMatrix{String, String, boolean}[10]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E07_prorationAndOneRegularLineGrantOnlyOneAllowance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G15_RISK_malformedSubscriptionListClearsCurrentSnapshot",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[4]",
+      "seconds": 0.004,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[6]",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidCheckoutIdIsRejectedBeforeRetrieval{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "badSignatureDoesNotTouchLedger{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "allHistoryFiltersReachOwnerScopedRepository{String}[7]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J07_RISK_missingRefundPaymentIsAcknowledgedWithoutRevocation",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F08_processedFailureReplaysGrantWithSameInvoiceIdentity",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F01_bodyTamperingFailsSignature",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F11_unmappedCustomerDoesNotAcknowledgeSubscription",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "A07_RISK_identicalPricesRemainReadyAndCreatorGetsStarterAllowance",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[1]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[4]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[7]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "unsafeSiteUrlCannotCreateChannelObjects{String}[8]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J07_RISK_wrongEnvironmentDisputeChargeStillRevokes",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[2]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[5]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "everyUnfinishedStatusBlocksSecondPurchase{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F14_RISK_creditNoteWithoutInvoiceRevokesEmptyIdentityAndAcknowledges",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E03_RISK_fractionalQuantityIsTruncatedAndGranted",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "E12_RISK_retrievedInvoiceIdentityIsNotComparedWithEvent",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "G14_RISK_multipleActiveSubscriptionsSelectFirstWithoutReview",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidHistoryOffsetHasNoDatabaseSideEffect{int}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[3]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[6]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[7]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[8]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "portalUsesOwnedCustomerAndLocalizedReturn{String}[9]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "H02_missingCustomerNeverCreatesPortal",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "B07_nullPlanNeverCreatesCustomer",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[1]",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[2]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[3]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[4]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[5]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "invalidPlanNeverCreatesCustomer{String}[6]",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioRegressionTest",
+      "name": "F08_grantFailureDoesNotMarkProcessedAndRetryCanSucceed",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I15_RISK_splitAllowancesCannotCoverOneReservation",
+      "seconds": 0.17,
+      "result": "pass",
+      "characterization": true
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+      "seconds": 0.028,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "I04_actualSqlConcurrentReservationsNeverOverdraw",
+      "seconds": 0.162,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice",
+      "seconds": 0.036,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioDatabaseRegressionTest",
+      "name": "C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner",
+      "seconds": 0.049,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[1]",
+      "seconds": 0.264,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[2]",
+      "seconds": 0.016,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[3]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[4]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[5]",
+      "seconds": 0.015,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[6]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresClientBeforeUser{String}[7]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[1]",
+      "seconds": 0.007,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[2]",
+      "seconds": 0.007,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[3]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[4]",
+      "seconds": 0.019,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[5]",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[6]",
+      "seconds": 0.006,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "everyProtectedEndpointRequiresUser{String}[7]",
+      "seconds": 0.006,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "B04_allReadAndManagementOperationsUseAuthenticatedOwner",
+      "seconds": 0.01,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "malformedOrAbsentBodyCannotReachBilling{String}[1]",
+      "seconds": 0.006,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "malformedOrAbsentBodyCannotReachBilling{String}[2]",
+      "seconds": 0.005,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "malformedOrAbsentBodyCannotReachBilling{String}[3]",
+      "seconds": 0.005,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "B08_nonNumericOffsetAndWrongMethodAreRejected",
+      "seconds": 0.009,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingScenarioHttpRegressionTest",
+      "name": "B10_publicCapabilitiesAndWebhookDoNotRequireWebsiteSession",
+      "seconds": 0.007,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "returnsOpaqueCursorAndUsesItForTheNextLibraryPage",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "extensionCanReuseOriginalLyricsButCoverRequiresExactLyrics",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "quotaRejectionHappensBeforeAnyPaidProviderSubmission",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "ordinaryPollingReturnsWhileProviderIsBlockedAndDoesNotResubmit",
+      "seconds": 0.01,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "mapsAdvancedModeToCustomProviderCommandWithExactLyricsAndControls",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "serverSideSyncQueriesPersistedTaskWithoutSubmittingAgain",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "customDurationRequiresSupportedProviderModelAndMode",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "selectingCandidateDoesNotDownloadOrMaterializeAudio",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "completedMissingAudioStillSchedulesRecoveryButReadySongsDoNot",
+      "seconds": 0.035,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "rejectsAdvancedVocalSongWithoutExactLyrics",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "recentClaimThrottlesManualRefreshWithoutPretendingProviderWasChecked",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "signedCallbackRecoversUnknownSubmissionWithoutSubmittingAgain",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "staleWorkerDiscardsEntireSnapshotAfterAnotherWorkerCompletes",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "listsOwnedSongCandidatesWithValidatedWorkspaceControls",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "rejectsUnknownWorkspaceSortBeforeBuildingSql",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "rejectsProviderCallbackWhenProtectedJobDoesNotOwnProviderTask",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "exposesOnlyUserFacingGenerationSettingsAndToleratesLegacyRows",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "acceptsCombinedLibraryFilters",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "callbackWithoutProtectedJobCannotBindUnknownTask",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "AiMusicGenerationServiceTest",
+      "name": "failedQueryDoesNotAdvanceSuccessfulSyncTimestampAndReleasesLease",
+      "seconds": 0.016,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "PaidSubmissionSafetyTest",
+      "name": "persistenceFailureAfterAcceptanceDoesNotRefundOrResubmit",
+      "seconds": 0.457,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "PaidSubmissionSafetyTest",
+      "name": "lyricsConcurrentLoserAndReplayNeverSubmit",
+      "seconds": 0.019,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "PaidSubmissionSafetyTest",
+      "name": "uncertainSongResponsesNeverReleaseOrResubmit",
+      "seconds": 0.019,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "PaidSubmissionSafetyTest",
+      "name": "lyricsClaimSurvivesUnknownResultAcrossServiceInstances",
+      "seconds": 0.004,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthenticationIsolationTest",
+      "name": "missingManualTokensAllowsLoopbackButRequiresRemotePairing",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthenticationIsolationTest",
+      "name": "clientAndTemplateSyncCredentialsAreIndependent",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "sessionActivityWritesOnlyWhenDueAndRevocationStillTakesEffect",
+      "seconds": 0.041,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "sessionResponseIncludesUtcExpiryWithoutRenewingIt",
+      "seconds": 0.003,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "distinguishesInvalidSessionFromFirstAnonymousVisit",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "anonymousWorkspaceRemainsAvailableBeforeSignIn",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "reservedUserWorkspaceCannotBeForgedWithoutSession",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "longCookieNeedsRefreshAndCannotExecuteProtectedBusiness",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "sessionRefreshIssuesSecureAccessAndLogoutClearsBothCookies",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "protectedMusicApiRequiresSignedInSession",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "logoutRevokesOnlyCurrentTokenAndClearsSecureCookie",
+      "seconds": 0.0,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "protectedMusicApiUsesSessionUserOnly",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "loginReturnsStoredSessionExpiryAndSetsThirtyDayCookie",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "downloadFallbackVerifiesLongSessionAndRejectsRevokedOwner",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAuthServiceTest",
+      "name": "signedInSessionOverridesCallerSuppliedWorkspace",
+      "seconds": 0.001,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "retriesOneTransientReadFailure",
+      "seconds": 0.073,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "doesNotRetryMutatingQueries",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "D1DatabaseClientTest",
+      "name": "preservesExecutionStatisticsWithoutExposingQueryValuesAsMetricTags",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAccessTokenServiceTest",
+      "name": "rejectsTamperingWrongKeyMissingAndOversizedTokens",
+      "seconds": 0.106,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAccessTokenServiceTest",
+      "name": "cannotOutliveLongSession",
+      "seconds": 0.008,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAccessTokenServiceTest",
+      "name": "validTokenIsLocalAndExpiresAtTwoMinutes",
+      "seconds": 0.002,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "MusicMvAccessTokenServiceTest",
+      "name": "validatesAlgorithmIssuerAudienceIdentityAndTimesEvenWithValidSignature",
+      "seconds": 0.004,
+      "result": "pass",
+      "characterization": false
+    }
+  ],
+  "cases": [
+    {
+      "id": "A01",
+      "priority": "P1",
+      "action": "billing.enabled=false；读 capabilities/credits/status/history；调用 reserve/settle",
+      "expected": "available=false；不访问计费表；不调用Stripe；history为空",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.disabledBillingDoesNotTouchUninitializedTables",
+        "MusicBillingServiceTest.creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A02",
+      "priority": "P0",
+      "action": "enabled=true；Stripe配置为空；A首次读credits",
+      "expected": "体验10到账一次；checkoutAvailable=false；支付调用503 BILLING_UNAVAILABLE",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.welcomeCreditsDoNotDependOnPaymentConfiguration"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A03",
+      "priority": "P0",
+      "action": "test模式配live key；live模式配test key",
+      "expected": "支付不可用且无订单写入；不能自动切换正式收款",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.liveModeMustBeExplicitAndMatchTheKey"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A04",
+      "priority": "P1",
+      "action": "参数化 sk/rk 测试/正式、未知mode、null/空key",
+      "expected": "仅明确匹配模式及完整配置可ready；拒绝其他组合",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[1]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[2]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[3]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[4]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[5]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[6]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[7]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[8]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[9]",
+        "BillingScenarioRegressionTest.configurationModeMatrix{String, String, boolean}[10]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A05",
+      "priority": "P1",
+      "action": "分别缺webhook/price/portal；无效前缀",
+      "expected": "requireReady返回503；无Stripe调用",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.missingConfigurationNeverCreatesCheckout{String}[1]",
+        "BillingScenarioRegressionTest.missingConfigurationNeverCreatesCheckout{String}[2]",
+        "BillingScenarioRegressionTest.missingConfigurationNeverCreatesCheckout{String}[3]",
+        "BillingScenarioRegressionTest.missingConfigurationNeverCreatesCheckout{String}[4]",
+        "BillingScenarioRegressionTest.missingConfigurationNeverCreatesCheckout{String}[5]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A06",
+      "priority": "P0",
+      "action": "price存在但币种/金额/周期/账号错误；实际打开Checkout",
+      "expected": "必须与页面USD月付9.99/29.99一致；错误对象不能完成错误收费",
+      "status": "本地配置失败/沙盒待环境",
+      "evidence": [
+        "readonly-stripe-price-check"
+      ],
+      "limitations": "现有本地run配置两档Price均404 resource_missing；未判定线上配置错误，也未执行真实Checkout。"
+    },
+    {
+      "id": "A07",
+      "priority": "P0",
+      "action": "starterPrice与creatorPrice配置成同一个ID",
+      "expected": "安全目标：配置失败，不能Creator收费后发Starter额度；当前ready未检查相同ID",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.A07_RISK_identicalPricesRemainReadyAndCreatorGetsStarterAllowance"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "A08",
+      "priority": "P1",
+      "action": "合法https站点、localhost/127.0.0.1 http、尾斜杠；生成URL",
+      "expected": "返回规范本地化pricing；不出现旧account或重复斜杠",
+      "status": "部分验证",
+      "evidence": [
+        "BillingSettingsTest.returnUrlsPreserveAllSupportedLanguages"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "A09",
+      "priority": "P0",
+      "action": "siteUrl为外部http、带凭据/query/fragment、无host、格式破损",
+      "expected": "拒绝不安全URL；无渠道创建；应有稳定错误响应",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[1]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[2]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[3]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[4]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[5]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[6]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[7]",
+        "BillingScenarioRegressionTest.unsafeSiteUrlCannotCreateChannelObjects{String}[8]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "A10",
+      "priority": "P1",
+      "action": "九语言、大小写、null、未知locale、路径注入",
+      "expected": "九语言保持；其他回落en；不允许外部跳转或拼接query",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingSettingsTest.returnUrlsPreserveAllSupportedLanguages"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "A11",
+      "priority": "P0",
+      "action": "test/live同库且同user复用既有customer/subscription",
+      "expected": "安全目标：环境隔离，不能误查客户或错标账务；表只存provider未存mode",
+      "status": "已确认边界",
+      "evidence": [],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "A12",
+      "priority": "P1",
+      "action": "数据库未建表/缺权限/缺迁移，enabled=true",
+      "expected": "明确失败不返回伪造0或成功；发布前阻止使用不完整结构",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "B01",
+      "priority": "P0",
+      "action": "未登录参数化credits/history/usage/status/checkout/portal/ack",
+      "expected": "401 AUTH_REQUIRED；billing service无调用，账本无写入",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[1]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[2]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[3]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[4]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[5]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[6]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresUser{String}[7]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B02",
+      "priority": "P0",
+      "action": "过期/篡改会话、登出后旧cookie；访问上述接口",
+      "expected": "401；不能用旧cookie读余额或发起购买",
+      "status": "部分验证",
+      "evidence": [
+        "MusicMvAccessTokenServiceTest.rejectsTamperingWrongKeyMissingAndOversizedTokens",
+        "MusicMvAccessTokenServiceTest.validTokenIsLocalAndExpiresAtTwoMinutes"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "B03",
+      "priority": "P0",
+      "action": "缺失/错误X-Music-Mv-Client-Token；携带合法用户cookie",
+      "expected": "按入口token配置拒绝；不进入账务；正确token仍需登录",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[1]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[2]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[3]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[4]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[5]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[6]",
+        "BillingScenarioHttpRegressionTest.everyProtectedEndpointRequiresClientBeforeUser{String}[7]",
+        "MusicMvAuthenticationIsolationTest.clientAndTemplateSyncCredentialsAreIndependent"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B04",
+      "priority": "P0",
+      "action": "A登录body伪造userId=B/customerId=C_B/priceId/credits",
+      "expected": "owner只取A；price只取plan配置；B数据完全不变",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioHttpRegressionTest.B04_allReadAndManagementOperationsUseAuthenticatedOwner"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B05",
+      "priority": "P0",
+      "action": "A查询B的合法Checkout ID",
+      "expected": "404 BILLING_CHECKOUT_INVALID或安全冲突；不读发票发放、不泄露B",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.foreignCheckoutOrInvoiceCannotGrant"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B06",
+      "priority": "P1",
+      "action": "status sessionID为空、超长、路径字符、无cs_前缀",
+      "expected": "非空非法ID400；不调用checkoutSession；空值正常status",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[1]",
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[2]",
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[3]",
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[4]",
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[5]",
+        "BillingScenarioRegressionTest.invalidCheckoutIdIsRejectedBeforeRetrieval{String}[6]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "B07",
+      "priority": "P1",
+      "action": "checkout plan null/空/unknown/年付/充值包",
+      "expected": "400 BILLING_PLAN_INVALID；无客户或订单创建",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[1]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[2]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[3]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[4]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[5]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[6]",
+        "BillingScenarioRegressionTest.B07_nullPlanNeverCreatesCustomer"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B08",
+      "priority": "P1",
+      "action": "POST空body/坏JSON/类型错；GET offset非数字；错误HTTP方法",
+      "expected": "稳定4xx，不出现500、原始堆栈；不得产生账务副作用",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioHttpRegressionTest.malformedOrAbsentBodyCannotReachBilling{String}[1]",
+        "BillingScenarioHttpRegressionTest.malformedOrAbsentBodyCannotReachBilling{String}[2]",
+        "BillingScenarioHttpRegressionTest.malformedOrAbsentBodyCannotReachBilling{String}[3]",
+        "BillingScenarioHttpRegressionTest.B08_nonNumericOffsetAndWrongMethodAreRejected"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "B09",
+      "priority": "P0",
+      "action": "第三方Origin跨站提交checkout/portal；伪造客户端头",
+      "expected": "按实际cookie/CSRF/CORS策略阻断；不能仅以token转发视为通过",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "B10",
+      "priority": "P1",
+      "action": "无登录但读取capabilities、合法签名webhook",
+      "expected": "两者可用；webhook不要求网站会话；仍严格验签",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioHttpRegressionTest.B10_publicCapabilitiesAndWebhookDoNotRequireWebsiteSession"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B11",
+      "priority": "P1",
+      "action": "模拟所有ApiException与非ApiException账务错误",
+      "expected": "ApiException保留code/retryable；其他错误也需安全且稳定，不能泄漏凭据",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "B12",
+      "priority": "P1",
+      "action": "重复ack、未知notice ID、伪造ID",
+      "expected": "兼容ack无DB访问、不发放新积分；仍要求登录",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.reminderUsesBalanceAndLegacyAcknowledgementDoesNotAccessDatabase"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "B13",
+      "priority": "P0",
+      "action": "短期访问凭证到期但长期登录cookie有效；调用checkout",
+      "expected": "先刷新访问凭证再重试同动作；长期cookie不能直接执行受保护支付，不能发起两笔订单",
+      "status": "部分验证",
+      "evidence": [
+        "MusicMvAuthServiceTest.longCookieNeedsRefreshAndCannotExecuteProtectedBusiness",
+        "MusicMvAuthServiceTest.sessionRefreshIssuesSecureAccessAndLogoutClearsBothCookies"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "B14",
+      "priority": "P0",
+      "action": "合法签名访问cookie、长期会话已撤销；点击portal/checkout",
+      "expected": "按当前访问凭证撤销窗口设计验收；不得宣称所有API实时查DB验登录；登出清两cookie",
+      "status": "部分验证",
+      "evidence": [
+        "MusicMvAccessTokenServiceTest.validTokenIsLocalAndExpiresAtTwoMinutes",
+        "MusicMvAuthServiceTest.logoutRevokesOnlyCurrentTokenAndClearsSecureCookie"
+      ],
+      "limitations": "当前短凭证最长120秒、校验不查长期会话撤销；登出清浏览器cookie，已复制凭证并非立即全局作废。"
+    },
+    {
+      "id": "B15",
+      "priority": "P1",
+      "action": "A/B切账号、session刷新、两个浏览器同时登出其中一个",
+      "expected": "user不串；仅撤销对应会话；余额响应不可跨账号缓存",
+      "status": "部分验证",
+      "evidence": [
+        "MusicMvAuthServiceTest.protectedMusicApiUsesSessionUserOnly",
+        "MusicMvAuthServiceTest.logoutRevokesOnlyCurrentTokenAndClearsSecureCookie"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "B16",
+      "priority": "P1",
+      "action": "长期cookie缺失/短cookie无效，匿名浏览价格页再点击购买",
+      "expected": "公共价格页可看；支付接口要求登录；不提前写客户/checkout",
+      "status": "部分验证",
+      "evidence": [
+        "MusicMvAuthServiceTest.protectedMusicApiRequiresSignedInSession"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C01",
+      "priority": "P0",
+      "action": "A无客户；首次购买Starter",
+      "expected": "同用户客户幂等键；保存唯一customer；共享slot；mode=subscription、quantity=1、服务器Price",
+      "status": "部分验证",
+      "evidence": [
+        "StripeGatewayTest.officialSdkSendsSubscriptionContractWithStableIdempotency"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C02",
+      "priority": "P0",
+      "action": "A无客户；首次购买Creator",
+      "expected": "同C01；应使用CreatorPrice；最终paid仅授1000，不授300",
+      "status": "部分验证",
+      "evidence": [
+        "StripeGatewayTest.officialSdkSendsSubscriptionContractWithStableIdempotency",
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C03",
+      "priority": "P0",
+      "action": "同账号双标签同时首次购买同套餐",
+      "expected": "最多一个可支付Checkout；同slot/token幂等；DB唯一约束，另请求安全恢复/冲突",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner"
+      ],
+      "limitations": "两个独立SQLite连接跨provider同时claim只有一个赢家；未覆盖真实Stripe双节点创建/expire竞态。"
+    },
+    {
+      "id": "C04",
+      "priority": "P0",
+      "action": "两节点同时买不同套餐",
+      "expected": "最多一个open订单；严格先关闭旧单再新建；不能出现双订阅",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.C03_C04_crossProviderConcurrentClaimHasOnlyOneWinner"
+      ],
+      "limitations": "两个独立SQLite连接跨provider同时claim只有一个赢家；未覆盖真实Stripe双节点创建/expire竞态。"
+    },
+    {
+      "id": "C05",
+      "priority": "P1",
+      "action": "已有owned open同套餐；再次checkout",
+      "expected": "返回原URL；保存原token，不重置到期时间；不新建订单",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.checkoutReadsSharedSlotAndVerifiesTheSameSession"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C06",
+      "priority": "P0",
+      "action": "create被Stripe受理但响应超时；同请求重试",
+      "expected": "保留token，用原参数及幂等键恢复，不能换key再建",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.providerTimeoutPreservesOriginalTokenInsteadOfCreatingAnotherOrder"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C07",
+      "priority": "P0",
+      "action": "创建成功但saveCheckout数据库失败；进程重启重试",
+      "expected": "恢复同会话并保存；渠道最多一单",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C08",
+      "priority": "P1",
+      "action": "原订单剩余不足30分钟；无本地checkout_id",
+      "expected": "原参数重放找回；不能因为本地剩余短自动丢单",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.lostCheckoutResponseCanBeRecoveredWithinLastThirtyMinutes"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C09",
+      "priority": "P0",
+      "action": "Stripe明确expires_at参数拒绝；查询无匹配且分页完整",
+      "expected": "查证后清旧slot，建立新单；不把普通超时当可清理依据",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.expiredValidationWithoutChannelOrderAllowsFreshCheckout"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C10",
+      "priority": "P0",
+      "action": "恢复列表has_more=true/缺has_more/非array",
+      "expected": "BILLING_REVIEW_REQUIRED；不清占用、不新建",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.incompleteChannelSearchCannotReleaseUnknownCheckout"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C11",
+      "priority": "P0",
+      "action": "恢复列表同用户同expires匹配两个会话",
+      "expected": "人工核查冲突；不任取一个或清slot",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "C12",
+      "priority": "P0",
+      "action": "Starter open切Creator；再次点击",
+      "expected": "查旧归属；expire旧单成功；确认expired；再创建Creator",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.changingPlanExpiresOldCheckoutBeforeOpeningNewOne"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C13",
+      "priority": "P0",
+      "action": "expire超时/失败/返回仍open",
+      "expected": "保留旧占用；不创建另一可支付订单",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.failedExpiryDoesNotReleaseOrReplaceCheckout"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C14",
+      "priority": "P0",
+      "action": "expire时用户并发支付旧单变complete",
+      "expected": "不清单、不新买；刷新已发生订阅，进入确认/管理",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C15",
+      "priority": "P1",
+      "action": "已知expired旧会话；购买",
+      "expected": "查无当前订阅后释放旧token并重建",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.knownExpiredCheckoutIsReplacedAndCompletedRaceRemainsBlocked"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C16",
+      "priority": "P1",
+      "action": "owned open旧返回/account；同套餐购买",
+      "expected": "先expire再新建返回pricing；已支付旧会话不重建",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.legacyAccountReturnIsExpiredBeforeNewPricingCheckout"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C17",
+      "priority": "P0",
+      "action": "open URL为空；另账号/客户/环境/mode错误会话",
+      "expected": "拒绝；不保存错误URL、不expire他人单",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.completedOrForeignCheckoutCannotBeReplaced"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C18",
+      "priority": "P0",
+      "action": "有active/trialing/past_due/unpaid/paused/incomplete当前订阅",
+      "expected": "409 BILLING_ALREADY_SUBSCRIBED；没有checkout创建/slot替换",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[1]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[2]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[3]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[4]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[5]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[6]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C19",
+      "priority": "P0",
+      "action": "canceled/incomplete_expired旧complete；无其他订阅",
+      "expected": "核实旧sub ID/customer/mode、再次查无进行中订阅，再释放旧token购买",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C20",
+      "priority": "P0",
+      "action": "旧complete但sub未结束/外部归属/缺sub ID",
+      "expected": "保留占用；不能凭本地过期时间释放已付订单",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.nonEndedOrForeignOldSubscriptionNeverReleasesPaidCheckout"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C21",
+      "priority": "P0",
+      "action": "原订阅结束查证后另节点同步新subscription或token",
+      "expected": "clear条件写入不能擦新数据；最多3轮后安全409",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C22",
+      "priority": "P0",
+      "action": "另一支付渠道有订阅/未过期slot；尝试Stripe",
+      "expected": "禁止；不调用渠道建单或覆盖归属",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout",
+        "BillingRepositoryTest.providersHaveIndependentPaymentsButShareOneSubscriptionSlot"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "C23",
+      "priority": "P1",
+      "action": "另一渠道过期slot且无订阅；尝试Stripe",
+      "expected": "条件claim才允许接管；临界expires=now需专测",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.providersHaveIndependentPaymentsButShareOneSubscriptionSlot"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "C24",
+      "priority": "P0",
+      "action": "Stripe客户create成功DB写失败；重复请求",
+      "expected": "固定客户幂等键恢复；不得把重复客户映射给另一账号",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "D01",
+      "priority": "P0",
+      "action": "Starter paid发票通知成功；读status/credits/history",
+      "expected": "grant300+welcome10=310；唯一发票grant、唯一成功event",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
+        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D02",
+      "priority": "P0",
+      "action": "Creator paid首购",
+      "expected": "grant1000+welcome10=1010；不是累计两档额度",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
+        "MusicBillingServiceTest.ordinaryStatusRecoversSavedOrderWithoutReturnQuery"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D03",
+      "priority": "P0",
+      "action": "complete但unpaid、open、expired、payment mode；返回status",
+      "expected": "paymentConfirmed=false；无invoice发放；已有体验余额不算付款",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.unpaidCheckoutNeverRetrievesInvoiceOrGrants"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D04",
+      "priority": "P0",
+      "action": "手工拼billing=return/成功query但会话未付",
+      "expected": "不能发额度或确认支付；以服务端渠道查证为准",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.unpaidCheckoutNeverRetrievesInvoiceOrGrants"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D05",
+      "priority": "P0",
+      "action": "paid Checkout、Webhook漏失；显式sessionID查询",
+      "expected": "核实customer/user/sub/invoice/mode；grant一次；重读余额并确认",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.paidCheckoutRepairsMissingGrantAndReturnsFreshBalance"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "D06",
+      "priority": "P0",
+      "action": "paid Checkout、无query；本地已存旧会话ID",
+      "expected": "兼容恢复原会话并补偿；没有新checkout创建",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.ordinaryStatusRecoversSavedOrderWithoutReturnQuery"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "D07",
+      "priority": "P0",
+      "action": "正常status发现current.latest_invoice已付但未发",
+      "expected": "补最新发票；返回余额更新；不查原首购会话；不泄漏_latestInvoice",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "D08",
+      "priority": "P0",
+      "action": "已有grant；反复status/重放Webhook/两个不同event同invoice",
+      "expected": "总grant仍1；不得再加300/1000；事件去重与发票去重分别验证",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity",
+        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D09",
+      "priority": "P0",
+      "action": "paid Checkout的invoice ID/customer/sub或owner不符",
+      "expected": "冲突/拒绝；不发、不确认、不修改B余额",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.foreignCheckoutOrInvoiceCannotGrant"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "D10",
+      "priority": "P0",
+      "action": "发票live缺失/不符、open/draft/void/uncollectible",
+      "expected": "显式补偿拒绝；日常未付发票不发放；无假成功",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.invalidInvoiceStateNeverGrantsDuringReconciliation",
+        "MusicBillingServiceTest.failedOrPendingRenewalPreservesStatusAndNeverGrants"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D11",
+      "priority": "P0",
+      "action": "grant已撤回；再刷返回页/普通status/重放invoice.paid",
+      "expected": "唯一grant仍revoked；不恢复额度；paymentConfirmed不因余额而true",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D12",
+      "priority": "P1",
+      "action": "只有永久体验10；订阅刚created且未付",
+      "expected": "不显示付款已确认；月度grant为0",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[1]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[2]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[3]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[4]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[5]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[6]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "D13",
+      "priority": "P0",
+      "action": "连续漏两期以上通知；最新发票已付",
+      "expected": "安全目标：定位全部漏期；当前只自动补最新一期，历史漏期需人工对账",
+      "status": "已确认边界",
+      "evidence": [
+        "MusicBillingServiceTest.latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId"
+      ],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "D14",
+      "priority": "P0",
+      "action": "旧订阅已结束且末期通知漏；无保存checkout/用户不访问",
+      "expected": "需要对账发现；当前没有全量补偿作业，不应假定全覆盖",
+      "status": "已确认边界",
+      "evidence": [
+        "MusicBillingServiceTest.endedSubscriptionDoesNotReconcileInvoicesAndAllowsPlanSelection"
+      ],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "D15",
+      "priority": "P1",
+      "action": "支付成功后浏览器关页/换设备/重启服务",
+      "expected": "Webhook独立到账；重新登录读正确余额，不依赖旧tab",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "D16",
+      "priority": "P1",
+      "action": "真实成功/取消返回九语言URL",
+      "expected": "pricing存在、session参数保留；取消不误确认、不产生grant",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "E01",
+      "priority": "P0",
+      "action": "paid create/cycle，Starter/Creator已知price，quantity=1",
+      "expected": "300/1000，使用真实行period；完整grant字段正确",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
+        "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "E02",
+      "priority": "P0",
+      "action": "未知price、产品ID冒充price、缺price",
+      "expected": "502 BILLING_REVIEW_REQUIRED；不grant、不processed；配置修正可重试",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.unknownPriceDoesNotAcknowledgeWebhookAndCanRetryAfterConfigurationFix"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "E03",
+      "priority": "P0",
+      "action": "quantity 0/2/null/缺失/非整数/1.5",
+      "expected": "安全目标：仅整数1允许；当前asInt转换缺少原始数值类型/精度验证",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.E03_RISK_fractionalQuantityIsTruncatedAndGranted"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "E04",
+      "priority": "P0",
+      "action": "两条可授额度行/额外非proration费用行",
+      "expected": "拒绝歧义；不拿首行发额度，不先写后报错",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.malformedOrAmbiguousAllowanceDoesNotGrantOrAcknowledge"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E05",
+      "priority": "P0",
+      "action": "只有proration或空lines；create/cycle",
+      "expected": "缺额度行拒绝；不能发月额度",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E06",
+      "priority": "P0",
+      "action": "paid reason=subscription_update/manual等",
+      "expected": "不授月度；仍可确认已成功处理支持的忽略事件",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.paidProrationDoesNotReceiveMonthlyAllowance"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E07",
+      "priority": "P0",
+      "action": "proration + 一条正常月费行",
+      "expected": "只取正常行；总授一次月度，不加差价额度",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.E07_prorationAndOneRegularLineGrantOnlyOneAllowance"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "E08",
+      "priority": "P0",
+      "action": "lines.has_more=true",
+      "expected": "不processed；必须核查完整数据；不能只看第一页发放",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E09",
+      "priority": "P0",
+      "action": "缺sub、line/invoice sub冲突",
+      "expected": "拒绝；没有grant或确认事件",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E10",
+      "priority": "P1",
+      "action": "line sub缺失但invoice parent有合法sub",
+      "expected": "正确使用parent；账期来自正常行",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.E10_missingLineSubscriptionUsesVerifiedInvoiceParent"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "E11",
+      "priority": "P0",
+      "action": "start<=0、end<=start、缺period、负值/巨值",
+      "expected": "非法账期拒绝；真实合法未来账期可保存但不到点不生效",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[1]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[2]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[3]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[4]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[5]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[6]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "E12",
+      "priority": "P0",
+      "action": "合法signed通知，远端invoice.id空/与事件ID不同",
+      "expected": "安全目标：重新读对象身份必须一致；webhook grant路径未显式比对ID",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.E12_RISK_retrievedInvoiceIdentityIsNotComparedWithEvent"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "E13",
+      "priority": "P0",
+      "action": "price匹配但币种/价格间隔错误，发票amount_paid=0",
+      "expected": "当前按price+paid发额度；需明确折扣/零额/账单外结清政策并验证，不能称实际扣款成功",
+      "status": "已确认边界",
+      "evidence": [],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "E14",
+      "priority": "P1",
+      "action": "税项、折扣、账户余额抵扣，仍正常月付单行",
+      "expected": "渠道账单金额按配置；额度不因税率/折扣重复增加；异常额外行需评估兼容",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "F01",
+      "priority": "P0",
+      "action": "缺签名/错secret/正文改一个字节/非JSON",
+      "expected": "400 BILLING_SIGNATURE_INVALID；无DB写入、Stripe调用或processed",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.badSignatureDoesNotTouchLedger{String}[1]",
+        "BillingScenarioRegressionTest.badSignatureDoesNotTouchLedger{String}[2]",
+        "BillingScenarioRegressionTest.badSignatureDoesNotTouchLedger{String}[3]",
+        "BillingScenarioRegressionTest.badSignatureDoesNotTouchLedger{String}[4]",
+        "BillingScenarioRegressionTest.F01_bodyTamperingFailsSignature"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F02",
+      "priority": "P0",
+      "action": "过期签名；合法重送重新签名",
+      "expected": "旧签名拒绝；新签名按发票/事件幂等，不按旧timestamp放行",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.invalidStaleAndLiveEventsNeverGrant"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F03",
+      "priority": "P0",
+      "action": "event.livemode缺失/错模式；ID空",
+      "expected": "400 BILLING_MODE_INVALID/BILLING_EVENT_INVALID；无账务变动",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.invalidStaleAndLiveEventsNeverGrant"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F04",
+      "priority": "P0",
+      "action": "完全相同event重复/并发到达",
+      "expected": "成功event最多1、grant最多1；并发时DB约束有效",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.paidInvoiceGrantsFromServerPriceAndDeduplicatesEvents"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F05",
+      "priority": "P0",
+      "action": "不同event同paid invoice；先status补偿再通知",
+      "expected": "invoice唯一键保证一次；每合法事件可有独立processed",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.renewalCompensationFollowedByWebhookSharesSameInvoiceIdentity"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F06",
+      "priority": "P0",
+      "action": "通知invoice.paid而Stripe返回未付/错环境",
+      "expected": "不授且不processed；返回非2xx，允许渠道重试",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.invalidInvoiceStateNeverGrantsDuringReconciliation"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F07",
+      "priority": "P0",
+      "action": "Stripe查询异常/超时；再次同event请求",
+      "expected": "首次不processed，重试恢复一次授予",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.providerFailureDoesNotAcknowledgeEvent"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F08",
+      "priority": "P0",
+      "action": "DB grant前失败/后processed前失败",
+      "expected": "不成功确认；重试不重复授；后一种已有grant应恢复event",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.F08_grantFailureDoesNotMarkProcessedAndRetryCanSucceed",
+        "BillingScenarioRegressionTest.F08_processedFailureReplaysGrantWithSameInvoiceIdentity"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F09",
+      "priority": "P0",
+      "action": "revoke批次中断/processed写入失败",
+      "expected": "重试补齐撤回；旧额度不被重放支付恢复",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "F10",
+      "priority": "P0",
+      "action": "旧subscription.updated到达晚于deleted/新状态",
+      "expected": "重读渠道当前状态；不得旧payload覆盖新状态",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.subscriptionNotificationUsesVerifiedCurrentStateNotStalePayload"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "F11",
+      "priority": "P0",
+      "action": "subscription事件customer尚未映射",
+      "expected": "失败且不processed；映射恢复后可重试，不建错误owner",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.F11_unmappedCustomerDoesNotAcknowledgeSubscription"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "F12",
+      "priority": "P1",
+      "action": "不支持的事件类型，包括payment_failed/action_required",
+      "expected": "当前忽略账务并记processed；不可误发。状态靠updated/status刷新，不等于已实现失败通知",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "F13",
+      "priority": "P0",
+      "action": "paid和refund顺序反转；并发各100次本地注入",
+      "expected": "最终grant撤回且事件唯一；两个执行顺序均一致",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering",
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "F14",
+      "priority": "P1",
+      "action": "malformed缺data/object/type、缺invoice/charge/payment_intent",
+      "expected": "安全目标：必要字段缺失不得静默处理成功；当前部分分支存在空字段忽略风险",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.F14_RISK_creditNoteWithoutInvoiceRevokesEmptyIdentityAndAcknowledges"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "F15",
+      "priority": "P1",
+      "action": "沙盒回调真实端点经www/CDN/WAF/代理",
+      "expected": "直达2xx，不301/308或登录重定向；保留原文及Stripe-Signature",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "F16",
+      "priority": "P1",
+      "action": "冷启动/慢DB/网络超时，Stripe重复投递",
+      "expected": "所有重试最终收敛；无重复积分；保留失败证据与渠道投递记录",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "G01",
+      "priority": "P1",
+      "action": "active + 未取消 + 最新发票已授",
+      "expected": "status active/plan/periodEnd；无invoice二次查询/旧checkout查询",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.latestPaidRenewalRepairsCreditsWithoutOriginalCheckoutAndDoesNotExposeInvoiceId"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G02",
+      "priority": "P1",
+      "action": "cancel_at_period_end=true，账期未结束",
+      "expected": "active保留、取消标记true；当期余额不变；不能买第二订阅",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G03",
+      "priority": "P1",
+      "action": "门户取消后恢复续费，重复/乱序updated",
+      "expected": "渠道最新cancel=false；下次正常续期；不得撤回当期grant",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "G04",
+      "priority": "P0",
+      "action": "到T1-1、T1、T1+1，旧月度余额尚有余",
+      "expected": "T1前可用；T1起旧月度0；welcome仍在；历史不删除",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "G05",
+      "priority": "P0",
+      "action": "到T1，paid renewal invoice I2到达",
+      "expected": "I2新增300/1000；旧剩余额不结转；I1/I2各1grant",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G06",
+      "priority": "P0",
+      "action": "连续3个月正常扣款/更换月份长短/跨年",
+      "expected": "每真实账期独立grant；不推算30天、不重复发、到期边界正确",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "G07",
+      "priority": "P0",
+      "action": "renewal失败，status past_due/unpaid、invoice open",
+      "expected": "不授新额度；旧到期失效；welcome可用；保留订阅并管理账单",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.failedOrPendingRenewalPreservesStatusAndNeverGrants"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G08",
+      "priority": "P0",
+      "action": "renewal待认证/需换卡；门户修复后同invoice paid",
+      "expected": "不提前授；成功后补本期一次；不新建并行订阅",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "G09",
+      "priority": "P1",
+      "action": "首付incomplete最终incomplete_expired",
+      "expected": "过期无额度；渠道确认结束后允许新买，不沿用complete假成功",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G10",
+      "priority": "P1",
+      "action": "trialing，未付trial发票",
+      "expected": "不凭trialing发额度；只返回真实状态；未来paid转active才授",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[1]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[2]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[3]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[4]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[5]",
+        "BillingScenarioRegressionTest.unfinishedSubscriptionSnapshotWithoutPaidInvoiceDoesNotGrant{String}[6]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G11",
+      "priority": "P1",
+      "action": "paused及pause_collection但status=active",
+      "expected": "两种情况不混同；不自动授；当前snapshot不含pause_collection，展示政策需核查",
+      "status": "已确认边界",
+      "evidence": [],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "G12",
+      "priority": "P0",
+      "action": "canceled立即取消但grant尚在有效期",
+      "expected": "当前按grant有效期仍可用；明确是否允许此管理操作，不能把取消自动当退款",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "G13",
+      "priority": "P0",
+      "action": "正常到期canceled + 原complete订单残留",
+      "expected": "status清当前subscription；新买核实旧单后可用",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.endedPaidSubscriptionReleasesOldCheckoutAndAllowsNewPurchase"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "G14",
+      "priority": "P0",
+      "action": "Stripe有2个进行中订阅/重复订阅异常",
+      "expected": "安全目标：人工核查而不是任取首项；当前activeSubscription只选第一项",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.G14_RISK_multipleActiveSubscriptionsSelectFirstWithoutReview"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "G15",
+      "priority": "P0",
+      "action": "subscriptions has_more=true，或缺data/字段错误",
+      "expected": "分页已拒绝；畸形响应不能当无订阅清状态；后者待防护",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.G15_RISK_malformedSubscriptionListClearsCurrentSnapshot"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "G16",
+      "priority": "P1",
+      "action": "item.current_period_end与本地grant.end不同",
+      "expected": "返回真实item日期；不以旧额度到期代替下次扣款",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.subscriptionDateUsesStripeItemPeriodInsteadOfCreditGrantExpiry"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "G17",
+      "priority": "P1",
+      "action": "未知price/多个item/items分页或缺period_end",
+      "expected": "不推测套餐与续期时间；需要review；当前unknown plan/date可null",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "G18",
+      "priority": "P1",
+      "action": "Stripe宕机，status失败；同时credits/history可访问",
+      "expected": "状态明确异常不假称订阅取消；账本读取仍独立；不清slot",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "H01",
+      "priority": "P0",
+      "action": "A有客户；调用portal九语言",
+      "expected": "仅C_A、固定configuration和本地化pricing return_url；无新grant",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[1]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[2]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[3]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[4]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[5]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[6]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[7]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[8]",
+        "BillingScenarioRegressionTest.portalUsesOwnedCustomerAndLocalizedReturn{String}[9]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "H02",
+      "priority": "P1",
+      "action": "无customer的A调用portal",
+      "expected": "404 BILLING_CUSTOMER_MISSING；不创建客户/订阅",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.H02_missingCustomerNeverCreatesPortal"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "H03",
+      "priority": "P0",
+      "action": "其他渠道拥有订阅/有效slot；调用Stripe portal",
+      "expected": "阻止跨渠道管理；不把另一渠道当Stripe客户",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.anotherProviderSubscriptionBlocksStripeBeforeCreatingCheckout"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "H04",
+      "priority": "P1",
+      "action": "门户配置不存在/错误环境/返回URL空/渠道异常",
+      "expected": "安全错误且可恢复；不能返回200空URL造成无反应",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.H04_RISK_emptyPortalUrlReturnsSuccess"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "H05",
+      "priority": "P1",
+      "action": "门户查看账单/更新卡/账期末取消/返回站点",
+      "expected": "权限与商户配置一致；回站同步真实状态；账本不多授",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "H06",
+      "priority": "P1",
+      "action": "已订阅选择另一档；直接调用checkout绕前台",
+      "expected": "409；当前不支持升级，应无错误差价扣款",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[1]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[2]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[3]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[4]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[5]",
+        "BillingScenarioRegressionTest.everyUnfinishedStatusBlocksSecondPurchase{String}[6]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "H07",
+      "priority": "P0",
+      "action": "管理员在Stripe外部改套餐产生差价发票",
+      "expected": "subscription_update不发月额度；下一cycle按实际白名单price授；不允许静默改商业政策",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.paidProrationDoesNotReceiveMonthlyAllowance"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "H08",
+      "priority": "P1",
+      "action": "请求年付/一次性/充值包/优惠码试用购买",
+      "expected": "本站无入口且非法plan拒绝；不得暗自用已有月付处理",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[1]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[2]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[3]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[4]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[5]",
+        "BillingScenarioRegressionTest.invalidPlanNeverCreatesCustomer{String}[6]"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I01",
+      "priority": "P0",
+      "action": "新A反复credits/reserve触发welcome",
+      "expected": "welcome:<A>唯一；10一次，永久，不按日补；B独立",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I02",
+      "priority": "P0",
+      "action": "A有效余额0/9/10/11；发起一次生成",
+      "expected": "0/9返回402 BILLING_QUOTA_EXHAUSTED且不submit；10/11预占10",
+      "status": "部分验证",
+      "evidence": [
+        "AiMusicGenerationServiceTest.quotaRejectionHappensBeforeAnyPaidProviderSubmission"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I03",
+      "priority": "P0",
+      "action": "有月度和welcome；各生成一次",
+      "expected": "先最早到期月度，后welcome；reservation.grant_id准确",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingRepositoryTest.welcomeIsPermanentUniqueAndSpentAfterExpiringCredits"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I04",
+      "priority": "P0",
+      "action": "余额10，多节点同时100个不同request",
+      "expected": "最多1次成功reserve/submit；余额非负；实际D1并发需实测",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.I04_actualSqlConcurrentReservationsNeverOverdraw"
+      ],
+      "limitations": "8个独立SQLite连接执行100个请求只成功1次；歌曲提交/实际D1多节点尚未验证。"
+    },
+    {
+      "id": "I05",
+      "priority": "P0",
+      "action": "同user/request重复生成；相同及不同内容",
+      "expected": "相同已建任务复用；不同内容409；预占/付费submit只一次",
+      "status": "部分验证",
+      "evidence": [
+        "PaidSubmissionSafetyTest.uncertainSongResponsesNeverReleaseOrResubmit"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I06",
+      "priority": "P0",
+      "action": "reserve成功但job建表/attempt/event前失败",
+      "expected": "保留占用、不重试供应商；未知孤立reservation可查，需人工核对",
+      "status": "部分验证",
+      "evidence": [
+        "PaidSubmissionSafetyTest.persistenceFailureAfterAcceptanceDoesNotRefundOrResubmit"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I07",
+      "priority": "P0",
+      "action": "供应商明确未受理；settle failed重复",
+      "expected": "reserved→released一次；同原账期恢复10；无消费",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.creditsAreReservedAtomicallyAndRefundsStayInTheirOriginalPeriod"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I08",
+      "priority": "P0",
+      "action": "供应商超时/不明异常/空taskId/受理后保存失败",
+      "expected": "保持reserved/submission_unknown；不释放、不再次提交",
+      "status": "部分验证",
+      "evidence": [
+        "PaidSubmissionSafetyTest.uncertainSongResponsesNeverReleaseOrResubmit",
+        "PaidSubmissionSafetyTest.persistenceFailureAfterAcceptanceDoesNotRefundOrResubmit"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I09",
+      "priority": "P0",
+      "action": "正常完成有两个候选歌曲；回调重复",
+      "expected": "reserved→consumed一次；总耗10，非20；统计一任务",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.usageCountsEachGenerationOnceAndFiltersBeforePagination"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I10",
+      "priority": "P0",
+      "action": "failed终态后completed迟到，反向也测试",
+      "expected": "结算不能反转；job真终态与reservation最终一致",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I11",
+      "priority": "P0",
+      "action": "job已completed/failed，结算写失败后读credits",
+      "expected": "refreshBalance按owner补consumed/released；其他用户不变",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.reconciliationOnlyChangesRequestedOwner",
+        "BillingRepositoryTest.balanceRefreshBatchesGrantReconciliationAndReadInOrder"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I12",
+      "priority": "P1",
+      "action": "job queued/unknown/缺失，读取/全局reconcile",
+      "expected": "不误释放；缺失任务进入人工清单，不靠时间自动返还",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.reserveFailsClosedAndUnknownRequestsAreNotReleased"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I13",
+      "priority": "P0",
+      "action": "T1前reserve，T1后failed释放旧账期",
+      "expected": "释放留在旧grant；新期余额不增加，welcome不凭空补发",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I14",
+      "priority": "P0",
+      "action": "T1前reserve，T1后completed",
+      "expected": "仍消费原grant；不再从新期重复扣；历史保留",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I15",
+      "priority": "P0",
+      "action": "当前额度总额>=10，但分别两个grant各5",
+      "expected": "当前reserve单grant不跨grant凑额，返回不足；需确认是否保留此产品规则",
+      "status": "边界已复现",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.I15_RISK_splitAllowancesCannotCoverOneReservation"
+      ],
+      "limitations": "当前未支持业务已复现，需决定政策；不冒充已实现恢复/跨grant扣费。"
+    },
+    {
+      "id": "I16",
+      "priority": "P0",
+      "action": "已撤回/未来/已过期grant仍有额度；reserve",
+      "expected": "不可选这些grant；不超扣其他用户",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.actualSqlProtectsAllowanceExpiryReplayAndRefundOrdering"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I17",
+      "priority": "P0",
+      "action": "退款时有reserved任务；后续成功/失败",
+      "expected": "不恢复撤回grant；已受理任务费用需运营核对；所有记录可追溯",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "I18",
+      "priority": "P1",
+      "action": "credits连续读取；外部Stripe不可用",
+      "expected": "一次有序DB batch赠送→对账→余额；零Stripe查询",
+      "status": "本地核心通过",
+      "evidence": [
+        "MusicBillingServiceTest.creditsUsesOneBalanceRefreshAndDisabledBillingDoesNotQuery"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "I19",
+      "priority": "P0",
+      "action": "refreshBalance batch缺项/某语句失败/DB超时",
+      "expected": "不返回未经核实余额；异常必须可追踪；无假0",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.incompleteBalanceBatchFailsInsteadOfReturningAnUnverifiedBalance",
+        "D1DatabaseClientTest.billingBatchUsesOneHttpRequestAndPreservesOrderedResultsWithoutRetryingWrites"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "I20",
+      "priority": "P1",
+      "action": "billing禁用后生成/再启用；存量任务结算",
+      "expected": "当前禁用不reserve/settle；防止运行期错误切换让历史免费或悬挂，需上线操作约束",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "J01",
+      "priority": "P0",
+      "action": "全额退款charge.refunded，关联I1",
+      "expected": "根据payment_intent查invoicePayments；I1 revoked=1，余额扣除剩余；event成功后记录",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "J02",
+      "priority": "P0",
+      "action": "部分退款charge.refunded",
+      "expected": "当前撤回整张发票剩余积分；必须明确政策，不能宣称按退款比例",
+      "status": "已确认边界",
+      "evidence": [],
+      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+    },
+    {
+      "id": "J03",
+      "priority": "P0",
+      "action": "credit_note.created I1；重复通知",
+      "expected": "revoke先于processed；revocation唯一；I1剩余额度不可用",
+      "status": "部分验证",
+      "evidence": [
+        "MusicBillingServiceTest.creditNotesRecordRevocationBeforeEventAcknowledgement"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "J04",
+      "priority": "P0",
+      "action": "refund/credit_note先到paid后到，或status补偿后到",
+      "expected": "后建grant默认revoked=1；不能恢复额度",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "J05",
+      "priority": "P0",
+      "action": "charge.dispute.created；查真实charge与invoice",
+      "expected": "仅关联发票撤回；查失败不processed；其他账期不撤回",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "J06",
+      "priority": "P0",
+      "action": "invoicePayments多行/has_more=true/无data字段",
+      "expected": "多行分别核查；分页不完整失败；缺字段不能当已处理",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.J06_paginatedRefundCannotBeAcknowledged"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "J07",
+      "priority": "P0",
+      "action": "payment_intent缺失、charge关联错误/环境不符",
+      "expected": "安全目标：人工核查而不是成功忽略；查回charge环境缺显式验证",
+      "status": "安全目标未通过",
+      "evidence": [
+        "BillingScenarioRegressionTest.J07_RISK_missingRefundPaymentIsAcknowledgedWithoutRevocation",
+        "BillingScenarioRegressionTest.J07_RISK_wrongEnvironmentDisputeChargeStillRevokes"
+      ],
+      "limitations": "风险现状断言通过，证明不符合安全目标；JUnit绿色不代表该场景验收通过。"
+    },
+    {
+      "id": "J08",
+      "priority": "P1",
+      "action": "已消费全部月额度后退款",
+      "expected": "历史消费保留；不生成负“返还”；撤回事实仍可查",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "J09",
+      "priority": "P0",
+      "action": "refund失败/贷项作废/争议胜诉通知",
+      "expected": "当前无自动恢复；不能静默重新发积分；需要明确人工恢复流程",
+      "status": "边界已复现",
+      "evidence": [
+        "BillingScenarioRegressionTest.J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything"
+      ],
+      "limitations": "当前未支持业务已复现，需决定政策；不冒充已实现恢复/跨grant扣费。"
+    },
+    {
+      "id": "J10",
+      "priority": "P0",
+      "action": "退款一期后后续正常续费；再重放老paid",
+      "expected": "老期仍revoked；新paid I2正常一次授；旧事件不能影响I2",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingScenarioDatabaseRegressionTest.J04_J10_refundReplayNeverRevivesOldPeriodOrRevokesNewInvoice"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "K01",
+      "priority": "P1",
+      "action": "history all及7种合法filter，多于20行",
+      "expected": "先过滤后分页；最多20，21条探测hasMore；稳定按时间/id排序",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[1]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[2]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[3]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[4]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[5]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[6]",
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[7]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "K02",
+      "priority": "P1",
+      "action": "offset -1/100000/100001；未知kind",
+      "expected": "合法边界可读；非法400 BILLING_HISTORY_INVALID；无SQL拼接",
+      "status": "部分验证",
+      "evidence": [
+        "BillingScenarioRegressionTest.invalidHistoryOffsetHasNoDatabaseSideEffect{int}[1]",
+        "BillingScenarioRegressionTest.invalidHistoryOffsetHasNoDatabaseSideEffect{int}[2]",
+        "BillingScenarioRegressionTest.invalidHistoryOffsetHasNoDatabaseSideEffect{int}[3]",
+        "BillingScenarioRegressionTest.invalidHistoryOffsetHasNoDatabaseSideEffect{int}[4]"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "K03",
+      "priority": "P0",
+      "action": "A/B各有grant与任务；history/usage/generations",
+      "expected": "只A；两候选歌曲不重复统计；title不串账号",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
+        "BillingRepositoryTest.usageCountsEachGenerationOnceAndFiltersBeforePagination"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "K04",
+      "priority": "P1",
+      "action": "reserved/consumed/released/revoked混合",
+      "expected": "released amount=0，不伪造+10新收入；revoked当前amount=0",
+      "status": "部分验证",
+      "evidence": [
+        "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "K05",
+      "priority": "P1",
+      "action": "过期/退款grant；查看earned/spent",
+      "expected": "当前earned是全部历史allowance，spent仅consumed；不可等同净收入/当前余额",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "K06",
+      "priority": "P1",
+      "action": "时间相同多条；多页读期间新增记录",
+      "expected": "同快照顺序稳定；offset在实时新增时可能重复/遗漏，记录接口边界",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "K07",
+      "priority": "P0",
+      "action": "paymentId跨provider相同；同provider重复/不同user",
+      "expected": "跨provider各自幂等；同provider不可重复错发；共享订阅slot不能覆盖",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingRepositoryTest.providersHaveIndependentPaymentsButShareOneSubscriptionSlot"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "K08",
+      "priority": "P0",
+      "action": "错user/provider/token clear/save；并发sync",
+      "expected": "条件写入不改新token/别账号/已有subscription",
+      "status": "本地核心通过",
+      "evidence": [
+        "BillingRepositoryTest.clearingCheckoutCannotEraseOtherOwnerProviderNewTokenOrSubscription"
+      ],
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+    },
+    {
+      "id": "K09",
+      "priority": "P0",
+      "action": "grant引用不存在/跨owner；数据库foreign_keys设置",
+      "expected": "安全目标：拒绝非法引用或检测孤立账务；本地SQLite测试并不等于D1约束实证",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "K10",
+      "priority": "P1",
+      "action": "初始化SQL执行两次；非空库升级/旧字段",
+      "expected": "幂等新建；不得用初始化替代增量迁移；保留历史不破坏唯一约束",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "L01",
+      "priority": "P0",
+      "action": "原始JSON含空白/Unicode，经网站代理发送有效签名",
+      "expected": "后端验签成功；不重新序列化；原字节、签名正确转发",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "L02",
+      "priority": "P0",
+      "action": "部署两地区/两节点；用户请求与webhook不同路由",
+      "expected": "同一业务账本/正确客户映射；不能回调到另一数据库导致丢发",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "L03",
+      "priority": "P1",
+      "action": "Stripe 429/5xx/网络断开/坏JSON",
+      "expected": "502稳定可重试；10s连接/20s读/最多1网络重试；slot保留",
+      "status": "部分验证",
+      "evidence": [
+        "StripeGatewayTest.onlyExplicitExpiryValidationAllowsCheckoutReconciliation"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "L04",
+      "priority": "P1",
+      "action": "代理后端不可达；回调目标重定向；页面超时",
+      "expected": "503可重试或明确失败；不假装成功；代理不吞错误；无无限loading",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "L05",
+      "priority": "P1",
+      "action": "DB耗时、Stripe耗时、批量刷新并发；记录p50/p95/p99",
+      "expected": "分别衡量credits与status；credits不依赖Stripe；status已授不重复查发票/首购；SLO由实测确定",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "L06",
+      "priority": "P0",
+      "action": "节点重启、版本混跑、配置更换；重发失败event",
+      "expected": "幂等键与SQL合同兼容；老节点不能旧account返回或覆盖新账务",
+      "status": "沙盒待环境",
+      "evidence": [],
+      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+    },
+    {
+      "id": "L07",
+      "priority": "P1",
+      "action": "触发渠道/DB失败；查日志响应监控",
+      "expected": "只安全type/status/code/requestId；可关联事件、发票、owner；不泄漏密钥/卡号/URL",
+      "status": "部分验证",
+      "evidence": [
+        "D1DatabaseClientTest.preservesExecutionStatisticsWithoutExposingQueryValuesAsMetricTags"
+      ],
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+    },
+    {
+      "id": "L08",
+      "priority": "P0",
+      "action": "漏通知、孤立reservation、不同Stripe/D1余额；执行对账",
+      "expected": "差异可定位、人工复核；不能直接改余额/删slot掩盖；缺后台恢复工具需记录",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "L09",
+      "priority": "P1",
+      "action": "一用户反复点击/刷status/webhook垃圾流量",
+      "expected": "合理限流、保护线程与渠道配额；合法Stripe重试不丢失；当前需部署层核查",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    },
+    {
+      "id": "L10",
+      "priority": "P1",
+      "action": "账期跨时区/DST、浏览器日期格式、九语言",
+      "expected": "后端UTC秒准确；客户端只格式化；实际收费账期不被本地时间改变",
+      "status": "未执行",
+      "evidence": [],
+      "limitations": "尚无该完整场景的直接执行证据，不能用其他测试类通过替代。"
+    }
+  ],
+  "remoteReadOnly": {
+    "source": "existing-local-run-configuration",
+    "mutations": 0,
+    "sandboxKey": true,
+    "prices": [
+      {
+        "configuration": "STRIPE_STARTER_PRICE_ID",
+        "http": 404,
+        "code": "resource_missing"
+      },
+      {
+        "configuration": "STRIPE_CREATOR_PRICE_ID",
+        "http": 404,
+        "code": "resource_missing"
+      }
+    ]
+  },
+  "summary": {
+    "本地核心通过": 52,
+    "本地配置失败/沙盒待环境": 1,
+    "安全目标未通过": 8,
+    "部分验证": 72,
+    "已确认边界": 6,
+    "未执行": 22,
+    "沙盒待环境": 11,
+    "边界已复现": 2
+  },
+  "totalBackendTests": 236,
+  "riskCharacterizations": 11,
+  "frontendContractTests": 18,
+  "remoteMutationCount": 1,
+  "onlineBrowserRegression": {
+    "date": "2026-10-08",
+    "browser": "Google Chrome 已登录界面",
+    "site": "https://www.suno.film",
+    "checks": [
+      {
+        "scenario": "订阅恢复",
+        "result": "通过",
+        "evidence": "轻享版、已订阅、9.99美元/月、300积分、下次续费2026-11-08 14:07；刷新最终恢复310余额"
+      },
+      {
+        "scenario": "积分明细",
+        "result": "通过",
+        "evidence": "account/credits页面310=300订阅+10体验；订阅到账2026-10-08 14:41，截止2026-11-08 14:07"
+      },
+      {
+        "scenario": "入口文案",
+        "result": "问题",
+        "evidence": "积分弹窗显示购买更多积分，但积分明细页仍显示订阅"
+      },
+      {
+        "scenario": "刷新接口耗时",
+        "result": "单次观测",
+        "evidence": "DevTools: auth/session 200 1.57秒，billing/status 200 1.91秒，billing/credits 200 1.67秒；另一次credits 1.33秒。未捕获整页导航开始，不可据此计算完整加载时间或服务端耗时"
+      },
+      {
+        "scenario": "管理订阅加载反馈",
+        "result": "问题",
+        "evidence": "点击管理订阅后，其按钮禁用，当前套餐按钮变成正在打开收银台；入口反馈错位"
+      },
+      {
+        "scenario": "管理订阅跳转",
+        "result": "通过",
+        "evidence": "线上点击管理订阅成功进入Stripe沙盒Portal，Starter 9.99/月、下个账单2026-11-08、已付账单记录与站内一致。取消入口能进入原因选择页；未提交取消。"
+      }
+    ]
+  },
+  "remoteMutationExplanation": "浏览器创建了一个Stripe沙盒Portal会话；未购买、取消、退款、改卡或故障注入。"
+}
