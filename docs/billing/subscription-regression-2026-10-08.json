@@ -7263,7 +7263,16 @@
     "backendTests": 276,
     "frontendChecks": "npm run check通过；账务3类16项及认证代理4项通过。",
     "riskCountChange": "原R21风险现状断言改为修复行为断言，396项唯一记录不变，后端风险现状29项。",
-    "acceptance": "代码及自动检查通过，实际线上重新部署及门户取消/恢复复验未完成；九语言完整桌面/移动视觉验收未完成。",
-    "refundPolicy": "不提供退款入口；未变更。"
+    "acceptance": "代码及自动检查通过；已完成受影响真实组件的九语言桌面/手机隔离视觉fixture18视图，无溢出/按钮裁切。线上部署及真实Portal取消/恢复复验未完成。",
+    "refundPolicy": "不提供退款入口；未变更。",
+    "frontendVisual": {
+      "views": 18,
+      "allPassed": true,
+      "fixtureScope": "实际BillingAccountSummary/PricingSubscribeButton及积分明细页header和CSS、九语言字典；SSR隔离认证/账务状态，无真实接口/支付；CreditUsage数据内容未纳入此视觉fixture。",
+      "report": "/Users/zongjei/Documents/code/capcut/docs/billing/subscription-ui-visual-2026-10-09.json",
+      "frontendCommit": "a55d26e",
+      "mobileFix": "积分明细标题和购买入口在窄屏上下排列，修复德语横向溢出。",
+      "notCovered": "需要部署后实际Portal取消/恢复复验；不替代付款接口、前端hydration、焦点或全站视觉验收。"
+    }
   }
 }

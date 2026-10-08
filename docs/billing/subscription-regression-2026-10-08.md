@@ -817,3 +817,9 @@ R09：打开订阅管理的加载状态仅绑定管理按钮；当前套餐不�
 修复后MusicBillingServiceTest45项、BillingScenarioRegressionTest149项、BillingLedgerJourneyRegressionTest82项共276项通过，0失败/错误。前端npm run check通过；账务3类16项及认证代理4项通过。累计396条独立后端证据不变，R21风险现状断言改为修复验收断言，因此当前风险现状29条。G02调整为部分验证，不能在未部署时宣称线上缺陷已消失。
 
 尚未完成本次九语言桌面/移动完整浏览器视觉验收，也未完成部署后的真实Portal取消/恢复复验。真实续费、扣款失败恢复、自然到期和隔离故障注入仍待条件，原目标不标完成。
+
+### 主流程修复的界面验收补足
+
+前端提交a55d26e补修积分明细德语手机入口横向溢出。用实际BillingAccountSummary、PricingSubscribeButton、积分明细页header、CSS及九语言字典，注入隔离认证/账务状态，九语言1440×900和390×844共18视图最终无横向溢出/按钮文字裁切，已检查截图。明确取消时间与账期结束时间故意不同，展示正确采用取消时间；加载状态仅管理按钮变化，套餐文字保持。npm run check及相关14项测试通过。
+
+受影响区域九语言视觉fixture验收已完成；不替代实际付款、hydration、焦点交互及全站视觉。报告在前端docs/billing/subscription-ui-visual-2026-10-09.json，复验工具scripts/subscription-layout-fixture.cjs。线上部署后的真实Portal取消/恢复仍待验收；退款入口及政策未变更。
