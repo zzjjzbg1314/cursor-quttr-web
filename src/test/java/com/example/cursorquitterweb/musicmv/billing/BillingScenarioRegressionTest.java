@@ -509,6 +509,33 @@ class BillingScenarioRegressionTest {
         verifyNoInteractions(repo,stripe);
     }
 
+    @Test void oversizedCheckoutIdentifierIsRejectedBeforeChannelRetrieval() throws Exception {
+        customer();StringBuilder id=new StringBuilder("cs_");for(int i=0;i<241;i++)id.append('a');
+        assertThatThrownBy(()->service.status("u",id.toString())).isInstanceOfSatisfying(ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(400);assertThat(e.getCode()).isEqualTo("BILLING_CHECKOUT_INVALID");});
+        verify(stripe,never()).checkoutSession(anyString());
+    }
+
+    @ParameterizedTest(name="B06 普通状态查询={0}")
+    @ValueSource(strings={"null","empty"})
+    void absentCheckoutIdentifierUsesOrdinaryStatusWithoutRetrieval(String shape) throws Exception {
+        customer();when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10));
+        Map<String,Object> result=service.status("u",shape.equals("null")?null:"");
+        assertThat(result).containsEntry("remaining",10).doesNotContainKey("paymentConfirmed");
+        verify(stripe,never()).checkoutSession(anyString());verify(stripe,never()).invoice(anyString());
+    }
+
+    @ParameterizedTest(name="H03 其他支付渠道占用={0}")
+    @ValueSource(strings={"subscription","slot"})
+    void foreignPaymentProviderBlocksStripePortalBeforeChannelAccess(String kind) {
+        when(repo.subscription("u")).thenReturn(map("provider","other_pay","subscription_id",kind.equals("subscription")?"other_sub":null,
+            "checkout_expires",kind.equals("slot")?Instant.now().getEpochSecond()+3600:null));
+        assertThatThrownBy(()->service.portal("u","zh-CN")).isInstanceOfSatisfying(ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(409);assertThat(e.getCode()).isEqualTo("BILLING_ALREADY_SUBSCRIBED");});
+        verifyNoInteractions(stripe);verify(repo,never()).customer(anyString(),anyString());
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");
