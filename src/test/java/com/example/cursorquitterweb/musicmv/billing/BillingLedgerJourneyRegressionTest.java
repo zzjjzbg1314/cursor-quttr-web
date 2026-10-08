@@ -192,6 +192,60 @@ class BillingLedgerJourneyRegressionTest {
         } finally { music.close(); }
     }
 
+    @ParameterizedTest(name="G05/E11 三个账期套餐={0}")
+    @CsvSource({"starter,300","creator,1000"})
+    void renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance(String plan,int allowance) throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("renewal.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";
+        settings.portalConfiguration="bpc_fixture";settings.siteUrl="https://www.example.test";
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        ledger.saveCustomer("stripe","u","cus_u");ledger.ensureWelcomeCredits("u");
+        long[] boundaries=new long[4];
+        for(int i=0;i<4;i++)boundaries[i]=java.time.LocalDate.of(2028,i+1,1).atStartOfDay(java.time.ZoneOffset.UTC).toEpochSecond();
+        assertThat((boundaries[2]-boundaries[1])/86400).isEqualTo(29);
+        ObjectNode subscription=json.createObjectNode().put("id","sub_u").put("status","active").put("cancel_at_period_end",false);
+        subscription.set("items",json.createObjectNode().set("data",json.createArrayNode().add(
+            json.createObjectNode().put("current_period_end",boundaries[3]).set("price",json.createObjectNode().put("id","price_"+plan)))));
+        when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(subscription)));
+        for(int i=0;i<3;i++) {
+            String invoiceId="in_month_"+i;
+            ObjectNode invoice=json.createObjectNode().put("id",invoiceId).put("customer","cus_u").put("livemode",false)
+                .put("status","paid").put("billing_reason",i==0?"subscription_create":"subscription_cycle");
+            invoice.set("parent",json.createObjectNode().set("subscription_details",json.createObjectNode().put("subscription","sub_u")));
+            ObjectNode line=json.createObjectNode().put("quantity",1);
+            line.set("pricing",json.createObjectNode().set("price_details",json.createObjectNode().put("price","price_"+plan)));
+            line.set("parent",json.createObjectNode().set("subscription_item_details",json.createObjectNode().put("subscription","sub_u").put("proration",false)));
+            line.set("period",json.createObjectNode().put("start",boundaries[i]).put("end",boundaries[i+1]));
+            invoice.set("lines",json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(line)));
+            when(stripe.invoice(invoiceId)).thenReturn(invoice);
+            send(service,settings,"evt_month_"+i,"invoice.paid",json.createObjectNode().put("id",invoiceId));
+            send(service,settings,"evt_month_"+i,"invoice.paid",json.createObjectNode().put("id",invoiceId));
+            send(service,settings,"evt_month_second_"+i,"invoice.paid",json.createObjectNode().put("id",invoiceId));
+        }
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(3);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(6);
+        assertThat(((Number)ledger.balance("u",boundaries[0]-1).get("remaining")).intValue()).isEqualTo(10);
+        for(int i=0;i<3;i++) {
+            assertThat(((Number)ledger.balance("u",boundaries[i]).get("remaining")).intValue()).isEqualTo(allowance+10);
+            assertThat(((Number)ledger.balance("u",boundaries[i+1]-1).get("remaining")).intValue()).isEqualTo(allowance+10);
+        }
+        assertThat(ledger.reserve("u","held","held_job",boundaries[1]-1,10)).isTrue();
+        assertThat(db.query("SELECT g.payment_id FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON r.grant_id=g.grant_id WHERE r.job_id='held_job'").firstRow()).containsEntry("payment_id","in_month_0");
+        assertThat(((Number)ledger.balance("u",boundaries[1]).get("remaining")).intValue()).isEqualTo(allowance+10);
+        ledger.settle("held_job","released");ledger.settle("held_job","released");
+        assertThat(((Number)ledger.balance("u",boundaries[1]).get("remaining")).intValue()).isEqualTo(allowance+10);
+        assertThat(ledger.reserve("u","new","new_job",boundaries[1],10)).isTrue();ledger.settle("new_job","consumed");
+        assertThat(db.query("SELECT g.payment_id FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON r.grant_id=g.grant_id WHERE r.job_id='new_job'").firstRow()).containsEntry("payment_id","in_month_1");
+        assertThat(((Number)ledger.balance("u",boundaries[1]).get("remaining")).intValue()).isEqualTo(allowance);
+        assertThat(((Number)ledger.balance("u",boundaries[2]).get("remaining")).intValue()).isEqualTo(allowance+10);
+        assertThat(((Number)ledger.balance("u",boundaries[3]).get("remaining")).intValue()).isEqualTo(10);
+        send(service,settings,"evt_old_late","invoice.paid",json.createObjectNode().put("id","in_month_0"));
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(3);
+        assertThat(((Number)ledger.balance("u",boundaries[3]).get("remaining")).intValue()).isEqualTo(10);
+    }
+
     private int count(SqliteClient db,String sql){return ((Number)db.query(sql).firstRow().get("n")).intValue();}
     private ObjectNode session(String status){return json.createObjectNode().put("id","cs_test_fixture").put("status",status)
         .put("client_reference_id","u").put("customer","cus_u").put("livemode",false).put("mode","subscription")

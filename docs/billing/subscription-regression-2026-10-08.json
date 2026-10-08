@@ -118,11 +118,11 @@
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
-      "tests": 13,
+      "tests": 15,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "9a00b8a149d222f0869f29078fe0c9296f5de143810881fb182db9a2b1b62d11"
+      "reportSha256": "863c2b080e3a1f289733dac399d5b191f8de6c99e709f2fdf862f314c4233b22"
     }
   ],
   "tests": [
@@ -1970,7 +1970,7 @@
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[1]",
-      "seconds": 0.859,
+      "seconds": 0.811,
       "result": "pass",
       "characterization": false
     },
@@ -1984,77 +1984,91 @@
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[3]",
-      "seconds": 0.209,
+      "seconds": 0.207,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[4]",
-      "seconds": 0.205,
+      "seconds": 0.206,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[5]",
-      "seconds": 0.228,
+      "seconds": 0.207,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[6]",
-      "seconds": 0.21,
+      "seconds": 0.202,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[7]",
-      "seconds": 0.215,
+      "seconds": 0.207,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+      "seconds": 1.586,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]",
+      "seconds": 1.558,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
-      "seconds": 1.452,
+      "seconds": 1.412,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
-      "seconds": 1.45,
+      "seconds": 1.609,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "terminalCallbackAndInterruptedSettlementKeepJobsAndLedgerConsistent{String, boolean}[1]",
-      "seconds": 0.902,
+      "seconds": 0.922,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "terminalCallbackAndInterruptedSettlementKeepJobsAndLedgerConsistent{String, boolean}[2]",
-      "seconds": 0.894,
+      "seconds": 0.878,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "terminalCallbackAndInterruptedSettlementKeepJobsAndLedgerConsistent{String, boolean}[3]",
-      "seconds": 0.955,
+      "seconds": 0.836,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "terminalCallbackAndInterruptedSettlementKeepJobsAndLedgerConsistent{String, boolean}[4]",
-      "seconds": 0.837,
+      "seconds": 0.832,
       "result": "pass",
       "characterization": false
     }
@@ -3048,9 +3062,11 @@
         "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[7]",
         "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[8]",
         "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[9]",
-        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]"
+        "BillingScenarioRegressionTest.malformedInvoiceDoesNotGrantOrAcknowledge{String}[10]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 已补充两档2028年1—3月（闰二月29天）实际服务+SQL联合边界，未来grant未生效、旧任务释放不补入新月均通过；支付渠道及时间推进为本地夹具，非真实Stripe连续扣款。"
     },
     {
       "id": "E12",
@@ -3326,11 +3342,13 @@
       "priority": "P0",
       "action": "到T1，paid renewal invoice I2到达",
       "expected": "I2新增300/1000；旧剩余额不结转；I1/I2各1grant",
-      "status": "部分验证",
+      "status": "本地核心通过",
       "evidence": [
-        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "实际服务/验签/仓库SQL串联两档套餐三期发票；每期重复event及不同event同invoice仅一grant；旧额度不结转，跨期释放不增加新额度，末期到期仅保留体验。临时SQLite和模拟Stripe，不替代真实自动扣款续期。"
     },
     {
       "id": "G06",
@@ -3338,8 +3356,11 @@
       "action": "连续3个月正常扣款/更换月份长短/跨年",
       "expected": "每真实账期独立grant；不推算30天、不重复发、到期边界正确",
       "status": "沙盒待环境",
-      "evidence": [],
-      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
+      "evidence": [
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]"
+      ],
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。 已补充两档2028年1—3月（闰二月29天）实际服务+SQL联合边界，未来grant未生效、旧任务释放不补入新月均通过；支付渠道及时间推进为本地夹具，非真实Stripe连续扣款。"
     },
     {
       "id": "G07",
@@ -3736,9 +3757,11 @@
       "expected": "释放留在旧grant；新期余额不增加，welcome不凭空补发",
       "status": "本地核心通过",
       "evidence": [
-        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 已补充两档2028年1—3月（闰二月29天）实际服务+SQL联合边界，未来grant未生效、旧任务释放不补入新月均通过；支付渠道及时间推进为本地夹具，非真实Stripe连续扣款。"
     },
     {
       "id": "I14",
@@ -3747,9 +3770,11 @@
       "expected": "仍消费原grant；不再从新期重复扣；历史保留",
       "status": "本地核心通过",
       "evidence": [
-        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant"
+        "BillingScenarioDatabaseRegressionTest.G04_I13_I14_periodBoundaryAndSettlementStayWithOriginalGrant",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[1]",
+        "BillingLedgerJourneyRegressionTest.renewalInvoicesAcrossLeapFebruaryNeverCarryOverOldAllowance{String, int}[2]"
       ],
-      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。"
+      "limitations": "已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 已补充两档2028年1—3月（闰二月29天）实际服务+SQL联合边界，未来grant未生效、旧任务释放不补入新月均通过；支付渠道及时间推进为本地夹具，非真实Stripe连续扣款。"
     },
     {
       "id": "I15",
@@ -4196,16 +4221,16 @@
     ]
   },
   "summary": {
-    "本地核心通过": 58,
+    "本地核心通过": 59,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 11,
-    "部分验证": 85,
+    "部分验证": 84,
     "已确认边界": 6,
     "沙盒待环境": 8,
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 276,
+  "totalBackendTests": 278,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
@@ -4836,6 +4861,19 @@
     "skipped": 0,
     "scope": "实际生成回调服务+任务仓库+账务服务/仓库；完整schema临时SQLite，真实FK开启；两终态x一次结算失败/正常",
     "command": "mvn -q -Dtest=BillingLedgerJourneyRegressionTest test",
+    "productionChanges": false
+  },
+  "localRenewalPeriodRegression": {
+    "class": "BillingLedgerJourneyRegressionTest",
+    "testsAdded": 2,
+    "testsInFocusedRun": 15,
+    "seconds": 11.779,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "实际签名Webhook服务+账务仓库SQL；两档各三期，2028年闰二月；完整schema临时SQLite；Stripe对象模拟",
+    "command": "mvn -q -Dtest=BillingLedgerJourneyRegressionTest test",
+    "fixtureRepair": "首轮缺门户配置导致不可用；第二轮缺subscriptions网关夹具导致NullPointerException；补齐两项后最终15条全通过，不计生产故障",
     "productionChanges": false
   }
 }
