@@ -453,6 +453,20 @@ class BillingScenarioRegressionTest {
         verify(repo).history("u",21,0,"all");
     }
 
+    @ParameterizedTest(name="J06/R01 损坏退款列表={0}")
+    @ValueSource(strings={"missing-data","null-data","object-data","scalar-data"})
+    void J06_RISK_malformedInvoicePaymentsAcknowledgesWithoutRevocation(String shape) throws Exception {
+        ObjectNode list=json.createObjectNode().put("has_more",false);
+        if(shape.equals("null-data"))list.putNull("data");
+        if(shape.equals("object-data"))list.set("data",json.createObjectNode());
+        if(shape.equals("scalar-data"))list.put("data",42);
+        when(stripe.invoicePayments("pi_1")).thenReturn(list);
+        send("charge.refunded",json.createObjectNode().put("payment_intent","pi_1"));
+        verify(stripe).invoicePayments("pi_1");
+        verify(repo,never()).revoke(anyString(),anyString());
+        verify(repo).processed("stripe","evt_fixture","charge.refunded");
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");

@@ -525,6 +525,35 @@ class BillingLedgerJourneyRegressionTest {
         } finally {music.close();}
     }
 
+    @org.junit.jupiter.api.Test
+    void refundInvoicePaymentListRevokesOnlyListedPeriodsAndReplaysOnce() throws Exception {
+        SqliteClient db=new SqliteClient(directory.resolve("multi-invoice-refund.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";
+        settings.portalConfiguration="bpc_fixture";settings.siteUrl="https://www.example.test";
+        MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        ledger.ensureWelcomeCredits("u");ledger.grant("stripe","in_1","u","sub_u","starter",300,100,200);
+        ledger.grant("stripe","in_2","u","sub_u","creator",1000,200,300);
+        ledger.grant("stripe","in_3","u","sub_u","starter",300,300,400);
+        ledger.grant("stripe","in_other","other","sub_other","creator",1000,100,400);
+        when(stripe.invoicePayments("pi_1")).thenReturn(json.createObjectNode().put("has_more",false).set("data",
+            json.createArrayNode().add(json.createObjectNode().put("invoice","in_1")).add(json.createObjectNode().put("invoice","in_2"))));
+        ObjectNode charge=json.createObjectNode().put("payment_intent","pi_1");
+        send(service,settings,"evt_refund","charge.refunded",charge);
+        send(service,settings,"evt_refund","charge.refunded",charge);
+        send(service,settings,"evt_refund_second","charge.refunded",charge);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isEqualTo(2);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_revocations")).isEqualTo(2);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE revoked=1")).isEqualTo(2);
+        assertThat(((Number)ledger.balance("u",150).get("remaining")).intValue()).isEqualTo(10);
+        assertThat(((Number)ledger.balance("u",250).get("remaining")).intValue()).isEqualTo(10);
+        assertThat(((Number)ledger.balance("u",350).get("remaining")).intValue()).isEqualTo(310);
+        assertThat(((Number)ledger.balance("other",150).get("remaining")).intValue()).isEqualTo(1000);
+        assertThat(db.query("SELECT revoked FROM music_mv_billing_grants WHERE payment_id='in_3'").firstRow()).containsEntry("revoked",0);
+        verify(stripe,times(2)).invoicePayments("pi_1");
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
