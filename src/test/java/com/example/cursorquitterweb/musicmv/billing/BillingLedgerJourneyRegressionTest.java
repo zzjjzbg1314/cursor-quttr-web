@@ -364,6 +364,49 @@ class BillingLedgerJourneyRegressionTest {
         } finally {release.countDown();worker.shutdownNow();assertThat(worker.awaitTermination(5,TimeUnit.SECONDS)).isTrue();}
     }
 
+    @ParameterizedTest(name="I06 生成预提交持久化失败={0}")
+    @ValueSource(strings={"job","attempt","attempt-pointer","event"})
+    void preSubmissionPersistenceFailureKeepsHoldWithoutSubmittingAgain(String point) throws Exception {
+        AtomicBoolean failOnce=new AtomicBoolean(true);
+        SqliteClient db=new SqliteClient(directory.resolve("pre-submit.sqlite")) {
+            @Override public D1QueryResult query(String sql,Object...params) {
+                boolean target=point.equals("job")?sql.startsWith("INSERT INTO ai_music_jobs "):
+                    point.equals("attempt")?sql.startsWith("INSERT INTO ai_music_provider_attempts "):
+                    point.equals("attempt-pointer")?sql.startsWith("UPDATE ai_music_jobs SET active_attempt_id=?"):
+                    sql.startsWith("INSERT INTO ai_music_job_events ");
+                if(target&&failOnce.compareAndSet(true,false))throw new IllegalStateException("测试注入生成持久化失败："+point);
+                return super.query(sql,params);
+            }
+        };
+        db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES('u','u','u','2026-10-08','2026-10-08','2026-10-08')");
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        BillingRepository ledger=new BillingRepository(db);
+        MusicBillingService billing=new MusicBillingService(settings,ledger,mock(StripeGateway.class),json);
+        AiMusicProvider provider=mock(AiMusicProvider.class);when(provider.providerCode()).thenReturn("sunoapi");
+        when(provider.defaultModel()).thenReturn("V4_5");
+        AiMusicGenerationService music=new AiMusicGenerationService(new AiMusicJobRepository(db),new AiMusicProviderRegistry(Collections.singletonList(provider)),
+            mock(AiMusicCandidateStorageService.class),json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest request=new com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest();
+        request.setRequestId("req");request.setStory("A birthday song");
+        try {
+            assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOf(IllegalStateException.class);
+            Map<String,Object> reservation=db.query("SELECT * FROM music_mv_billing_reservations WHERE user_id='u' AND request_id='req'").firstRow();
+            assertThat(reservation).containsEntry("state","reserved").containsEntry("credits",10);assertThat(reservation.get("job_id")).isNotNull();
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_jobs")).isEqualTo(point.equals("job")?0:1);
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_provider_attempts")).isEqualTo(point.equals("job")||point.equals("attempt")?0:1);
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_job_events")).isZero();
+            assertThat(((Number)billing.credits("u").get("remaining")).intValue()).isZero();
+            if(point.equals("job"))assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
+            else assertThat(music.create("u",request,"https://example.test")).containsEntry("status","submitting");
+            ledger.reconcile("u");ledger.reconcile();
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations")).isEqualTo(1);
+            assertThat(db.query("SELECT state FROM music_mv_billing_reservations WHERE user_id='u'").firstRow()).containsEntry("state","reserved");
+            assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations r LEFT JOIN ai_music_jobs j ON j.job_id=r.job_id WHERE j.job_id IS NULL")).isEqualTo(point.equals("job")?1:0);
+            verify(provider,never()).submit(any());
+        } finally {music.close();}
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
