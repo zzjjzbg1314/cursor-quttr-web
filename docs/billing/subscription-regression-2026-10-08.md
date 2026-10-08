@@ -14,7 +14,7 @@
 
 | 核心流程 | 当前证据 | 尚未闭环 |
 | --- | --- | --- |
-| 订阅新购与到账 | 新一轮Starter线上浏览器新购、付款自动回/pricing、310分、历史+300、唯一grant及processed核对通过 | 复用既有客户；首次客户创建及Creator实购未验收，旧404保留历史记录 |
+| 订阅新购与到账 | Starter及Creator线上新购、自动回/pricing、310/1010、历史+300/+1000、唯一grant及processed核对通过 | 复用既有客户；首次客户创建未验收，旧404保留历史记录 |
 | 重复操作与通知 | 本地去重、重复回站检查；已处理付款事件线上签名重放未重复发积分 | 真实并发及Stripe实际重新投递链路 |
 | 积分使用 | 本地真实SQL联合服务验证预占、成功扣费、失败退回、账户隔离 | 实际歌曲生成到扣费与退回的浏览器流程 |
 | 自动续费与失败扣款 | 本地成功续费、失败不发积分、同一期补款到账一次、周期额度测试 | 实际沙盒续费和扣款失败投递及页面状态 |
@@ -551,7 +551,7 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 | B15 | P1 | A/B切账号、session刷新、两个浏览器同时登出其中一个 | 部分验证 | 相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 |
 | B16 | P1 | 长期cookie缺失/短cookie无效，匿名浏览价格页再点击购买 | 部分验证 | 相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 |
 | C01 | P0 | A无客户；首次购买Starter | 本地核心通过 | 官方Stripe SDK发往本地HTTP模拟渠道，真实服务/仓库SQL验证客户幂等键、用户metadata、套餐Price、quantity=1、mode=subscription和返回pricing路径；两档额度由已执行联合付款旅程验证。供应商仍为模拟，不代替新一次真实Checkout及支付。 |
-| C02 | P0 | A无客户；首次购买Creator | 本地核心通过 | 官方Stripe SDK发往本地HTTP模拟渠道，真实服务/仓库SQL验证客户幂等键、用户metadata、套餐Price、quantity=1、mode=subscription和返回pricing路径；两档额度由已执行联合付款旅程验证。供应商仍为模拟，不代替新一次真实Checkout及支付。 |
+| C02 | P0 | A无客户；首次购买Creator | 本地核心通过 | 官方Stripe SDK发往本地HTTP模拟渠道，真实服务/仓库SQL验证客户幂等键、用户metadata、套餐Price、quantity=1、mode=subscription和返回pricing路径；两档额度由已执行联合付款旅程验证。供应商仍为模拟，不代替新一次真实Checkout及支付。 本轮既有客户实际Creator订单已完成2999美分支付及1000到账；本行要求无客户首次创建，故不提升为全线上验收通过。 |
 | C03 | P0 | 同账号双标签同时首次购买同套餐 | 部分验证 | 两个独立SQLite连接跨provider同时claim只有一个赢家；未覆盖真实Stripe双节点创建/expire竞态。 |
 | C04 | P0 | 两节点同时买不同套餐 | 部分验证 | 两个独立SQLite连接跨provider同时claim只有一个赢家；未覆盖真实Stripe双节点创建/expire竞态。 |
 | C05 | P1 | 已有owned open同套餐；再次checkout | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 |
@@ -575,7 +575,7 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 | C23 | P1 | 另一渠道过期slot且无订阅；尝试Stripe | 本地核心通过 | 实际claim SQL验证外渠道slot expiry=100：now=99、100拒绝且保留所有字段，101成功转Stripe并清旧ID/URL/status/cancel标记。严格小于now后才可接管；独立SQLite，不替代远程多节点。 |
 | C24 | P0 | Stripe客户create成功DB写失败；重复请求 | 本地核心通过 | 两档客户创建后保存前异常，重建服务和连接再请求同客户幂等键；实际SDK请求参数一致，最终仅一客户映射；尝试把cus_u写入其他用户被实际SQLite唯一键拒绝，原归属保留。支付方为本地模拟，不替代实际Stripe幂等窗口和并发。 客户保存失败后的恢复也已在独立JVM执行，两档均使用同一客户幂等键；非共享线上部署。 |
 | D01 | P0 | Starter paid发票通知成功；读status/credits/history | 沙盒核心通过 | 复用既有客户实际Starter新购，Stripe沙盒付款后自动回/pricing，余额310、历史+300、刷新唯一invoice grant；invoice.paid对应processed记录存在。首次创建客户和Creator实购不由此验收。 |
-| D02 | P0 | Creator paid首购 | 本地核心通过 | Creator实际服务/临时SQLite联动确认1010、历史体验+10及订阅+1000、唯一grant；不存在两档额度累计。模拟渠道，线上Creator支付仍未验收。 |
+| D02 | P0 | Creator paid首购 | 沙盒核心通过 | 既有客户实际Creator新购，Checkout USD2999美分/月，回/pricing到账1010、历史唯一+1000、刷新去重；invoice.paid对应processed，原Starter已撤销不累计。首次客户创建仍未验收。 |
 | D03 | P0 | complete但unpaid、open、expired、payment mode；返回status | 本地核心通过 | complete-unpaid、open、expired、payment模式、缺invoice五种实际服务/临时SQLite回站重复读取均paymentConfirmed=false，无支付grant和发票查询；体验10不作为付款证据。未验证实际收银台返回及浏览器显示。 |
 | D04 | P0 | 手工拼billing=return/成功query但会话未付 | 本地核心通过 | 回站查询以服务端查回会话为准，与D03同五种情况均不授予；后端不以浏览器billing=return字段授权。实际浏览器篡改query未执行。 |
 | D05 | P0 | paid Checkout、Webhook漏失；显式sessionID查询 | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。 |
@@ -666,7 +666,7 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 | I18 | P1 | credits连续读取；外部Stripe不可用 | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 |
 | I19 | P0 | refreshBalance batch缺项/某语句失败/DB超时 | 安全目标未通过 | 缺项/显式失败/超时报错；损坏或空余额行误报成功零余额（R20），仅本地模拟。 |
 | I20 | P1 | billing禁用后生成/再启用；存量任务结算 | 部分验证 | 禁用期间不预占/结算、重新启用可结算已验证；禁用期间免费生成及操作约束仍须评估。 |
-| J01 | P0 | 全额退款charge.refunded，关联I1 | 沙盒核心通过 | 原付款及新999美分付款均实际全额退款成功，charge.refunded已processed；各自唯一300分grant撤销，网站10体验分。退款不会自动结束订阅，本轮另行取消清理。 |
+| J01 | P0 | 全额退款charge.refunded，关联I1 | 沙盒核心通过 | 原付款及新999美分付款均实际全额退款成功，charge.refunded已processed；各自唯一300分grant撤销，网站10体验分。退款不会自动结束订阅，本轮另行取消清理。 新Creator2999美分测试收尾亦全退，1000来源撤销，最终10及无订阅；回调processed核对通过。 |
 | J02 | P0 | 部分退款charge.refunded | 已确认边界 | 用户明确不提供常规退款或人工审核入口；此项仅为外部部分退款异常保护。当前charge.refunded不区分金额比例，整笔账单来源撤销。已确认实现边界，不将其解释为需要新增部分退款产品。 |
 | J03 | P0 | credit_note.created I1；重复通知 | 本地核心通过 | 真实服务签名通知及实际仓库SQL验证credit_note重复撤回唯一；单元调用顺序验证revoke先于processed。模拟渠道、临时SQLite，真实credit_note投递未验收。 |
 | J04 | P0 | refund/credit_note先到paid后到，或status补偿后到 | 本地核心通过 | 已验证本行本地核心断言；涉及Stripe/D1真实部署的部分仍需L3验收。 本轮补充两档服务与真实仓库SQL联合旅程；支付对象模拟、SQLite临时库，不包含真实D1、供应商受理和并发Webhook。 |
@@ -797,3 +797,13 @@ G01/I16本地核心通过。完整联合套件80条通过，0失败/错误/跳�
 真实续费及失败扣款恢复、自然账期结束仍缺证据；现有客户没有Test Clock。实际歌曲扣费/失败退回受“不得为验收触发真实付费生成”约束。跨节点/D1异常、版本混跑需要独立环境，用户已说明目前没有。不会用立即结束订阅充当自然到期，不会用模拟支付或临时SQLite充当上述真实验收。
 
 2026-10-09价格配置复核：本地IDE两档Price仍404 resource_missing；读取新购Starter实际Checkout单行价格，active=true、livemode=false、USD999美分、month，与本地Starter ID不同。确认本地与线上价格配置不一致；线上本轮Starter收费符合页面，不将本地404归为线上收费故障。未创建订单、付款或变更配置，Creator实际支付及全部错误配置组合仍待验收。
+
+## 2026-10-09创作版实际购买闭环
+
+线上Chrome创作版按钮进入Stripe沙盒，收银台US$29.99每月。付款前Checkout open/unpaid、数据库套餐creator、无1000积分来源；使用公开测试卡支付后自动返回/pricing，显示“支付已确认，积分已到账”、创作版当前套餐、余额1010。
+
+实际Price active=true、livemode=false、USD2999美分、interval=month，ID为price_1UMPkwGj38FUksqYiwoc3b5J。新账单in_1UOJoyGj38FUksqY0dcqtyuw仅一条1000分来源，原Starter均保持撤销；刷新仍1010、明细唯一+1000。订阅账期起点00:05:28，grant及invoice.paid processed均00:05:33；这约5秒不是接口耗时。
+
+按此前测试授权仅作沙盒收尾：00:07:11全额退款2999美分，charge.refunded于00:07:13 processed；00:07:13结束测试订阅，deleted于00:07:15 processed。最终数据库无当前订阅，1000来源revoked=1，网站只剩体验10。R16撤销记录仍显示0与原到账时间再复现。未新增任何用户退款入口，未真实扣款或生成音乐。
+
+机器证据见sandboxCreatorPurchase20261009；D02实际核心通过。C02要求无客户首次创建，本次复用客户不满足这一条件，不提升其整行线上验收状态。两档实际价格及支付额度均核对成功；真实续费、失败扣款恢复、自然到期、真实生成和独立环境故障注入仍待验收，目标未完成。

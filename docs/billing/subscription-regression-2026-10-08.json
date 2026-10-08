@@ -3303,9 +3303,10 @@
         "BillingLedgerJourneyRegressionTest.sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure{String, String}[1]",
         "BillingLedgerJourneyRegressionTest.sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure{String, String}[2]",
         "BillingLedgerJourneyRegressionTest.sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure{String, String}[3]",
-        "BillingLedgerJourneyRegressionTest.sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure{String, String}[4]"
+        "BillingLedgerJourneyRegressionTest.sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure{String, String}[4]",
+        "sandboxCreatorPurchase20261009:C02-partial"
       ],
-      "limitations": "官方Stripe SDK发往本地HTTP模拟渠道，真实服务/仓库SQL验证客户幂等键、用户metadata、套餐Price、quantity=1、mode=subscription和返回pricing路径；两档额度由已执行联合付款旅程验证。供应商仍为模拟，不代替新一次真实Checkout及支付。"
+      "limitations": "官方Stripe SDK发往本地HTTP模拟渠道，真实服务/仓库SQL验证客户幂等键、用户metadata、套餐Price、quantity=1、mode=subscription和返回pricing路径；两档额度由已执行联合付款旅程验证。供应商仍为模拟，不代替新一次真实Checkout及支付。 本轮既有客户实际Creator订单已完成2999美分支付及1000到账；本行要求无客户首次创建，故不提升为全线上验收通过。"
     },
     {
       "id": "C03",
@@ -3595,15 +3596,16 @@
       "priority": "P0",
       "action": "Creator paid首购",
       "expected": "grant1000+welcome10=1010；不是累计两档额度",
-      "status": "本地核心通过",
+      "status": "沙盒核心通过",
       "evidence": [
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[1]",
         "BillingScenarioRegressionTest.paidInvoiceHasExactOwnerAllowanceAndPeriod{String, int}[2]",
         "MusicBillingServiceTest.ordinaryStatusRecoversSavedOrderWithoutReturnQuery",
         "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
-        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]"
+        "BillingLedgerJourneyRegressionTest.paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
+        "sandboxCreatorPurchase20261009:D02"
       ],
-      "limitations": "Creator实际服务/临时SQLite联动确认1010、历史体验+10及订阅+1000、唯一grant；不存在两档额度累计。模拟渠道，线上Creator支付仍未验收。"
+      "limitations": "既有客户实际Creator新购，Checkout USD2999美分/月，回/pricing到账1010、历史唯一+1000、刷新去重；invoice.paid对应processed，原Starter已撤销不累计。首次客户创建仍未验收。"
     },
     {
       "id": "D03",
@@ -4809,9 +4811,10 @@
       "evidence": [
         "BillingScenarioRegressionTest.J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement",
         "authorizedSandboxLifecycle:J01",
-        "sandboxRebuyRefund20261008:J01"
+        "sandboxRebuyRefund20261008:J01",
+        "sandboxCreatorPurchase20261009:J01"
       ],
-      "limitations": "原付款及新999美分付款均实际全额退款成功，charge.refunded已processed；各自唯一300分grant撤销，网站10体验分。退款不会自动结束订阅，本轮另行取消清理。"
+      "limitations": "原付款及新999美分付款均实际全额退款成功，charge.refunded已processed；各自唯一300分grant撤销，网站10体验分。退款不会自动结束订阅，本轮另行取消清理。 新Creator2999美分测试收尾亦全退，1000来源撤销，最终10及无订阅；回调processed核对通过。"
     },
     {
       "id": "J02",
@@ -5228,12 +5231,12 @@
     ]
   },
   "summary": {
-    "本地核心通过": 104,
+    "本地核心通过": 103,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 16,
     "部分验证": 33,
     "已确认边界": 6,
-    "沙盒核心通过": 3,
+    "沙盒核心通过": 4,
     "沙盒待环境": 8,
     "边界已复现": 3
   },
@@ -6482,10 +6485,10 @@
     "cancellationChannel": "通过实际取消及恢复",
     "cancellationWebsite": "未通过：明确cancel_at未识别，R21",
     "restoredDatabaseAndCredits": "实际核对通过，同一订阅active取消标记0，欢迎10，原300仍撤销",
-    "newPurchase": "通过：复用既有客户，Starter线上新购付款回站310，刷新无重复grant。",
+    "newPurchase": "Starter与Creator既有客户实际新购均通过，分别310/1010、历史及刷新无重复来源。",
     "refundRepeat": "完成新付款全额退款，余额10及撤销标记核对通过；非重复退款原付款。",
     "complete": false,
-    "currentAccount": "新旧沙盒订阅均已立即结束，余额10体验积分，原及新300积分均撤销。"
+    "currentAccount": "所有本轮沙盒订阅已结束；两筆Starter300及一筆Creator1000均撤销，只剩10体验积分。"
   },
   "sandboxRebuyRefund20261008": {
     "authorization": "用户明确允许立即结束旧沙盒订阅，继续新购与退款测试；全程Stripe测试模式。",
@@ -6904,5 +6907,346 @@
       }
     ],
     "scope": "当前本地IDE配置与已成功线上新购Starter对照；不证明线上Creator配置。"
+  },
+  "sandboxCreatorPurchase20261009": {
+    "beforePayment": {
+      "utc": "2026-10-08T16:04:44.358058+00:00",
+      "database": [
+        {
+          "subscription_id": null,
+          "status": null,
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+          "checkout_plan": "creator"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+        "status": "open",
+        "payment_status": "unpaid",
+        "mode": "subscription",
+        "amount_total": 2999,
+        "currency": "usd",
+        "subscription": null,
+        "invoice": null,
+        "clientReferenceMatches": true
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        }
+      ]
+    },
+    "paid": {
+      "utc": "2026-10-08T16:05:38.603537+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+          "status": "active",
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+          "checkout_plan": "creator"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 2999,
+        "currency": "usd",
+        "subscription": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "invoice": "in_1UOJoyGj38FUksqY0dcqtyuw",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 0,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        }
+      ]
+    },
+    "refreshedPaid": {
+      "utc": "2026-10-08T16:06:17.281737+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+          "status": "active",
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+          "checkout_plan": "creator"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 2999,
+        "currency": "usd",
+        "subscription": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "invoice": "in_1UOJoyGj38FUksqY0dcqtyuw",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 0,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        }
+      ]
+    },
+    "cleanup": {
+      "invoice": "in_1UOJoyGj38FUksqY0dcqtyuw",
+      "paymentIntent": "pi_3UOJoyGj38FUksqY1d4lTBNr",
+      "charge": "ch_3UOJoyGj38FUksqY1YKjwvgJ",
+      "price": {
+        "id": "price_1UMPkwGj38FUksqYiwoc3b5J",
+        "active": true,
+        "livemode": false,
+        "currency": "usd",
+        "unit_amount": 2999,
+        "recurring": {
+          "interval": "month",
+          "interval_count": 1,
+          "meter": null,
+          "trial_period_days": null,
+          "usage_type": "licensed"
+        }
+      },
+      "refund": {
+        "id": "re_3UOJoyGj38FUksqY1OTpFxML",
+        "status": "succeeded",
+        "amount": 2999,
+        "currency": "usd",
+        "created": 1791475631
+      },
+      "subscription": {
+        "id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "status": "canceled",
+        "livemode": false,
+        "ended_at": 1791475633
+      },
+      "scope": "仅用户授权的Stripe沙盒测试收尾，不代表产品支持用户退款。"
+    },
+    "final": {
+      "utc": "2026-10-08T16:07:18.396065+00:00",
+      "database": [
+        {
+          "subscription_id": null,
+          "status": null,
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+          "checkout_plan": "creator"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 2999,
+        "currency": "usd",
+        "subscription": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "invoice": "in_1UOJoyGj38FUksqY0dcqtyuw",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "status": "canceled",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        }
+      ]
+    },
+    "events": {
+      "stripeEvents": [
+        {
+          "id": "evt_1UOJp1Gj38FUksqYKjEcymk8",
+          "type": "invoice.paid",
+          "created": 1791475531
+        },
+        {
+          "id": "evt_3UOJoyGj38FUksqY1ldHawnS",
+          "type": "charge.refunded",
+          "created": 1791475631
+        },
+        {
+          "id": "evt_1UOJqfGj38FUksqYdiIvv4Uv",
+          "type": "customer.subscription.deleted",
+          "created": 1791475633
+        }
+      ],
+      "processedEvents": [
+        {
+          "event_id": "evt_1UOJp1Gj38FUksqYKjEcymk8",
+          "event_type": "invoice.paid",
+          "processed_at": "2026-10-08 16:05:33"
+        },
+        {
+          "event_id": "evt_1UOJqfGj38FUksqYdiIvv4Uv",
+          "event_type": "customer.subscription.deleted",
+          "processed_at": "2026-10-08 16:07:15"
+        },
+        {
+          "event_id": "evt_3UOJoyGj38FUksqY1ldHawnS",
+          "event_type": "charge.refunded",
+          "processed_at": "2026-10-08 16:07:13"
+        }
+      ]
+    },
+    "browserResults": [
+      "沙盒US$29.99每月，Creator名称匹配。",
+      "公开测试卡付款后自动回/pricing，支付已确认积分已到账，当前套餐Creator。",
+      "余额1010，体验10永久及订阅1000到2026-11-09 00:05。",
+      "刷新无重复积分，历史唯一+1000，原Starter撤销记录保留。",
+      "沙盒收尾后余额10，当前订阅为空；退款记录0及原时间仍复现R16。"
+    ],
+    "scope": "沿用既有客户，未测试首次客户创建；不触发真实付费生成；退款仅此前授权的沙盒收尾，不提供用户退款入口。",
+    "screenshots": [
+      "/tmp/storyai-creator-paid.png",
+      "/tmp/storyai-creator-history.png",
+      "/tmp/storyai-creator-refunded-history.png",
+      "/tmp/storyai-creator-clean-final.png"
+    ]
   }
 }
