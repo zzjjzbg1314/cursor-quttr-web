@@ -4349,7 +4349,7 @@
       "evidence": [
         "MusicBillingServiceTest.cancellationKeepsPaidPeriodAndDoesNotRevokeCredits"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "本地服务/SQL断言覆盖立即取消与当期积分条件。实际旧、新沙盒订阅均已立即结束，数据库无当前订阅、页面恢复套餐购买；两笔付款此前已退款撤销，故不能以此证明“未退款且grant仍有效”的完整线上组合。"
     },
     {
       "id": "G13",
@@ -4484,7 +4484,7 @@
         "onlineBrowserRegression:Portal账单与返回",
         "authorizedSandboxLifecycle:H05"
       ],
-      "limitations": "真实Portal套餐/已付账单可见，返回/pricing恢复310已验证；改卡与确认取消尚未执行。 原订阅取消恢复API已执行，不能视为门户取消按钮验收。"
+      "limitations": "真实Chrome Portal查看套餐及账单、提交账期末取消、提交恢复和返回站点均已执行。取消渠道成功但站内仍显示下次续费（R21）；恢复渠道及数据库已核对。未执行更新银行卡/认证，故保留部分验证；原“确认取消尚未执行”的说明已被后续证据替代。"
     },
     {
       "id": "H06",
@@ -4819,7 +4819,7 @@
       "expected": "当前撤回整张发票剩余积分；必须明确政策，不能宣称按退款比例",
       "status": "已确认边界",
       "evidence": [],
-      "limitations": "源码审计确认限制，未把业务政策或部署约束当作已完成的安全验收。"
+      "limitations": "用户明确不提供常规退款或人工审核入口；此项仅为外部部分退款异常保护。当前charge.refunded不区分金额比例，整笔账单来源撤销。已确认实现边界，不将其解释为需要新增部分退款产品。"
     },
     {
       "id": "J03",
@@ -4905,7 +4905,7 @@
         "BillingLedgerJourneyRegressionTest.fullySpentMonthlyGrantRefundPreservesConsumptionWithoutNegativeReturn{String, int}[2]",
         "BillingLedgerJourneyRegressionTest.partiallySpentRefundRevokesRemainderKeepsConsumptionAndRequiresSeparateCancellation"
       ],
-      "limitations": "真实服务与临时SQLite联合验证：300积分成功消费50后余额260（含体验10）；全额退款后余额10，5条消费保留，重复通知不重复撤销，订阅仍active，账期原值不变。渠道模拟，不证明实际歌曲或退款政策正确；用户已明确不提供常规退款。"
+      "limitations": "已有Starter/Creator全部月额度消费后退款联合证据；新增300消费50（含体验10，余额260）后全退至10，5条消费保留、重复通知去重、订阅仍active且账期不变。真实服务及临时SQLite、渠道模拟；不替代真实音乐生成，不表示允许用户退款。"
     },
     {
       "id": "J09",
@@ -4916,7 +4916,7 @@
       "evidence": [
         "BillingScenarioRegressionTest.J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything"
       ],
-      "limitations": "当前未支持业务已复现，需决定政策；不冒充已实现恢复/跨grant扣费。"
+      "limitations": "退款失败/贷项作废/争议胜诉后的恢复分支未完整支持，已有现状复现。用户不提供常规退款不改变这些外部事件的账务边界；不新增退款申请或审核入口。"
     },
     {
       "id": "J10",
@@ -5372,8 +5372,9 @@
     "limitations": "现有运行配置选择的D1；读到已知原始发票/事件和当前用户数据，与站内310一致。未检查全部Stripe投递尝试和请求日志，不断言首次grant具体入口。"
   },
   "blockedBy": [
-    "用户确认没有独立环境；无法安全执行共享环境故障注入、跨节点/版本混跑及账期推进等完整验收",
-    "尚缺真实门户按钮、换卡认证、后续续费等剩余场景完整执行证据"
+    "缺少实际续费、失败扣款认证/换卡和自然账期结束证据；当前既有客户无Test Clock，立即取消不能代替自然到期。",
+    "用户没有独立环境；不能在共享环境人为停服务、破坏数据库或执行跨版本混跑来覆盖D1/多节点故障验收。",
+    "实际歌曲生成扣费/失败退回尚未执行；项目规则禁止为验收触发真实付费生成。"
   ],
   "authorizedSandboxLifecycle": {
     "date": "2026-10-08",
@@ -6207,7 +6208,8 @@
       "积分消费"
     ],
     "testCounting": "174是业务验收矩阵；自动化测试参数次数另记，不代表新增业务范围或线上全通过",
-    "riskReporting": "实际线上现象、可达业务故障与模拟异常防御性问题分别说明；保留所有原用例与证据"
+    "riskReporting": "实际线上现象、可达业务故障与模拟异常防御性问题分别说明；保留所有原用例与证据",
+    "confirmedNoRefundProduct": "2026-10-09：不提供常规退款、申请及审核入口。原174项保留，退款/争议类作为外部异常账务保护。"
   },
   "subscriptionLifecycleCoreRegression": {
     "suiteTests": 70,
