@@ -467,6 +467,48 @@ class BillingScenarioRegressionTest {
         verify(repo).processed("stripe","evt_fixture","charge.refunded");
     }
 
+    @ParameterizedTest(name="E04/E05/E09 缺口补齐={0}")
+    @ValueSource(strings={"duplicate","extra-fee","only-proration","no-subscription"})
+    void invalidAllowanceLineCombinationsNeverGrantOrAcknowledge(String issue) throws Exception {
+        ObjectNode invoice=paidInvoice("starter");ArrayNode lines=(ArrayNode)invoice.path("lines").path("data");
+        ObjectNode line=(ObjectNode)lines.get(0);
+        if(issue.equals("duplicate"))lines.add(line.deepCopy());
+        if(issue.equals("extra-fee")) {
+            ObjectNode fee=line.deepCopy();
+            ((ObjectNode)fee.path("pricing").path("price_details")).put("price","price_extra_fee");lines.add(fee);
+        }
+        if(issue.equals("only-proration"))((ObjectNode)line.path("parent").path("subscription_item_details")).put("proration",true);
+        if(issue.equals("no-subscription")) {
+            ((ObjectNode)line.path("parent").path("subscription_item_details")).remove("subscription");
+            ((ObjectNode)invoice.path("parent").path("subscription_details")).remove("subscription");
+        }
+        assertThatThrownBy(()->send("invoice.paid",json.createObjectNode().put("id","in_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
+    }
+
+    @ParameterizedTest(name="F03 必需事件字段={0}")
+    @ValueSource(strings={"missing-mode","empty-id"})
+    void invalidRequiredEventFieldsFailBeforeLedgerAccess(String issue) throws Exception {
+        ObjectNode event=(ObjectNode)json.readTree(event("invoice.paid",json.createObjectNode().put("id","in_1")));
+        if(issue.equals("missing-mode"))event.remove("livemode");else event.put("id","");
+        String body=json.writeValueAsString(event);
+        assertThatThrownBy(()->service.webhook(body,sign(body))).isInstanceOfSatisfying(ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(400);assertThat(e.getCode()).isEqualTo(issue.equals("missing-mode")?"BILLING_MODE_INVALID":"BILLING_EVENT_INVALID");});
+        verifyNoInteractions(repo,stripe);
+    }
+
+    @ParameterizedTest(name="F01 签名或正文={0}")
+    @ValueSource(strings={"wrong-secret","non-json"})
+    void correctlyFormattedWrongSecretOrSignedNonJsonCannotTouchLedger(String issue) throws Exception {
+        String body=issue.equals("non-json")?"not JSON":event("invoice.paid",json.createObjectNode().put("id","in_1"));
+        String signature=sign(body);
+        if(issue.equals("wrong-secret"))settings.webhookSecret="whsec_different_fixture";
+        assertThatThrownBy(()->service.webhook(body,signature)).isInstanceOfSatisfying(ApiException.class,
+            e->{assertThat(e.getStatus().value()).isEqualTo(400);assertThat(e.getCode()).isEqualTo("BILLING_SIGNATURE_INVALID");});
+        verifyNoInteractions(repo,stripe);
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");
