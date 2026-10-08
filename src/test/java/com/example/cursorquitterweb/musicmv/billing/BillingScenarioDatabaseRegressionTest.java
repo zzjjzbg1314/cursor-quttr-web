@@ -146,6 +146,36 @@ class BillingScenarioDatabaseRegressionTest {
             "assert set(first)&set(changed);assert len(set(first+changed))==39"));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings={"paid","refund"})
+    void F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge(String first) throws Exception {
+        BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
+        repo.grant("stripe","in_1","u","sub","starter",300,100,200);repo.revoke("stripe","in_1");
+        repo.processed("stripe","evt_paid","invoice.paid");repo.processed("stripe","evt_refund","credit_note.created");
+        repo.balance("u",150);repo.ensureWelcomeCredits("u");
+        run(db,String.join("\n",
+            "import sqlite3,json,sys,pathlib,tempfile,concurrent.futures,random",
+            "s=json.loads(sys.argv[1])",
+            "with tempfile.TemporaryDirectory() as tmp:",
+            " path=tmp+'/billing.sqlite';d=sqlite3.connect(path);d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text());d.execute(s[6]['sql'],s[6]['params']);d.commit();d.close()",
+            " def apply(task):",
+            "  kind,i=task;c=sqlite3.connect(path,timeout=5)",
+            "  with c:",
+            "   if kind=='paid':",
+            "    p=list(s[0]['params']);p[0]='grant'+str(i);c.execute(s[0]['sql'],p);c.execute(s[3]['sql'],s[3]['params'])",
+            "   else:",
+            "    c.execute(s[1]['sql'],s[1]['params']);c.execute(s[2]['sql'],s[2]['params']);c.execute(s[4]['sql'],s[4]['params'])",
+            "  c.close()",
+            " apply(('"+first+"',-1))",
+            " tasks=[(kind,i) for kind in ('paid','refund') for i in range(100)];random.Random(7).shuffle(tasks)",
+            " with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool: list(pool.map(apply,tasks))",
+            " d=sqlite3.connect(path);d.row_factory=sqlite3.Row",
+            " assert d.execute(\"SELECT COUNT(*),MIN(revoked) FROM music_mv_billing_grants WHERE provider='stripe'\").fetchone()[:]==(1,1)",
+            " assert d.execute('SELECT COUNT(*) FROM music_mv_billing_events').fetchone()[0]==2",
+            " assert d.execute('SELECT COUNT(*) FROM music_mv_billing_revocations').fetchone()[0]==1",
+            " balance=d.execute(s[5]['sql'],s[5]['params']).fetchone();assert balance['remaining']==10 and balance['reserved']==0;d.close()"));
+    }
+
     private void run(BillingRepositoryTest.Capture db,String script) throws Exception {
         Process process=new ProcessBuilder("python3","-c",script,new ObjectMapper().writeValueAsString(db.statements)).redirectErrorStream(true).start();
         boolean ended=process.waitFor(15,TimeUnit.SECONDS);
