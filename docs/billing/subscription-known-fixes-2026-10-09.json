@@ -196,5 +196,12 @@
       "ff7ebb9",
       "8fd617f"
     ]
+  },
+  "remoteMigration": {
+    "status": "executed",
+    "evidence": "subscription-migration-executed-2026-10-09.json",
+    "existingLedgerUnchanged": true,
+    "applicationDeployment": "pending",
+    "unifiedAcceptance": "pending"
   }
 }

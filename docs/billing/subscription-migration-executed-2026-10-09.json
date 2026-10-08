@@ -1,0 +1,48 @@
+{
+  "executedAtUtc": "2026-10-08T23:30:06.709668+00:00",
+  "target": "当前配置连接的远程StoryAI账务D1，已核对既有沙盒测试账号",
+  "databaseFingerprint": "32d7f0fe773d",
+  "script": "src/main/resources/db/music-mv-billing-fixes-20261009.sql",
+  "scriptSha256": "563c55c3000db12ca36704b9729402ccff7d29a0ef7df2b354c81463be42aabc",
+  "ownershipViolationCount": 0,
+  "existingLedgerUnchanged": true,
+  "existingRowCounts": {
+    "music_mv_billing_subscriptions": 1,
+    "music_mv_billing_grants": 4,
+    "music_mv_billing_reservations": 0
+  },
+  "objects": [
+    {
+      "type": "table",
+      "name": "music_mv_billing_revocation_details",
+      "sql": "CREATE TABLE music_mv_billing_revocation_details (\n provider TEXT NOT NULL, payment_id TEXT NOT NULL,\n amount INTEGER NOT NULL CHECK(amount>=0), occurred_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n PRIMARY KEY(provider,payment_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "music_mv_billing_subscription_reads",
+      "sql": "CREATE TABLE music_mv_billing_subscription_reads (\n user_id TEXT PRIMARY KEY, read_token TEXT NOT NULL\n)"
+    },
+    {
+      "type": "trigger",
+      "name": "billing_grant_owner_update",
+      "sql": "CREATE TRIGGER billing_grant_owner_update\nBEFORE UPDATE OF user_id ON music_mv_billing_grants\nWHEN EXISTS(SELECT 1 FROM music_mv_billing_reservations WHERE grant_id=OLD.grant_id AND user_id<>NEW.user_id)\nBEGIN SELECT RAISE(ABORT,'billing grant owner mismatch'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "billing_grant_revocation_record",
+      "sql": "CREATE TRIGGER billing_grant_revocation_record\nBEFORE UPDATE OF revoked ON music_mv_billing_grants\nWHEN OLD.revoked=0 AND NEW.revoked=1\nBEGIN\n INSERT INTO music_mv_billing_revocation_details(provider,payment_id,amount)\n SELECT OLD.provider,OLD.payment_id,MAX(0,OLD.allowance-(SELECT COALESCE(SUM(credits),0) FROM music_mv_billing_reservations WHERE grant_id=OLD.grant_id AND state<>'released'))\n ON CONFLICT DO NOTHING;\nEND"
+    },
+    {
+      "type": "trigger",
+      "name": "billing_reservation_owner_insert",
+      "sql": "CREATE TRIGGER billing_reservation_owner_insert\nBEFORE INSERT ON music_mv_billing_reservations\nWHEN NOT EXISTS(SELECT 1 FROM music_mv_billing_grants WHERE grant_id=NEW.grant_id AND user_id=NEW.user_id)\nBEGIN SELECT RAISE(ABORT,'billing reservation owner mismatch'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "billing_reservation_owner_update",
+      "sql": "CREATE TRIGGER billing_reservation_owner_update\nBEFORE UPDATE OF grant_id,user_id ON music_mv_billing_reservations\nWHEN NOT EXISTS(SELECT 1 FROM music_mv_billing_grants WHERE grant_id=NEW.grant_id AND user_id=NEW.user_id)\nBEGIN SELECT RAISE(ABORT,'billing reservation owner mismatch'); END"
+    }
+  ],
+  "statementResultCount": 6,
+  "verification": "已检查远程表和触发器定义；未在真实账务库创建测试订单或触发退款。"
+}
