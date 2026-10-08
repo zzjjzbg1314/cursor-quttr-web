@@ -133,9 +133,21 @@
           "methods": [
             "cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase"
           ]
+        },
+        {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "b3ecec28d06f23f670a66c32aa8d0ab76427d1f41a34b47d6c3e1be939a139ec",
+          "methods": [
+            "failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[1]",
+            "failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[2]"
+          ],
+          "replacesPreviouslyRecordedMethods": true
         }
       ],
-      "reportScope": "reportSha256记录此前80项整类报告；supplementalReports记录本轮1项针对性报告，合计81项独立证据。"
+      "reportScope": "原80项整类报告加1项新核心流程，合计81项；补款恢复的2项针对性报告覆盖并替换原有同名证据，不重复计数。"
     }
   ],
   "tests": [
@@ -2662,14 +2674,14 @@
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[1]",
-      "seconds": 0.385,
+      "seconds": 1.49,
       "result": "pass",
       "characterization": false
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
       "name": "failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[2]",
-      "seconds": 0.39,
+      "seconds": 0.96,
       "result": "pass",
       "characterization": false
     },
@@ -4289,8 +4301,11 @@
       "action": "renewal待认证/需换卡；门户修复后同invoice paid",
       "expected": "不提前授；成功后补本期一次；不新建并行订阅",
       "status": "沙盒待环境",
-      "evidence": [],
-      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
+      "evidence": [
+        "BillingLedgerJourneyRegressionTest.failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[1]",
+        "BillingLedgerJourneyRegressionTest.failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement{String}[2]"
+      ],
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。 已验证past_due/unpaid转active并同一期paid的服务/SQL联合恢复：补发一次、原订阅保留、不建新Checkout；未实际执行3DS认证、更换银行卡、Stripe重试扣款或Portal修复。"
     },
     {
       "id": "G09",
@@ -6306,5 +6321,13 @@
     "test": "cancellationResumeAndPeriodExpiryKeepCreditsAndPermitFreshPurchase",
     "passed": true,
     "scope": "真实服务及临时SQLite，Stripe与时间为夹具；非线上到期验收"
+  },
+  "coreRenewalRecoveryEvidence": {
+    "passed": true,
+    "states": [
+      "past_due",
+      "unpaid"
+    ],
+    "scope": "真实服务及临时SQLite，付款状态切换和Stripe通知模拟；真实认证与换卡未验收"
   }
 }

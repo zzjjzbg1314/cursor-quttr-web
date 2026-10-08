@@ -848,7 +848,7 @@ class BillingLedgerJourneyRegressionTest {
 
     @ParameterizedTest(name="G07 续费未付状态={0}")
     @ValueSource(strings={"past_due","unpaid"})
-    void failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement(String state) {
+    void failedRenewalAfterOldPeriodExpiresKeepsOnlyWelcomeAndManagement(String state) throws Exception {
         SqliteClient db=new SqliteClient(directory.resolve("failed-renewal.sqlite"));
         BillingRepository ledger=new BillingRepository(db);StripeGateway stripe=mock(StripeGateway.class);
         BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";settings.webhookSecret="whsec_fixture";
@@ -869,6 +869,24 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(1);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_unpaid'")).isZero();
         assertThatThrownBy(()->service.checkout("u","creator","en")).isInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
+        verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
+        sub.put("status","active");invoice.put("status","paid");
+        ObjectNode line=json.createObjectNode().put("quantity",1);
+        line.set("pricing",json.createObjectNode().set("price_details",json.createObjectNode().put("price","price_starter")));
+        line.set("parent",json.createObjectNode().set("subscription_item_details",json.createObjectNode().put("subscription","sub_u").put("proration",false)));
+        line.set("period",json.createObjectNode().put("start",now).put("end",now+3600));
+        invoice.set("lines",json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(line)));
+        Map<String,Object> recovered=service.status("u");
+        assertThat(recovered).containsEntry("remaining",310);
+        assertThat(((Map<?,?>)recovered.get("subscription")).get("status")).isEqualTo("active");
+        assertThat(ledger.subscription("u")).containsEntry("subscription_id","sub_u").containsEntry("status","active");
+        send(service,settings,"evt_recovered","invoice.paid",json.createObjectNode().put("id","in_unpaid"));
+        send(service,settings,"evt_recovered","invoice.paid",json.createObjectNode().put("id","in_unpaid"));
+        service.status("u");
+        assertThat(service.credits("u")).containsEntry("remaining",310);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_unpaid'")).isEqualTo(1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'")).isEqualTo(2);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events WHERE event_id='evt_recovered'")).isEqualTo(1);
         verify(stripe,never()).checkout(anyString(),anyString(),anyString(),anyString(),anyLong(),anyString());
     }
 
