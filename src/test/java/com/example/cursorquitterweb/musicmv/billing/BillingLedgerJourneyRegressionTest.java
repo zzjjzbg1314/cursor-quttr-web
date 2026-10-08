@@ -690,7 +690,7 @@ class BillingLedgerJourneyRegressionTest {
         ledger.ensureWelcomeCredits("u");ledger.grant("stripe","in_1","u","sub_u","starter",300,100,200);
         ledger.grant("stripe","in_2","u","sub_u","creator",1000,200,300);
         ledger.grant("stripe","in_other","other","sub_other","starter",300,100,300);
-        ObjectNode charge=json.createObjectNode().put("payment_intent","pi_u");
+        ObjectNode charge=json.createObjectNode().put("id","ch_u").put("livemode",false).put("payment_intent","pi_u");
         when(stripe.charge("ch_u")).thenReturn(charge);
         when(stripe.invoicePayments("pi_u")).thenReturn(json.createObjectNode().put("has_more",false).set("data",
             json.createArrayNode().add(json.createObjectNode().put("invoice","in_1")).add(json.createObjectNode().put("invoice","in_2"))));
@@ -720,7 +720,7 @@ class BillingLedgerJourneyRegressionTest {
         settings.starterPrice="price_starter";settings.creatorPrice="price_creator";settings.portalConfiguration="bpc_fixture";
         MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
         ledger.grant("stripe","in_u","u","sub_u","starter",300,100,200);
-        ObjectNode charge=json.createObjectNode().put("payment_intent","pi_u");
+        ObjectNode charge=json.createObjectNode().put("id","ch_u").put("livemode",false).put("payment_intent","pi_u");
         ObjectNode list=json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(json.createObjectNode().put("invoice","in_u")));
         if(point.equals("charge"))when(stripe.charge("ch_u")).thenThrow(new IllegalStateException("测试渠道查询失败")).thenReturn(charge);
         else when(stripe.charge("ch_u")).thenReturn(charge);

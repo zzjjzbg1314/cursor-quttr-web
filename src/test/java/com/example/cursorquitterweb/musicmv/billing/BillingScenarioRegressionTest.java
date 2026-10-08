@@ -226,7 +226,7 @@ class BillingScenarioRegressionTest {
     }
 
     @Test void J05_disputeRetrievesChargeAndRevokesInvoiceBeforeAcknowledgement() throws Exception {
-        when(stripe.charge("ch_1")).thenReturn(json.readTree("{\"payment_intent\":\"pi_1\",\"livemode\":false}"));
+        when(stripe.charge("ch_1")).thenReturn(json.readTree("{\"id\":\"ch_1\",\"payment_intent\":\"pi_1\",\"livemode\":false}"));
         when(stripe.invoicePayments("pi_1")).thenReturn(json.readTree("{\"has_more\":false,\"data\":[{\"invoice\":\"in_1\"}]}"));
         send("charge.dispute.created",json.createObjectNode().put("charge","ch_1"));
         org.mockito.InOrder order=inOrder(repo,stripe);
@@ -240,49 +240,54 @@ class BillingScenarioRegressionTest {
         verify(repo,never()).processed(anyString(),anyString(),anyString());verify(repo,never()).revoke(anyString(),anyString());
     }
 
-    @Test void A07_RISK_identicalPricesRemainReadyAndCreatorGetsStarterAllowance() {
+    @Test void A07_duplicatePricesDisableBillingAndAllowance() {
         settings.creatorPrice=settings.starterPrice;
-        assertThat(settings.ready()).isTrue();assertThat(settings.allowance(settings.creatorPrice)).isEqualTo(300);
+        assertThat(settings.ready()).isFalse();assertThat(settings.allowance(settings.creatorPrice)).isZero();
+        assertThatThrownBy(()->service.checkout("u","creator","en")).isInstanceOf(ApiException.class);
+        verifyNoInteractions(repo,stripe);
     }
 
-    @Test void E03_RISK_fractionalQuantityIsTruncatedAndGranted() throws Exception {
+    @Test void E03_fractionalQuantityNeverGrants() throws Exception {
         ObjectNode invoice=paidInvoice("starter");((ObjectNode)invoice.path("lines").path("data").get(0)).put("quantity",1.5);
-        send("invoice.paid",json.createObjectNode().put("id","in_1"));
-        verify(repo).grant("stripe","in_1","u","sub_u","starter",300,100,200);
+        assertThatThrownBy(()->send("invoice.paid",json.createObjectNode().put("id","in_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
-    @Test void E12_RISK_retrievedInvoiceIdentityIsNotComparedWithEvent() throws Exception {
+    @Test void E12_wrongRetrievedInvoiceNeverGrants() throws Exception {
         ObjectNode invoice=paidInvoice("starter");invoice.put("id","in_other");
-        send("invoice.paid",json.createObjectNode().put("id","in_1"));
-        verify(repo).grant("stripe","in_other","u","sub_u","starter",300,100,200);
+        assertThatThrownBy(()->send("invoice.paid",json.createObjectNode().put("id","in_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
-    @Test void G14_RISK_multipleActiveSubscriptionsSelectFirstWithoutReview() throws Exception {
+    @Test void G14_multipleSubscriptionsPreserveKnownSnapshot() throws Exception {
         customer();ObjectNode list=(ObjectNode)subscriptions("active");
         ObjectNode another=list.path("data").get(0).deepCopy();another.put("id","sub_other");((ArrayNode)list.path("data")).add(another);
         when(stripe.subscriptions("cus_u")).thenReturn(list);
-        assertThat(((Map<?,?>)service.status("u").get("subscription")).get("id")).isEqualTo("sub_u");
+        assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
+        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
     }
 
-    @Test void G15_RISK_malformedSubscriptionListClearsCurrentSnapshot() throws Exception {
+    @Test void G15_malformedSubscriptionListPreservesKnownSnapshot() throws Exception {
         customer();when(stripe.subscriptions("cus_u")).thenReturn(json.createObjectNode());
-        assertThat(service.status("u")).doesNotContainKey("subscription");
-        verify(repo).syncSubscription("stripe","u",null,null,false);
+        assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
+        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
     }
 
-    @Test void H04_RISK_emptyPortalUrlReturnsSuccess() throws Exception {
+    @Test void H04_emptyPortalUrlIsRetryableFailure() throws Exception {
         customer();when(stripe.portal(anyString(),anyString())).thenReturn(json.createObjectNode());
-        assertThat(service.portal("u","en")).containsEntry("url","");
+        assertThatThrownBy(()->service.portal("u","en")).isInstanceOf(ApiException.class);
     }
 
-    @Test void F14_RISK_creditNoteWithoutInvoiceRevokesEmptyIdentityAndAcknowledges() throws Exception {
-        send("credit_note.created",json.createObjectNode());
-        verify(repo).revoke("stripe","");verify(repo).processed("stripe","evt_fixture","credit_note.created");
+    @Test void F14_missingCreditNoteInvoiceIsNotAcknowledged() throws Exception {
+        assertThatThrownBy(()->send("credit_note.created",json.createObjectNode())).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).revoke(anyString(),anyString());verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
-    @Test void J07_RISK_missingRefundPaymentIsAcknowledgedWithoutRevocation() throws Exception {
-        send("charge.refunded",json.createObjectNode());
-        verify(repo,never()).revoke(anyString(),anyString());verify(repo).processed("stripe","evt_fixture","charge.refunded");
+    @Test void J07_missingRefundPaymentIsNotAcknowledged() throws Exception {
+        assertThatThrownBy(()->send("charge.refunded",json.createObjectNode())).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).revoke(anyString(),anyString());verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
     @Test void J09_RISK_disputeClosedIsAcknowledgedWithoutRestoringAnything() throws Exception {
@@ -291,11 +296,10 @@ class BillingScenarioRegressionTest {
         verify(repo,never()).revoke(anyString(),anyString());verifyNoInteractions(stripe);
     }
 
-    @Test void J07_RISK_wrongEnvironmentDisputeChargeStillRevokes() throws Exception {
-        when(stripe.charge("ch_1")).thenReturn(json.readTree("{\"payment_intent\":\"pi_1\",\"livemode\":true}"));
-        when(stripe.invoicePayments("pi_1")).thenReturn(json.readTree("{\"has_more\":false,\"data\":[{\"invoice\":\"in_1\"}]}"));
-        send("charge.dispute.created",json.createObjectNode().put("charge","ch_1"));
-        verify(repo).revoke("stripe","in_1");verify(repo).processed("stripe","evt_fixture","charge.dispute.created");
+    @Test void J07_wrongEnvironmentDisputeNeverRevokes() throws Exception {
+        when(stripe.charge("ch_1")).thenReturn(json.readTree("{\"id\":\"ch_1\",\"payment_intent\":\"pi_1\",\"livemode\":true}"));
+        assertThatThrownBy(()->send("charge.dispute.created",json.createObjectNode().put("charge","ch_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).revoke(anyString(),anyString());verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
     @Test void A12_databaseFailureCannotBecomeSuccessfulZeroBalance() {
@@ -381,15 +385,14 @@ class BillingScenarioRegressionTest {
         settings.enabled=true;service.settle("job","completed");verify(repo).settle("job","consumed");
     }
 
-    @Test void G17_RISK_multipleItemsSelectFirstAndIgnoreItemPagination() throws Exception {
+    @Test void G17_ambiguousItemsNeverOverwriteSubscription() throws Exception {
         customer(); ObjectNode list=(ObjectNode)subscriptions("active");
         ObjectNode items=(ObjectNode)list.path("data").get(0).path("items");items.put("has_more",true);
         ((ArrayNode)items.path("data")).add(json.createObjectNode().put("current_period_end",300)
             .set("price",json.createObjectNode().put("id","price_creator")));
         when(stripe.subscriptions("cus_u")).thenReturn(list);
-        Map<?,?> sub=(Map<?,?>)service.status("u").get("subscription");
-        assertThat(sub.get("plan")).isEqualTo("starter");assertThat(sub.get("periodEnd")).isEqualTo(200L);
-        verify(repo).syncSubscription("stripe","u","sub_u","active",false);
+        assertThatThrownBy(()->service.status("u")).isInstanceOf(ApiException.class);
+        verify(repo,never()).syncSubscription(anyString(),anyString(),any(),any(),anyBoolean());
     }
 
     @Test void C21_checkoutContentionStopsAfterThreeRoundsWithoutCreatingAnotherSession() throws Exception {
@@ -432,15 +435,15 @@ class BillingScenarioRegressionTest {
 
     @ParameterizedTest(name="R19 账期类型转换={0}")
     @ValueSource(strings={"numeric-string","fraction","boolean","integer-wrap"})
-    void E11_RISK_periodCoercionAcceptsNonIntegralOrOverflowingInput(String issue) throws Exception {
+    void E11_nonIntegralOrOverflowingPeriodsNeverGrant(String issue) throws Exception {
         ObjectNode invoice=paidInvoice("starter");ObjectNode period=(ObjectNode)invoice.path("lines").path("data").get(0).path("period");
         if(issue.equals("numeric-string"))period.put("start","100").put("end","200");
         else if(issue.equals("fraction"))period.put("start",100.9).put("end",200.9);
         else if(issue.equals("boolean"))period.put("start",true);
         else {period.set("start",json.readTree("18446744073709551716"));period.set("end",json.readTree("18446744073709551816"));}
-        send("invoice.paid",json.createObjectNode().put("id","in_1"));
-        verify(repo).grant("stripe","in_1","u","sub_u","starter",300,issue.equals("boolean")?1:100,200);
-        verify(repo).processed("stripe","evt_fixture","invoice.paid");
+        assertThatThrownBy(()->send("invoice.paid",json.createObjectNode().put("id","in_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
     @Test void K02_unknownHistoryFiltersAreRejectedWithoutDatabaseOrProviderCalls() {
@@ -455,16 +458,15 @@ class BillingScenarioRegressionTest {
 
     @ParameterizedTest(name="J06/R01 损坏退款列表={0}")
     @ValueSource(strings={"missing-data","null-data","object-data","scalar-data"})
-    void J06_RISK_malformedInvoicePaymentsAcknowledgesWithoutRevocation(String shape) throws Exception {
+    void J06_malformedInvoicePaymentsNeverAcknowledge(String shape) throws Exception {
         ObjectNode list=json.createObjectNode().put("has_more",false);
         if(shape.equals("null-data"))list.putNull("data");
         if(shape.equals("object-data"))list.set("data",json.createObjectNode());
         if(shape.equals("scalar-data"))list.put("data",42);
         when(stripe.invoicePayments("pi_1")).thenReturn(list);
-        send("charge.refunded",json.createObjectNode().put("payment_intent","pi_1"));
-        verify(stripe).invoicePayments("pi_1");
+        assertThatThrownBy(()->send("charge.refunded",json.createObjectNode().put("payment_intent","pi_1"))).isInstanceOf(RuntimeException.class);
         verify(repo,never()).revoke(anyString(),anyString());
-        verify(repo).processed("stripe","evt_fixture","charge.refunded");
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
     }
 
     @ParameterizedTest(name="E04/E05/E09 缺口补齐={0}")

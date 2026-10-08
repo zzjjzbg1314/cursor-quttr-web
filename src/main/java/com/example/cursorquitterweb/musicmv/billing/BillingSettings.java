@@ -21,7 +21,7 @@ public class BillingSettings {
     public boolean ready() {
         return enabled && secretKey != null && (("test".equals(mode) && (secretKey.startsWith("sk_test_") || secretKey.startsWith("rk_test_"))) || ("live".equals(mode) && (secretKey.startsWith("sk_live_") || secretKey.startsWith("rk_live_"))))
                 && present(webhookSecret,"whsec_") && present(starterPrice,"price_")
-                && present(creatorPrice,"price_") && present(portalConfiguration,"bpc_");
+                && present(creatorPrice,"price_") && !starterPrice.equals(creatorPrice) && present(portalConfiguration,"bpc_");
     }
     public boolean live() { return "live".equals(mode); }
     public void requireReady() {
@@ -33,6 +33,7 @@ public class BillingSettings {
         throw new ApiException(HttpStatus.BAD_REQUEST,"BILLING_PLAN_INVALID","Unknown plan.");
     }
     public int allowance(String price) {
+        if (starterPrice != null && starterPrice.equals(creatorPrice)) return 0;
         if (present(starterPrice,"price_") && starterPrice.equals(price)) return 300;
         if (present(creatorPrice,"price_") && creatorPrice.equals(price)) return 1000;
         return 0;

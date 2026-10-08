@@ -191,7 +191,15 @@ public class MusicBillingService {
     public Map<String,Object> portal(String user,String locale) {
         settings.requireReady(); requireStripeOwner(user); Map<String,Object> row=repo.customer(PROVIDER,user);
         if(row==null) throw error(HttpStatus.NOT_FOUND,"BILLING_CUSTOMER_MISSING","No billing account yet.");
-        return map("url",stripe.portal(text(row,"customer_id"),settings.returnUrl(locale)).path("url").asText());
+        String url=stripe.portal(text(row,"customer_id"),settings.returnUrl(locale)).path("url").asText();
+        try {
+            java.net.URI uri=java.net.URI.create(url);
+            if(!"https".equals(uri.getScheme()) || !"billing.stripe.com".equals(uri.getHost()) || uri.getUserInfo()!=null)
+                throw new IllegalArgumentException();
+        } catch(IllegalArgumentException e) {
+            throw error(HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","Subscription management is unavailable.");
+        }
+        return map("url",url);
     }
     public void reserve(String user,String request,String job) {
         if(!settings.enabled) return;
@@ -216,7 +224,12 @@ public class MusicBillingService {
         if(id.isEmpty()) throw error(HttpStatus.BAD_REQUEST,"BILLING_EVENT_INVALID","Missing event identifier.");
         if(repo.processed(PROVIDER,id)) return;
         JsonNode object=event.path("data").path("object");
-        if("invoice.paid".equals(type)) grantInvoice(stripe.invoice(object.path("id").asText()));
+        if("invoice.paid".equals(type)) {
+            String invoiceId=requiredIdentity(object,"id");
+            JsonNode invoice=stripe.invoice(invoiceId);
+            if(!invoiceId.equals(invoice.path("id").asText())) throw new IllegalStateException("Invoice identity mismatch");
+            grantInvoice(invoice);
+        }
         else if("customer.subscription.created".equals(type) || "customer.subscription.updated".equals(type) || "customer.subscription.deleted".equals(type)) {
             String customer=object.path("customer").asText();
             String user=repo.owner(PROVIDER,customer);
@@ -224,13 +237,19 @@ public class MusicBillingService {
             // 回调可能乱序，重新查询渠道当前状态，不直接应用旧通知中的状态。
             refreshSubscription(user,customer);
         }
-        else if("credit_note.created".equals(type)) repo.revoke(PROVIDER,object.path("invoice").asText());
+        else if("credit_note.created".equals(type)) repo.revoke(PROVIDER,requiredIdentity(object,"invoice"));
         else if("charge.refunded".equals(type) || "charge.dispute.created".equals(type)) {
-            JsonNode charge="charge.refunded".equals(type)?object:stripe.charge(object.path("charge").asText());
-            String payment=charge.path("payment_intent").asText();
-            if(!payment.isEmpty()) {
+            boolean dispute="charge.dispute.created".equals(type);
+            String chargeId=dispute?requiredIdentity(object,"charge"):null;
+            JsonNode charge=dispute?stripe.charge(chargeId):object;
+            if(dispute && (!chargeId.equals(charge.path("id").asText()) || !charge.path("livemode").isBoolean()
+                    || charge.path("livemode").asBoolean()!=settings.live())) throw new IllegalStateException("Charge identity or environment mismatch");
+            String payment=requiredIdentity(charge,"payment_intent");
+            {
                 JsonNode payments=stripe.invoicePayments(payment);
-                if(payments.path("has_more").asBoolean()) throw new IllegalStateException("Invoice payment pagination requires reconciliation");
+                if(!payments.path("data").isArray() || !payments.path("has_more").isBoolean() || payments.path("has_more").asBoolean()) throw new IllegalStateException("Incomplete invoice payment list");
+                // 先核对整批关联，再写撤销，避免坏记录导致部分执行却被误标完成。
+                for(JsonNode p:payments.path("data")) requiredIdentity(p,"invoice");
                 for(JsonNode p:payments.path("data")) repo.revoke(PROVIDER,p.path("invoice").asText());
             }
         }
@@ -264,7 +283,7 @@ public class MusicBillingService {
             JsonNode details=line.path("parent").path("subscription_item_details");
             if(details.path("proration").asBoolean()) continue;
             String price=line.path("pricing").path("price_details").path("price").asText();
-            if(settings.allowance(price)==0 || line.path("quantity").asInt()!=1 || allowanceLine!=null)
+            if(settings.allowance(price)==0 || !line.path("quantity").isIntegralNumber() || !line.path("quantity").canConvertToLong() || line.path("quantity").asLong()!=1 || allowanceLine!=null)
                 throw error(HttpStatus.BAD_GATEWAY,"BILLING_REVIEW_REQUIRED","Invoice allowance requires review.");
             allowanceLine=line;
         }
@@ -273,7 +292,7 @@ public class MusicBillingService {
         String sub=allowanceLine.path("parent").path("subscription_item_details").path("subscription").asText();
         String invoiceSub=invoice.path("parent").path("subscription_details").path("subscription").asText();
         if(sub.isEmpty()) sub=invoiceSub;
-        long start=allowanceLine.path("period").path("start").asLong(),end=allowanceLine.path("period").path("end").asLong();
+        long start=positiveInteger(allowanceLine.path("period").path("start")),end=positiveInteger(allowanceLine.path("period").path("end"));
         if(sub.isEmpty() || (!invoiceSub.isEmpty() && !sub.equals(invoiceSub)) || start<=0 || end<=start)
             throw error(HttpStatus.BAD_GATEWAY,"BILLING_REVIEW_REQUIRED","Invalid invoice allowance period.");
         repo.grant(PROVIDER,invoice.path("id").asText(),user,sub,price.equals(settings.starterPrice)?"starter":"creator",settings.allowance(price),start,end);
@@ -291,7 +310,8 @@ public class MusicBillingService {
         return active;
     }
     private Map<String,Object> activeSubscription(JsonNode list) {
-        if(list.path("has_more").asBoolean()) throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Please contact support to review your subscriptions.");
+        if(!list.path("data").isArray() || list.path("has_more").asBoolean()) throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Subscription status could not be verified.");
+        Map<String,Object> active=null;
         for(JsonNode sub:list.path("data")) {
             String status=sub.path("status").asText();
             if(!"canceled".equals(status) && !"incomplete_expired".equals(status)) {
@@ -299,16 +319,21 @@ public class MusicBillingService {
                 Long cancelAt=cancelNode.isIntegralNumber() && cancelNode.canConvertToLong() && cancelNode.asLong()>0 ? cancelNode.asLong() : null;
                 // 门户也可能只设置明确取消时间，不能仅凭账期末取消标记判断续费状态。
                 boolean scheduledCancellation=sub.path("cancel_at_period_end").asBoolean() || cancelAt!=null;
-                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",scheduledCancellation,"cancelAt",cancelAt,"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub),"_latestInvoice",sub.path("latest_invoice").asText(""));
+                if(active!=null || sub.path("id").asText().isEmpty() || !Arrays.asList("active","trialing","past_due","unpaid","incomplete","paused").contains(status))
+                    throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Subscription status is ambiguous.");
+                JsonNode items=sub.path("items");
+                if(!items.path("data").isArray() || items.path("has_more").asBoolean() || items.path("data").size()!=1 || planKey(sub)==null)
+                    throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Subscription items are ambiguous.");
+                active=map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",scheduledCancellation,"cancelAt",cancelAt,"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub),"_latestInvoice",sub.path("latest_invoice").asText(""));
             }
         }
-        return null;
+        return active;
     }
     private Long subscriptionPeriodEnd(JsonNode sub) {
         for(JsonNode item:sub.path("items").path("data")) {
             if(settings.allowance(item.path("price").path("id").asText())>0) {
-                long end=item.path("current_period_end").asLong();
-                return end>0?end:null;
+                JsonNode end=item.path("current_period_end");
+                return end.isIntegralNumber() && end.canConvertToLong() && end.asLong()>0?end.asLong():null;
             }
         }
         return null;
@@ -322,5 +347,14 @@ public class MusicBillingService {
         return null;
     }
     private String text(Map<String,Object> row,String key) { Object v=row.get(key);return v==null?"":v.toString(); }
+    private String requiredIdentity(JsonNode object,String key) {
+        JsonNode value=object.path(key);
+        if(!value.isTextual() || value.asText().trim().isEmpty()) throw new IllegalStateException("Missing billing association");
+        return value.asText();
+    }
+    private long positiveInteger(JsonNode value) {
+        if(!value.isIntegralNumber() || !value.canConvertToLong() || value.asLong()<=0) throw new IllegalStateException("Invalid billing period");
+        return value.asLong();
+    }
     private ApiException error(HttpStatus status,String code,String message) {return new ApiException(status,code,message);}
 }
