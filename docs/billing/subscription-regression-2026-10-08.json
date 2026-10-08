@@ -118,11 +118,11 @@
     },
     {
       "class": "BillingLedgerJourneyRegressionTest",
-      "tests": 2,
+      "tests": 9,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "reportSha256": "ef1b7e5198508668d1a717a9a69816732c3fe3438c56402161225116a65d2cf9"
+      "reportSha256": "419db6adc25ee6f6d37730fca53c0b92560e4133ce74fbcee0ac110de142c6c4"
     }
   ],
   "tests": [
@@ -1884,20 +1884,6 @@
       "characterization": false
     },
     {
-      "class": "BillingLedgerJourneyRegressionTest",
-      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
-      "seconds": 1.851,
-      "result": "pass",
-      "characterization": false
-    },
-    {
-      "class": "BillingLedgerJourneyRegressionTest",
-      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
-      "seconds": 1.333,
-      "result": "pass",
-      "characterization": false
-    },
-    {
       "class": "BillingScenarioDatabaseRegressionTest",
       "name": "K10_initializationReplayPreservesExistingLedger",
       "seconds": 0.348,
@@ -1978,6 +1964,69 @@
       "class": "BillingScenarioDatabaseRegressionTest",
       "name": "F04_F13_actualSqlConcurrentPaidAndRefundReplaysConverge{String}[2]",
       "seconds": 0.154,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[1]",
+      "seconds": 0.789,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[2]",
+      "seconds": 0.173,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[3]",
+      "seconds": 0.17,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[4]",
+      "seconds": 0.17,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[5]",
+      "seconds": 0.167,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[6]",
+      "seconds": 0.173,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[7]",
+      "seconds": 0.174,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[1]",
+      "seconds": 1.377,
+      "result": "pass",
+      "characterization": false
+    },
+    {
+      "class": "BillingLedgerJourneyRegressionTest",
+      "name": "paidReturnWebhookDedupReservationAndRefundShareOneLedger{String, int}[2]",
+      "seconds": 1.317,
       "result": "pass",
       "characterization": false
     }
@@ -2806,7 +2855,7 @@
       "expected": "Webhook独立到账；重新登录读正确余额，不依赖旧tab",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "D16",
@@ -2815,7 +2864,7 @@
       "expected": "pricing存在、session参数保留；取消不误确认、不产生grant",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "E01",
@@ -3002,7 +3051,7 @@
       "expected": "渠道账单金额按配置；额度不因税率/折扣重复增加；异常额外行需评估兼容",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "F01",
@@ -3196,7 +3245,7 @@
       "expected": "所有重试最终收敛；无重复积分；保留失败证据与渠道投递记录",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "G01",
@@ -3262,7 +3311,7 @@
       "expected": "每真实账期独立grant；不推算30天、不重复发、到期边界正确",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "G07",
@@ -3282,7 +3331,7 @@
       "expected": "不提前授；成功后补本期一次；不新建并行订阅",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "G09",
@@ -3854,7 +3903,7 @@
       "priority": "P1",
       "action": "history all及7种合法filter，多于20行",
       "expected": "先过滤后分页；最多20，21条探测hasMore；稳定按时间/id排序",
-      "status": "部分验证",
+      "status": "本地核心通过",
       "evidence": [
         "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
         "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[1]",
@@ -3863,9 +3912,16 @@
         "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[4]",
         "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[5]",
         "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[6]",
-        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[7]"
+        "BillingScenarioRegressionTest.allHistoryFiltersReachOwnerScopedRepository{String}[7]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[1]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[2]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[3]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[4]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[5]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[6]",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql{String}[7]"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "七种筛选均以真实服务和实际SQL验证：两用户各150条混合账本；同时间戳稳定排序、先过滤后分页、最多20项、21项探测hasMore、页尾空列表和重复读稳定。独立临时SQLite，不替代远程D1并发/延迟验收；welcome多行仅为过滤压力夹具，不代表正常账号可重复领取。"
     },
     {
       "id": "K02",
@@ -3889,9 +3945,10 @@
       "status": "部分验证",
       "evidence": [
         "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
-        "BillingRepositoryTest.usageCountsEachGenerationOnceAndFiltersBeforePagination"
+        "BillingRepositoryTest.usageCountsEachGenerationOnceAndFiltersBeforePagination",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 已补充两用户混合150条记录的实际SQL历史隔离及各kind金额断言；不等同生成任务/远程端到端全部覆盖。"
     },
     {
       "id": "K04",
@@ -3900,9 +3957,10 @@
       "expected": "released amount=0，不伪造+10新收入；revoked当前amount=0",
       "status": "部分验证",
       "evidence": [
-        "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds"
+        "BillingRepositoryTest.historySeparatesOwnersAndReleasedCreditsWithoutInventingRefunds",
+        "BillingLedgerJourneyRegressionTest.historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql"
       ],
-      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。"
+      "limitations": "相关本地断言已执行；该行全部参数组合、故障恢复或真实集成尚未闭环。 已补充两用户混合150条记录的实际SQL历史隔离及各kind金额断言；不等同生成任务/远程端到端全部覆盖。"
     },
     {
       "id": "K05",
@@ -3991,7 +4049,7 @@
       "expected": "同一业务账本/正确客户映射；不能回调到另一数据库导致丢发",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "L03",
@@ -4034,7 +4092,7 @@
       "expected": "幂等键与SQL合同兼容；老节点不能旧account返回或覆盖新账务",
       "status": "沙盒待环境",
       "evidence": [],
-      "limitations": "未确认独立测试部署和独立D1，未对现有账号做购买、退款、取消或故障注入。"
+      "limitations": "当前订阅已授权取消、恢复和退款并完成对应检查；本行尚未执行。用户没有独立环境，未用共享环境故障注入或修改其他客户覆盖本场景。"
     },
     {
       "id": "L07",
@@ -4102,16 +4160,16 @@
     ]
   },
   "summary": {
-    "本地核心通过": 55,
+    "本地核心通过": 56,
     "本地配置失败/沙盒待环境": 1,
     "安全目标未通过": 11,
-    "部分验证": 88,
+    "部分验证": 87,
     "已确认边界": 6,
     "沙盒待环境": 8,
     "边界已复现": 3,
     "沙盒核心通过": 2
   },
-  "totalBackendTests": 265,
+  "totalBackendTests": 272,
   "riskCharacterizations": 15,
   "frontendContractTests": 21,
   "remoteMutationCount": 5,
@@ -4720,5 +4778,16 @@
       "result": "已订阅、下次续费11月8日14:07、10积分；提示支付确认暂未完成，请稍后刷新，不要重复付款。",
       "limitation": "未取得该次billing/status响应正文；不能从页面断言响应字段值。退款状态被呈现为待确认，记录R17。"
     }
+  },
+  "localHistoryPaginationRegression": {
+    "class": "BillingLedgerJourneyRegressionTest",
+    "testsAdded": 7,
+    "testsInFocusedRun": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "fixture": "两用户各150条混合grant/reservation；七种筛选；同时间戳排序；实际服务+仓库SQL，独立临时SQLite",
+    "command": "mvn -q -Dtest=BillingLedgerJourneyRegressionTest test",
+    "productionChanges": false
   }
 }

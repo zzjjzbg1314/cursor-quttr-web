@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -82,6 +83,57 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(service.credits("other").get("allowance")).isEqualTo(0);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE user_id='u' AND provider='internal'" )).isEqualTo(1);
         verify(stripe).checkout(eq("cus_u"),eq("u"),eq("price_"+plan),anyString(),anyLong(),eq(settings.returnUrl("zh-CN")));
+    }
+
+    @ParameterizedTest(name="K01 混合账本筛选={0}")
+    @ValueSource(strings={"all","welcome","subscription","reserved","consumed","released","revoked"})
+    void historyFiltersAndPagesMixedOwnersUsingActualServiceAndSql(String filter) {
+        SqliteClient db=new SqliteClient(directory.resolve("history.sqlite"));
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        StripeGateway stripe=mock(StripeGateway.class);
+        MusicBillingService service=new MusicBillingService(settings,new BillingRepository(db),stripe,json);
+        List<D1Statement> seeds=new ArrayList<>();
+        Map<String,String> kinds=new HashMap<>();Map<String,Integer> amounts=new HashMap<>();
+        for(String owner:Arrays.asList("a","b")) {
+            for(String kind:Arrays.asList("welcome","subscription","revoked")) {
+                for(int i=0;i<25;i++) {
+                    String id=owner+"_"+kind+"_"+String.format("%02d",i);
+                    seeds.add(D1Statement.of("INSERT INTO music_mv_billing_grants(grant_id,user_id,provider,payment_id,subscription_id,plan_key,allowance,period_start,period_end,revoked,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                        id,owner,kind.equals("welcome")?"internal":"stripe",id,"sub_"+owner,kind.equals("welcome")?"welcome":"starter",10,100,200,kind.equals("revoked")?1:0,"2026-10-08 01:00:00"));
+                    if(owner.equals("a")){kinds.put("grant:"+id,kind);amounts.put("grant:"+id,kind.equals("revoked")?0:10);}
+                }
+            }
+            for(String kind:Arrays.asList("reserved","consumed","released")) {
+                for(int i=0;i<25;i++) {
+                    String id=owner+"_"+kind+"_"+String.format("%02d",i);
+                    seeds.add(D1Statement.of("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits,updated_at) VALUES(?,?,?,?,?,?,?)",
+                        id,owner,id,owner+"_subscription_00",kind,10,"2026-10-08 01:00:00"));
+                    if(owner.equals("a")){kinds.put("job:"+id,kind);amounts.put("job:"+id,kind.equals("released")?0:-10);}
+                }
+            }
+        }
+        db.batch(seeds);
+        List<String> expected=new ArrayList<>();
+        for(String id:kinds.keySet())if(filter.equals("all")||filter.equals(kinds.get(id)))expected.add(id);
+        expected.sort(Collections.reverseOrder());
+        List<String> actual=new ArrayList<>();
+        for(int offset=0;offset<expected.size();offset+=20) {
+            Map<String,Object> page=service.history("a",offset,filter);
+            @SuppressWarnings("unchecked") List<Map<String,Object>> items=(List<Map<String,Object>>)page.get("items");
+            assertThat(items).hasSize(Math.min(20,expected.size()-offset));
+            assertThat(page.get("hasMore")).isEqualTo(offset+20<expected.size());
+            for(Map<String,Object> item:items){
+                String id=(String)item.get("id");actual.add(id);
+                assertThat(item.get("kind")).isEqualTo(kinds.get(id));
+                assertThat(((Number)item.get("amount")).intValue()).isEqualTo(amounts.get(id));
+            }
+        }
+        assertThat(actual).containsExactlyElementsOf(expected).doesNotHaveDuplicates();
+        assertThat(service.history("a",expected.size(),filter)).containsEntry("hasMore",false);
+        assertThat(service.history("a",expected.size(),filter).get("items")).asList().isEmpty();
+        @SuppressWarnings("unchecked") List<Map<String,Object>> repeat=(List<Map<String,Object>>)service.history("a",0,filter).get("items");
+        assertThat(repeat).extracting(item->item.get("id")).containsExactlyElementsOf(expected.subList(0,20));
+        verifyNoInteractions(stripe);
     }
 
     private int count(SqliteClient db,String sql){return ((Number)db.query(sql).firstRow().get("n")).intValue();}
