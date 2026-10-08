@@ -872,6 +872,53 @@ class BillingLedgerJourneyRegressionTest {
         verify(stripe,times(1)).checkout(eq("cus_u"),eq("u"),eq("price_creator"),anyString(),anyLong(),eq(settings.returnUrl("zh-CN")));
     }
 
+    @ParameterizedTest(name="I02/I05 生成前剩余额度={0}")
+    @org.junit.jupiter.params.provider.ValueSource(ints={0,9,10,11})
+    void generationQuotaBoundaryAndRequestReplayUseOneReservation(int balance) {
+        SqliteClient db=new SqliteClient(directory.resolve("quota-boundary.sqlite"));
+        db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES('u','u','u','2026-10-08','2026-10-08','2026-10-08')");
+        BillingSettings settings=new BillingSettings();settings.enabled=true;
+        BillingRepository ledger=new BillingRepository(db);
+        MusicBillingService billing=new MusicBillingService(settings,ledger,mock(StripeGateway.class),json);
+        long now=Instant.now().getEpochSecond();ledger.ensureWelcomeCredits("u");
+        ledger.grant("stripe","in_u","u","sub_u","starter",300,now-10,now+3600);
+        // 用历史余额快照设置边界；9/11不由当前正常每次10积分的消费自然产生。
+        String welcome=(String)db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id='u' AND provider='internal'").firstRow().get("grant_id");
+        String monthly=(String)db.query("SELECT grant_id FROM music_mv_billing_grants WHERE payment_id='in_u'").firstRow().get("grant_id");
+        db.query("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('historical_welcome','u','old_welcome',?,'consumed',10)",welcome);
+        db.query("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('historical_month','u','old_month',?,'consumed',?)",monthly,300-balance);
+        assertThat(billing.credits("u")).containsEntry("remaining",balance);
+        AiMusicProvider provider=mock(AiMusicProvider.class);
+        when(provider.providerCode()).thenReturn("sunoapi");when(provider.defaultModel()).thenReturn("V6");
+        when(provider.submit(any())).thenReturn(new AiMusicProvider.Submission("accepted-task",Collections.emptyMap()));
+        AiMusicGenerationService music=new AiMusicGenerationService(new AiMusicJobRepository(db),new AiMusicProviderRegistry(Collections.singletonList(provider)),
+            mock(AiMusicCandidateStorageService.class),json,"sunoapi","https://example.test");
+        org.springframework.test.util.ReflectionTestUtils.setField(music,"billing",billing);
+        com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest request=new com.example.cursorquitterweb.musicmv.dto.AiMusicSongCreateRequest();
+        request.setRequestId("req");request.setStory("A birthday song");
+        try {
+            if(balance<10) {
+                assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOfSatisfying(com.example.cursorquitterweb.musicmv.support.ApiException.class,
+                    e->{assertThat(e.getStatus().value()).isEqualTo(402);assertThat(e.getCode()).isEqualTo("BILLING_QUOTA_EXHAUSTED");});
+                verify(provider,never()).submit(any());
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_jobs")).isZero();
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='reserved'")).isZero();
+                assertThat(billing.credits("u")).containsEntry("remaining",balance);
+            } else {
+                assertThat(music.create("u",request,"https://example.test")).containsEntry("status","queued");
+                assertThat(music.create("u",request,"https://example.test")).containsEntry("idempotentReplay",true);
+                request.setStory("A different anniversary song");
+                assertThatThrownBy(()->music.create("u",request,"https://example.test")).isInstanceOfSatisfying(com.example.cursorquitterweb.musicmv.support.ApiException.class,
+                    e->{assertThat(e.getStatus().value()).isEqualTo(409);assertThat(e.getCode()).isEqualTo("AI_MUSIC_IDEMPOTENCY_CONFLICT");});
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_jobs")).isEqualTo(1);
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_provider_attempts")).isEqualTo(1);
+                assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='reserved' AND credits=10")).isEqualTo(1);
+                assertThat(billing.credits("u")).containsEntry("remaining",balance-10);
+                verify(provider,times(1)).submit(any());
+            }
+        } finally {music.close();}
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
