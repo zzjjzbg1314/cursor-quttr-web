@@ -254,7 +254,7 @@ class MusicBillingServiceTest {
         assertThat(service.status("u")).containsEntry("remaining",20);
         verify(repo,never()).revoke(anyString(),anyString());
     }
-    @Test void G02_RISK_portalScheduledCancelAtIsIgnoredWhenPeriodEndFlagIsFalse() throws Exception {
+    @Test void portalScheduledCancelAtAndResumePreservePaidCredits() throws Exception {
         long end=java.time.Instant.now().getEpochSecond()+3600;
         when(repo.refreshBalance(eq("u"),anyLong())).thenReturn(map("remaining",10,"reserved",0,"allowance",10));
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_1"));
@@ -265,10 +265,18 @@ class MusicBillingServiceTest {
         when(stripe.subscriptions("cus_1")).thenReturn(json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(subscription)));
         java.util.Map<String,Object> result=service.status("u");
         java.util.Map<?,?> shown=(java.util.Map<?,?>)result.get("subscription");
-        assertThat(shown.get("cancelAtPeriodEnd")).isEqualTo(false);
-        assertThat(shown.containsKey("cancelAt")).isFalse();
+        assertThat(shown.get("cancelAtPeriodEnd")).isEqualTo(true);
+        assertThat(shown.get("cancelAt")).isEqualTo(end);
         assertThat(shown.get("periodEnd")).isEqualTo(end);
         assertThat(result).containsEntry("remaining",10);
+        verify(repo).syncSubscription("stripe","u","sub_1","active",true);
+        subscription.putNull("cancel_at");
+        java.util.Map<String,Object> resumed=service.status("u");
+        java.util.Map<?,?> restored=(java.util.Map<?,?>)resumed.get("subscription");
+        assertThat(restored.get("cancelAtPeriodEnd")).isEqualTo(false);
+        assertThat(restored.get("cancelAt")).isNull();
+        assertThat(restored.get("periodEnd")).isEqualTo(end);
+        assertThat(resumed).containsEntry("remaining",10);
         verify(repo).syncSubscription("stripe","u","sub_1","active",false);
         verify(repo,never()).revoke(anyString(),anyString());
     }

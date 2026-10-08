@@ -294,8 +294,13 @@ public class MusicBillingService {
         if(list.path("has_more").asBoolean()) throw error(HttpStatus.CONFLICT,"BILLING_REVIEW_REQUIRED","Please contact support to review your subscriptions.");
         for(JsonNode sub:list.path("data")) {
             String status=sub.path("status").asText();
-            if(!"canceled".equals(status) && !"incomplete_expired".equals(status))
-                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",sub.path("cancel_at_period_end").asBoolean(),"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub),"_latestInvoice",sub.path("latest_invoice").asText(""));
+            if(!"canceled".equals(status) && !"incomplete_expired".equals(status)) {
+                JsonNode cancelNode=sub.path("cancel_at");
+                Long cancelAt=cancelNode.isIntegralNumber() && cancelNode.canConvertToLong() && cancelNode.asLong()>0 ? cancelNode.asLong() : null;
+                // 门户也可能只设置明确取消时间，不能仅凭账期末取消标记判断续费状态。
+                boolean scheduledCancellation=sub.path("cancel_at_period_end").asBoolean() || cancelAt!=null;
+                return map("id",sub.path("id").asText(),"status",status,"cancelAtPeriodEnd",scheduledCancellation,"cancelAt",cancelAt,"plan",planKey(sub),"periodEnd",subscriptionPeriodEnd(sub),"_latestInvoice",sub.path("latest_invoice").asText(""));
+            }
         }
         return null;
     }
