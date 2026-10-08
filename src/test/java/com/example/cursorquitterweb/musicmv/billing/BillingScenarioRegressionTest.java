@@ -407,6 +407,42 @@ class BillingScenarioRegressionTest {
         verify(repo,never()).saveCheckout(anyString(),anyString(),anyString(),anyString(),anyString());
     }
 
+    @ParameterizedTest(name="E11 非法账期={0}")
+    @ValueSource(strings={"negative-start","negative-end","missing-start","missing-end","null-start","null-end","array-start","object-end","reverse","overflow-start-negative","overflow-end-negative"})
+    void E11_invalidPeriodValuesNeverGrantOrAcknowledge(String issue) throws Exception {
+        ObjectNode invoice=paidInvoice("starter");ObjectNode period=(ObjectNode)invoice.path("lines").path("data").get(0).path("period");
+        switch(issue) {
+            case "negative-start":period.put("start",-1);break;
+            case "negative-end":period.put("end",-1);break;
+            case "missing-start":period.remove("start");break;
+            case "missing-end":period.remove("end");break;
+            case "null-start":period.putNull("start");break;
+            case "null-end":period.putNull("end");break;
+            case "array-start":period.set("start",json.readTree("[100]"));break;
+            case "object-end":period.set("end",json.createObjectNode().put("value",200));break;
+            case "reverse":period.put("start",200).put("end",100);break;
+            case "overflow-start-negative":period.set("start",json.readTree("9223372036854775808"));break;
+            case "overflow-end-negative":period.set("end",json.readTree("9223372036854775808"));break;
+            default:throw new AssertionError("未知测试账期类型");
+        }
+        assertThatThrownBy(()->send("invoice.paid",json.createObjectNode().put("id","in_1"))).isInstanceOf(RuntimeException.class);
+        verify(repo,never()).grant(anyString(),anyString(),anyString(),anyString(),anyString(),anyInt(),anyLong(),anyLong());
+        verify(repo,never()).processed(anyString(),anyString(),anyString());
+    }
+
+    @ParameterizedTest(name="R19 账期类型转换={0}")
+    @ValueSource(strings={"numeric-string","fraction","boolean","integer-wrap"})
+    void E11_RISK_periodCoercionAcceptsNonIntegralOrOverflowingInput(String issue) throws Exception {
+        ObjectNode invoice=paidInvoice("starter");ObjectNode period=(ObjectNode)invoice.path("lines").path("data").get(0).path("period");
+        if(issue.equals("numeric-string"))period.put("start","100").put("end","200");
+        else if(issue.equals("fraction"))period.put("start",100.9).put("end",200.9);
+        else if(issue.equals("boolean"))period.put("start",true);
+        else {period.set("start",json.readTree("18446744073709551716"));period.set("end",json.readTree("18446744073709551816"));}
+        send("invoice.paid",json.createObjectNode().put("id","in_1"));
+        verify(repo).grant("stripe","in_1","u","sub_u","starter",300,issue.equals("boolean")?1:100,200);
+        verify(repo).processed("stripe","evt_fixture","invoice.paid");
+    }
+
     private void customer() throws Exception {
         when(repo.customer("stripe","u")).thenReturn(map("customer_id","cus_u"));
         when(repo.owner("stripe","cus_u")).thenReturn("u");
