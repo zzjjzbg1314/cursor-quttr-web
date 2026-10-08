@@ -47,6 +47,29 @@ public class MusicBillingService {
         List<Map<String,Object>> rows=repo.history(user,21,offset,kind);
         return map("items",rows.subList(0,Math.min(20,rows.size())),"hasMore",rows.size()>20);
     }
+    public Map<String,Object> historyPage(String user,String kind,String cursor) {
+        if(!Arrays.asList("all","welcome","subscription","reserved","consumed","released","revoked").contains(kind)) throw error(HttpStatus.BAD_REQUEST,"BILLING_HISTORY_INVALID","Invalid filter.");
+        String time=null,id=null;
+        if(cursor!=null && !cursor.isEmpty()) {
+            try {
+                if(cursor.length()>1024) throw new IllegalArgumentException();
+                JsonNode decoded=mapper.readTree(Base64.getUrlDecoder().decode(cursor));
+                time=decoded.path(0).asText();id=decoded.path(1).asText();
+                if(!decoded.isArray() || decoded.size()!=2 || !time.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}") || id.isEmpty() || id.length()>300) throw new IllegalArgumentException();
+            } catch(Exception e) {throw error(HttpStatus.BAD_REQUEST,"BILLING_HISTORY_INVALID","Invalid page.");}
+        }
+        if(!settings.enabled) return map("items",Collections.emptyList(),"hasMore",false,"nextCursor",null);
+        List<Map<String,Object>> rows=repo.historyCursor(user,21,kind,time,id);
+        List<Map<String,Object>> items=new ArrayList<>();
+        for(Map<String,Object> row:rows.subList(0,Math.min(20,rows.size()))) {Map<String,Object> item=new LinkedHashMap<>(row);item.remove("sortAt");items.add(item);}
+        String next=null;
+        if(rows.size()>20) {
+            Map<String,Object> last=rows.get(19);
+            try {next=Base64.getUrlEncoder().withoutPadding().encodeToString(mapper.writeValueAsBytes(Arrays.asList(last.get("sortAt"),last.get("id"))));}
+            catch(Exception e) {throw new IllegalStateException("Invalid billing history cursor",e);}
+        }
+        return map("items",items,"hasMore",rows.size()>20,"nextCursor",next);
+    }
     public Map<String,Object> usage(String user) {
         Map<String,Object> result=new LinkedHashMap<>(credits(user));
         if(settings.enabled) { result.put("totals",repo.usage(user));result.put("generations",repo.generationSpend(user)); }

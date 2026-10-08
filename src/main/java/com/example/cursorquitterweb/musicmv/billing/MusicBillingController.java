@@ -23,7 +23,7 @@ public class MusicBillingController {
     @PostMapping("/welcome-notice/ack") public Map<String,Object> acknowledgeWelcomeNotice(@RequestBody Map<String,String> body,HttpServletRequest request) {
         return billing.acknowledgeWelcomeNotice(owner(request),body.get("id"));
     }
-    @GetMapping("/history") public Map<String,Object> history(@RequestParam(defaultValue="0") int offset,HttpServletRequest request) { String kind=request.getParameter("kind");return billing.history(owner(request),offset,kind==null?"all":kind); }
+    @GetMapping("/history") public Map<String,Object> history(@RequestParam(defaultValue="0") int offset,HttpServletRequest request) { String user=owner(request);if(offset!=0) throw new com.example.cursorquitterweb.musicmv.support.ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,"BILLING_HISTORY_INVALID","Use a history cursor.");String kind=request.getParameter("kind");return billing.historyPage(user,kind==null?"all":kind,request.getParameter("cursor")); }
     @GetMapping("/usage") public Map<String,Object> usage(HttpServletRequest request) { return billing.usage(owner(request)); }
     @GetMapping("/status") public Map<String,Object> status(HttpServletRequest request) { return billing.status(owner(request),request.getParameter("checkout_session_id")); }
     @PostMapping("/checkout") public Map<String,Object> checkout(@RequestBody Map<String,String> body,HttpServletRequest request) {

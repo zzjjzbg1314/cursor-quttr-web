@@ -21,6 +21,7 @@ class BillingRepositoryTest {
             "run(3);assert run(1)[0][-1] is None;run(4);assert run(1)[0][-1] is not None",
             "run(5);run(6);assert run(1)[0][-1] is None",
             "d.execute(\"UPDATE music_mv_billing_reservations SET state='released'\")",
+            "d.execute(\"INSERT INTO music_mv_billing_grants VALUES('paid-grant','u','stripe','paid','sub','starter',10,0,200,0,CURRENT_TIMESTAMP)\")",
             "d.execute(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('paid','u','paid','paid-grant','reserved',10)\")",
             "assert run(1)[0][-1] is None");
         runPython(script,new ObjectMapper().writeValueAsString(db.statements));
@@ -60,7 +61,7 @@ class BillingRepositoryTest {
     }
     @Test void reconciliationOnlyChangesRequestedOwner() throws Exception {
         Capture db=new Capture(); new BillingRepository(db).reconcile("u");
-        String script="import sqlite3,json,sys,pathlib\nd=sqlite3.connect(':memory:')\nd.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())\nd.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')\nd.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('j1','u','completed'),('j2','other','failed')])\nd.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,'i','reserved',10)\", [('j1','u','r1'),('j2','other','r2')])\ns=json.loads(sys.argv[1]);d.execute(s['sql'],s['params'])\nassert d.execute('SELECT state FROM music_mv_billing_reservations ORDER BY job_id').fetchall()==[('consumed',),('reserved',)]";
+        String script="import sqlite3,json,sys,pathlib\nd=sqlite3.connect(':memory:')\nd.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())\nd.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')\nd.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('j1','u','completed'),('j2','other','failed')])\nd.executemany(\"INSERT INTO music_mv_billing_grants VALUES(?,?,'stripe',?,'sub','starter',10,0,200,0,CURRENT_TIMESTAMP)\", [('i','u','u'),('i-other','other','other')])\nd.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,?,'reserved',10)\", [('j1','u','r1','i'),('j2','other','r2','i-other')])\ns=json.loads(sys.argv[1]);d.execute(s['sql'],s['params'])\nassert d.execute('SELECT state FROM music_mv_billing_reservations ORDER BY job_id').fetchall()==[('consumed',),('reserved',)]";
         Process process=new ProcessBuilder("python3","-c",script,new ObjectMapper().writeValueAsString(db.statements.get(0))).redirectErrorStream(true).start();
         assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
         String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
@@ -206,7 +207,9 @@ class BillingRepositoryTest {
             "d.execute('CREATE TABLE ai_music_jobs(job_id TEXT,user_id TEXT,status TEXT)')",
             "d.execute(\"INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('paid','stripe','invoice','u','sub','starter',100,100,200)\")",
             "d.executemany('INSERT INTO ai_music_jobs VALUES(?,?,?)',[('done','u','completed'),('failed','u','failed'),('running','u','running'),('other','other','failed')])",
-            "d.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,'paid','reserved',10)\",[('done','u','a'),('failed','u','b'),('running','u','c'),('other','other','d')])",
+            "d.execute(\"INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES('other-grant','stripe','other-invoice','other','other-sub','starter',100,100,200)\")",
+            "d.executemany(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,'paid','reserved',10)\",[('done','u','a'),('failed','u','b'),('running','u','c')])",
+            "d.execute(\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('other','other','d','other-grant','reserved',10)\")",
             "d.execute(\"UPDATE music_mv_billing_reservations SET grant_id='other-grant' WHERE user_id='other'\")",
             "s=json.loads(sys.argv[1])",
             "def run():",

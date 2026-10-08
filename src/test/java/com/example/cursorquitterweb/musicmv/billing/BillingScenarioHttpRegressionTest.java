@@ -71,7 +71,7 @@ class BillingScenarioHttpRegressionTest {
         mvc.perform(get(base("status")).param("checkout_session_id","cs_test_1").param("userId","attacker")).andExpect(status().isOk());
         mvc.perform(post(base("checkout")).contentType("application/json").content("{\"plan\":\"starter\",\"locale\":\"ja\",\"userId\":\"attacker\",\"priceId\":\"price_fake\",\"credits\":\"10000\"}")).andExpect(status().isOk());
         mvc.perform(post(base("portal")).contentType("application/json").content("{\"locale\":\"fr\",\"userId\":\"attacker\",\"customerId\":\"cus_attacker\"}")).andExpect(status().isOk());
-        verify(billing).credits("owner");verify(billing).history("owner",0,"all");verify(billing).usage("owner");verify(billing).status("owner","cs_test_1");
+        verify(billing).credits("owner");verify(billing).historyPage("owner","all",null);verify(billing).usage("owner");verify(billing).status("owner","cs_test_1");
         verify(billing).checkout("owner","starter","ja");verify(billing).portal("owner","fr");
     }
 

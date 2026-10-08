@@ -25,7 +25,7 @@ class MusicBillingControllerTest {
   MusicMvRenderClientAuthenticationService client=mock(MusicMvRenderClientAuthenticationService.class);
   MusicBillingController controller=new MusicBillingController(billing,auth,client);MockHttpServletRequest req=new MockHttpServletRequest();
   when(auth.requireUserId(req)).thenReturn("owner");Map<String,String> body=new HashMap<>();body.put("plan","starter");body.put("locale","en");body.put("userId","attacker");
-  controller.history(20,req);verify(billing).history("owner",20,"all");
+  controller.history(0,req);verify(billing).historyPage("owner","all",null);
   controller.usage(req);verify(billing).usage("owner");
   body.put("id","notice");controller.acknowledgeWelcomeNotice(body,req);verify(billing).acknowledgeWelcomeNotice("owner","notice");
   controller.credits(req);verify(billing).credits("owner");

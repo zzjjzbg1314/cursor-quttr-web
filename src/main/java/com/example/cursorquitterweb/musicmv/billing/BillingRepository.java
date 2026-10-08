@@ -57,9 +57,16 @@ public class BillingRepository {
         return D1Statement.of("INSERT INTO music_mv_billing_grants(grant_id,provider,payment_id,user_id,subscription_id,plan_key,allowance,period_start,period_end) VALUES(?,'internal',?,?,'welcome','welcome',10,0,1) ON CONFLICT(provider,payment_id) DO NOTHING",UUID.randomUUID().toString(),"welcome:"+user,user);
     }
     public List<Map<String,Object>> history(String user,int limit,int offset) { return history(user,limit,offset,"all"); }
+    private String historyRows() {
+        return "SELECT 'grant:'||grant_id AS id,CASE WHEN provider='internal' AND plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS kind,allowance AS amount,created_at AS occurredAt,created_at AS sortAt FROM music_mv_billing_grants WHERE user_id=? "
+            + "UNION ALL SELECT 'revoke:'||g.grant_id AS id,'revoked' AS kind,-d.amount AS amount,d.occurred_at AS occurredAt,COALESCE(d.occurred_at,g.created_at) AS sortAt FROM music_mv_billing_grants g LEFT JOIN music_mv_billing_revocation_details d ON d.provider=g.provider AND d.payment_id=g.payment_id WHERE g.user_id=? AND g.revoked=1 "
+            + "UNION ALL SELECT 'job:'||job_id AS id,state AS kind,CASE WHEN state='released' THEN 0 ELSE -credits END AS amount,updated_at AS occurredAt,updated_at AS sortAt FROM music_mv_billing_reservations WHERE user_id=?";
+    }
     public List<Map<String,Object>> history(String user,int limit,int offset,String kind) {
-        // 先按用户和类型过滤，再分页，避免仅筛选当前页造成遗漏。
-        return db.query("SELECT * FROM (SELECT 'grant:'||grant_id AS id, CASE WHEN revoked=1 THEN 'revoked' WHEN provider='internal' AND plan_key='welcome' THEN 'welcome' ELSE 'subscription' END AS kind, CASE WHEN revoked=1 THEN 0 ELSE allowance END AS amount, created_at AS occurredAt FROM music_mv_billing_grants WHERE user_id=? UNION ALL SELECT 'job:'||job_id AS id,state AS kind,CASE WHEN state='released' THEN 0 ELSE -credits END AS amount,updated_at AS occurredAt FROM music_mv_billing_reservations WHERE user_id=?) WHERE (?='all' OR kind=?) ORDER BY occurredAt DESC,id DESC LIMIT ? OFFSET ?",user,user,kind,kind,limit,offset).getRows();
+        return db.query("SELECT * FROM ("+historyRows()+") WHERE (?='all' OR kind=?) ORDER BY sortAt DESC,id DESC LIMIT ? OFFSET ?",user,user,user,kind,kind,limit,offset).getRows();
+    }
+    public List<Map<String,Object>> historyCursor(String user,int limit,String kind,String time,String id) {
+        return db.query("SELECT * FROM ("+historyRows()+") WHERE (?='all' OR kind=?) AND (? IS NULL OR sortAt<? OR (sortAt=? AND id<?)) ORDER BY sortAt DESC,id DESC LIMIT ?",user,user,user,kind,kind,time,time,time,id,limit).getRows();
     }
     public Map<String,Object> usage(String user) {
         return db.query("SELECT (SELECT COALESCE(SUM(allowance),0) FROM music_mv_billing_grants WHERE user_id=?) AS earned,(SELECT COALESCE(SUM(credits),0) FROM music_mv_billing_reservations WHERE user_id=? AND state='consumed') AS spent",user,user).firstRow();

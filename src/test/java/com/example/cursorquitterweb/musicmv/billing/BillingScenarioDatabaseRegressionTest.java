@@ -103,12 +103,12 @@ class BillingScenarioDatabaseRegressionTest {
             "for i in range(5): run(i)",
             "assert run(5)[0]['remaining']==0",
             "totals=run(6)[0];assert totals['earned']==10;assert totals['spent']==("+(state.equals("consumed")?"10":"0")+")",
-            "history=run(7);assert len(history)==2;assert {r['kind'] for r in history}=={'revoked','"+state+"'}",
+            "history=run(7);assert len(history)==3;assert {r['kind'] for r in history}=={'subscription','revoked','"+state+"'}",
             "assert d.execute('SELECT revoked FROM music_mv_billing_grants').fetchone()[0]==1",
             "assert d.execute('SELECT state FROM music_mv_billing_reservations').fetchone()[0]=='"+state+"'"));
     }
 
-    @Test void K09_RISK_foreignKeyRejectsMissingGrantButAllowsDifferentOwner() throws Exception {
+    @Test void K09_databaseRejectsMissingGrantAndDifferentOwner() throws Exception {
         BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
         repo.grant("stripe","in_1","owner","sub","starter",10,100,200);
         run(db,String.join("\n",
@@ -117,8 +117,8 @@ class BillingScenarioDatabaseRegressionTest {
             "insert=\"INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES('j','other','r',?,'reserved',10)\"",
             "try: d.execute(insert,('missing',));raise AssertionError('missing grant was accepted')",
             "except sqlite3.IntegrityError: pass",
-            "grant=d.execute('SELECT grant_id FROM music_mv_billing_grants').fetchone()[0];d.execute(insert,(grant,))",
-            "assert d.execute(\"SELECT COUNT(*) FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.user_id<>g.user_id\").fetchone()[0]==1"));
+            "grant=d.execute('SELECT grant_id FROM music_mv_billing_grants').fetchone()[0]\ntry: d.execute(insert,(grant,));raise AssertionError('different owner was accepted')\nexcept sqlite3.IntegrityError: pass",
+            "assert d.execute(\"SELECT COUNT(*) FROM music_mv_billing_reservations r JOIN music_mv_billing_grants g ON g.grant_id=r.grant_id WHERE r.user_id<>g.user_id\").fetchone()[0]==0"));
     }
 
     @Test void K10_initializationReplayPreservesExistingLedger() throws Exception {
@@ -133,9 +133,9 @@ class BillingScenarioDatabaseRegressionTest {
             "d.execute(s[0]['sql'],s[0]['params']);assert d.execute('SELECT COUNT(*) FROM music_mv_billing_grants').fetchone()[0]==1"));
     }
 
-    @Test void K06_RISK_offsetPaginationIsStableOnlyWithoutConcurrentInsert() throws Exception {
+    @Test void K06_cursorPaginationRemainsStableAfterConcurrentInsert() throws Exception {
         BillingRepositoryTest.Capture db=new BillingRepositoryTest.Capture();BillingRepository repo=new BillingRepository(db);
-        repo.history("u",20,0);repo.history("u",20,20);
+        repo.historyCursor("u",20,"all",null,null);repo.historyCursor("u",20,"all","2026-10-08 01:00:00","grant:g20");
         run(db,String.join("\n",
             "import sqlite3,json,sys,pathlib",
             "s=json.loads(sys.argv[1]);d=sqlite3.connect(':memory:');d.row_factory=sqlite3.Row;d.executescript(pathlib.Path('src/main/resources/db/music-mv-billing-schema.sql').read_text())",
@@ -144,7 +144,7 @@ class BillingScenarioDatabaseRegressionTest {
             "def page(i): return [r['id'] for r in d.execute(s[i]['sql'],s[i]['params'])]",
             "first=page(0);second=page(1);assert len(set(first+second))==40;assert page(0)==first",
             "d.execute(insert,('new','in_new','2026-10-08 02:00:00'));changed=page(1)",
-            "assert set(first)&set(changed);assert len(set(first+changed))==39"));
+            "assert not set(first)&set(changed);assert len(set(first+changed))==40"));
     }
 
     @ParameterizedTest

@@ -97,7 +97,7 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(repo.paymentGranted("u","in_u")).isFalse();
         assertThat(service.status("u","cs_test_fixture")).containsEntry("paymentConfirmed",false).containsEntry("paymentRevoked",true).containsEntry("remaining",10);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE provider='stripe'" )).isEqualTo(1);
-        assertThat(service.history("u",0).get("items")).asList().hasSize(3);
+        assertThat(service.history("u",0).get("items")).asList().hasSize(4);
         service.reserve("u","request_2","job_2");service.settle("job_2","failed");
         assertThat(((Number)service.credits("u").get("remaining")).intValue()).isEqualTo(10);
         assertThat(service.credits("other").get("allowance")).isEqualTo(0);
@@ -120,7 +120,10 @@ class BillingLedgerJourneyRegressionTest {
                     String id=owner+"_"+kind+"_"+String.format("%02d",i);
                     seeds.add(D1Statement.of("INSERT INTO music_mv_billing_grants(grant_id,user_id,provider,payment_id,subscription_id,plan_key,allowance,period_start,period_end,revoked,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                         id,owner,kind.equals("welcome")?"internal":"stripe",id,"sub_"+owner,kind.equals("welcome")?"welcome":"starter",10,100,200,kind.equals("revoked")?1:0,"2026-10-08 01:00:00"));
-                    if(owner.equals("a")){kinds.put("grant:"+id,kind);amounts.put("grant:"+id,kind.equals("revoked")?0:10);}
+                    if(owner.equals("a")){
+                        kinds.put("grant:"+id,kind.equals("revoked")?"subscription":kind);amounts.put("grant:"+id,10);
+                        if(kind.equals("revoked")){kinds.put("revoke:"+id,"revoked");amounts.put("revoke:"+id,null);}
+                    }
                 }
             }
             for(String kind:Arrays.asList("reserved","consumed","released")) {
@@ -145,7 +148,7 @@ class BillingLedgerJourneyRegressionTest {
             for(Map<String,Object> item:items){
                 String id=(String)item.get("id");actual.add(id);
                 assertThat(item.get("kind")).isEqualTo(kinds.get(id));
-                assertThat(((Number)item.get("amount")).intValue()).isEqualTo(amounts.get(id));
+                if(amounts.get(id)==null)assertThat(item.get("amount")).isNull();else assertThat(((Number)item.get("amount")).intValue()).isEqualTo(amounts.get(id));
             }
         }
         assertThat(actual).containsExactlyElementsOf(expected).doesNotHaveDuplicates();
@@ -1039,7 +1042,7 @@ class BillingLedgerJourneyRegressionTest {
             ledger.grant("stripe",owner+"_refunded",owner,"sub_"+owner,"creator",1000,now-100,now+7200);
             ledger.revoke("stripe",owner+"_refunded");
             Set<String> ids=new HashSet<>();ownedIds.put(owner,ids);
-            for(Map<String,Object> row:db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=?",owner).getRows())ids.add("grant:"+row.get("grant_id"));
+            for(Map<String,Object> row:db.query("SELECT grant_id,revoked FROM music_mv_billing_grants WHERE user_id=?",owner).getRows()){ids.add("grant:"+row.get("grant_id"));if(((Number)row.get("revoked")).intValue()==1)ids.add("revoke:"+row.get("grant_id"));}
             List<D1Statement> seeds=new ArrayList<>();
             for(String kind:Arrays.asList("old","refunded","released","reserved")) {
                 String job=owner+"_"+kind,attempt="attempt_"+job;
@@ -1066,7 +1069,7 @@ class BillingLedgerJourneyRegressionTest {
             assertThat(generations).extracting(row->row.get("jobId")).containsExactlyInAnyOrder(owner+"_old",owner+"_refunded",owner+"_reserved");
             for(Map<String,Object> row:generations)assertThat(row).containsEntry("credits",10).containsEntry("title",row.get("jobId")+"_chosen");
             @SuppressWarnings("unchecked") List<Map<String,Object>> history=(List<Map<String,Object>>)service.history(owner,0).get("items");
-            assertThat(history).hasSize(8);
+            assertThat(history).hasSize(9);
             assertThat(new HashSet<>(history.stream().map(row->(String)row.get("id")).collect(java.util.stream.Collectors.toList()))).isEqualTo(ownedIds.get(owner));
         }
         assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_candidates")).isEqualTo(16);
@@ -1147,6 +1150,47 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(((Number)ledger.balance("other",now).get("remaining")).intValue()).isEqualTo(300);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_reservations WHERE state='reserved'")).isEqualTo(1);
         verifyNoInteractions(stripe);
+    }
+
+    @org.junit.jupiter.api.Test
+    void R15_serviceCursorKeepsAllRowsAfterNewActivityAndRejectsMalformedPages() {
+        SqliteClient db=new SqliteClient(directory.resolve("cursor.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);BillingSettings settings=new BillingSettings();settings.enabled=true;
+        StripeGateway stripe=mock(StripeGateway.class);MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        for(int i=0;i<41;i++) ledger.grant("stripe",String.format("in_%02d",i),"u","sub","starter",10,100,200);
+        Map<String,Object> first=service.historyPage("u","all",null);
+        @SuppressWarnings("unchecked") List<Map<String,Object>> rows=(List<Map<String,Object>>)first.get("items");
+        List<String> ids=new ArrayList<>();for(Map<String,Object> row:rows)ids.add((String)row.get("id"));
+        String cursor=(String)first.get("nextCursor");assertThat(cursor).isNotEmpty();
+        // 显式放在首屏之前，复现用户读取第一页后新增一笔记录。
+        db.query("INSERT INTO music_mv_billing_grants VALUES('new','u','stripe','new','sub','starter',10,100,200,0,'2099-01-01 00:00:00')");
+        while(cursor!=null) {
+            Map<String,Object> page=service.historyPage("u","all",cursor);
+            @SuppressWarnings("unchecked") List<Map<String,Object>> next=(List<Map<String,Object>>)page.get("items");
+            for(Map<String,Object> row:next)ids.add((String)row.get("id"));cursor=(String)page.get("nextCursor");
+        }
+        assertThat(ids).hasSize(41).doesNotHaveDuplicates().doesNotContain("grant:new");
+        assertThat(service.historyPage("other","all",(String)first.get("nextCursor")).get("items")).asList().isEmpty();
+        for(String invalid:Arrays.asList("!","e30","W10")) assertThatThrownBy(()->service.historyPage("u","all",invalid)).isInstanceOf(com.example.cursorquitterweb.musicmv.support.ApiException.class);
+        verifyNoInteractions(stripe);
+    }
+
+    @org.junit.jupiter.api.Test
+    void R16_reversalPreservesOriginalGrantAndRecordsOnlyRemainingCreditsOnce() {
+        SqliteClient db=new SqliteClient(directory.resolve("reversal-audit.sqlite"));BillingRepository ledger=new BillingRepository(db);
+        ledger.grant("stripe","paid","u","sub","starter",300,100,200);
+        db.query("UPDATE music_mv_billing_grants SET created_at='2026-10-01 00:00:00'");
+        for(int i=0;i<5;i++){assertThat(ledger.reserve("u","r"+i,"j"+i,150,10)).isTrue();ledger.settle("j"+i,"consumed");}
+        ledger.revoke("stripe","paid");ledger.revoke("stripe","paid");
+        List<Map<String,Object>> reversed=ledger.history("u",20,0,"revoked");
+        assertThat(reversed).hasSize(1);assertThat(reversed.get(0)).containsEntry("amount",-250);
+        assertThat(reversed.get(0).get("occurredAt")).isNotNull().isNotEqualTo("2026-10-01 00:00:00");
+        assertThat(ledger.history("u",20,0,"subscription")).hasSize(1);
+        assertThat(ledger.history("u",20,0,"subscription").get(0)).containsEntry("amount",300).containsEntry("occurredAt","2026-10-01 00:00:00");
+        assertThat(ledger.balance("u",150)).containsEntry("remaining",0);
+        String grant=(String)db.query("SELECT grant_id FROM music_mv_billing_grants").firstRow().get("grant_id");
+        assertThatThrownBy(()->db.query("UPDATE music_mv_billing_reservations SET user_id='other' WHERE job_id='j0'")).isInstanceOf(AssertionError.class).hasMessageContaining("owner mismatch");
+        assertThatThrownBy(()->db.query("UPDATE music_mv_billing_grants SET user_id='other' WHERE grant_id=?",grant)).isInstanceOf(AssertionError.class).hasMessageContaining("owner mismatch");
     }
 
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
