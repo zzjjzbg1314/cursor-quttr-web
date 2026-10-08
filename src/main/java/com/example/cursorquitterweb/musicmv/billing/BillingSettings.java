@@ -45,7 +45,7 @@ public class BillingSettings {
         String language = locale == null ? "en" : locale.toLowerCase(java.util.Locale.ROOT);
         String prefix = java.util.Arrays.asList("zh-cn", "zh-tw", "ja", "ko", "es", "pt-br", "de", "fr")
                 .contains(language) ? "/" + language : "";
-        return siteUrl.replaceAll("/+$", "") + prefix + "/account";
+        return siteUrl.replaceAll("/+$", "") + prefix + "/pricing";
     }
     private boolean present(String value,String prefix) { return value!=null && value.startsWith(prefix) && value.length()>prefix.length(); }
 }
