@@ -295,9 +295,17 @@ class BillingLedgerJourneyRegressionTest {
                 Map<String,Object> slot=new BillingRepository(db).subscription("u");
                 assertThat(slot).containsEntry("checkout_id",null);assertThat(slot.get("checkout_token")).isNotNull();
             } else assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_customers")).isZero();
+            Path recoveryLog=directory.resolve("independent-jvm.log");
+            Process recovery=new ProcessBuilder(System.getProperty("java.home")+"/bin/java","-Xmx128m","-cp",
+                System.getProperty("java.class.path"),CheckoutRecoveryWorker.class.getName(),file.toString(),plan,
+                "http://127.0.0.1:"+server.getAddress().getPort()).redirectErrorStream(true).redirectOutput(recoveryLog.toFile()).start();
+            boolean ended=recovery.waitFor(30,TimeUnit.SECONDS);if(!ended)recovery.destroyForcibly();
+            assertThat(ended).withFailMessage("独立JVM账务恢复超过30秒").isTrue();
+            String recoveryOutput=new String(java.nio.file.Files.readAllBytes(recoveryLog),StandardCharsets.UTF_8);
+            assertThat(recovery.exitValue()).withFailMessage(recoveryOutput).isZero();
+            assertThat(recoveryOutput).contains("RECOVERY_RESULT:{\"url\":\"https://checkout.stripe.com/fixture\"}");
             SqliteClient restartedDb=new SqliteClient(file);BillingRepository restartedRepo=new BillingRepository(restartedDb);
             MusicBillingService restarted=new MusicBillingService(settings,restartedRepo,new StripeGateway(settings,json),json);
-            assertThat(restarted.checkout("u",plan,"zh-CN")).containsEntry("url","https://checkout.stripe.com/fixture");
             assertThat(restarted.checkout("u",plan,"zh-CN")).containsEntry("url","https://checkout.stripe.com/fixture");
             assertThat(count(restartedDb,"SELECT COUNT(*) AS n FROM music_mv_billing_customers")).isEqualTo(1);
             assertThat(restartedRepo.customer("stripe","u")).containsEntry("customer_id","cus_u");
@@ -313,6 +321,20 @@ class BillingLedgerJourneyRegressionTest {
             assertThat(customerPosts.get()).isEqualTo(failure.equals("customer")?2:1);
             assertThat(checkoutPosts.get()).isEqualTo(failure.equals("checkout")?2:1);
         } finally {com.stripe.Stripe.overrideApiBase(original);server.stop(0);}
+    }
+
+    // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
+    public static class CheckoutRecoveryWorker {
+        public static void main(String[] args) throws Exception {
+            BillingLedgerJourneyRegressionTest fixture=new BillingLedgerJourneyRegressionTest();
+            SqliteClient db=fixture.new SqliteClient(java.nio.file.Paths.get(args[0]));
+            BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+            settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";
+            settings.portalConfiguration="bpc_fixture";settings.siteUrl="https://www.example.test";
+            com.stripe.Stripe.overrideApiBase(args[2]);
+            MusicBillingService service=new MusicBillingService(settings,new BillingRepository(db),new StripeGateway(settings,fixture.json),fixture.json);
+            System.out.println("RECOVERY_RESULT:"+fixture.json.writeValueAsString(service.checkout("u",args[1],"zh-CN")));
+        }
     }
 
     private int count(SqliteClient db,String sql){return ((Number)db.query(sql).firstRow().get("n")).intValue();}
