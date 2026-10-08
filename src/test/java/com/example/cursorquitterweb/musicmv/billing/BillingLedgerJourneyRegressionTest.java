@@ -919,6 +919,54 @@ class BillingLedgerJourneyRegressionTest {
         } finally {music.close();}
     }
 
+    @org.junit.jupiter.api.Test
+    void mixedPeriodUsageAndTwoCandidateTitlesStayOwnedAndCountEachJobOnce() {
+        SqliteClient db=new SqliteClient(directory.resolve("owned-usage.sqlite"));
+        BillingRepository ledger=new BillingRepository(db);BillingSettings settings=new BillingSettings();settings.enabled=true;
+        StripeGateway stripe=mock(StripeGateway.class);MusicBillingService service=new MusicBillingService(settings,ledger,stripe,json);
+        long now=Instant.now().getEpochSecond();Map<String,Set<String>> ownedIds=new HashMap<>();
+        for(String owner:Arrays.asList("a","b")) {
+            db.query("INSERT INTO music_mv_users(user_id,display_name,handle,last_login_at,created_at,updated_at) VALUES(?,?,?,'2026-10-08','2026-10-08','2026-10-08')",owner,owner,owner);
+            ledger.ensureWelcomeCredits(owner);
+            ledger.grant("stripe",owner+"_old",owner,"sub_"+owner,"starter",300,now-7200,now-3600);
+            ledger.grant("stripe",owner+"_active",owner,"sub_"+owner,"starter",300,now-100,now+3600);
+            ledger.grant("stripe",owner+"_refunded",owner,"sub_"+owner,"creator",1000,now-100,now+7200);
+            ledger.revoke("stripe",owner+"_refunded");
+            Set<String> ids=new HashSet<>();ownedIds.put(owner,ids);
+            for(Map<String,Object> row:db.query("SELECT grant_id FROM music_mv_billing_grants WHERE user_id=?",owner).getRows())ids.add("grant:"+row.get("grant_id"));
+            List<D1Statement> seeds=new ArrayList<>();
+            for(String kind:Arrays.asList("old","refunded","released","reserved")) {
+                String job=owner+"_"+kind,attempt="attempt_"+job;
+                String state=kind.equals("released")?"released":kind.equals("reserved")?"reserved":"consumed";
+                String status=state.equals("released")?"failed":state.equals("reserved")?"queued":"completed";
+                String payment=owner+"_"+(kind.equals("released")||kind.equals("reserved")?"active":kind);
+                String grant=(String)db.query("SELECT grant_id FROM music_mv_billing_grants WHERE payment_id=?",payment).firstRow().get("grant_id");
+                ids.add("job:"+job);
+                seeds.add(D1Statement.of("INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,active_attempt_id,request_fingerprint,request_json,created_at,updated_at) VALUES(?,?,?,?,?,?,'sunoapi',?,'fp','{}','2026-10-08','2026-10-08')",job,owner,owner,job,status,status,attempt));
+                seeds.add(D1Statement.of("INSERT INTO ai_music_provider_attempts(attempt_id,job_id,provider_code,provider_task_id,status,attempt_number,request_json,created_at,updated_at) VALUES(?,?,'sunoapi',?,?,1,'{}','2026-10-08','2026-10-08')",attempt,job,"task_"+job,status));
+                seeds.add(D1Statement.of("INSERT INTO music_mv_billing_reservations(job_id,user_id,request_id,grant_id,state,credits) VALUES(?,?,?,?,?,10)",job,owner,job,grant,state));
+                for(int i=0;i<2;i++)seeds.add(D1Statement.of("INSERT INTO ai_music_candidates(candidate_id,job_id,attempt_id,provider_code,provider_task_id,provider_audio_id,status,title,selected,created_at,updated_at) VALUES(?,?,?,'sunoapi',?,?,'completed',?,?,'2026-10-08','2026-10-08')",job+"_candidate_"+i,job,attempt,"task_"+job,"audio_"+job+"_"+i,job+(i==1?"_chosen":"_alternate"),i));
+            }
+            db.batch(seeds);
+        }
+        for(String owner:Arrays.asList("a","b")) {
+            Map<String,Object> usage=service.usage(owner);
+            assertThat(usage).containsEntry("remaining",300).containsEntry("reserved",10).containsEntry("allowance",300);
+            Map<?,?> totals=(Map<?,?>)usage.get("totals");
+            assertThat(((Number)totals.get("earned")).intValue()).isEqualTo(1610);
+            assertThat(((Number)totals.get("spent")).intValue()).isEqualTo(20);
+            @SuppressWarnings("unchecked") List<Map<String,Object>> generations=(List<Map<String,Object>>)usage.get("generations");
+            assertThat(generations).hasSize(3);
+            assertThat(generations).extracting(row->row.get("jobId")).containsExactlyInAnyOrder(owner+"_old",owner+"_refunded",owner+"_reserved");
+            for(Map<String,Object> row:generations)assertThat(row).containsEntry("credits",10).containsEntry("title",row.get("jobId")+"_chosen");
+            @SuppressWarnings("unchecked") List<Map<String,Object>> history=(List<Map<String,Object>>)service.history(owner,0).get("items");
+            assertThat(history).hasSize(8);
+            assertThat(new HashSet<>(history.stream().map(row->(String)row.get("id")).collect(java.util.stream.Collectors.toList()))).isEqualTo(ownedIds.get(owner));
+        }
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM ai_music_candidates")).isEqualTo(16);
+        verifyNoInteractions(stripe);
+    }
+
     // 独立JVM仅连接测试临时账本与本地模拟渠道，验证恢复不依赖原服务进程内存。
     public static class CheckoutRecoveryWorker {
         public static void main(String[] args) throws Exception {
