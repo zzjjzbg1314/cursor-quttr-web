@@ -246,6 +246,75 @@ class BillingLedgerJourneyRegressionTest {
         assertThat(((Number)ledger.balance("u",boundaries[3]).get("remaining")).intValue()).isEqualTo(10);
     }
 
+    @ParameterizedTest(name="C07/C24 套餐={0} 保存失败位置={1}")
+    @CsvSource({"starter,customer","creator,customer","starter,checkout","creator,checkout"})
+    void sdkIdempotencyAndPersistedSlotRecoverAfterLocalWriteFailure(String plan,String failure) throws Exception {
+        AtomicBoolean failOnce=new AtomicBoolean(true);
+        Path file=directory.resolve("checkout-recovery.sqlite");
+        SqliteClient db=new SqliteClient(file) {
+            @Override public D1QueryResult query(String sql,Object...params) {
+                boolean target=failure.equals("customer")?sql.startsWith("INSERT INTO music_mv_billing_customers"):
+                    sql.startsWith("UPDATE music_mv_billing_subscriptions SET checkout_id=?");
+                if(target&&failOnce.compareAndSet(true,false))throw new IllegalStateException("测试注入一次账务保存失败");
+                return super.query(sql,params);
+            }
+        };
+        BillingSettings settings=new BillingSettings();settings.enabled=true;settings.secretKey="sk_test_fixture";
+        settings.webhookSecret="whsec_fixture";settings.starterPrice="price_starter";settings.creatorPrice="price_creator";
+        settings.portalConfiguration="bpc_fixture";settings.siteUrl="https://www.example.test";
+        java.util.concurrent.atomic.AtomicInteger customerPosts=new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger checkoutPosts=new java.util.concurrent.atomic.AtomicInteger();
+        Map<String,String> providerBodies=new HashMap<>();Map<String,String> providerObjects=new HashMap<>();
+        com.sun.net.httpserver.HttpServer server=com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1",0),0);
+        server.createContext("/v1/",exchange->{
+            String path=exchange.getRequestURI().getPath();String response;int status=200;
+            if(path.equals("/v1/subscriptions")) response="{\"object\":\"list\",\"data\":[],\"has_more\":false}";
+            else if(exchange.getRequestMethod().equals("GET"))response=providerObjects.get("checkout");
+            else {
+                String key=exchange.getRequestHeaders().getFirst("Idempotency-Key");
+                String body=java.net.URLDecoder.decode(new String(org.springframework.util.StreamUtils.copyToByteArray(exchange.getRequestBody()),StandardCharsets.UTF_8),"UTF-8");
+                boolean customer=path.equals("/v1/customers");
+                if(customer)customerPosts.incrementAndGet();else checkoutPosts.incrementAndGet();
+                String old=providerBodies.putIfAbsent(key,body);
+                if(old!=null&&!old.equals(body)){status=409;response="{\"error\":{\"type\":\"idempotency_error\",\"message\":\"参数变化\"}}";}
+                else if(customer){response="{\"object\":\"customer\",\"id\":\"cus_u\"}";providerObjects.put(key,response);}
+                else {
+                    response="{\"object\":\"checkout.session\",\"id\":\"cs_test_fixture\",\"url\":\"https://checkout.stripe.com/fixture\",\"status\":\"open\",\"client_reference_id\":\"u\",\"customer\":\"cus_u\",\"livemode\":false,\"mode\":\"subscription\"}";
+                    providerObjects.put(key,response);providerObjects.put("checkout",response);
+                }
+            }
+            byte[] bytes=response.getBytes(StandardCharsets.UTF_8);exchange.getResponseHeaders().add("Content-Type","application/json");
+            exchange.sendResponseHeaders(status,bytes.length);exchange.getResponseBody().write(bytes);exchange.close();
+        });
+        server.start();String original=com.stripe.Stripe.getApiBase();
+        try {
+            com.stripe.Stripe.overrideApiBase("http://127.0.0.1:"+server.getAddress().getPort());
+            MusicBillingService first=new MusicBillingService(settings,new BillingRepository(db),new StripeGateway(settings,json),json);
+            assertThatThrownBy(()->first.checkout("u",plan,"zh-CN")).isInstanceOf(IllegalStateException.class);
+            if(failure.equals("checkout")){
+                Map<String,Object> slot=new BillingRepository(db).subscription("u");
+                assertThat(slot).containsEntry("checkout_id",null);assertThat(slot.get("checkout_token")).isNotNull();
+            } else assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_customers")).isZero();
+            SqliteClient restartedDb=new SqliteClient(file);BillingRepository restartedRepo=new BillingRepository(restartedDb);
+            MusicBillingService restarted=new MusicBillingService(settings,restartedRepo,new StripeGateway(settings,json),json);
+            assertThat(restarted.checkout("u",plan,"zh-CN")).containsEntry("url","https://checkout.stripe.com/fixture");
+            assertThat(restarted.checkout("u",plan,"zh-CN")).containsEntry("url","https://checkout.stripe.com/fixture");
+            assertThat(count(restartedDb,"SELECT COUNT(*) AS n FROM music_mv_billing_customers")).isEqualTo(1);
+            assertThat(restartedRepo.customer("stripe","u")).containsEntry("customer_id","cus_u");
+            assertThat(restartedRepo.customer("stripe","other")).isNull();
+            assertThatThrownBy(()->restartedRepo.saveCustomer("stripe","other","cus_u")).isInstanceOf(AssertionError.class);
+            assertThat(restartedRepo.owner("stripe","cus_u")).isEqualTo("u");
+            assertThat(restartedRepo.customer("stripe","other")).isNull();
+            Map<String,Object> slot=restartedRepo.subscription("u");assertThat(slot).containsEntry("checkout_id","cs_test_fixture").containsEntry("checkout_plan",plan);
+            assertThat(providerBodies).hasSize(2);
+            assertThat(providerBodies.get("sunofilm-customer-u")).contains("metadata[sunofilm_user_id]=u");
+            String checkoutBody=providerBodies.get("sunofilm-checkout-"+slot.get("checkout_token"));
+            assertThat(checkoutBody).contains("mode=subscription","line_items[0][quantity]=1","line_items[0][price]=price_"+plan,"client_reference_id=u","/zh-cn/pricing?billing=return");
+            assertThat(customerPosts.get()).isEqualTo(failure.equals("customer")?2:1);
+            assertThat(checkoutPosts.get()).isEqualTo(failure.equals("checkout")?2:1);
+        } finally {com.stripe.Stripe.overrideApiBase(original);server.stop(0);}
+    }
+
     private int count(SqliteClient db,String sql){return ((Number)db.query(sql).firstRow().get("n")).intValue();}
     private ObjectNode session(String status){return json.createObjectNode().put("id","cs_test_fixture").put("status",status)
         .put("client_reference_id","u").put("customer","cus_u").put("livemode",false).put("mode","subscription")
