@@ -700,7 +700,7 @@ class BillingLedgerJourneyRegressionTest {
     }
 
     @ParameterizedTest(name="F08 到账套餐={0} 写入中断={2}")
-    @CsvSource({"starter,300,grant_before","starter,300,grant_after","starter,300,processed_before","creator,1000,grant_before","creator,1000,grant_after","creator,1000,processed_before"})
+    @CsvSource({"starter,300,grant_before","starter,300,grant_after","starter,300,processed_before","creator,1000,grant_before","creator,1000,grant_after","creator,1000,processed_before","starter,300,invoice_query_failure","creator,1000,invoice_query_failure"})
     void paidInvoiceWriteFailureRecreatedServiceCompletesExactlyOneGrant(String plan,int allowance,String point) throws Exception {
         AtomicBoolean armed=new AtomicBoolean(false);
         SqliteClient db=new SqliteClient(directory.resolve("paid-retry.sqlite")) {
@@ -729,12 +729,13 @@ class BillingLedgerJourneyRegressionTest {
         line.set("parent",json.createObjectNode().set("subscription_item_details",json.createObjectNode().put("subscription","sub_u").put("proration",false)));
         line.set("period",json.createObjectNode().put("start",100).put("end",200));
         invoice.set("lines",json.createObjectNode().put("has_more",false).set("data",json.createArrayNode().add(line)));
-        when(stripe.invoice("in_u")).thenReturn(invoice);
+        if(point.equals("invoice_query_failure"))when(stripe.invoice("in_u")).thenThrow(new com.example.cursorquitterweb.musicmv.support.ApiException(org.springframework.http.HttpStatus.BAD_GATEWAY,"BILLING_PROVIDER_UNAVAILABLE","测试查询不可用",true,null)).thenReturn(invoice);
+        else when(stripe.invoice("in_u")).thenReturn(invoice);
         MusicBillingService first=new MusicBillingService(settings,ledger,stripe,json);
         ObjectNode object=json.createObjectNode().put("id","in_u");armed.set(true);
-        assertThatThrownBy(()->send(first,settings,"evt_paid_retry","invoice.paid",object)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(()->send(first,settings,"evt_paid_retry","invoice.paid",object)).isInstanceOf(RuntimeException.class);
         assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_events")).isZero();
-        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_u'")).isEqualTo(point.equals("grant_before")?0:1);
+        assertThat(count(db,"SELECT COUNT(*) AS n FROM music_mv_billing_grants WHERE payment_id='in_u'")).isEqualTo((point.equals("grant_before")||point.equals("invoice_query_failure"))?0:1);
         MusicBillingService restarted=new MusicBillingService(settings,new BillingRepository(db),stripe,json);
         send(restarted,settings,"evt_paid_retry","invoice.paid",object);
         send(restarted,settings,"evt_paid_retry","invoice.paid",object);

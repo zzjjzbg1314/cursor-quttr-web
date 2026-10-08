@@ -64,4 +64,29 @@ class StripeGatewayTest {
   } finally {Stripe.overrideApiBase(original);server.stop(0);}
  }
 
+ @org.junit.jupiter.params.ParameterizedTest
+ @org.junit.jupiter.params.provider.ValueSource(strings={"429","500","bad-json"})
+ void channelFailureReturnsStableRetryableErrorThroughOfficialSdk(String scenario) throws Exception {
+  HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+  java.util.concurrent.atomic.AtomicInteger calls=new java.util.concurrent.atomic.AtomicInteger();
+  server.createContext("/v1/invoices/in_fixture",exchange->{
+   calls.incrementAndGet();
+   byte[] response=(scenario.equals("bad-json")?"not JSON":"{\"error\":{\"type\":\"api_error\",\"message\":\"fixture-private-provider-detail\"}}").getBytes(StandardCharsets.UTF_8);
+   exchange.getResponseHeaders().add("Content-Type","application/json");
+   exchange.getResponseHeaders().add("Stripe-Should-Retry","false");
+   exchange.sendResponseHeaders(scenario.equals("bad-json")?200:Integer.parseInt(scenario),response.length);
+   exchange.getResponseBody().write(response);exchange.close();
+  });server.start();String original=Stripe.getApiBase();
+  try {
+   Stripe.overrideApiBase("http://127.0.0.1:"+server.getAddress().getPort());
+   BillingSettings s=new BillingSettings();s.enabled=true;s.secretKey="sk_test_fixture";s.webhookSecret="whsec_fixture";s.starterPrice="price_s";s.creatorPrice="price_c";s.portalConfiguration="bpc_fixture";
+   StripeGateway gateway=new StripeGateway(s,new ObjectMapper());
+   assertThatThrownBy(()->gateway.invoice("in_fixture")).isInstanceOfSatisfying(com.example.cursorquitterweb.musicmv.support.ApiException.class,
+    e->{assertThat(e.getStatus().value()).isEqualTo(502);assertThat(e.getCode()).isEqualTo("BILLING_PROVIDER_UNAVAILABLE");assertThat(e.isRetryable()).isTrue();assertThat(e.getMessage()).doesNotContain("fixture-private-provider-detail");});
+   assertThat(calls.get()).isEqualTo(1);
+   com.stripe.net.RequestOptions options=org.springframework.test.util.ReflectionTestUtils.invokeMethod(gateway,"options","fixture-idempotency");
+   assertThat(options.getConnectTimeout()).isEqualTo(10000);assertThat(options.getReadTimeout()).isEqualTo(20000);assertThat(options.getMaxNetworkRetries()).isEqualTo(1);
+  } finally {Stripe.overrideApiBase(original);server.stop(0);}
+ }
+
 }
