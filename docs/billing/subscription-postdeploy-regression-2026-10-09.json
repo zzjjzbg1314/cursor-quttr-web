@@ -1,0 +1,450 @@
+{
+  "date": "2026-10-09",
+  "site": "https://suno.film",
+  "channel": "用户已登录 Chrome；Stripe/D1 只读核对；退款和测试收尾从已授权 Stripe 沙盒接口触发",
+  "scope": "部署后主流程回归，不将未在线触发的故障分支计为在线通过",
+  "states": {
+    "post-deploy-baseline": {
+      "utc": "2026-10-08T23:53:54.744811+00:00",
+      "database": [
+        {
+          "subscription_id": null,
+          "status": null,
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+          "checkout_plan": "creator"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1fYUV3LHWzc6moswSasTOgSAfddaITXBkinljpnGrNrBj4sJqB0HJSJYp",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 2999,
+        "currency": "usd",
+        "subscription": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "invoice": "in_1UOJoyGj38FUksqY0dcqtyuw",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UOJp0Gj38FUksqYDueYRskx",
+        "status": "canceled",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        }
+      ]
+    },
+    "post-deploy-paid": {
+      "utc": "2026-10-09T00:02:17.016919+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+          "status": "active",
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+          "checkout_plan": "starter"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 999,
+        "currency": "usd",
+        "subscription": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "invoice": "in_1UORFwGj38FUksqYmCY4D2eI",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        },
+        {
+          "payment_id": "in_1UORFwGj38FUksqYmCY4D2eI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 0,
+          "created_at": "2026-10-09 00:01:53",
+          "period_start": 1791504108,
+          "period_end": 1794182508
+        }
+      ]
+    },
+    "post-deploy-canceled-renewal": {
+      "utc": "2026-10-09T00:03:19.116772+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+          "status": "active",
+          "cancel_at_period_end": 1,
+          "checkout_id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+          "checkout_plan": "starter"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 999,
+        "currency": "usd",
+        "subscription": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "invoice": "in_1UORFwGj38FUksqYmCY4D2eI",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": 1794182508,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        },
+        {
+          "payment_id": "in_1UORFwGj38FUksqYmCY4D2eI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 0,
+          "created_at": "2026-10-09 00:01:53",
+          "period_start": 1791504108,
+          "period_end": 1794182508
+        }
+      ]
+    },
+    "post-deploy-restored": {
+      "utc": "2026-10-09T00:04:57.358108+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+          "status": "active",
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+          "checkout_plan": "starter"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 999,
+        "currency": "usd",
+        "subscription": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "invoice": "in_1UORFwGj38FUksqYmCY4D2eI",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        },
+        {
+          "payment_id": "in_1UORFwGj38FUksqYmCY4D2eI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 0,
+          "created_at": "2026-10-09 00:01:53",
+          "period_start": 1791504108,
+          "period_end": 1794182508
+        }
+      ]
+    },
+    "post-deploy-refunded": {
+      "utc": "2026-10-09T00:06:13.065289+00:00",
+      "database": [
+        {
+          "subscription_id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+          "status": "active",
+          "cancel_at_period_end": 0,
+          "checkout_id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+          "checkout_plan": "starter"
+        }
+      ],
+      "checkout": {
+        "id": "cs_test_a1ZuCw5QFN5sbCMSvHRflwYDWD5A468hLQXeBOMXAnhigNDv14HGSWbd0p",
+        "status": "complete",
+        "payment_status": "paid",
+        "mode": "subscription",
+        "amount_total": 999,
+        "currency": "usd",
+        "subscription": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "invoice": "in_1UORFwGj38FUksqYmCY4D2eI",
+        "clientReferenceMatches": true
+      },
+      "subscription": {
+        "id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+        "status": "active",
+        "cancel_at_period_end": false,
+        "cancel_at": null,
+        "test_clock": null
+      },
+      "grants": [
+        {
+          "payment_id": "welcome:usr_0f5190d0a39f4e64ad3057bc38d10bb0",
+          "plan_key": "welcome",
+          "allowance": 10,
+          "revoked": 0,
+          "created_at": "2026-10-04 17:13:26",
+          "period_start": 0,
+          "period_end": 1
+        },
+        {
+          "payment_id": "in_1UOAUFGj38FUksqYQ2Asi5Hk",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 06:41:55",
+          "period_start": 1791439647,
+          "period_end": 1794118047
+        },
+        {
+          "payment_id": "in_1UOJUgGj38FUksqYPdHzkxjI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-08 15:44:35",
+          "period_start": 1791474270,
+          "period_end": 1794152670
+        },
+        {
+          "payment_id": "in_1UOJoyGj38FUksqY0dcqtyuw",
+          "plan_key": "creator",
+          "allowance": 1000,
+          "revoked": 1,
+          "created_at": "2026-10-08 16:05:33",
+          "period_start": 1791475528,
+          "period_end": 1794153928
+        },
+        {
+          "payment_id": "in_1UORFwGj38FUksqYmCY4D2eI",
+          "plan_key": "starter",
+          "allowance": 300,
+          "revoked": 1,
+          "created_at": "2026-10-09 00:01:53",
+          "period_start": 1791504108,
+          "period_end": 1794182508
+        }
+      ]
+    }
+  },
+  "audit": [
+    {
+      "provider": "stripe",
+      "payment_id": "in_1UORFwGj38FUksqYmCY4D2eI",
+      "amount": 300,
+      "occurred_at": "2026-10-09 00:05:40"
+    }
+  ],
+  "public_api": [
+    {
+      "check": "capabilities",
+      "http": 200,
+      "seconds": 0.69,
+      "body": {
+        "available": true,
+        "checkoutAvailable": true,
+        "sandbox": true,
+        "enabled": true,
+        "generationCredits": 10
+      }
+    },
+    {
+      "check": "cross_origin_checkout",
+      "http": 403,
+      "seconds": 0.37,
+      "body": {
+        "code": "BILLING_REQUEST_INVALID",
+        "message": "This request could not be verified.",
+        "retryable": false
+      }
+    },
+    {
+      "check": "unsigned_webhook",
+      "http": 400,
+      "seconds": 0.68,
+      "body": {
+        "code": "BILLING_SIGNATURE_INVALID",
+        "message": "Invalid payment notification.",
+        "retryable": false
+      }
+    },
+    {
+      "check": "unauth_credits",
+      "http": 401,
+      "seconds": 1.52,
+      "body": {
+        "code": "AUTH_REQUIRED",
+        "message": "Sign in to create and access your music",
+        "retryable": false
+      }
+    }
+  ],
+  "finding": {
+    "id": "ONLINE-01",
+    "severity": "P2",
+    "scenario": "页面保持打开时，外部退款已入账，打开积分弹窗",
+    "observed": "最近记录已显示 -300，余额仍显示310；刷新页面后显示10",
+    "status": "未修复，需让弹窗打开时同步刷新余额与记录"
+  },
+  "not_online_exercised": [
+    "自然月度续费及自然到期",
+    "已消费50积分后退款（本次没有发起音乐生成，也未伪造消费）",
+    "20条以上历史翻页",
+    "多实例竞态及故障注入",
+    "异常Stripe对象和关联缺失重试"
+  ]
+}
