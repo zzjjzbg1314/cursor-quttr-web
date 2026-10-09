@@ -1,0 +1,58 @@
+{
+  "executedUtc": "2026-10-09T02:36:42.933633+00:00",
+  "sqlSha256": "21b89b2312aa366ee7071b0e0fb574db0b82d2d6ddde482705f0909fb27deccc",
+  "status": "passed",
+  "deleted": {
+    "music_mv_billing_customers": 1,
+    "music_mv_billing_events": 0,
+    "music_mv_billing_grants": 4,
+    "music_mv_billing_reservations": 0,
+    "music_mv_billing_revocation_details": 1,
+    "music_mv_billing_revocations": 4,
+    "music_mv_billing_subscription_reads": 1,
+    "music_mv_billing_subscriptions": 1
+  },
+  "retainedCredits": 10,
+  "unchangedUserWorkCounts": {
+    "music_mv_users": 1,
+    "music_mv_user_identities": 1,
+    "music_mv_user_sessions": 8,
+    "music_mv_projects": 175,
+    "music_mv_user_assets": 17,
+    "music_mv_project_assets": 23,
+    "music_mv_lyrics_drafts": 10,
+    "ai_music_jobs": 20,
+    "ai_music_candidates": 38
+  },
+  "backupDirectory": "/Users/zongjei/Documents/storyai-backups/sandbox-cleanup-20261009",
+  "stripeSandboxPaused": {
+    "webhooks": [
+      {
+        "id": "we_1UMPVRGj38FUksqYWcZtYuv1",
+        "status": "disabled"
+      }
+    ],
+    "prices": [
+      {
+        "id": "price_1UMPkKGj38FUksqYWIrrL0pl",
+        "active": false
+      },
+      {
+        "id": "price_1UMPkwGj38FUksqYiwoc3b5J",
+        "active": false
+      }
+    ],
+    "sessions": [],
+    "subscription": {
+      "id": "sub_1UORFxGj38FUksqY8tRcw7WE",
+      "status": "canceled"
+    }
+  },
+  "backup": {
+    "bytes": 47847257,
+    "sha256": "0e6f28654ece6b9246e888325cbce0e39006e9a6cc3733ad9e98d3b899b5de9c",
+    "path": "/Users/zongjei/Documents/storyai-backups/sandbox-cleanup-20261009/database-before.sql"
+  },
+  "guard": "同一原子批次校验唯一账号、唯一测试关联、四笔已撤销付款、无消费预留；不匹配则回滚",
+  "productionSwitched": false
+}
