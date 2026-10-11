@@ -31,7 +31,7 @@ class MusicMvD1SchemaInitializerTest {
         assertThat(result.get("status")).isEqualTo("initialized");
         assertThat(result.get("databaseId")).isEqualTo(DATABASE_ID);
         assertThat(result.get("schemaVersion")).isEqualTo(16);
-        assertThat(result.get("categoryCount")).isEqualTo(11L);
+        assertThat(result.get("categoryCount")).isEqualTo(12L);
         assertThat(result.get("ready")).isEqualTo(Boolean.TRUE);
         assertThat(d1.statements).anyMatch(statement -> statement.contains(
                 "CREATE TABLE IF NOT EXISTS music_mv_schema_metadata"));
@@ -184,7 +184,7 @@ class MusicMvD1SchemaInitializerTest {
                     || sql.startsWith("SELECT t.template_id,t.category_key,t.status,h.old_category_key")
                     || sql.startsWith("UPDATE template_category_items SET is_primary=")
                     || sql.startsWith("UPDATE templates SET category_key=?")
-                    || sql.startsWith("UPDATE template_categories SET parent_key=NULL")
+                    || sql.startsWith("INSERT INTO template_categories (category_key,parent_key")
                     || sql.startsWith("UPDATE template_categories SET enabled=0")
                     || sql.startsWith("DELETE FROM template_collection_items")
                     || sql.startsWith("INSERT OR IGNORE INTO template_collection_items")
@@ -193,7 +193,7 @@ class MusicMvD1SchemaInitializerTest {
                 return rows(Collections.<Map<String, Object>>emptyList());
             }
             if (sql.contains("COUNT(*) AS category_count")) {
-                return row("category_count", Long.valueOf(applied ? 11L : 0L));
+                return row("category_count", Long.valueOf(applied ? 12L : 0L));
             }
             if (sql.contains("FROM music_mv_schema_metadata")) {
                 Map<String, Object> metadata = new LinkedHashMap<String, Object>();

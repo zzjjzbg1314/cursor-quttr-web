@@ -37,7 +37,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
     static final int SCHEMA_VERSION = 16;
-    static final long ENABLED_CATEGORY_COUNT = 11L;
+    static final long ENABLED_CATEGORY_COUNT = TemplateTopics.items().size();
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -240,9 +240,11 @@ public class MusicMvD1SchemaInitializer {
         }
         migration.add(D1Statement.of("UPDATE template_categories SET enabled=0,is_selectable=0 WHERE enabled=1"));
         for (Map<String, Object> item : TemplateTopics.items()) {
-            migration.add(D1Statement.of("UPDATE template_categories SET parent_key=NULL,level=1,slug_path=?,is_selectable=1,"
-                    + "name_zh=?,name_en=?,sort_order=?,enabled=1,updated_at=CURRENT_TIMESTAMP WHERE category_key=?",
-                    item.get("key"), item.get("nameZh"), item.get("nameEn"), item.get("sortOrder"), item.get("key")));
+            migration.add(D1Statement.of("INSERT INTO template_categories (category_key,parent_key,level,slug_path,is_selectable,name_zh,name_en,sort_order,enabled,created_at,updated_at) "
+                    + "VALUES (?,NULL,1,?,1,?,?,?,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                    + "ON CONFLICT(category_key) DO UPDATE SET parent_key=NULL,level=1,slug_path=excluded.slug_path,is_selectable=1,"
+                    + "name_zh=excluded.name_zh,name_en=excluded.name_en,sort_order=excluded.sort_order,enabled=1,updated_at=CURRENT_TIMESTAMP",
+                    item.get("key"), item.get("key"), item.get("nameZh"), item.get("nameEn"), item.get("sortOrder")));
         }
         for (Map.Entry<String, String> alias : TemplateTopics.aliases().entrySet()) {
             migration.add(D1Statement.of("INSERT OR IGNORE INTO template_category_items "

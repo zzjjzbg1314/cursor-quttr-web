@@ -281,7 +281,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(mediaProvider.streamConfigured()).thenReturn(true);
         when(mediaProvider.imagesDeliveryValid()).thenReturn(true);
         when(mediaProvider.streamDeliveryValid()).thenReturn(true);
-        Map<String, Object> counts = row("category_count", 11);
+        Map<String, Object> counts = row("category_count", 12);
         counts.put("schema_sha256", String.join("", Collections.nCopies(64, "a")));
         when(repository.readiness()).thenReturn(counts);
         for (int version : Arrays.asList(14, 15, 16)) {

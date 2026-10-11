@@ -2857,7 +2857,7 @@ public class MusicMvTemplateCatalogService {
     }
 
     private void requireCategory(String categoryKey) {
-        if (TemplateTopics.key(categoryKey) == null || !categoryKey.equals(TemplateTopics.key(categoryKey))) throw badRequest("TEMPLATE_CATEGORY_INVALID", "Choose one of the 11 template topics");
+        if (TemplateTopics.key(categoryKey) == null || !categoryKey.equals(TemplateTopics.key(categoryKey))) throw badRequest("TEMPLATE_CATEGORY_INVALID", "Choose a supported template topic");
         Map<String, Object> category = repository.category(categoryKey);
         if (category == null || !RowUtils.bool(category, "enabled")) {
             throw badRequest("TEMPLATE_CATEGORY_INVALID", "Template category is not enabled");

@@ -66,6 +66,12 @@
       "nameZh": "励志",
       "nameEn": "Motivation",
       "sortOrder": 11
+    },
+    {
+      "key": "music-player",
+      "nameZh": "音乐播放器",
+      "nameEn": "Music Player",
+      "sortOrder": 12
     }
   ],
   "aliases": {
