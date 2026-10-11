@@ -69,8 +69,8 @@
     },
     {
       "key": "music-player",
-      "nameZh": "音乐播放器",
-      "nameEn": "Music Player",
+      "nameZh": "播放器",
+      "nameEn": "Player",
       "sortOrder": 12
     }
   ],
@@ -94,6 +94,7 @@
     "fathers-day": "family",
     "日常生活": "daily-life",
     "励志成长": "motivation",
-    "inspiration": "motivation"
+    "inspiration": "motivation",
+    "音乐播放器": "music-player"
   }
 }
