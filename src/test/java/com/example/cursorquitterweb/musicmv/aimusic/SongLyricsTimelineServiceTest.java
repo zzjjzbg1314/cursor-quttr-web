@@ -26,6 +26,11 @@ class SongLyricsTimelineServiceTest {
         assertFalse(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"lyrics_taskinfo\":[{}],\"textLayers\":[]}")));
         assertTrue(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"textLayers\":[{\"nativeScriptTemplateSource\":{\"sourceMaterialType\":\"text_template_lyrics\"}}]}")));
     }
+    @Test void plainLyricsRequireVerifiedSourceInsteadOfCategoryOrText() throws Exception {
+        assertTrue(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"textLayers\":[{\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\",\"material\":{\"type\":\"lyrics\"}}}]}")));
+        assertFalse(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"categoryKey\":\"lyrics\",\"textLayers\":[{\"nativeTextSource\":{\"material\":{\"type\":\"lyrics\"}}}]}")));
+        assertFalse(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"textLayers\":[{\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\",\"material\":{\"type\":\"text\"}}}]}")));
+    }
     @Test void freshAlignmentUsesOwnedProviderIdentityAndIsSaved() throws Exception {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         AiMusicProvider provider=mock(AiMusicProvider.class);

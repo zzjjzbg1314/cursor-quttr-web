@@ -61,8 +61,13 @@ public class SongLyricsTimelineService {
         result.put("candidateId",id);result.put("cues",cues);return result;
     }
     public static boolean hasLyrics(JsonNode scene) {
-        for(JsonNode layer:scene.path("textLayers"))
+        for(JsonNode layer:scene.path("textLayers")) {
             if("text_template_lyrics".equals(layer.path("nativeScriptTemplateSource").path("sourceMaterialType").asText()))return true;
+            JsonNode source=layer.path("nativeTextSource");
+            if("native-text-source-v1".equals(source.path("schemaVersion").asText())
+                    && "material_projected".equals(source.path("status").asText())
+                    && "lyrics".equals(source.path("material").path("type").asText()))return true;
+        }
         return false;
     }
 }
