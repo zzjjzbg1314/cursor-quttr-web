@@ -72,6 +72,12 @@
       "nameZh": "播放器",
       "nameEn": "Player",
       "sortOrder": 12
+    },
+    {
+      "key": "lyrics",
+      "nameZh": "歌词",
+      "nameEn": "Lyrics",
+      "sortOrder": 13
     }
   ],
   "aliases": {
