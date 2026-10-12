@@ -65,9 +65,11 @@ final class BrowserNativeStickerContract {
             long previous=-1;
             for(Object item:points) {
                 Map<?,?> point=map(item);List<?> values=list(point.get("values"));
-                if(!"Line".equals(point.get("curveType"))||!empty(point.get("graphID"))||!empty(point.get("graph"))
+                // 与浏览器 draftKeyframeDefaults 对齐，仅省略字段使用官方默认值，显式无效值仍拒绝。
+                Object curve=point.containsKey("curveType")?point.get("curveType"):"Line";
+                if(!"Line".equals(curve)||!empty(point.get("graphID"))||!empty(point.get("graph"))
                         ||!empty(point.get("string_value"))||values.size()!=1||!finite(values.get(0)))throw invalid();
-                Object time=point.get("time_offset");
+                Object time=point.containsKey("time_offset")?point.get("time_offset"):0;
                 long current=time instanceof String?integer(time):index(time);
                 if(current<0||current<=previous)throw invalid();previous=current;
             }

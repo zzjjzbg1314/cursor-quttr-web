@@ -66,4 +66,26 @@ class BrowserNativeStickerContractTest {
         point.put("time_offset",1);point.put("values",Collections.singletonList(Double.NaN));
         assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
     }
+    @Test void omittedDefaultsMatchBrowserWithoutMutatingDraft() {
+        Map<String,Object> source=source(),group=group();
+        source.put("commonKeyframes",Collections.singletonList(group));
+        List<?> points=(List<?>)group.get("keyframe_list");
+        Map<String,Object> first=(Map<String,Object>)points.get(0),last=(Map<String,Object>)points.get(1);
+        first.remove("curveType");first.remove("time_offset");last.remove("curveType");
+        String before=source.toString();
+        assertEquals(Collections.singleton("s"),BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        assertEquals(before,source.toString());
+        for(Object curve:Arrays.asList(null,"","Cubic",0)) {
+            first.put("curveType",curve);
+            assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        }
+        first.remove("curveType");
+        for(Object time:Arrays.asList(null,"",-1,.5,"invalid")) {
+            first.put("time_offset",time);
+            assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        }
+        first.remove("time_offset");last.remove("time_offset");
+        assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+    }
+
 }
