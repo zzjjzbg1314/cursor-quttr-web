@@ -17,6 +17,12 @@ class SongLyricsTimelineServiceTest {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         assertThrows(ApiException.class,()->new SongLyricsTimelineService(repo,providers,mapper).get("owner","foreign"));verifyNoInteractions(providers);
     }
+    @Test void uploadedSongsNeverCallLyricsProvider() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        when(repo.ownedLyricsCandidate("owner","uploaded")).thenReturn(Collections.singletonMap("provider_code","upload"));
+        assertEquals("SONG_LYRICS_UPLOAD_UNAVAILABLE",assertThrows(ApiException.class,()->new SongLyricsTimelineService(repo,providers,mapper).get("owner","uploaded")).getCode());
+        verifyNoInteractions(providers);
+    }
     @Test void cachedTimelineAvoidsProviderCall() throws Exception {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         Map<String,Object> row=new HashMap<>();row.put("raw_json","{\"storyaiLyricsTimelineV1\":{\"candidateId\":\"s\",\"schemaVersion\":\"song-lyrics-timeline-v1\",\"cues\":[]}}");when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);

@@ -118,6 +118,10 @@ public class MusicMvUserAssetRepository {
         return row != null;
     }
 
+    public boolean isReferencedBySong(String userId,String assetId) {
+        return d1.query("SELECT c.candidate_id FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id WHERE j.user_id=? AND c.storage_key=? LIMIT 1",userId,assetId).firstRow()!=null;
+    }
+
     public void markExpired() {
         d1.query("UPDATE music_mv_user_assets SET status='expired',updated_at=CURRENT_TIMESTAMP "
                 + "WHERE status='active' AND deleted_at IS NULL "

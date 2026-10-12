@@ -200,6 +200,7 @@ public class AiMusicGenerationService {
         value.put("sort", sort);
         value.put("createdAt", RowUtils.str(row, "created_at"));
         value.put("candidateId", RowUtils.str(row, "candidate_id"));
+            value.put("source", "upload".equals(RowUtils.str(row,"provider_code")) ? "upload" : "generated");
         if ("title".equals(sort)) {
             String title = RowUtils.str(row, "title");
             value.put("sortValue", title == null ? "" : title.toLowerCase(Locale.ROOT));
@@ -571,6 +572,7 @@ public class AiMusicGenerationService {
         for (Map<String, Object> row : rows) {
             Map<String, Object> value = new LinkedHashMap<String, Object>();
             value.put("candidateId", RowUtils.str(row, "candidate_id"));
+            value.put("source", "upload".equals(RowUtils.str(row,"provider_code")) ? "upload" : "generated");
             value.put("versionNumber", RowUtils.lng(row, "version_number"));
             value.put("jobId", RowUtils.str(row, "job_id"));
             value.put("status", RowUtils.str(row, "status"));

@@ -193,7 +193,7 @@ public class AiMusicJobRepository {
     }
 
     public List<Map<String, Object>> candidates(String jobId) {
-        return d1.query("SELECT candidate_id,job_id,status,title,lyrics,style,duration_seconds,"
+        return d1.query("SELECT candidate_id,job_id,provider_code,status,title,lyrics,style,duration_seconds,"
                         + "provider_audio_url,provider_stream_url,provider_image_url,storage_url,storage_sha256,"
                         + "storage_size_bytes,storage_file_name,storage_content_type,selected,created_at,updated_at,"
                         + candidateVersionColumn() + " "
@@ -222,7 +222,7 @@ public class AiMusicJobRepository {
         } else {
             orderBy = "c.created_at DESC,c.candidate_id DESC";
         }
-        return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
+        return d1.query("SELECT c.candidate_id,c.job_id,c.provider_code,c.status,c.title,c.lyrics,c.style,"
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_url,c.storage_sha256,c.storage_size_bytes,"
                         + "c.storage_file_name,c.storage_content_type,c.selected,c.created_at,c.updated_at,"
@@ -282,7 +282,7 @@ public class AiMusicJobRepository {
     }
 
     public Map<String, Object> candidate(String jobId, String candidateId) {
-        return d1.query("SELECT candidate_id,job_id,status,title,lyrics,style,duration_seconds,"
+        return d1.query("SELECT candidate_id,job_id,provider_code,status,title,lyrics,style,duration_seconds,"
                         + "provider_audio_url,provider_stream_url,provider_image_url,storage_key,storage_url,"
                         + "storage_sha256,storage_size_bytes,storage_file_name,storage_content_type,selected "
                         + "FROM ai_music_candidates "
@@ -302,7 +302,7 @@ public class AiMusicJobRepository {
     }
 
     public Map<String, Object> ownedCandidate(String userId, String candidateId) {
-        return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
+        return d1.query("SELECT c.candidate_id,c.job_id,c.provider_code,c.status,c.title,c.lyrics,c.style,"
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
                         + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,c.selected "
@@ -314,7 +314,7 @@ public class AiMusicJobRepository {
     /** Reads the selected candidate and its parent job in one ownership-scoped request. */
     public Map<String, Object> ownedCandidateForSelection(String userId, String jobId,
                                                            String candidateId) {
-        return d1.query("SELECT c.candidate_id,c.job_id,c.status,c.title,c.lyrics,c.style,"
+        return d1.query("SELECT c.candidate_id,c.job_id,c.provider_code,c.status,c.title,c.lyrics,c.style,"
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
                         + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,"

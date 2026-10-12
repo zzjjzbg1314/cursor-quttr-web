@@ -111,9 +111,9 @@ public class MusicMvUserAssetService {
             throw new ApiException(HttpStatus.NOT_FOUND, "MV_INPUT_ASSET_NOT_FOUND",
                     "Input asset was not found");
         }
-        if (repository.isReferencedByActiveProject(userId, assetId)) {
+        if (repository.isReferencedByActiveProject(userId, assetId) || repository.isReferencedBySong(userId,assetId)) {
             throw new ApiException(HttpStatus.CONFLICT, "MV_INPUT_ASSET_IN_USE",
-                    "This photo is still used by a saved music video project");
+                    "This file is still used by a saved project or song");
         }
         StoredInputAsset asset = stored(row);
         repository.markDeleting(userId, assetId);

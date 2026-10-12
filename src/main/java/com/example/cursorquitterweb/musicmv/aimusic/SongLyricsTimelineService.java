@@ -26,6 +26,8 @@ public class SongLyricsTimelineService {
         synchronized (locks[Math.floorMod(Objects.hash(owner,candidateId), locks.length)]) {
             Map<String,Object> row=repository.ownedLyricsCandidate(owner,candidateId);
             if(row==null || row.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND,"SONG_NOT_FOUND","Song not found");
+            if ("upload".equals(RowUtils.str(row,"provider_code"))) throw new ApiException(HttpStatus.CONFLICT,
+                    "SONG_LYRICS_UPLOAD_UNAVAILABLE","Uploaded songs do not have synchronized lyrics. Choose a template without automatic lyrics.");
             try {
                 JsonNode raw=mapper.readTree(Optional.ofNullable(RowUtils.str(row,"raw_json")).orElse("{}"));
                 JsonNode cached=raw==null?null:raw.get("storyaiLyricsTimelineV1");
