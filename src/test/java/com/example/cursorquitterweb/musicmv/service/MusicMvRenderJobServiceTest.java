@@ -368,6 +368,24 @@ class MusicMvRenderJobServiceTest {
         assertEquals("MV_RENDER_IDEMPOTENCY_CONFLICT", conflict.getCode());
     }
 
+    @Test void rejectsIncompleteSceneBeforeMarkingPreparationReady() {
+        MusicMvRenderJobRepository repository=mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music=mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service=new MusicMvRenderJobService(repository,music,
+                mock(MusicMvRenderArtifactStorageService.class),inputAssets(),
+                mock(CloudflareTemplateMediaProvider.class),new ObjectMapper(),true,2);
+        when(repository.claimBrowserPreparation("blocked")).thenReturn(preparingRow("blocked",request()));
+        when(music.ownedCandidate("website-backend","song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("blocked","preparing_template",0.55d)).thenReturn(preparingRow("blocked",request()));
+        when(repository.renderContract("tpl_1","tplver_1")).thenReturn(new RenderContract(version(),Arrays.asList(slot("photo_01"),slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"),anySet())).thenReturn(Collections.emptyMap());
+        when(repository.browserScene("tplver_1")).thenReturn(BrowserNativeSceneCapabilitiesTest.row("status","ready",
+                "scene_json",json(BrowserNativeSceneCapabilitiesTest.row("capability",browserCapability(false,Collections.singletonList("video_layers"))))));
+        service.prepareBrowserAsync("website-backend","blocked");
+        verify(repository).failBrowserPreparation(eq("blocked"),eq("MV_BROWSER_SCENE_EXPORT_INCOMPLETE"),anyString(),eq(false));
+        verify(repository,never()).completeBrowserPreparation(anyString(),anyString());
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     void carriesValidatedDownloadSettingsIntoBrowserRenderContract() throws Exception {
@@ -931,10 +949,10 @@ class MusicMvRenderJobServiceTest {
         when(repository.events("mvr_browser")).thenReturn(Collections.emptyList());
         when(aiMusicJobs.ownedCandidate("usr_owner", "song_1")).thenReturn(candidate());
 
-        ApiException error = assertThrows(ApiException.class,
-                () -> service.get("usr_owner", "mvr_browser"));
-
-        assertEquals("MV_BROWSER_SCENE_EXPORT_INCOMPLETE", error.getCode());
+        Map<String,Object> blocked = service.get("usr_owner", "mvr_browser");
+        assertEquals("failed", blocked.get("status"));
+        assertEquals("MV_BROWSER_SCENE_EXPORT_INCOMPLETE", blocked.get("errorCode"));
+        assertEquals(false, blocked.get("retryable"));
         Map<String, Object> nativeScene = BrowserNativeSceneCapabilitiesTest.fixture();
         org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireBrowserSceneExportReady", nativeScene);
         ((Map<String, Object>) nativeScene.get("capability")).put("resourceDiagnostics", Collections.emptyList());

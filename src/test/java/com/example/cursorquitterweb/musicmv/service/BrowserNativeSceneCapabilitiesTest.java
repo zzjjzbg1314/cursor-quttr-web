@@ -42,6 +42,28 @@ class BrowserNativeSceneCapabilitiesTest {
             assertFalse(BrowserNativeSceneCapabilities.ownsEffectBlockers(scene));
         }
     }
+    @Test @SuppressWarnings("unchecked") void acceptsVerifiedBlendAndEffectCombinationAndRejectsIncompleteBindings() {
+        for (String variant : Arrays.asList("valid", "unbound", "wrongKind", "count", "duplicateSummary", "unknown")) {
+            Map<String,Object> scene=fixture();
+            Map<String,Object> capability=(Map<String,Object>)scene.get("capability");
+            capability.put("blockingFeatures",Arrays.asList("post_effects","blend_modes"));
+            capability.put("unsupportedBrowserBlendModeCount",1);
+            Map<String,Object> delivery=(Map<String,Object>)scene.get("runtimeDelivery");
+            Map<String,Object> descriptor=(Map<String,Object>)delivery.get("nativeEngine");
+            descriptor.put("schemaVersion","browser-native-scene-runtime-v3");
+            descriptor.put("files",Arrays.asList("effect/config.json","blend/config.json"));
+            descriptor.put("bindings",Arrays.asList(((List<?>)descriptor.get("bindings")).get(0),
+                    row("resourceId","blend","kind",variant.equals("wrongKind")?"filter":"blend","path","blend/")));
+            delivery.put("resources",Arrays.asList(row("resourceId","effect"),row("resourceId","blend")));
+            Map<String,Object> segment=(Map<String,Object>)((List<?>)scene.get("timelineSegments")).get(0);
+            segment.put("nativeBlendResourceId",variant.equals("unbound")?"missing":"blend");
+            Object effects=((List<?>)capability.get("executionCapabilities")).get(0);
+            Map<String,Object> blend=row("feature","blend_modes","declaredCount",variant.equals("count")?2:1,"executableCount",0);
+            capability.put("executionCapabilities",variant.equals("duplicateSummary")?Arrays.asList(effects,blend,blend):Arrays.asList(effects,blend));
+            if(variant.equals("unknown"))capability.put("blockingFeatures",Arrays.asList("post_effects","blend_modes","future"));
+            assertEquals(variant.equals("valid"),BrowserNativeSceneCapabilities.ownsEffectBlockers(scene),variant);
+        }
+    }
     static Map<String, Object> row(Object... values) {
         Map<String, Object> result = new LinkedHashMap<>();
         for (int i=0;i<values.length;i+=2) result.put((String)values[i],values[i+1]);

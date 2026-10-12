@@ -195,6 +195,12 @@ public class MusicMvRenderJobService {
                     request.getSlotBindings());
             Map<String, Object> preparedRequest = parseObject(json(request));
             Map<String, Object> lyricSceneRow = repository.browserScene(request.getTemplateVersionId());
+            if (templateMedia != null) {
+                if (lyricSceneRow == null || !"ready".equals(RowUtils.str(lyricSceneRow, "status"))) {
+                    throw conflict("MV_BROWSER_SCENE_UNAVAILABLE", "This template is not ready for browser rendering");
+                }
+                requireBrowserSceneExportReady(parseObject(RowUtils.str(lyricSceneRow, "scene_json")));
+            }
             if (lyricSceneRow != null && com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService.hasLyrics(
                     objectMapper.valueToTree(parseObject(RowUtils.str(lyricSceneRow, "scene_json"))))) {
                 preparedRequest.put("lyricsTimeline", lyricsTimeline.get(clientId, request.getMusicCandidateId()));
@@ -222,7 +228,19 @@ public class MusicMvRenderJobService {
         Map<String, Object> expired = "preparing".equals(RowUtils.str(row, "status"))
                 ? repository.expireBrowserPreparation(jobId, clientId) : null;
         if (expired != null && !expired.isEmpty()) row = expired;
-        Map<String, Object> result = clientDetailView(row, clientId);
+        Map<String, Object> result;
+        try {
+            result = clientDetailView(row, clientId);
+        } catch (ApiException exception) {
+            // 已准备的旧任务也返回明确阻塞状态，不让客户端持续轮询同一业务错误。
+            if (!"MV_BROWSER_SCENE_EXPORT_INCOMPLETE".equals(exception.getCode())) throw exception;
+            result = clientView(row);
+            result.put("status", "failed");
+            result.put("stage", "failed");
+            result.put("errorCode", exception.getCode());
+            result.put("errorMessage", exception.getMessage());
+            result.put("retryable", false);
+        }
         result.put("events", eventViews(repository.events(jobId)));
         return result;
     }
