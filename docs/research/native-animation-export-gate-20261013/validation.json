@@ -1,0 +1,68 @@
+{
+  "failureJob": "mvr_b1ad24a0b0474f39ae4fb0387657b41d",
+  "templateId": "tpl_b9729f363d982877",
+  "errorCode": "MV_BROWSER_SCENE_EXPORT_INCOMPLETE",
+  "rootCause": "后端原生能力接管白名单缺少 animations；已验证的文字动画被旧 Canvas 标记阻塞。",
+  "scope": "原生普通文字动画缺口按唯一图层、原始时钟、捕获参数、动画资源绑定及计数逐项核验。非文字动画缺口仍保持原有阻断，不扩大未知能力范围。",
+  "formalServiceValidation": "使用从线上读取的同一模板场景调用 MusicMvRenderJobService.get；仓储、资源下载地址使用测试替身，未写线上任务。返回正式 browserRender 契约后交给浏览器实际执行。另覆盖 prepareBrowserAsync 准入。",
+  "tests": [
+    {
+      "name": "BrowserNativeSceneCapabilitiesTest",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "name": "MusicMvRenderJobServiceTest",
+      "tests": 36,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "name": "BrowserNativeRuntimeContractTest",
+      "tests": 18,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "name": "BrowserNativeGlobalEffectContractTest",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    }
+  ],
+  "isolatedHeadPlusOwnedFiles": true,
+  "render": {
+    "token": "bparrun_eec57bf2bd6c495b",
+    "status": "rendered",
+    "semanticIntegrity": "exact",
+    "completedFrameCount": 1606,
+    "videoDurationSeconds": 53.533333,
+    "elapsedSeconds": 31.910885,
+    "totalSeconds": 35.719645,
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0,
+    "writerSidecarCount": 0,
+    "rendererFingerprint": "920c773f698719bb73242f730ed8aecbb23430befc2b2e3edfb4b9d4d2d5a6ae"
+  },
+  "parity": {
+    "rerun": false,
+    "reason": "本次仅修改后端能力准入，浏览器执行器和资源执行逻辑未改；复用同一 rendererFingerprint、同一模板原稿的已有 SSIM 回归。单行歌词是有意修改，不与双行原词计算相似度。",
+    "session": "bparrun_546a47ac507c4e22",
+    "averageSsim": 0.99433,
+    "minSsim": 0.99302,
+    "threshold": 0.9,
+    "passed": true
+  },
+  "localization": "内部契约校验，无新增文案、语言枚举或错误码。",
+  "deployment": [
+    "cursor-quttr-web"
+  ],
+  "productionModified": false,
+  "sharedServicesRestarted": false,
+  "remainingUncommitted": "原有 BrowserNativeGlobalEffectContract / BrowserNativeRuntimeContract 及各自测试，共四个文件，未纳入本提交。"
+}

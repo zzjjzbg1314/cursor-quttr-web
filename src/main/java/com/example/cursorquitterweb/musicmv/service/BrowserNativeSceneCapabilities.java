@@ -10,9 +10,9 @@ final class BrowserNativeSceneCapabilities {
         try {
             Map<?, ?> capability = map(scene.get("capability"));
             List<?> blockers = list(capability.get("blockingFeatures"));
-            // 仅接管已逐项验证的效果和混合模式缺口，未知能力继续阻止导出。
+            // 仅接管有原生源契约和最小资源绑定的缺口，未知能力继续阻止导出。
             if (blockers.isEmpty() || new HashSet<>(blockers).size() != blockers.size()
-                    || !Arrays.asList("post_effects", "blend_modes").containsAll(blockers)) return false;
+                    || !Arrays.asList("post_effects", "blend_modes", "animations").containsAll(blockers)) return false;
             Map<?, ?> delivery = map(scene.get("runtimeDelivery"));
             if (!"browser-runtime-delivery-v1".equals(delivery.get("schemaVersion"))) return false;
             Set<String> delivered = new HashSet<>();
@@ -49,6 +49,8 @@ final class BrowserNativeSceneCapabilities {
             if (ownsFixed) for (Map<?, ?> layer : layers.values()) {
                 if ("static_image".equals(layer.get("type")) || (ownsVideo && "video".equals(layer.get("type")))) segments.add(layer);
             }
+            if (blockers.contains("animations")
+                    && !BrowserNativeTextAnimationCapabilities.owns(scene, descriptor, layers, bindingKinds)) return false;
             if (blockers.contains("blend_modes")) {
                 if (!ownsVideo && !"browser-native-scene-runtime-v3".equals(schema)) return false;
                 Set<String> blended = new HashSet<>();

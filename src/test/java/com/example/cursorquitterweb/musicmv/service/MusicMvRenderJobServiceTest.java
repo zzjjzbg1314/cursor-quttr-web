@@ -368,6 +368,70 @@ class MusicMvRenderJobServiceTest {
         assertEquals("MV_RENDER_IDEMPOTENCY_CONFLICT", conflict.getCode());
     }
 
+    @Test @SuppressWarnings("unchecked")
+    void issuesFormalContractForCapturedAnimationScene() throws Exception {
+        String path=System.getProperty("native.animation.scene"),fixture=System.getProperty("native.animation.session");
+        org.junit.jupiter.api.Assumptions.assumeTrue(path!=null&&fixture!=null);
+        ObjectMapper mapper=new ObjectMapper();
+        Map<String,Object> scene=mapper.readValue(new java.io.File(path),Map.class);
+        Map<String,Object> session=mapper.readValue(new java.io.File(fixture),Map.class);
+        Map<String,Object> input=(Map<String,Object>)session.get("contract");
+        MusicMvRenderJobRepository repository=mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music=mock(AiMusicJobRepository.class);
+        CloudflareTemplateMediaProvider media=mock(CloudflareTemplateMediaProvider.class);
+        TemplateRuntimePackageService packages=mock(TemplateRuntimePackageService.class);
+        MusicMvRenderJobService service=new MusicMvRenderJobService(repository,music,
+                mock(MusicMvRenderArtifactStorageService.class),inputAssets(),media,packages,mapper,true,2);
+        Map<String,Object> active=row("captured-animation-job",null);
+        active.put("template_id",scene.get("templateId"));active.put("client_id","fixture-owner");
+        Map<String,Object> request=new LinkedHashMap<>(input);request.put("musicCandidateId","fixture-song");
+        active.put("request_json",mapper.writeValueAsString(request));
+        when(repository.byId("captured-animation-job")).thenReturn(active);
+        Map<?,?> fixtureMusic=(Map<?,?>)input.get("music");
+        when(music.ownedCandidate("fixture-owner","fixture-song")).thenReturn(BrowserNativeSceneCapabilitiesTest.row("status","stored","storage_url",fixtureMusic.get("url"),"duration_seconds",fixtureMusic.get("durationSeconds")));
+        when(repository.browserScene("tplver_1")).thenReturn(BrowserNativeSceneCapabilitiesTest.row("status","ready","scene_json",mapper.writeValueAsString(scene),"manifest_sha256",input.get("sceneManifestSha256")));
+        Map<String,Map<String,Object>> roles=new LinkedHashMap<>();
+        for(Map<String,Object> descriptor:(List<Map<String,Object>>)input.get("resources")) {
+            Map<String,Object> asset=(Map<String,Object>)descriptor.get("asset");
+            roles.put("browser_resource:"+descriptor.get("resourceKey"),BrowserNativeSceneCapabilitiesTest.row("status","ready","provider","fixture","provider_asset_id",descriptor.get("resourceKey"),"provider_details_json",mapper.writeValueAsString(BrowserNativeSceneCapabilitiesTest.row("deliveryUrl",asset.get("url"),"playbackUrl",asset.get("url")))));
+        }
+        for(Map<String,Object> binding:(List<Map<String,Object>>)input.get("slotBindings")) {
+            Map<String,Object> asset=(Map<String,Object>)binding.get("asset");
+            roles.put("slot_default:"+binding.get("slotKey"),BrowserNativeSceneCapabilitiesTest.row("status","ready","provider","fixture","provider_asset_id",binding.get("slotKey"),"provider_details_json",mapper.writeValueAsString(BrowserNativeSceneCapabilitiesTest.row("deliveryUrl",asset.get("url")))));
+        }
+        when(repository.browserMediaByRole(eq("tplver_1"),anySet())).thenReturn(roles);
+        when(media.resolveDeliveryDetails(anyString(),anyString(),org.mockito.ArgumentMatchers.anyMap())).thenAnswer(invocation->invocation.getArgument(2));
+        when(packages.downloadExactImage(org.mockito.ArgumentMatchers.anyMap())).thenAnswer(invocation->{
+            Map<?,?> resource=invocation.getArgument(0);
+            return ((List<Map<String,Object>>)input.get("resources")).stream().filter(r->r.get("resourceKey").equals(resource.get("resourceKey"))).findFirst().get().get("asset");
+        });
+        when(packages.downloadForScene(anyString(),anyString(),org.mockito.ArgumentMatchers.anyMap())).thenReturn((Map<String,Object>)input.get("runtimePackage"));
+        Map<String,Object> response=service.get("fixture-owner","captured-animation-job");
+        assertEquals("ready",response.get("status"));assertEquals("browser",response.get("renderMode"));
+        Map<String,Object> result=(Map<String,Object>)response.get("browserRender");
+        assertEquals(scene,result.get("scene"));assertEquals(input.get("lyricsTimeline"),result.get("lyricsTimeline"));
+        String output=System.getProperty("native.animation.contractOutput");
+        if(output!=null)mapper.writeValue(new java.io.File(output),result);
+    }
+
+    @Test void acceptsVerifiedNativeTextAnimationsAtFormalPreparationGate() {
+        MusicMvRenderJobRepository repository=mock(MusicMvRenderJobRepository.class);
+        AiMusicJobRepository music=mock(AiMusicJobRepository.class);
+        MusicMvRenderJobService service=new MusicMvRenderJobService(repository,music,
+                mock(MusicMvRenderArtifactStorageService.class),inputAssets(),
+                mock(CloudflareTemplateMediaProvider.class),new ObjectMapper(),true,2);
+        when(repository.claimBrowserPreparation("blocked")).thenReturn(preparingRow("blocked",request()));
+        when(music.ownedCandidate("website-backend","song_1")).thenReturn(candidate());
+        when(repository.updateBrowserPreparation("blocked","preparing_template",0.55d)).thenReturn(preparingRow("blocked",request()));
+        when(repository.renderContract("tpl_1","tplver_1")).thenReturn(new RenderContract(version(),Arrays.asList(slot("photo_01"),slot("photo_02"))));
+        when(repository.slotDefaultMedia(eq("tplver_1"),anySet())).thenReturn(Collections.emptyMap());
+        when(repository.browserScene("tplver_1")).thenReturn(BrowserNativeSceneCapabilitiesTest.row("status","ready",
+                "scene_json",json(BrowserNativeSceneCapabilitiesTest.textAnimationScene())));
+        service.prepareBrowserAsync("website-backend","blocked");
+        verify(repository,never()).failBrowserPreparation(anyString(),anyString(),anyString(),org.mockito.ArgumentMatchers.anyBoolean());
+        verify(repository).completeBrowserPreparation(eq("blocked"),anyString());
+    }
+
     @Test void rejectsIncompleteSceneBeforeMarkingPreparationReady() {
         MusicMvRenderJobRepository repository=mock(MusicMvRenderJobRepository.class);
         AiMusicJobRepository music=mock(AiMusicJobRepository.class);

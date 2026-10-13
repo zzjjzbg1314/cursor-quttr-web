@@ -64,6 +64,51 @@ class BrowserNativeSceneCapabilitiesTest {
             assertEquals(variant.equals("valid"),BrowserNativeSceneCapabilities.ownsEffectBlockers(scene),variant);
         }
     }
+    @SuppressWarnings("unchecked")
+    static Map<String,Object> textAnimationScene() {
+        Map<String,Object> scene=fixture(),delivery=(Map<String,Object>)scene.get("runtimeDelivery");
+        Map<String,Object> descriptor=(Map<String,Object>)delivery.get("nativeEngine");
+        descriptor.put("files",Arrays.asList("effect/config.json","animation/config.json"));
+        descriptor.put("bindings",Arrays.asList(((List<?>)descriptor.get("bindings")).get(0),row("resourceId","animation","kind","animation","path","animation/")));
+        delivery.put("resources",Arrays.asList(row("resourceId","effect"),row("resourceId","animation")));
+        Map<String,Object> animation=row("animationId","anim-1","resourceId","animation","category","out","preset","unsupported","fidelity","unsupported",
+                "rawAnimationTiming",row("startUs","0","durationUs","1000000"),
+                "nativeTextAnimationParameters",row("schemaVersion","native-text-animation-parameters-v1","status","captured","adjustmentDeclared",false,"direction","","animMode",""));
+        Map<String,Object> text=row("segmentId","text","fidelity","exact","targetStartSeconds",0d,"targetDurationSeconds",4d,"animations",Collections.singletonList(animation),
+                "nativeTextSource",row("schemaVersion","native-text-source-v1","status","material_projected","visible",true,"common_keyframes",Collections.emptyList(),
+                        "originalTimeline",row("trackId","track","speed",1,"targetStartRaw","0","targetDurationRaw","4000000")));
+        scene.put("textLayers",Collections.singletonList(text));
+        scene.put("layers",Arrays.asList(((List<?>)scene.get("layers")).get(0),row("layerId","text","type","text","targetStartSeconds",0d,"targetDurationSeconds",4d)));
+        Map<String,Object> capability=(Map<String,Object>)scene.get("capability");
+        capability.put("blockingFeatures",Arrays.asList("post_effects","animations"));capability.put("unsupportedBrowserAnimationCount",1);
+        capability.put("executionCapabilities",Arrays.asList(((List<?>)capability.get("executionCapabilities")).get(0),row("feature","animations","declaredCount",1,"executableCount",0)));
+        return scene;
+    }
+    @Test @SuppressWarnings("unchecked") void validatesNativeTextAnimationOwnershipWithoutOpeningUnknownCapabilities() {
+        for(String variant:Arrays.asList("valid","resource","parameters","duration","clock","duplicate","count","unknown","owner","script","adjustment","category")) {
+            Map<String,Object> scene=textAnimationScene();
+            Map<String,Object> text=(Map<String,Object>)((List<?>)scene.get("textLayers")).get(0);
+            Map<String,Object> animation=(Map<String,Object>)((List<?>)text.get("animations")).get(0);
+            if(variant.equals("resource"))animation.put("resourceId","missing");
+            if(variant.equals("parameters"))animation.remove("nativeTextAnimationParameters");
+            if(variant.equals("duration"))((Map<String,Object>)animation.get("rawAnimationTiming")).put("durationUs","0");
+            if(variant.equals("clock"))text.put("targetDurationSeconds",5d);
+            if(variant.equals("duplicate"))text.put("animations",Arrays.asList(animation,animation));
+            if(variant.equals("count"))((Map<String,Object>)scene.get("capability")).put("unsupportedBrowserAnimationCount",2);
+            if(variant.equals("unknown"))((Map<String,Object>)scene.get("capability")).put("blockingFeatures",Arrays.asList("animations","future"));
+            if(variant.equals("owner"))text.put("segmentId","missing");
+            if(variant.equals("script"))text.put("nativeScriptTemplateSource",Collections.emptyMap());
+            if(variant.equals("adjustment"))((Map<String,Object>)animation.get("nativeTextAnimationParameters")).put("direction","left");
+            if(variant.equals("category"))animation.put("category","caption");
+            assertEquals(variant.equals("valid"),BrowserNativeSceneCapabilities.ownsEffectBlockers(scene),variant);
+        }
+    }
+    @Test @SuppressWarnings("unchecked") void checksCapturedProductionSceneWhenProvided() throws Exception {
+        String path=System.getProperty("native.animation.scene");
+        org.junit.jupiter.api.Assumptions.assumeTrue(path!=null);
+        Map<String,Object> scene=new com.fasterxml.jackson.databind.ObjectMapper().readValue(new java.io.File(path),Map.class);
+        assertTrue(BrowserNativeSceneCapabilities.ownsEffectBlockers(scene));
+    }
     static Map<String, Object> row(Object... values) {
         Map<String, Object> result = new LinkedHashMap<>();
         for (int i=0;i<values.length;i+=2) result.put((String)values[i],values[i+1]);
