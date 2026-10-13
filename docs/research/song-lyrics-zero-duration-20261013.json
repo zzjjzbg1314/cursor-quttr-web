@@ -1,0 +1,30 @@
+{
+  "problem": "歌曲服务的成功对齐结果包含零时长词语，原校验把整首歌词拒绝",
+  "providerResponseCode": 200,
+  "originalWordCount": 333,
+  "zeroDurationWordCount": 6,
+  "normalization": "零时长词保留原文并与相邻有效片段合并；全部边界仍使用服务商时间点，不填固定假时长",
+  "allWordsPreserved": true,
+  "allBoundariesFromProvider": true,
+  "sourceResponseSha256": "0abb623bcbb5d895df6d87de867059edd0fcc1ad79af32154599d9889408ba2e",
+  "cacheRepair": {
+    "projectId": "mvproj_8e25bbadffe24e4ca598d8332524a55a",
+    "candidateId": "song_5f8d0ca19f7444569e2fbf91b6f46c84",
+    "cueCount": 327,
+    "verified": true,
+    "timelineSha256": "13adcad5f0c841160c90754042b5d641a1eb6909e44b3d65f3a243226db32cfd",
+    "changes": 1
+  },
+  "codeCommit": "460597f",
+  "tests": {
+    "SongLyricsTimelineServiceTest": 9,
+    "MusicMvRenderJobServiceTest": 34,
+    "MusicMvRenderJobControllerTest": 9,
+    "failures": 0,
+    "errors": 0,
+    "frontendProjection": "实际修复时间轴通过全部画面周期投影，保留 A little"
+  },
+  "impact": "歌曲时间轴数据校验，不改变模板、渲染器、接口结构或多语言文案；未启动全视频渲染或 SSIM",
+  "deployment": "通用代码仅本地提交；本曲真实时间轴已写入独立缓存，无需重启服务即可重试",
+  "remainingUncommitted": "其他窗口的原生全局特效/运行契约及其测试改动已保留"
+}
