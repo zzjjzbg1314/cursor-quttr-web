@@ -31,7 +31,8 @@ public class SongLyricsTimelineService {
             try {
                 JsonNode raw=mapper.readTree(Optional.ofNullable(RowUtils.str(row,"raw_json")).orElse("{}"));
                 JsonNode cached=raw==null?null:raw.get("storyaiLyricsTimelineV1");
-                if(cached!=null && candidateId.equals(cached.path("candidateId").asText()))
+                if(cached!=null && candidateId.equals(cached.path("candidateId").asText())
+                        && "provider-lines-v1".equals(cached.path("cueGrouping").asText()))
                     return mapper.convertValue(cached,Map.class);
                 Map<String,Object> response=providers.require(RowUtils.str(row,"provider_code")).timestampedLyrics(
                         RowUtils.str(row,"provider_task_id"),RowUtils.str(row,"provider_audio_id"));
@@ -46,41 +47,49 @@ public class SongLyricsTimelineService {
     static Map<String,Object> normalize(String id, JsonNode response) {
         JsonNode words=response.path("data").path("alignedWords");
         if(response.path("code").asInt()!=200 || !words.isArray() || words.size()>2000) throw new IllegalArgumentException("Invalid lyrics response");
-        List<Map<String,Object>> cues=new ArrayList<>(); double previous=-1, pendingStart=-1;
-        StringBuilder pending=new StringBuilder();
+        List<Map<String,Object>> cues=new ArrayList<>();
+        double previous=-1, lineStart=-1, lineEnd=-1;
+        StringBuilder line=new StringBuilder();
         for(JsonNode word:words) {
             String original=word.path("word").asText("").replaceAll("\\[[^\\]]*\\]","");
             String text=original.trim();
-            if(text.isEmpty())continue;
+            if(text.isEmpty()) {
+                if(original.contains("\n") && line.length()>0) {
+                    addLine(cues,line,lineStart,lineEnd);lineStart=-1;
+                }
+                continue;
+            }
             double start=word.has("startS")?word.path("startS").asDouble(Double.NaN):word.path("start_s").asDouble(Double.NaN);
             double end=word.has("endS")?word.path("endS").asDouble(Double.NaN):word.path("end_s").asDouble(Double.NaN);
             if(!word.path("success").asBoolean() || !Double.isFinite(start) || !Double.isFinite(end)
                     || start<0 || end<start || start<previous-0.001 || end>600 || text.length()>2000)
                 throw new IllegalArgumentException("Invalid lyrics timing");
             previous=end;
-            // 服务商可将短词标记为零时长锚点；保留原文并与下一个有效片段共用真实边界。
-            if(end==start) {
-                if(pendingStart<0)pendingStart=start;
-                if(pending.length()+original.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
-                pending.append(original);continue;
+            // 换行是服务商提供的句子边界；整句沿用首词和末词的真实时间，不按单词重启动画。
+            if(original.substring(0,original.indexOf(text)).contains("\n") && line.length()>0) {
+                addLine(cues,line,lineStart,lineEnd);lineStart=-1;
             }
-            if(pendingStart>=0) {
-                text=pending.append(original).toString().trim();start=pendingStart;
-                pending.setLength(0);pendingStart=-1;
-                if(text.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
+            if(text.contains("\n") || text.contains("\r"))
+                throw new IllegalArgumentException("Ambiguous multiline word timing");
+            if(lineStart<0)lineStart=start;
+            lineEnd=end;
+            // 保留词间原始空格；中文等无空格文字不插入额外分隔符。
+            line.append(original.replace("\r", "").replace("\n", ""));
+            if(line.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
+            if(original.substring(original.indexOf(text)+text.length()).contains("\n")) {
+                addLine(cues,line,lineStart,lineEnd);lineStart=-1;
             }
-            Map<String,Object> cue=new LinkedHashMap<>();cue.put("text",text);cue.put("startSeconds",start);cue.put("endSeconds",end);
-            cues.add(cue);
         }
+        if(line.length()>0)addLine(cues,line,lineStart,lineEnd);
         if(cues.isEmpty())throw new IllegalArgumentException("No aligned lyrics");
-        if(pendingStart>=0) {
-            Map<String,Object> last=cues.get(cues.size()-1);
-            String text=last.get("text")+" "+pending.toString().trim();
-            if(text.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
-            last.put("text",text);last.put("endSeconds",previous);
-        }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion","song-lyrics-timeline-v1");
+        result.put("cueGrouping","provider-lines-v1");
         result.put("candidateId",id);result.put("cues",cues);return result;
+    }
+    private static void addLine(List<Map<String,Object>> cues,StringBuilder line,double start,double end) {
+        if(end<=start)throw new IllegalArgumentException("No positive lyric line timing");
+        Map<String,Object> cue=new LinkedHashMap<>();cue.put("text",line.toString().trim());
+        cue.put("startSeconds",start);cue.put("endSeconds",end);cues.add(cue);line.setLength(0);
     }
     public static boolean hasLyrics(JsonNode scene) {
         for(JsonNode layer:scene.path("textLayers")) {

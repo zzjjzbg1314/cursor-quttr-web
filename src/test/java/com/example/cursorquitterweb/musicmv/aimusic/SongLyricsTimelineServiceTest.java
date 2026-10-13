@@ -25,6 +25,41 @@ class SongLyricsTimelineServiceTest {
         assertThrows(IllegalArgumentException.class,()->SongLyricsTimelineService.normalize("song",mapper.readTree(zero)));
         assertThrows(IllegalArgumentException.class,()->SongLyricsTimelineService.normalize("song",mapper.readTree(zero.replace("true","false"))));
     }
+    @Test void providerNewlinesProduceCompleteLinesWithOriginalBoundaries() throws Exception {
+        List<Map<String,Object>> words=new ArrayList<>();
+        String[] text={"The ","morning ","still ","pale ","on ","the ","glass.\n","We ","drove\n"};
+        for(int i=0;i<text.length;i++) {
+            Map<String,Object> word=new HashMap<>();word.put("word",text[i]);word.put("startS",i+1.0);
+            word.put("endS",i+1.5);word.put("success",true);words.add(word);
+        }
+        Map<String,Object> response=new HashMap<>();response.put("code",200);
+        response.put("data",Collections.singletonMap("alignedWords",words));
+        Map<String,Object> result=SongLyricsTimelineService.normalize("song",mapper.valueToTree(response));
+        List<Map<String,Object>> cues=(List<Map<String,Object>>)result.get("cues");
+        assertEquals(2,cues.size());assertEquals("The morning still pale on the glass.",cues.get(0).get("text"));
+        assertEquals(1.0,cues.get(0).get("startSeconds"));assertEquals(7.5,cues.get(0).get("endSeconds"));
+        assertEquals("We drove",cues.get(1).get("text"));
+    }
+    @Test void lineGroupingPreservesAllWebsiteLanguagesAndZeroDurationWords() {
+        for(String text:Arrays.asList("morning light","阳光洒满房间","陽光灑滿房間","朝の光","아침 햇살","luz de mañana","luz da manhã","Morgenlicht","lumière du matin")) {
+            Map<String,Object> first=new HashMap<>();first.put("word",text);first.put("startS",1);first.put("endS",1);first.put("success",true);
+            Map<String,Object> last=new HashMap<>();last.put("word","!\r\n");last.put("startS",1.1);last.put("endS",2);last.put("success",true);
+            Map<String,Object> response=new HashMap<>();response.put("code",200);
+            response.put("data",Collections.singletonMap("alignedWords",Arrays.asList(first,last)));
+            List<Map<String,Object>> cues=(List<Map<String,Object>>)SongLyricsTimelineService.normalize("song",mapper.valueToTree(response)).get("cues");
+            assertEquals(text+"!",cues.get(0).get("text"));assertEquals(1.0,cues.get(0).get("startSeconds"));assertEquals(2.0,cues.get(0).get("endSeconds"));
+        }
+    }
+    @Test void oldWordCacheIsRefetchedOnceAndReplacedWithLineCache() throws Exception {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        AiMusicProvider provider=mock(AiMusicProvider.class);
+        Map<String,Object> row=new HashMap<>();row.put("raw_json","{\"storyaiLyricsTimelineV1\":{\"candidateId\":\"s\",\"cues\":[]}}");
+        row.put("provider_code","sunoapi");row.put("provider_task_id","task");row.put("provider_audio_id","audio");
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);when(providers.require("sunoapi")).thenReturn(provider);
+        when(provider.timestampedLyrics("task","audio")).thenReturn(mapper.readValue("{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"完整一句\",\"startS\":1,\"endS\":2,\"success\":true}]}}",Map.class));
+        assertEquals("provider-lines-v1",new SongLyricsTimelineService(repo,providers,mapper).get("u","s").get("cueGrouping"));
+        verify(provider).timestampedLyrics("task","audio");verify(repo).saveAlignedLyrics(eq("u"),eq("s"),contains("provider-lines-v1"));
+    }
     @Test void ownershipBeforeProviderAccess() {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         assertThrows(ApiException.class,()->new SongLyricsTimelineService(repo,providers,mapper).get("owner","foreign"));verifyNoInteractions(providers);
@@ -37,7 +72,7 @@ class SongLyricsTimelineServiceTest {
     }
     @Test void cachedTimelineAvoidsProviderCall() throws Exception {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
-        Map<String,Object> row=new HashMap<>();row.put("raw_json","{\"storyaiLyricsTimelineV1\":{\"candidateId\":\"s\",\"schemaVersion\":\"song-lyrics-timeline-v1\",\"cues\":[]}}");when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+        Map<String,Object> row=new HashMap<>();row.put("raw_json","{\"storyaiLyricsTimelineV1\":{\"candidateId\":\"s\",\"schemaVersion\":\"song-lyrics-timeline-v1\",\"cueGrouping\":\"provider-lines-v1\",\"cues\":[]}}");when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
         assertEquals("s",new SongLyricsTimelineService(repo,providers,mapper).get("u","s").get("candidateId"));verifyNoInteractions(providers);
     }
     @Test void onlyExplicitCurrentLyricLayersActivate() throws Exception {

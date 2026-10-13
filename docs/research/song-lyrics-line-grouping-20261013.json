@@ -1,0 +1,36 @@
+{
+  "cause": "逐词时间轴丢失换行后被当作完整歌词片段播放",
+  "fix": "按服务商换行合并完整歌词并使用首末词真实时间，旧缓存按需重新获取一次",
+  "providerWordCount": 333,
+  "lineCount": 48,
+  "sungTextPreserved": true,
+  "at37Seconds": {
+    "text": "The morning still pale on the glass.",
+    "startSeconds": 34.0295,
+    "endSeconds": 38.617
+  },
+  "tests": [
+    {
+      "name": "com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineServiceTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.cursorquitterweb.musicmv.service.MusicMvRenderJobServiceTest",
+      "tests": "34",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.cursorquitterweb.musicmv.controller.MusicMvRenderJobControllerTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0"
+    }
+  ],
+  "frontendProjection": "真实场景全部周期投影通过，37秒完整句子",
+  "frontendExistingTestFailure": "未修改的 song-plain-lyrics.test.ts:51 字体对象预期未包含自动东亚回退字体；相关源码和测试均与HEAD一致",
+  "deployment": "仅 cursor-quttr-web 网站后端",
+  "scope": "未修改浏览器渲染代码、模板、运行包；未执行视频渲染或SSIM；未重启共享服务；无新增界面文案，九语言原文测试通过"
+}
