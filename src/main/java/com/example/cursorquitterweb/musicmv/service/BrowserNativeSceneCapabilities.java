@@ -12,7 +12,7 @@ final class BrowserNativeSceneCapabilities {
             List<?> blockers = list(capability.get("blockingFeatures"));
             // 仅接管有原生源契约和最小资源绑定的缺口，未知能力继续阻止导出。
             if (blockers.isEmpty() || new HashSet<>(blockers).size() != blockers.size()
-                    || !Arrays.asList("post_effects", "blend_modes", "animations").containsAll(blockers)) return false;
+                    || !Arrays.asList("post_effects", "blend_modes", "animations", "text_template_decorations").containsAll(blockers)) return false;
             Map<?, ?> delivery = map(scene.get("runtimeDelivery"));
             if (!"browser-runtime-delivery-v1".equals(delivery.get("schemaVersion"))) return false;
             Set<String> delivered = new HashSet<>();
@@ -49,6 +49,8 @@ final class BrowserNativeSceneCapabilities {
             if (ownsFixed) for (Map<?, ?> layer : layers.values()) {
                 if ("static_image".equals(layer.get("type")) || (ownsVideo && "video".equals(layer.get("type")))) segments.add(layer);
             }
+            if(blockers.contains("text_template_decorations")
+                    && !BrowserNativeDecorationCapabilities.owns(scene,descriptor,layers,bindingKinds))return false;
             if (blockers.contains("animations")
                     && !BrowserNativeTextAnimationCapabilities.owns(scene, descriptor, layers, bindingKinds)) return false;
             if (blockers.contains("blend_modes")) {

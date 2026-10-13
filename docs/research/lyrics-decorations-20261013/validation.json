@@ -1,0 +1,67 @@
+{
+  "scope": "Strict native script-template decoration admission; no rendering or frame scheduling changes",
+  "sourceTemplate": "jianying:7622916581059857688",
+  "tests": [
+    {
+      "suite": "BrowserNativeDecorationCapabilitiesTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "BrowserNativeSceneCapabilitiesTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "BrowserNativeRuntimeContractTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "BrowserNativeScriptDependencyContractTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "BrowserNativeStickerContractTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "BrowserNativeGlobalEffectContractTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "suite": "MusicMvRenderJobServiceTest",
+      "tests": "36",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "capturedSceneContract": "formal browserRender contract issued by MusicMvRenderJobService.get with real scene and runtime, mocked storage/song repositories",
+  "dependency": "Requires pre-existing uncommitted BrowserNativeRuntimeContract.java original_text_v2 support. Preserved without including in this change. Tested frozen copy of that file.",
+  "runtimeContractSha256": "9aba7f47e1c791cc20c01d5d12d79f9ec502e7aa23eb654f1169aae25d68212e",
+  "renderEvidence": {
+    "originalSsim": 0.989931,
+    "minimumSsim": 0.983845,
+    "boundaryDurationSeconds": 70,
+    "boundaryFrames": 2100,
+    "semanticIntegrity": "exact",
+    "videoEncodeCount": 1,
+    "materializedIntermediateVideoCount": 0
+  }
+}
