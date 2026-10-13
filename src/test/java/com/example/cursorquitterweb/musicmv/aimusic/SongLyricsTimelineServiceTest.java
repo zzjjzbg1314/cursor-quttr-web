@@ -13,6 +13,18 @@ class SongLyricsTimelineServiceTest {
         assertEquals("song",result.get("candidateId"));assertEquals("新词",((Map)((List)result.get("cues")).get(0)).get("text"));
         assertThrows(IllegalArgumentException.class,()->SongLyricsTimelineService.normalize("s",mapper.readTree("{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"词\",\"startS\":2,\"endS\":1,\"success\":true}]}}")));
     }
+    @Test void zeroLengthProviderWordsAreKeptUsingAdjacentSourceBoundaries() throws Exception {
+        String source="{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"A \",\"startS\":52.34,\"endS\":52.34,\"success\":true},{\"word\":\"little \",\"startS\":52.41983,\"endS\":52.819,\"success\":true},{\"word\":\"I \",\"startS\":53,\"endS\":53,\"success\":true}]}}";
+        Map<String,Object> result=SongLyricsTimelineService.normalize("song",mapper.readTree(source));
+        List<Map<String,Object>> cues=(List<Map<String,Object>>)result.get("cues");
+        assertEquals(1,cues.size());assertEquals("A little I",cues.get(0).get("text"));
+        assertEquals(52.34,cues.get(0).get("startSeconds"));assertEquals(53.0,cues.get(0).get("endSeconds"));
+    }
+    @Test void zeroLengthWordsStillRequireVerifiedSuccessAndAPositiveNeighbor() throws Exception {
+        String zero="{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"I \",\"startS\":1,\"endS\":1,\"success\":true}]}}";
+        assertThrows(IllegalArgumentException.class,()->SongLyricsTimelineService.normalize("song",mapper.readTree(zero)));
+        assertThrows(IllegalArgumentException.class,()->SongLyricsTimelineService.normalize("song",mapper.readTree(zero.replace("true","false"))));
+    }
     @Test void ownershipBeforeProviderAccess() {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         assertThrows(ApiException.class,()->new SongLyricsTimelineService(repo,providers,mapper).get("owner","foreign"));verifyNoInteractions(providers);

@@ -46,19 +46,39 @@ public class SongLyricsTimelineService {
     static Map<String,Object> normalize(String id, JsonNode response) {
         JsonNode words=response.path("data").path("alignedWords");
         if(response.path("code").asInt()!=200 || !words.isArray() || words.size()>2000) throw new IllegalArgumentException("Invalid lyrics response");
-        List<Map<String,Object>> cues=new ArrayList<>(); double previous=-1;
+        List<Map<String,Object>> cues=new ArrayList<>(); double previous=-1, pendingStart=-1;
+        StringBuilder pending=new StringBuilder();
         for(JsonNode word:words) {
-            String text=word.path("word").asText("").replaceAll("\\[[^\\]]*\\]","").trim();
+            String original=word.path("word").asText("").replaceAll("\\[[^\\]]*\\]","");
+            String text=original.trim();
             if(text.isEmpty())continue;
             double start=word.has("startS")?word.path("startS").asDouble(Double.NaN):word.path("start_s").asDouble(Double.NaN);
             double end=word.has("endS")?word.path("endS").asDouble(Double.NaN):word.path("end_s").asDouble(Double.NaN);
             if(!word.path("success").asBoolean() || !Double.isFinite(start) || !Double.isFinite(end)
-                    || start<0 || end<=start || start<previous-0.001 || end>600 || text.length()>2000)
+                    || start<0 || end<start || start<previous-0.001 || end>600 || text.length()>2000)
                 throw new IllegalArgumentException("Invalid lyrics timing");
+            previous=end;
+            // 服务商可将短词标记为零时长锚点；保留原文并与下一个有效片段共用真实边界。
+            if(end==start) {
+                if(pendingStart<0)pendingStart=start;
+                if(pending.length()+original.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
+                pending.append(original);continue;
+            }
+            if(pendingStart>=0) {
+                text=pending.append(original).toString().trim();start=pendingStart;
+                pending.setLength(0);pendingStart=-1;
+                if(text.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
+            }
             Map<String,Object> cue=new LinkedHashMap<>();cue.put("text",text);cue.put("startSeconds",start);cue.put("endSeconds",end);
-            cues.add(cue);previous=end;
+            cues.add(cue);
         }
         if(cues.isEmpty())throw new IllegalArgumentException("No aligned lyrics");
+        if(pendingStart>=0) {
+            Map<String,Object> last=cues.get(cues.size()-1);
+            String text=last.get("text")+" "+pending.toString().trim();
+            if(text.length()>2000)throw new IllegalArgumentException("Invalid lyrics length");
+            last.put("text",text);last.put("endSeconds",previous);
+        }
         Map<String,Object> result=new LinkedHashMap<>();result.put("schemaVersion","song-lyrics-timeline-v1");
         result.put("candidateId",id);result.put("cues",cues);return result;
     }
