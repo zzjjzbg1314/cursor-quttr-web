@@ -17,6 +17,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvRenderJobRepositoryTest {
     @Test
+    void jobDetailsAndIdempotentReadsKeepTemplateCategoryAndRowIdentity() {
+        CapturingD1 d1 = new CapturingD1();
+        MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);
+        repository.byId("job");
+        assertTrue(d1.sql.contains("j.job_id AS job_id"));
+        assertTrue(d1.sql.contains("t.category_key"));
+        assertTrue(d1.sql.contains("LEFT JOIN templates t ON t.template_id=j.template_id"));
+        assertTrue(d1.sql.endsWith("WHERE j.job_id=? LIMIT 1"));
+        assertEquals(Arrays.asList("job"), d1.params);
+        repository.byClientRequest("owner", "request");
+        assertTrue(d1.sql.contains("t.category_key"));
+        assertTrue(d1.sql.endsWith("WHERE j.client_id=? AND j.request_id=? LIMIT 1"));
+        assertEquals(Arrays.asList("owner", "request"), d1.params);
+    }
+
+    @Test
     void preparationDeadlineCannotCompleteLateOrOverwriteTerminalState() {
         CapturingD1 d1 = new CapturingD1();
         MusicMvRenderJobRepository repository = new MusicMvRenderJobRepository(d1);

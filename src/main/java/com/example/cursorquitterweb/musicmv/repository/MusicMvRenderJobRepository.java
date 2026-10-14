@@ -150,14 +150,18 @@ public class MusicMvRenderJobRepository {
     }
 
     public Map<String, Object> byClientRequest(String clientId, String requestId) {
-        return d1.query("SELECT " + JOB_COLUMNS + " FROM music_mv_render_jobs "
-                        + "WHERE client_id=? AND request_id=? LIMIT 1",
+        return d1.query(jobDetailSelect() + "WHERE j.client_id=? AND j.request_id=? LIMIT 1",
                 clientId, requestId).firstRow();
     }
 
     public Map<String, Object> byId(String jobId) {
-        return d1.query("SELECT " + JOB_COLUMNS + " FROM music_mv_render_jobs "
-                + "WHERE job_id=? LIMIT 1", jobId).firstRow();
+        return d1.query(jobDetailSelect() + "WHERE j.job_id=? LIMIT 1", jobId).firstRow();
+    }
+
+    // 详情和幂等恢复必须携带相同的分类，避免正式导出丢失连续播放策略。
+    private String jobDetailSelect() {
+        return "SELECT " + prefixedJobColumns("j") + ",t.category_key "
+                + "FROM music_mv_render_jobs j LEFT JOIN templates t ON t.template_id=j.template_id ";
     }
 
     public void create(String jobId, String clientId, String requestId,

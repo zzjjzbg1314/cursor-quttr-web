@@ -31,6 +31,20 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class MusicMvRenderJobServiceTest {
     @Test
+    void ownedBrowserDetailsExposeCategoryForTheSamePlaybackPolicyAsPreview() {
+        MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
+        MusicMvRenderJobService service = new MusicMvRenderJobService(repository,
+                mock(AiMusicJobRepository.class), mock(MusicMvRenderArtifactStorageService.class),
+                inputAssets(), new ObjectMapper(), true, 2);
+        Map<String,Object> active = row("lyrics", null);
+        active.put("client_id", "owner"); active.put("category_key", "lyrics");
+        when(repository.byId("lyrics")).thenReturn(active);
+        when(repository.events("lyrics")).thenReturn(Collections.emptyList());
+        assertEquals("lyrics", service.get("owner", "lyrics").get("categoryKey"));
+        assertThrows(ApiException.class, () -> service.get("foreign", "lyrics"));
+    }
+
+    @Test
     void localCompletionStoresMetadataWithoutArtifactAndSupportsIdempotentRetry() {
         MusicMvRenderJobRepository repository = mock(MusicMvRenderJobRepository.class);
         MusicMvRenderArtifactStorageService artifacts = mock(MusicMvRenderArtifactStorageService.class);
