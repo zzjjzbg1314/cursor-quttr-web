@@ -56,7 +56,7 @@ final class BrowserNativeRuntimeContract {
             if(!(value instanceof Map))throw invalid();Map<String,Object> item=(Map<String,Object>)value;
             String id=String.valueOf(item.get("resourceId"));
             if(!deliveredIds.contains(id)||!ids.add(id)||!(id+"/").equals(item.get("path"))
-                    || !(Arrays.asList("filter","video_effect","adjustment","animation","transition","blend","chroma","mask","text_style").contains(item.get("kind"))
+                    || !(Arrays.asList("filter","video_effect","adjustment","hsl","animation","transition","blend","chroma","mask","text_style").contains(item.get("kind"))
                         ||(ownsTemplates&&"text_template".equals(item.get("kind")))
                         ||(ownsScriptTemplates&&"script_template".equals(item.get("kind")))
                         ||((ownsStickers||scriptStickers.contains(id))&&"sticker".equals(item.get("kind"))))
@@ -87,7 +87,7 @@ final class BrowserNativeRuntimeContract {
                 binding.put("models",models);
             }
             if(item.containsKey("adjustmentParameters")) {
-                if(!"adjustment".equals(item.get("kind"))||!(item.get("adjustmentParameters") instanceof Map))throw invalid();
+                if(!Arrays.asList("adjustment","hsl").contains(item.get("kind"))||!(item.get("adjustmentParameters") instanceof Map))throw invalid();
                 Map<String,String> parameters=new LinkedHashMap<>();
                 for(Map.Entry<?,?> entry:((Map<?,?>)item.get("adjustmentParameters")).entrySet()) {
                     if(!(entry.getKey() instanceof String)||!(entry.getValue() instanceof String)
@@ -96,6 +96,11 @@ final class BrowserNativeRuntimeContract {
                     parameters.put((String)entry.getKey(),(String)entry.getValue());
                 }
                 binding.put("adjustmentParameters",parameters);
+            }
+            if("hsl".equals(item.get("kind"))&&!uniqueFiles.contains(id+"/config.json"))throw invalid();
+            if(item.containsKey("hslEnableParameter")) {
+                if(!"hsl".equals(item.get("kind"))||!(item.get("hslEnableParameter") instanceof Boolean))throw invalid();
+                binding.put("hslEnableParameter",item.get("hslEnableParameter"));
             }
             bindings.add(binding);
         }
