@@ -39,13 +39,11 @@ public class MusicMvAuthService {
     private final MusicMvAuthRepository repository;
     private final MusicMvOidcIdentityService oidc;
     private final int sessionDays;
-    private final MusicMvAccessTokenService access;
+    private static final String LEGACY_ACCESS_COOKIE = "music_mv_access";
 
     public MusicMvAuthService(MusicMvAuthRepository repository,
                               MusicMvOidcIdentityService oidc,
-                              @Value("${music-mv.auth.session-days:30}") int sessionDays,
-                              MusicMvAccessTokenService access) {
-        this.access = access;
+                              @Value("${music-mv.auth.session-days:30}") int sessionDays) {
         this.repository = repository;
         this.oidc = oidc;
         this.sessionDays = Math.max(1, Math.min(sessionDays, 90));
@@ -82,7 +80,8 @@ public class MusicMvAuthService {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "Sign-in could not be confirmed. Please sign in again.");
         }
         setSessionCookie(response, rawSessionToken, request, sessionDays * 24 * 60 * 60);
-        return issueAccess(current, request, response, rawSessionToken);
+        setCookie(response, LEGACY_ACCESS_COOKIE, "", request, 0);
+        return sessionView(current);
     }
 
     public Map<String, Object> currentSession(HttpServletRequest request, HttpServletResponse servletResponse) {
@@ -92,19 +91,21 @@ public class MusicMvAuthService {
             response.put("authenticated", Boolean.FALSE);
             response.put("user", null);
             if (cookie(request, SESSION_COOKIE) != null) response.put("reason", "session_ended");
-            setCookie(servletResponse, MusicMvAccessTokenService.COOKIE, "", request, 0);
+            setCookie(servletResponse, LEGACY_ACCESS_COOKIE, "", request, 0);
             return response;
         }
         if (RowUtils.bool(user, "session_touch_due")) {
             repository.touchSession(RowUtils.str(user, "session_id"));
         }
-        return issueAccess(user, request, servletResponse, cookie(request, SESSION_COOKIE));
+        setCookie(servletResponse, LEGACY_ACCESS_COOKIE, "", request, 0);
+        return sessionView(user);
     }
 
     public String effectiveClientId(HttpServletRequest request, String suppliedClientId) {
-        String userId = accessUser(request);
+        Map<String, Object> user = sessionUser(request);
+        String userId = user == null ? null : RowUtils.str(user, "user_id");
         if (userId != null) return userId;
-        if (cookie(request, SESSION_COOKIE) != null || cookie(request, MusicMvAccessTokenService.COOKIE) != null) throw refreshRequired();
+        if (cookie(request, SESSION_COOKIE) != null || cookie(request, LEGACY_ACCESS_COOKIE) != null) throw loginRequired();
         String clientId = validatedAnonymousClientId(suppliedClientId, true);
         if (clientId.startsWith("usr_")) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "MUSIC_MV_LOGIN_REQUIRED",
@@ -113,46 +114,28 @@ public class MusicMvAuthService {
         return clientId;
     }
 
-    /** 受保护接口只接受服务端签名身份，不能使用浏览器提供的工作区标识。 */
+    /** 受保护接口逐次验证服务端会话，不能使用浏览器提供的工作区标识。 */
     public String requireUserId(HttpServletRequest request) {
-        String userId = accessUser(request);
-        if (userId != null) return userId;
-        if (cookie(request, SESSION_COOKIE) != null || cookie(request, MusicMvAccessTokenService.COOKIE) != null) throw refreshRequired();
-        throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "Sign in to create and access your music");
-    }
-
-    /** 原生视频播放和下载链接无法执行前端续期，只在凭证失效时验证长期会话。 */
-    public String requireDownloadUserId(HttpServletRequest request) {
-        String userId = accessUser(request);
-        if (userId != null) return userId;
         Map<String, Object> user = sessionUser(request);
-        if (user != null) return RowUtils.str(user, "user_id");
-        throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "Sign in to create and access your music");
+        String userId = user == null ? null : RowUtils.str(user, "user_id");
+        if (userId != null) return userId;
+        throw loginRequired();
     }
 
-    private String accessUser(HttpServletRequest request) {
-        String longToken = cookie(request, SESSION_COOKIE);
-        return longToken == null ? null : access.verifyUserId(cookie(request, MusicMvAccessTokenService.COOKIE), sha256(longToken));
+    /** 下载与普通业务接口使用同一会话校验。 */
+    public String requireDownloadUserId(HttpServletRequest request) {
+        return requireUserId(request);
     }
 
-    private ApiException refreshRequired() {
-        return new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_ACCESS_EXPIRED", "Sign-in needs to be refreshed");
-    }
-
-    private Map<String, Object> issueAccess(Map<String, Object> user, HttpServletRequest request, HttpServletResponse response, String longToken) {
-        Map<String, Object> view = sessionView(user);
-        long expiresAt = Instant.parse((String) view.get("expiresAt")).getEpochSecond();
-        MusicMvAccessTokenService.Issued issued = access.issue(RowUtils.str(user, "user_id"), RowUtils.str(user, "session_id"), expiresAt, sha256(longToken));
-        setCookie(response, MusicMvAccessTokenService.COOKIE, issued.token, request, issued.maxAge);
-        view.put("accessExpiresAt", Instant.ofEpochSecond(issued.expiresAt).toString());
-        return view;
+    private ApiException loginRequired() {
+        return new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "Sign in to create and access your music");
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         String token = cookie(request, SESSION_COOKIE);
         if (token != null) repository.revokeSession(sha256(token));
         setSessionCookie(response, "", request, 0);
-        setCookie(response, MusicMvAccessTokenService.COOKIE, "", request, 0);
+        setCookie(response, LEGACY_ACCESS_COOKIE, "", request, 0);
     }
 
     private Map<String, Object> sessionUser(HttpServletRequest request) {
