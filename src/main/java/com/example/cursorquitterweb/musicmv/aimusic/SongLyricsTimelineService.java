@@ -93,6 +93,7 @@ public class SongLyricsTimelineService {
     }
     public static boolean hasLyrics(JsonNode scene) {
         for(JsonNode layer:scene.path("textLayers")) {
+            if (validSongTextBinding(layer) && "lyrics".equals(layer.path("songTextBinding").path("role").asText())) return true;
             if("text_template_lyrics".equals(layer.path("nativeScriptTemplateSource").path("sourceMaterialType").asText()))return true;
             JsonNode source=layer.path("nativeTextSource");
             if("native-text-source-v1".equals(source.path("schemaVersion").asText())
@@ -100,5 +101,18 @@ public class SongLyricsTimelineService {
                     && "lyrics".equals(source.path("material").path("type").asText()))return true;
         }
         return false;
+    }
+
+    public static boolean validSongTextBinding(JsonNode layer) {
+        JsonNode binding=layer.path("songTextBinding"), source=layer.path("nativeTextSource");
+        return "song-text-binding-v1".equals(binding.path("schemaVersion").asText())
+                && Arrays.asList("lyrics", "lyrics_translation").contains(binding.path("role").asText())
+                && binding.path("groupId").isTextual() && !binding.path("groupId").asText().trim().isEmpty()
+                && binding.path("trackId").isTextual() && !binding.path("trackId").asText().trim().isEmpty()
+                && binding.path("trackId").asText().equals(source.path("originalTimeline").path("trackId").asText())
+                && "native-text-source-v1".equals(source.path("schemaVersion").asText())
+                && "material_projected".equals(source.path("status").asText())
+                && "text".equals(source.path("material").path("type").asText())
+                && (!layer.has("templateResourceId") || layer.path("templateResourceId").isNull());
     }
 }

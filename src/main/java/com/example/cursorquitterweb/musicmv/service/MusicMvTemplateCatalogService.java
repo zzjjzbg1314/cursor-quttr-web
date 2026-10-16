@@ -679,6 +679,10 @@ public class MusicMvTemplateCatalogService {
                     "Browser scene schema does not match its envelope");
         }
         requireSanitizedBrowserScene(scene);
+        for (com.fasterxml.jackson.databind.JsonNode layer : objectMapper.valueToTree(scene).path("textLayers")) {
+            if (layer.has("songTextBinding") && !com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService.validSongTextBinding(layer))
+                throw badRequest("TEMPLATE_BROWSER_SCENE_INVALID", "Confirmed lyric binding does not match its original text track");
+        }
         String sceneJson = json(scene);
         String actualSha256 = sha256(sceneJson);
         if (!actualSha256.equalsIgnoreCase(request.getManifestSha256())) {

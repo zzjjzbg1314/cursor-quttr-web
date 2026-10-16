@@ -84,6 +84,15 @@ class SongLyricsTimelineServiceTest {
         assertFalse(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"categoryKey\":\"lyrics\",\"textLayers\":[{\"nativeTextSource\":{\"material\":{\"type\":\"lyrics\"}}}]}")));
         assertFalse(SongLyricsTimelineService.hasLyrics(mapper.readTree("{\"textLayers\":[{\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\",\"material\":{\"type\":\"text\"}}}]}")));
     }
+    @Test void confirmedManualLyricsRequireOriginalTrackAndPrimaryRole() throws Exception {
+        com.fasterxml.jackson.databind.node.ObjectNode layer=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree("{\"nativeTextSource\":{\"schemaVersion\":\"native-text-source-v1\",\"status\":\"material_projected\",\"material\":{\"type\":\"text\"},\"originalTimeline\":{\"trackId\":\"track\"}},\"songTextBinding\":{\"schemaVersion\":\"song-text-binding-v1\",\"role\":\"lyrics\",\"groupId\":\"captions\",\"trackId\":\"track\"}}");
+        com.fasterxml.jackson.databind.node.ObjectNode scene=mapper.createObjectNode();scene.putArray("textLayers").add(layer);
+        assertTrue(SongLyricsTimelineService.hasLyrics(scene));
+        ((com.fasterxml.jackson.databind.node.ObjectNode)layer.get("songTextBinding")).put("role","lyrics_translation");
+        assertTrue(SongLyricsTimelineService.validSongTextBinding(layer));assertFalse(SongLyricsTimelineService.hasLyrics(scene));
+        ((com.fasterxml.jackson.databind.node.ObjectNode)layer.get("songTextBinding")).put("role","lyrics").put("trackId","wrong");
+        assertFalse(SongLyricsTimelineService.hasLyrics(scene));
+    }
     @Test void freshAlignmentUsesOwnedProviderIdentityAndIsSaved() throws Exception {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
         AiMusicProvider provider=mock(AiMusicProvider.class);
