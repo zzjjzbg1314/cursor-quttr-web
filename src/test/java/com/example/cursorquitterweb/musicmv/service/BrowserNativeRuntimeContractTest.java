@@ -5,6 +5,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.cursorquitterweb.musicmv.support.ApiException;
 
 class BrowserNativeRuntimeContractTest {
+    @Test @SuppressWarnings("unchecked") void originalScriptPackageRequiresExplicitPolicyAndCompleteEntrypoints() {
+        Map<String,Object> value=descriptor();value.put("schemaVersion","browser-native-scene-runtime-v4");
+        value.put("videoAudioPolicy","external_music_only");value.put("scriptTemplatePolicy","original_text_v2");
+        ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","script_template");
+        value.put("files",Arrays.asList("effect/config.json","effect/content.json","effect/js/main.js","effect/js/template/template.js"));
+        assertEquals(value,BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("scriptTemplatePolicy","dynamic_text_v1");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+        value.put("scriptTemplatePolicy","original_text_v2");assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.emptySet()));
+        value.put("files",Arrays.asList("effect/config.json","effect/content.json"));assertThrows(ApiException.class,()->BrowserNativeRuntimeContract.validate(value,Collections.singleton("effect")));
+    }
     @Test @SuppressWarnings("unchecked") void maskRequiresDeliveredDependency() {
         Map<String,Object> value=descriptor();
         ((List<Map<String,Object>>)value.get("bindings")).get(0).put("kind","mask");
