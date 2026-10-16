@@ -1080,17 +1080,18 @@ public class MusicMvTemplateCatalogService {
             Map<?, ?> animation = (Map<?, ?>) raw;
             String preset = String.valueOf(animation.get("preset"));
             if ("native_resource_animation".equals(preset)) {
-                // 与原生照片执行器一致，保留零时长动画，但必须有原始时钟和已交付的动画依赖。
+                // 照片和文字分别校验归属；二者都保留原始零时长与已交付的动画依赖。
                 Object rawTiming = animation.get("rawAnimationTiming");
                 Map<?, ?> timing = rawTiming instanceof Map ? (Map<?, ?>) rawTiming : Collections.emptyMap();
-                if (!Arrays.asList("photo", "static_image").contains(layer.get("type"))
+                boolean textOwner = validNativeTextAnimationOwner(layer, animation);
+                if (!(Arrays.asList("photo", "static_image").contains(layer.get("type")) || textOwner)
                         || !"exact".equals(animation.get("fidelity"))
                         || !nativeResources.contains(animation.get("resourceId"))
-                        || !Arrays.asList("in", "out", "group").contains(animation.get("category"))
+                        || !(textOwner ? Arrays.asList("in", "out", "loop") : Arrays.asList("in", "out", "group")).contains(animation.get("category"))
                         || !(timing.get("startUs") instanceof String) || !(timing.get("durationUs") instanceof String)
                         || !((String) timing.get("startUs")).matches("0|[1-9][0-9]*")
                         || !((String) timing.get("durationUs")).matches("0|[1-9][0-9]*")) {
-                    throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID", "原生动画缺少照片归属、原始时钟或动画资源绑定");
+                    throw badRequest("TEMPLATE_BROWSER_SCENE_ANIMATION_CONTRACT_INVALID", "原生动画缺少有效图层归属、原始时钟或动画资源绑定");
                 }
             }
             if (java.util.Arrays.asList("quad_out_alpha_animation", "linear_scale_alpha_animation", "sequential_glyph_fade_animation",
@@ -1148,6 +1149,21 @@ public class MusicMvTemplateCatalogService {
                         "Glyph texture animations require the verified semantic contract");
             }
         }
+    }
+
+    private boolean validNativeTextAnimationOwner(Map<?, ?> layer, Map<?, ?> animation) {
+        if (!"text".equals(layer.get("type")) || layer.get("templateResourceId") != null) return false;
+        Object rawSource = layer.get("nativeTextSource"), rawParameters = animation.get("nativeTextAnimationParameters");
+        if (!(rawSource instanceof Map) || !(rawParameters instanceof Map)) return false;
+        Map<?, ?> source = (Map<?, ?>) rawSource, parameters = (Map<?, ?>) rawParameters;
+        return "native-text-source-v1".equals(source.get("schemaVersion"))
+                && "material_projected".equals(source.get("status"))
+                && "native-text-animation-parameters-v1".equals(parameters.get("schemaVersion"))
+                && "captured".equals(parameters.get("status"))
+                && parameters.get("adjustmentDeclared") instanceof Boolean
+                && parameters.get("direction") instanceof String && parameters.get("animMode") instanceof String
+                && (Boolean.TRUE.equals(parameters.get("adjustmentDeclared"))
+                    || ("".equals(parameters.get("direction")) && "".equals(parameters.get("animMode"))));
     }
 
     private void requireValidBrowserTextLayerFidelity(Map<String, Object> layer) {
