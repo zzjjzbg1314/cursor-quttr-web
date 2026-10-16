@@ -1767,7 +1767,7 @@ public class MusicMvTemplateCatalogService {
                 || browserParityReference)
                 : !("cover".equals(expectedRole) || slotDefault || browserResource)) {
             throw badRequest("TEMPLATE_MEDIA_ROLE_INVALID", video
-                    ? "Stream upload only accepts a full MV, official parity reference, or declared browser video resource"
+                    ? "Video upload only accepts a full MV, official parity reference, or declared browser video resource"
                     : "Images upload only accepts cover, a template slot photo, or a declared browser resource");
         }
         if (video && (request.getDurationSeconds() == null || request.getFilename() == null)) {
@@ -1802,7 +1802,7 @@ public class MusicMvTemplateCatalogService {
             ready.put("idempotentReplay", Boolean.TRUE);
             return ready;
         }
-        if (!forceReplace && video && existing != null
+        if (!forceReplace && video && existing != null && "cloudflare_stream".equals(existing.get("provider"))
                 && request.getSourceSha256().equalsIgnoreCase(RowUtils.str(existing, "source_sha256"))
                 && !"ready".equals(RowUtils.str(existing, "status"))) {
             MediaState pending = mediaProvider.streamState(RowUtils.str(existing, "provider_asset_id"));
@@ -1823,8 +1823,11 @@ public class MusicMvTemplateCatalogService {
         }
         if (!forceReplace && existing != null && request.getSourceSha256().equalsIgnoreCase(
                 RowUtils.str(existing, "source_sha256")) && "ready".equals(RowUtils.str(existing, "status"))
-                && mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),
-                RowUtils.str(existing, "provider_asset_id"))) {
+                && ("cloudflare_r2".equals(existing.get("provider"))
+                    ? "ready".equals(mediaProvider.templateVideoState(RowUtils.str(existing,"provider_asset_id"),
+                        RowUtils.str(existing,"source_sha256"),RowUtils.lng(existing,"source_size_bytes")).getStatus())
+                    : mediaProvider.isReusableReadyAsset(RowUtils.str(existing, "provider"),
+                        RowUtils.str(existing, "provider_asset_id")))) {
             Map<String, Object> existingDetails = parseObject(
                     RowUtils.str(existing, "provider_details_json"));
             if (video && request.getSourceType() != null) {
@@ -1844,7 +1847,7 @@ public class MusicMvTemplateCatalogService {
         String mediaId = existing == null ? IdUtils.token("media") : RowUtils.str(existing, "media_id");
         String providerAssetId = IdUtils.token(video ? "mvstream" : "mvimage");
         UploadSession session = video
-                ? mediaProvider.createStreamUpload(providerAssetId, request)
+                ? mediaProvider.createTemplateVideoUpload(providerAssetId, request)
                 : mediaProvider.createImageUpload(providerAssetId, request);
         Map<String, Object> providerDetails = new LinkedHashMap<String, Object>();
         providerDetails.putAll(session.getProviderDetails());
@@ -1900,6 +1903,9 @@ public class MusicMvTemplateCatalogService {
         String provider = RowUtils.str(media, "provider");
         if ("cloudflare_images".equals(provider)) {
             state = mediaProvider.imageState(RowUtils.str(media, "provider_asset_id"));
+        } else if ("cloudflare_r2".equals(provider)) {
+            state = mediaProvider.templateVideoState(RowUtils.str(media,"provider_asset_id"),
+                    RowUtils.str(media,"source_sha256"),RowUtils.lng(media,"source_size_bytes"));
         } else if ("cloudflare_stream".equals(provider)) {
             state = mediaProvider.streamState(RowUtils.str(media, "provider_asset_id"));
         } else {
@@ -2228,6 +2234,7 @@ public class MusicMvTemplateCatalogService {
         result.put("d1Configured", Boolean.valueOf(d1.isConfigured()));
         result.put("imagesConfigured", Boolean.valueOf(mediaProvider.imagesConfigured()));
         result.put("streamConfigured", Boolean.valueOf(mediaProvider.streamConfigured()));
+        result.put("templateVideoR2Configured", Boolean.valueOf(mediaProvider.templateVideoStorageConfigured()));
         result.put("imagesDeliveryConfigured", Boolean.valueOf(mediaProvider.imagesDeliveryConfigured()));
         result.put("streamDeliveryConfigured", Boolean.valueOf(mediaProvider.streamDeliveryConfigured()));
         result.put("imagesDeliveryValid", Boolean.valueOf(mediaProvider.imagesDeliveryValid()));
@@ -2258,8 +2265,7 @@ public class MusicMvTemplateCatalogService {
         result.put("d1Reachable", Boolean.valueOf(d1Reachable));
         result.put("d1SchemaReady", Boolean.valueOf(schemaReady));
         boolean ready = d1Reachable && schemaReady && mediaProvider.imagesConfigured()
-                && mediaProvider.streamConfigured() && mediaProvider.imagesDeliveryValid()
-                && mediaProvider.streamDeliveryValid();
+                && mediaProvider.templateVideoStorageConfigured() && mediaProvider.imagesDeliveryValid();
         result.put("ready", Boolean.valueOf(ready));
         return result;
     }

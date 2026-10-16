@@ -42,7 +42,7 @@ public class TemplatePreviewMp4Service {
             if (Objects.equals(row.get("media_id"),saved.get("sourceMediaId"))
                     && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))) result.put("previewMp4",saved);
         }
-        result.put("playbackUrl",provider.resolveDeliveryDetails("cloudflare_stream",
+        result.put("playbackUrl",provider.resolveDeliveryDetails(RowUtils.str(row,"provider"),
                 RowUtils.str(row,"provider_asset_id"),details(row)).get("playbackUrl"));
         return result;
     }
@@ -114,7 +114,7 @@ public class TemplatePreviewMp4Service {
         if (repository.version(templateId,versionId)==null) throw error("TEMPLATE_VERSION_NOT_FOUND");
         Map<String,Object> row=repository.mediaByRole(versionId,"full_mv");
         if (row==null || !"ready".equals(row.get("status"))) row=repository.mediaByRole(versionId,"browser_parity_reference");
-        if (row==null || !"ready".equals(row.get("status")) || !"cloudflare_stream".equals(row.get("provider"))
+        if (row==null || !"ready".equals(row.get("status")) || !("cloudflare_stream".equals(row.get("provider")) || "cloudflare_r2".equals(row.get("provider")))
                 || "capcut_official_template_preview".equals(details(row).get("sourceType")))
             throw error("PREVIEW_SOURCE_NOT_READY");
         return row;

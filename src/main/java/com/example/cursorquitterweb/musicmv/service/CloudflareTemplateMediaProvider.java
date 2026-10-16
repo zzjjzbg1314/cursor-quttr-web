@@ -74,6 +74,42 @@ public class CloudflareTemplateMediaProvider {
         this.streamDeliveryBaseUrl = trimSlash(streamDeliveryBaseUrl);
     }
 
+    private R2StorageService templateVideoStorage;
+
+    @Autowired
+    public void setTemplateVideoStorage(R2StorageService storage) {
+        this.templateVideoStorage = storage;
+    }
+
+    public boolean templateVideoStorageConfigured() {
+        return templateVideoStorage != null && templateVideoStorage.isConfigured();
+    }
+
+    /** 新模板视频保留原始字节上传 R2，展示用 720p 副本由独立发布流程生成。 */
+    public UploadSession createTemplateVideoUpload(String assetId, TemplateMediaUploadSessionRequest request) {
+        if (!templateVideoStorageConfigured()) throw new IllegalStateException("模板视频 R2 未配置");
+        String key = "music-mv-template-videos/" + assetId + "/" + request.getSourceSha256() + ".mp4";
+        Map<String,String> metadata = java.util.Collections.singletonMap("sha256", request.getSourceSha256());
+        Map<String,String> headers = new LinkedHashMap<String,String>();
+        headers.put("Content-Type", "video/mp4");
+        headers.put("x-amz-meta-sha256", request.getSourceSha256());
+        Map<String,Object> details = new LinkedHashMap<String,Object>();
+        details.put("uploadMethod", "PUT");
+        details.put("uploadHeaders", headers);
+        return new UploadSession("cloudflare_r2", key,
+                templateVideoStorage.presignedPutUrl(key,"video/mp4",request.getSourceSizeBytes(),metadata,
+                        java.time.Duration.ofMinutes(30)), "awaiting_upload", details);
+    }
+
+    public MediaState templateVideoState(String key, String sha256, long sizeBytes) {
+        if (!templateVideoStorageConfigured()) throw new IllegalStateException("模板视频 R2 未配置");
+        R2StorageService.ObjectInfo info = templateVideoStorage.objectInfo(key);
+        if (info.getSizeBytes()!=sizeBytes || !"video/mp4".equals(info.getContentType())
+                || info.getMetadata()==null || !sha256.equals(info.getMetadata().get("sha256")))
+            throw new IllegalStateException("模板视频 R2 完整性校验失败");
+        return new MediaState("ready", java.util.Collections.<String,Object>emptyMap());
+    }
+
     public boolean imagesConfigured() {
         return configured(imagesAccountId, imagesApiToken, imagesDeliveryBaseUrl);
     }
@@ -97,7 +133,9 @@ public class CloudflareTemplateMediaProvider {
         String assetId = trim(providerAssetId);
         if (assetId.isEmpty()) return details;
 
-        if ("cloudflare_images".equals(provider) && imagesDeliveryConfigured()) {
+        if ("cloudflare_r2".equals(provider) && templateVideoStorageConfigured()) {
+            details.put("playbackUrl",templateVideoStorage.presignedGetUrl(assetId,java.time.Duration.ofMinutes(15)));
+        } else if ("cloudflare_images".equals(provider) && imagesDeliveryConfigured()) {
             putIfBlank(details, "deliveryUrl",
                     imagesDeliveryBaseUrl + "/" + assetId + "/public");
         } else if ("cloudflare_stream".equals(provider) && streamDeliveryConfigured()) {

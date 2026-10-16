@@ -293,7 +293,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(d1.isConfigured()).thenReturn(true);
         service = new MusicMvTemplateCatalogService(repository, mediaProvider, runtimePackages, d1, new ObjectMapper());
         when(mediaProvider.imagesConfigured()).thenReturn(true);
-        when(mediaProvider.streamConfigured()).thenReturn(true);
+        when(mediaProvider.templateVideoStorageConfigured()).thenReturn(true);
         when(mediaProvider.imagesDeliveryValid()).thenReturn(true);
         when(mediaProvider.streamDeliveryValid()).thenReturn(true);
         Map<String, Object> counts = row("category_count", 13);
@@ -2223,7 +2223,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(existing);
         when(mediaProvider.isReusableReadyAsset("cloudflare_stream", "old-stream"))
                 .thenReturn(true);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "new-stream", "https://upload.example",
                         "awaiting_upload", new LinkedHashMap<String, Object>()));
@@ -2244,7 +2244,7 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("media_1", result.get("mediaId"));
         assertEquals("awaiting_upload", result.get("status"));
         assertFalse((Boolean) result.get("idempotentReplay"));
-        verify(mediaProvider).createStreamUpload(anyString(), any());
+        verify(mediaProvider).createTemplateVideoUpload(anyString(), any());
     }
 
     @Test
@@ -2254,6 +2254,7 @@ class MusicMvTemplateCatalogServiceTest {
         existing.put("source_sha256", hash('a'));
         existing.put("status", "awaiting_upload");
         existing.put("provider_asset_id", "queued-video");
+        existing.put("provider", "cloudflare_stream");
         when(repository.mediaByRole("tplver_1", "browser_parity_reference")).thenReturn(existing);
         when(mediaProvider.streamState("queued-video")).thenReturn(
                 new CloudflareTemplateMediaProvider.MediaState("processing", row("state", "queued")));
@@ -2266,7 +2267,7 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("processing", result.get("status"));
         assertEquals("media_1", result.get("mediaId"));
         assertEquals(Boolean.TRUE, result.get("idempotentReplay"));
-        verify(mediaProvider, never()).createStreamUpload(anyString(), any());
+        verify(mediaProvider, never()).createTemplateVideoUpload(anyString(), any());
         when(mediaProvider.streamState("queued-video")).thenReturn(
                 new CloudflareTemplateMediaProvider.MediaState("ready", row("state", "ready")));
         assertEquals("ready", service.createMediaSession("tpl_1", "tplver_1", true, request).get("status"));
@@ -2279,7 +2280,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
         when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(null);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "preview-stream", "https://upload.example",
                         "awaiting_upload", row("playbackUrl", "https://stream.example/manifest/video.m3u8")));
@@ -2309,7 +2310,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.version("tpl_1", "tplver_1"))
                 .thenReturn(row("version_id", "tplver_1"));
         when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(null);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "validated-stream", "https://upload.example",
                         "awaiting_upload", row("playbackUrl", "https://stream.example/manifest/video.m3u8")));
@@ -2398,7 +2399,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.browserScene("tplver_1")).thenReturn(browserScene);
         when(repository.mediaByRole("tplver_1", "browser_resource:video_background"))
                 .thenReturn(null);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "browser-video", "https://upload.example",
                         "awaiting_upload", new LinkedHashMap<String, Object>()));
@@ -2415,7 +2416,7 @@ class MusicMvTemplateCatalogServiceTest {
                 "tpl_1", "tplver_1", true, request);
 
         assertEquals("awaiting_upload", result.get("status"));
-        verify(mediaProvider).createStreamUpload(anyString(), any());
+        verify(mediaProvider).createTemplateVideoUpload(anyString(), any());
         verify(repository).upsertMedia(anyString(), eq("tpl_1"), eq("tplver_1"),
                 eq("browser_resource:video_background"), eq("cloudflare_stream"),
                 anyString(), anyString(), anyString(), any(Long.class), any(), any(), any(),
@@ -2429,7 +2430,7 @@ class MusicMvTemplateCatalogServiceTest {
                 .thenReturn(row("version_id", "tplver_1"));
         when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
                 .thenReturn(null);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "parity-reference", "https://upload.example",
                         "awaiting_upload", new LinkedHashMap<String, Object>()));
@@ -2463,7 +2464,7 @@ class MusicMvTemplateCatalogServiceTest {
                 .thenReturn(row("version_id", "tplver_1"));
         when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
                 .thenReturn(null);
-        when(mediaProvider.createStreamUpload(anyString(), any()))
+        when(mediaProvider.createTemplateVideoUpload(anyString(), any()))
                 .thenReturn(new CloudflareTemplateMediaProvider.UploadSession(
                         "cloudflare_stream", "native-reference", "https://upload.example",
                         "awaiting_upload", new LinkedHashMap<String, Object>()));
@@ -2646,7 +2647,7 @@ class MusicMvTemplateCatalogServiceTest {
                     () -> service.createMediaSession("tpl_1", "tplver_1", false, request)).getCode(), change);
         }
         verify(mediaProvider, never()).createImageUpload(anyString(), any());
-        verify(mediaProvider, never()).createStreamUpload(anyString(), any());
+        verify(mediaProvider, never()).createTemplateVideoUpload(anyString(), any());
         verify(repository, never()).markMediaReady(anyString(), anyString());
     }
 

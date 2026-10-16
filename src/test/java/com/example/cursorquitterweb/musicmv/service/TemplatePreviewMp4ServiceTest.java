@@ -14,8 +14,9 @@ class TemplatePreviewMp4ServiceTest {
     final MusicMvTemplateCatalogRepository repository=mock(MusicMvTemplateCatalogRepository.class);
     final R2StorageService r2=mock(R2StorageService.class);
     final MusicMvTemplateCatalogService catalog=mock(MusicMvTemplateCatalogService.class);
+    final CloudflareTemplateMediaProvider provider=mock(CloudflareTemplateMediaProvider.class);
     final TemplatePreviewMp4Service service=new TemplatePreviewMp4Service(repository,
-            new TemplatePreviewStorage(r2),mock(CloudflareTemplateMediaProvider.class),catalog,new ObjectMapper());
+            new TemplatePreviewStorage(r2),provider,catalog,new ObjectMapper());
     TemplatePreviewMp4Request request() {
         TemplatePreviewMp4Request r=new TemplatePreviewMp4Request();
         r.sourceMediaId="media_1"; r.sourceSha256=String.join("",Collections.nCopies(64,"a"));
@@ -60,5 +61,21 @@ class TemplatePreviewMp4ServiceTest {
         Map<String,Object> source=repository.mediaByRole("ver_1","browser_parity_reference");
         source.put("provider_details_json","{\"sourceType\":\"capcut_official_template_preview\"}");
         assertEquals("PREVIEW_SOURCE_NOT_READY",assertThrows(ApiException.class,()->service.upload("tpl_1","ver_1",r)).getCode());
+    }
+    @Test void acceptsR2SourceAndStillPublishesOnly720Preview() {
+        TemplatePreviewMp4Request r=request();
+        repository.mediaByRole("ver_1","browser_parity_reference").put("provider","cloudflare_r2");
+        assertNotNull(service.upload("tpl_1","ver_1",r).get("headers"));
+        r.width=1080;
+        assertEquals("PREVIEW_METADATA_INVALID",assertThrows(ApiException.class,()->service.upload("tpl_1","ver_1",r)).getCode());
+    }
+    @Test void sourceUsesR2DeliveryWithoutResolvingStream() {
+        request();
+        Map<String,Object> source=repository.mediaByRole("ver_1","browser_parity_reference");
+        source.put("provider","cloudflare_r2");source.put("provider_asset_id","source-key");
+        when(provider.resolveDeliveryDetails(eq("cloudflare_r2"),eq("source-key"),anyMap()))
+                .thenReturn(Collections.<String,Object>singletonMap("playbackUrl","https://r2.example/source.mp4"));
+        assertEquals("https://r2.example/source.mp4",service.source("tpl_1","ver_1").get("playbackUrl"));
+        verify(provider,never()).resolveDeliveryDetails(eq("cloudflare_stream"),anyString(),anyMap());
     }
 }
