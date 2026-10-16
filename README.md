@@ -56,3 +56,30 @@ mvn spring-boot:run
 - [GitHub 密钥扫描文档](https://docs.github.com/code-security/secret-scanning)
 - [阿里云访问密钥管理](https://help.aliyun.com/document_detail/53045.html)
 - [微信开发者平台](https://developers.weixin.qq.com/)
+### StoryAI 独立 R2 模板预览
+
+部署本版本后，模板列表和版本详情增加可空的 `previewMp4` 字段。原 `preview`、
+`full_mv`、`browser_parity_reference` 及 Stream 上传协议保持不变。
+新资源写入现有 `template_media` 表的独立 `preview_mp4` 角色，无需手工修改表结构。
+只有校验通过、且源视频身份仍匹配的 MP4 才返回给前端。
+
+后端环境变量：
+
+| 变量 | 配置 |
+| --- | --- |
+| `MUSIC_MV_PREVIEW_R2_ENDPOINT` | 对应账号的 `https://账号ID.r2.cloudflarestorage.com`，不含桶名 |
+| `MUSIC_MV_PREVIEW_R2_BUCKET` | `video-previews` |
+| `MUSIC_MV_PREVIEW_R2_PUBLIC_BASE_URL` | `https://video.musicvideomaker.net` |
+| `MUSIC_MV_PREVIEW_R2_ACCESS_KEY` | 对该桶有读写权限的 Access Key ID |
+| `MUSIC_MV_PREVIEW_R2_SECRET_KEY` | 对应 Secret Access Key |
+
+未设置专用 endpoint/凭据时兼容现有 `cloudflare.r2` 配置；生产部署应核对实际账号和
+桶权限。不要修改原 `music-mv.r2.bucket` 或 `cloudflare.r2.bucket`。
+自定义域名需已激活，桶 CORS 允许网站域名的 GET/HEAD、Range，并暴露 Content-Range、
+Content-Length、Accept-Ranges。MP4 上传带一年 immutable 缓存头，地址包含内容摘要。
+
+内部上传接口使用现有 `X-Music-Mv-Template-Sync-Token` 鉴权：
+`/internal/music-mv/v1/templates/{templateId}/versions/{versionId}/preview-mp4/`
+下的 `source`（GET）、`upload-session`（POST）、`complete`（POST）。
+先部署后端再部署前端，最后更新模板管理服务。历史补齐使用模板管理仓库的
+`scripts/backfill-template-previews.py`；部署本身不会自动批量迁移历史数据。

@@ -182,6 +182,19 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertTrue(client.sql.contains("status<>'ready'"));
     }
     @Test
+    void previewPublicationGuardsOriginalSourceAndNeverUpdatesStreamRows() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.publishPreviewMp4("t", "v", "source", "sourcehash", "preview.mp4", "hash", 100,
+                720, 1280, 30, "{}");
+        assertTrue(client.sql.contains("'preview_mp4','cloudflare_r2_preview'"));
+        assertTrue(client.sql.contains("source.source_sha256=? AND source.status='ready'"));
+        assertTrue(client.sql.contains("source.media_id=(SELECT media_id"));
+        assertTrue(client.sql.contains("ON CONFLICT(version_id,media_role)"));
+        assertEquals(placeholders(client.sql), client.params.size());
+    }
+
+    @Test
     void staleMediaCleanupIsLimitedToTargetTemplateAndVersion() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
@@ -189,7 +202,7 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertEquals(2, client.statements.size());
         assertTrue(client.statements.get(0).getSql().startsWith("INSERT OR IGNORE INTO template_media_cleanup"));
         for (D1Statement item : client.statements) {
-            assertTrue(item.getSql().contains("template_id=? AND version_id=? AND media_role NOT IN (?,?)"));
+            assertTrue(item.getSql().contains("template_id=? AND version_id=? AND media_role<>'preview_mp4' AND media_role NOT IN (?,?)"));
             assertEquals(placeholders(item.getSql()), item.getParams().size());
         }
     }

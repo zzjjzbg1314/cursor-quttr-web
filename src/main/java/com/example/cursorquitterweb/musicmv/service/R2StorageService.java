@@ -163,6 +163,11 @@ public class R2StorageService {
 
     public String presignedPutUrl(String objectKey, String contentType, long contentLength,
                                   Map<String, String> metadata, Duration expiresIn) {
+        return presignedPutUrl(objectKey, contentType, contentLength, metadata, null, expiresIn);
+    }
+
+    public String presignedPutUrl(String objectKey, String contentType, long contentLength,
+                                  Map<String, String> metadata, String cacheControl, Duration expiresIn) {
         String key = normalizeObjectKey(objectKey);
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
@@ -170,6 +175,7 @@ public class R2StorageService {
                 .contentType(contentType == null ? contentType(key) : contentType)
                 .contentLength(Long.valueOf(contentLength))
                 .metadata(metadata)
+                .cacheControl(cacheControl)
                 .build();
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(expiresIn)

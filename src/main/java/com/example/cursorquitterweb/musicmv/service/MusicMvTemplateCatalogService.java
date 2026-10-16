@@ -326,6 +326,7 @@ public class MusicMvTemplateCatalogService {
             List<Map<String, Object>> mediaViews = mediaViews(orEmpty(mediaByVersion.get(versionId)));
             version.put("slots", slotViews);
             version.put("media", mediaViews);
+            version.put("previewMp4", matchingPreviewMp4(mediaViews));
             Map<String, Object> browserScene = scenesByVersion.get(versionId);
             if (browserScene != null && (admin || "ready".equals(RowUtils.str(browserScene, "status")))) {
                 Map<String, Object> browserRender = browserSceneView(browserScene, admin);
@@ -2292,6 +2293,7 @@ public class MusicMvTemplateCatalogService {
         copy(result, "rendererVersion", row, "renderer_version");
         result.put("cover", providerMedia(row, "cover"));
         result.put("preview", providerMedia(row, "preview"));
+        result.put("previewMp4", providerMedia(row, "preview_mp4"));
         return result;
     }
 
@@ -2370,6 +2372,21 @@ public class MusicMvTemplateCatalogService {
             result.add(item);
         }
         return result;
+    }
+
+    private Map<String, Object> matchingPreviewMp4(List<Map<String, Object>> media) {
+        Map<String, Object> source = null;
+        Map<String, Object> mp4 = null;
+        for (Map<String, Object> item : media) {
+            if (!"ready".equals(item.get("status"))) continue;
+            if ("preview_mp4".equals(item.get("role"))) mp4 = item;
+            if ("full_mv".equals(item.get("role")) || (source == null
+                    && "browser_parity_reference".equals(item.get("role")))) source = item;
+        }
+        if (source == null || mp4 == null) return null;
+        Map<?, ?> details = (Map<?, ?>) mp4.get("providerDetails");
+        return java.util.Objects.equals(source.get("mediaId"), details.get("sourceMediaId"))
+                && java.util.Objects.equals(source.get("sourceSha256"), details.get("sourceSha256")) ? mp4 : null;
     }
 
     private List<Map<String, Object>> mediaViews(List<Map<String, Object>> rows) {

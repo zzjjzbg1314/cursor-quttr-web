@@ -39,6 +39,21 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    @Test
+    void previewMp4FollowsSelectedStreamIdentityAndRejectsStaleDerivatives() {
+        Map<String,Object> parity=featuredRow("role","browser_parity_reference","status","ready","mediaId","parity","sourceSha256","a");
+        Map<String,Object> full=featuredRow("role","full_mv","status","ready","mediaId","full","sourceSha256","b");
+        Map<String,Object> mp4=featuredRow("role","preview_mp4","status","ready","providerDetails",
+                featuredRow("sourceMediaId","parity","sourceSha256","a"));
+        assertEquals(mp4,org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(parity,mp4)));
+        org.junit.jupiter.api.Assertions.assertNull(org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(parity,mp4,full)));
+        parity.put("sourceSha256","changed");
+        org.junit.jupiter.api.Assertions.assertNull(org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(parity,mp4)));
+    }
+
     private Map<String,Object> nativeStickerScene() {
         Map<String,Object> scene = BrowserNativeStickerContractTest.scene(BrowserNativeStickerContractTest.source());
         scene.put("schemaVersion", "browser-template-scene-v4");

@@ -208,7 +208,9 @@ public class MusicMvTemplateCatalogRepository {
                 .append("cover.provider AS cover_provider, cover.provider_asset_id AS cover_asset_id, ")
                 .append("cover.provider_details_json AS cover_provider_details_json, ")
                 .append("preview.provider AS preview_provider, preview.provider_asset_id AS preview_asset_id, ")
-                .append("preview.provider_details_json AS preview_provider_details_json ")
+                .append("preview.provider_details_json AS preview_provider_details_json, ")
+                .append("mp4.provider AS preview_mp4_provider, mp4.provider_asset_id AS preview_mp4_asset_id, ")
+                .append("mp4.provider_details_json AS preview_mp4_provider_details_json ")
                 .append("FROM templates t ")
                 .append("LEFT JOIN template_translations req ON req.template_id=t.template_id AND req.locale=? ")
                 .append("LEFT JOIN template_translations en ON en.template_id=t.template_id AND en.locale='en' ")
@@ -223,6 +225,9 @@ public class MusicMvTemplateCatalogRepository {
                 .append("AND candidate.media_role IN ('full_mv','browser_parity_reference') ")
                 .append("ORDER BY CASE WHEN candidate.status='ready' THEN 0 ELSE 1 END, ")
                 .append("CASE WHEN candidate.media_role='full_mv' THEN 0 ELSE 1 END LIMIT 1) ")
+                .append("LEFT JOIN template_media mp4 ON mp4.version_id=t.current_version_id AND mp4.media_role='preview_mp4' ")
+                .append("AND mp4.status='ready' AND preview.status='ready' AND json_extract(mp4.provider_details_json,'$.sourceMediaId')=preview.media_id ")
+                .append("AND json_extract(mp4.provider_details_json,'$.sourceSha256')=preview.source_sha256 ")
                 .append("WHERE t.deleted_at IS NULL ");
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
@@ -605,7 +610,7 @@ public class MusicMvTemplateCatalogRepository {
         params.add(templateId);
         params.add(versionId);
         params.addAll(roles);
-        String predicate = "template_id=? AND version_id=? AND media_role NOT IN ("
+        String predicate = "template_id=? AND version_id=? AND media_role<>'preview_mp4' AND media_role NOT IN ("
                 + String.join(",", java.util.Collections.nCopies(roles.size(), "?")) + ")";
         d1.batch(Arrays.asList(statement(enqueueCleanup(predicate), params.toArray()),
                 statement("DELETE FROM template_media WHERE " + predicate, params.toArray())));
@@ -930,6 +935,28 @@ public class MusicMvTemplateCatalogRepository {
                 + "WHERE version_id=? AND template_id=?",
                 Integer.valueOf(slots.size()), versionId, templateId));
         d1.batch(statements);
+    }
+
+    /** 原素材身份未变时才写入衍生资源；不更新或清理 Stream 行。 */
+    public void publishPreviewMp4(String templateId, String versionId, String sourceMediaId,
+            String sourceSha, String objectKey, String sha, long size, int width, int height,
+            double duration, String details) {
+        d1.query("INSERT INTO template_media (media_id,template_id,version_id,media_role,provider,"
+                + "provider_asset_id,status,source_sha256,source_size_bytes,width,height,duration_seconds,"
+                + "provider_details_json,created_at,updated_at,ready_at) "
+                + "SELECT ?,?,?,'preview_mp4','cloudflare_r2_preview',?,'ready',?,?,?,?,?,?,"
+                + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM template_media source "
+                + "WHERE source.template_id=? AND source.version_id=? AND source.media_id=? "
+                + "AND source.source_sha256=? AND source.status='ready' "
+                + "AND source.media_id=(SELECT media_id FROM template_media WHERE version_id=? "
+                + "AND status='ready' AND media_role IN ('full_mv','browser_parity_reference') "
+                + "ORDER BY CASE media_role WHEN 'full_mv' THEN 0 ELSE 1 END LIMIT 1) "
+                + "ON CONFLICT(version_id,media_role) DO UPDATE SET provider_asset_id=excluded.provider_asset_id,"
+                + "source_sha256=excluded.source_sha256,source_size_bytes=excluded.source_size_bytes,"
+                + "width=excluded.width,height=excluded.height,duration_seconds=excluded.duration_seconds,"
+                + "provider_details_json=excluded.provider_details_json,status='ready',updated_at=CURRENT_TIMESTAMP",
+                "mp4_"+java.util.UUID.randomUUID().toString().replace("-",""),templateId,versionId,
+                objectKey,sha,size,width,height,duration,details,templateId,versionId,sourceMediaId,sourceSha,versionId);
     }
 
     public void upsertMedia(String mediaId, String templateId, String versionId, String role,

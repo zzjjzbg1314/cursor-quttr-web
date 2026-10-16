@@ -211,6 +211,13 @@ music-mv:
     account-id: ${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}
     database-id: ${MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID:}
     api-token: ${MUSIC_MV_CLOUDFLARE_D1_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
+  preview-r2:
+    endpoint: ${MUSIC_MV_PREVIEW_R2_ENDPOINT:${cloudflare.r2.endpoint:}}
+    bucket: ${MUSIC_MV_PREVIEW_R2_BUCKET:video-previews}
+    public-base-url: ${MUSIC_MV_PREVIEW_R2_PUBLIC_BASE_URL:https://video.musicvideomaker.net}
+    access-key: ${MUSIC_MV_PREVIEW_R2_ACCESS_KEY:${cloudflare.r2.access-key:}}
+    secret-key: ${MUSIC_MV_PREVIEW_R2_SECRET_KEY:${cloudflare.r2.secret-key:}}
+
   r2:
     account-id: ${MUSIC_MV_CLOUDFLARE_R2_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
     bucket: ${MUSIC_MV_CLOUDFLARE_R2_BUCKET:${MUSIC_MV_R2_BUCKET:}}
