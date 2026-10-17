@@ -2065,12 +2065,58 @@ public class MusicMvTemplateCatalogService {
                         true, details);
             }
         }
+        requirePublishablePreviewMp4(versionId);
         if (!repository.publish(templateId, versionId)) {
             invalidateDetail(templateId);
             throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");
         }
         invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
+    }
+
+    private void requirePublishablePreviewMp4(String versionId) {
+        Map<String, Object> preview = repository.mediaByRole(versionId, "preview_mp4");
+        if (!ready(preview)) {
+            throw conflict("TEMPLATE_PREVIEW_MP4_NOT_READY", "发布前必须完成 720p MP4 预览副本上传");
+        }
+        Map<String, Object> source = repository.mediaByRole(versionId, "full_mv");
+        if (!ready(source)) source = repository.mediaByRole(versionId, "browser_parity_reference");
+        Map<String, Object> details = parseObject(RowUtils.str(preview, "provider_details_json"));
+        if (details == null) details = Collections.emptyMap();
+        String sourceId = source == null ? null : RowUtils.str(source, "media_id");
+        String sourceHash = source == null ? null : RowUtils.str(source, "source_sha256");
+        if (!ready(source) || sourceId == null || sourceHash == null
+                || !sourceId.equals(details.get("sourceMediaId"))
+                || !sourceHash.equals(details.get("sourceSha256"))) {
+            throw conflict("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", "预览副本必须匹配当前版本的源视频，请重新生成副本");
+        }
+        Map<String, Object> sourceDetails = parseObject(RowUtils.str(source, "provider_details_json"));
+        if (sourceDetails == null) sourceDetails = Collections.emptyMap();
+        Integer width = RowUtils.integer(preview, "width");
+        Integer height = RowUtils.integer(preview, "height");
+        boolean validUrl = false;
+        try {
+            java.net.URI url = java.net.URI.create(String.valueOf(details.get("playbackUrl")));
+            validUrl = "https".equals(url.getScheme()) && url.getHost() != null
+                    && url.getUserInfo() == null && url.getPath().toLowerCase(java.util.Locale.ROOT).endsWith(".mp4");
+        } catch (IllegalArgumentException ignored) { }
+        boolean validDimensions = width != null && height != null && Math.min(width, height) >= 2
+                && Math.min(width, height) <= 720 && Math.max(width, height) <= 4096
+                && details.get("width") instanceof Number && details.get("height") instanceof Number
+                && width.doubleValue() == ((Number) details.get("width")).doubleValue()
+                && height.doubleValue() == ((Number) details.get("height")).doubleValue();
+        Integer sourceWidth = source == null ? null : RowUtils.integer(source, "width");
+        Integer sourceHeight = source == null ? null : RowUtils.integer(source, "height");
+        if (validDimensions && sourceWidth != null && sourceHeight != null && sourceWidth > 0 && sourceHeight > 0) {
+            validDimensions = Math.min(width, height) <= Math.min(sourceWidth, sourceHeight)
+                    && Math.abs((double) width / height / ((double) sourceWidth / sourceHeight) - 1) <= 0.02;
+        }
+        if (!"cloudflare_r2_preview".equals(RowUtils.str(preview, "provider"))
+                || !"mp4".equals(details.get("format")) || !validUrl || !validDimensions
+                || "capcut_official_template_preview".equals(sourceDetails.get("sourceType"))
+                || "capcut_official_template_preview".equals(details.get("sourceType"))) {
+            throw conflict("TEMPLATE_PREVIEW_MP4_INVALID", "预览副本必须为可访问的 MP4，短边不超过 720 且保持源视频比例");
+        }
     }
 
     public Map<String, Object> browserParity(String templateId, String versionId) {

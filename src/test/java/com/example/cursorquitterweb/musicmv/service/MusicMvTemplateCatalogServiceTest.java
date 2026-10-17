@@ -1255,6 +1255,7 @@ class MusicMvTemplateCatalogServiceTest {
         parity.put("reference_sha256", hash('d'));
         when(repository.browserParity("tplver_1")).thenReturn(parity);
 
+        stubPublishPreview();
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
         assertEquals("published", result.get("status"));
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "older"));
@@ -1267,6 +1268,92 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.publish("tpl_1", "tplver_1")).thenReturn(false);
         ApiException superseded = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_PUBLICATION_SUPERSEDED", superseded.getCode());
+    }
+
+    @Test
+    void directPublishCannotBypassPreviewGateAfterPassingVisualParity() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("validation_status", "browser_ready"));
+        when(repository.browserScene("tplver_1")).thenReturn(featuredRow("status", "ready", "manifest_sha256", hash('c')));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(featuredRow("status", "ready", "source_sha256", hash('d')));
+        when(repository.browserParity("tplver_1"))
+                .thenReturn(featuredRow("status", "passed", "scene_manifest_sha256", hash('c'), "reference_sha256", hash('d')));
+        ApiException missing = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+        assertEquals("TEMPLATE_PREVIEW_MP4_NOT_READY", missing.getCode());
+        Map<String, Object> preview = stubPublishPreview();
+        preview.put("provider_details_json", ((String) preview.get("provider_details_json")).replace(hash('d'), hash('a')));
+        ApiException stale = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+        assertEquals("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", stale.getCode());
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    private Map<String, Object> stubPublishPreview() {
+        Map<String, Object> source = row("status", "ready");
+        source.put("media_id", "source_1"); source.put("source_sha256", hash('d'));
+        source.put("width", 1920); source.put("height", 1080);
+        when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(source);
+        Map<String, Object> preview = row("status", "ready");
+        preview.put("provider", "cloudflare_r2_preview");
+        preview.put("width", 1280); preview.put("height", 720);
+        preview.put("provider_details_json", "{\"sourceMediaId\":\"source_1\",\"sourceSha256\":\"" + hash('d')
+                + "\",\"format\":\"mp4\",\"playbackUrl\":\"https://video.example.com/preview.mp4\",\"width\":1280,\"height\":720}");
+        when(repository.mediaByRole("tplver_1", "preview_mp4")).thenReturn(preview);
+        return preview;
+    }
+
+    @Test
+    void publicationGateRejectsMissingProcessingAndStalePreview() {
+        for (String status : Arrays.asList("missing", "processing", "failed")) {
+            Map<String, Object> preview = stubPublishPreview();
+            if ("missing".equals(status)) when(repository.mediaByRole("tplver_1", "preview_mp4")).thenReturn(null);
+            else preview.put("status", status);
+            ApiException error = assertThrows(ApiException.class, () ->
+                    org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1"));
+            assertEquals("TEMPLATE_PREVIEW_MP4_NOT_READY", error.getCode());
+        }
+        Map<String, Object> preview = stubPublishPreview();
+        preview.put("provider_details_json", ((String) preview.get("provider_details_json")).replace("source_1", "old_source"));
+        ApiException error = assertThrows(ApiException.class, () ->
+                org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1"));
+        assertEquals("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", error.getCode());
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
+    void publicationGateRejectsWrongFormatResolutionAndAspectRatio() {
+        for (String change : Arrays.asList("provider", "url", "format", "resolution", "ratio", "metadata", "research", "nonnumeric")) {
+            Map<String, Object> preview = stubPublishPreview();
+            String json = (String) preview.get("provider_details_json");
+            if ("provider".equals(change)) preview.put("provider", "cloudflare_r2");
+            if ("url".equals(change)) json = json.replace("https:", "http:");
+            if ("format".equals(change)) json = json.replace("mp4\",", "hls\",");
+            if ("resolution".equals(change)) { preview.put("width", 1920); preview.put("height", 1080); }
+            if ("ratio".equals(change)) { preview.put("width", 720); json = json.replace("1280", "720"); }
+            if ("metadata".equals(change)) json = json.replace("1280", "1278");
+            if ("nonnumeric".equals(change)) json = json.replace("1280", "\"invalid\"");
+            if ("research".equals(change)) json = json.replace("{", "{\"sourceType\":\"capcut_official_template_preview\",");
+            preview.put("provider_details_json", json);
+            ApiException error = assertThrows(ApiException.class, () ->
+                    org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1"));
+            assertEquals("TEMPLATE_PREVIEW_MP4_INVALID", error.getCode(), change);
+        }
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
+    void publicationGateAcceptsPortraitLowerResolutionAndReadyReferenceFallback() {
+        Map<String, Object> preview = stubPublishPreview();
+        Map<String, Object> source = row("status", "ready");
+        source.put("media_id", "source_1"); source.put("source_sha256", hash('d'));
+        when(repository.mediaByRole("tplver_1", "full_mv")).thenReturn(row("status", "processing"));
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference")).thenReturn(source);
+        for (int[] size : Arrays.asList(new int[]{720,1280}, new int[]{640,480})) {
+            preview.put("width", size[0]); preview.put("height", size[1]);
+            preview.put("provider_details_json", "{\"sourceMediaId\":\"source_1\",\"sourceSha256\":\"" + hash('d')
+                    + "\",\"format\":\"mp4\",\"playbackUrl\":\"https://video.example.com/preview.mp4\",\"width\":" + size[0] + ",\"height\":" + size[1] + "}");
+            org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1");
+        }
     }
 
     @Test
