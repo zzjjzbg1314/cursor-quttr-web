@@ -37,6 +37,6 @@ public class MusicBillingController {
     }
     private String owner(HttpServletRequest request) {
         clientAuth.requireAuthorized(request.getHeader("X-Music-Mv-Client-Token"));
-        return auth.requireUserId(request);
+        return auth.requireFreshUserId(request);
     }
 }

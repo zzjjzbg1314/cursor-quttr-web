@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.Cookie;
@@ -18,6 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,12 +48,22 @@ public class MusicMvAuthService {
     private final int sessionDays;
     private static final String LEGACY_ACCESS_COOKIE = "music_mv_access";
 
+    private final ConcurrentHashMap<String, CompletableFuture<Map<String, Object>>> renewing = new ConcurrentHashMap<>();
+    private final MusicMvAccessTokenService accessTokens;
+
+    public MusicMvAuthService(MusicMvAuthRepository repository, MusicMvOidcIdentityService oidc, int sessionDays) {
+        this(repository, oidc, sessionDays, new MusicMvAccessTokenService(""));
+    }
+
+    @Autowired
     public MusicMvAuthService(MusicMvAuthRepository repository,
                               MusicMvOidcIdentityService oidc,
-                              @Value("${music-mv.auth.session-days:30}") int sessionDays) {
+                              @Value("${music-mv.auth.session-days:30}") int sessionDays,
+                              MusicMvAccessTokenService accessTokens) {
         this.repository = repository;
         this.oidc = oidc;
         this.sessionDays = Math.max(1, Math.min(sessionDays, 90));
+        this.accessTokens = accessTokens;
     }
 
     public Map<String, Object> providers() {
@@ -81,15 +98,17 @@ public class MusicMvAuthService {
         }
         setSessionCookie(response, rawSessionToken, request, sessionDays * 24 * 60 * 60);
         setCookie(response, LEGACY_ACCESS_COOKIE, "", request, 0);
+        issueAccess(current, rawSessionToken, request, response);
         return sessionView(current);
     }
 
     public Map<String, Object> currentSession(HttpServletRequest request, HttpServletResponse servletResponse) {
-        Map<String, Object> user = sessionUser(request);
+        Map<String, Object> user = databaseSessionUser(request);
         if (user == null) {
             Map<String, Object> response = new LinkedHashMap<String, Object>();
             response.put("authenticated", Boolean.FALSE);
             response.put("user", null);
+            setCookie(servletResponse, MusicMvAccessTokenService.COOKIE, "", request, 0);
             if (cookie(request, SESSION_COOKIE) != null) response.put("reason", "session_ended");
             setCookie(servletResponse, LEGACY_ACCESS_COOKIE, "", request, 0);
             return response;
@@ -98,6 +117,7 @@ public class MusicMvAuthService {
             repository.touchSession(RowUtils.str(user, "session_id"));
         }
         setCookie(servletResponse, LEGACY_ACCESS_COOKIE, "", request, 0);
+        issueAccess(user, cookie(request, SESSION_COOKIE), request, servletResponse);
         return sessionView(user);
     }
 
@@ -105,7 +125,7 @@ public class MusicMvAuthService {
         Map<String, Object> user = sessionUser(request);
         String userId = user == null ? null : RowUtils.str(user, "user_id");
         if (userId != null) return userId;
-        if (cookie(request, SESSION_COOKIE) != null || cookie(request, LEGACY_ACCESS_COOKIE) != null) throw loginRequired();
+        if (cookie(request, SESSION_COOKIE) != null || cookie(request, LEGACY_ACCESS_COOKIE) != null || cookie(request, MusicMvAccessTokenService.COOKIE) != null) throw loginRequired();
         String clientId = validatedAnonymousClientId(suppliedClientId, true);
         if (clientId.startsWith("usr_")) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "MUSIC_MV_LOGIN_REQUIRED",
@@ -114,7 +134,7 @@ public class MusicMvAuthService {
         return clientId;
     }
 
-    /** 受保护接口逐次验证服务端会话，不能使用浏览器提供的工作区标识。 */
+    /** 普通读取本地验签；写操作实时校验会话，不能信任浏览器工作区标识。 */
     public String requireUserId(HttpServletRequest request) {
         Map<String, Object> user = sessionUser(request);
         String userId = user == null ? null : RowUtils.str(user, "user_id");
@@ -132,16 +152,95 @@ public class MusicMvAuthService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
+        setCookie(response, MusicMvAccessTokenService.COOKIE, "", request, 0);
         String token = cookie(request, SESSION_COOKIE);
         if (token != null) repository.revokeSession(sha256(token));
         setSessionCookie(response, "", request, 0);
         setCookie(response, LEGACY_ACCESS_COOKIE, "", request, 0);
     }
 
+    public String requireFreshUserId(HttpServletRequest request) {
+        markPrivateResponse();
+        Map<String, Object> user = databaseSessionUser(request);
+        String id = user == null ? null : RowUtils.str(user, "user_id");
+        if (id == null) throw loginRequired();
+        return id;
+    }
+
     private Map<String, Object> sessionUser(HttpServletRequest request) {
+        markPrivateResponse();
+        String token = cookie(request, SESSION_COOKIE);
+        if (token == null || token.length() < 32 || token.length() > 256) return null;
+        boolean read = "GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod());
+        if (read) {
+            String id = accessTokens.verify(cookie(request, MusicMvAccessTokenService.COOKIE), sha256(token));
+            if (id != null) {
+                Map<String, Object> user = new LinkedHashMap<String, Object>();
+                user.put("user_id", id);
+                return user;
+            }
+        }
+        Map<String, Object> user = read ? renewSession(token) : databaseSessionUser(request);
+        RequestAttributes attributes =
+                RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes) {
+            HttpServletResponse response = ((ServletRequestAttributes) attributes).getResponse();
+            if (response != null) {
+                response.setHeader("Cache-Control", "no-store");
+                if (user != null) issueAccess(user, token, request, response);
+                else setCookie(response, MusicMvAccessTokenService.COOKIE, "", request, 0);
+            }
+        }
+        return user;
+    }
+
+    // 仅合并同一进程内正在进行的续期查询，不缓存结果或延迟敏感操作的撤销检查。
+    private Map<String, Object> renewSession(String token) {
+        String hash = sha256(token);
+        if (renewing.size() >= 1024) return repository.findBySessionTokenHash(hash);
+        CompletableFuture<Map<String, Object>> pending = new CompletableFuture<>();
+        CompletableFuture<Map<String, Object>> existing = renewing.putIfAbsent(hash, pending);
+        if (existing != null) {
+            try { return existing.join(); }
+            catch (CompletionException exception) {
+                if (exception.getCause() instanceof RuntimeException) throw (RuntimeException) exception.getCause();
+                throw exception;
+            }
+        }
+        try {
+            Map<String, Object> user = repository.findBySessionTokenHash(hash);
+            pending.complete(user);
+            return user;
+        } catch (RuntimeException | Error exception) {
+            pending.completeExceptionally(exception);
+            throw exception;
+        } finally {
+            renewing.remove(hash, pending);
+        }
+    }
+
+    private void markPrivateResponse() {
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes) {
+            HttpServletResponse response = ((ServletRequestAttributes) attributes).getResponse();
+            if (response != null) response.setHeader("Cache-Control", "no-store");
+        }
+    }
+
+    private Map<String, Object> databaseSessionUser(HttpServletRequest request) {
         String token = cookie(request, SESSION_COOKIE);
         if (token == null || token.length() < 32 || token.length() > 256) return null;
         return repository.findBySessionTokenHash(sha256(token));
+    }
+
+    private void issueAccess(Map<String, Object> user, String sessionToken,
+                             HttpServletRequest request, HttpServletResponse response) {
+        String expiresAt = RowUtils.str(user, "expires_at");
+        if (sessionToken == null || expiresAt == null) return;
+        long expiry = LocalDateTime.parse(expiresAt.replace(' ', 'T')).toEpochSecond(ZoneOffset.UTC);
+        String access = accessTokens.issue(RowUtils.str(user, "user_id"), sha256(sessionToken), expiry);
+        if (access != null) setCookie(response, MusicMvAccessTokenService.COOKIE, access, request,
+                Math.min(MusicMvAccessTokenService.TTL_SECONDS, Math.max(0, expiry - Instant.now().getEpochSecond())));
     }
 
     private Map<String, Object> sessionView(Map<String, Object> user) {

@@ -31,7 +31,7 @@ class BillingScenarioHttpRegressionTest {
     @ParameterizedTest(name="B01 protectedEndpoint={0}")
     @ValueSource(strings={"credits","history","usage","status","checkout","portal","welcome-notice/ack"})
     void everyProtectedEndpointRequiresUser(String endpoint) throws Exception {
-        when(auth.requireUserId(any())).thenThrow(new ApiException(HttpStatus.UNAUTHORIZED,"AUTH_REQUIRED","Sign in"));
+        when(auth.requireFreshUserId(any())).thenThrow(new ApiException(HttpStatus.UNAUTHORIZED,"AUTH_REQUIRED","Sign in"));
         mvc.perform(request(endpoint)).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("AUTH_REQUIRED"));
         verifyNoInteractions(billing);
     }
@@ -64,7 +64,7 @@ class BillingScenarioHttpRegressionTest {
     }
 
     @Test void B04_allReadAndManagementOperationsUseAuthenticatedOwner() throws Exception {
-        when(auth.requireUserId(any())).thenReturn("owner");
+        when(auth.requireFreshUserId(any())).thenReturn("owner");
         mvc.perform(get(base("credits")).param("userId","attacker")).andExpect(status().isOk());
         mvc.perform(get(base("history")).param("userId","attacker")).andExpect(status().isOk());
         mvc.perform(get(base("usage")).param("userId","attacker")).andExpect(status().isOk());
@@ -85,7 +85,7 @@ class BillingScenarioHttpRegressionTest {
     @ParameterizedTest
     @ValueSource(ints={400,401,404,409,402,502,503})
     void B11_apiErrorPreservesStatusCodeRetryabilityAndDetails(int code) throws Exception {
-        when(auth.requireUserId(any())).thenReturn("u");
+        when(auth.requireFreshUserId(any())).thenReturn("u");
         when(billing.status("u",null)).thenThrow(new ApiException(HttpStatus.valueOf(code),
             "BILLING_FIXTURE","Safe message",true,map("reference","fixture")));
         mvc.perform(get(base("status"))).andExpect(status().is(code))
@@ -95,7 +95,7 @@ class BillingScenarioHttpRegressionTest {
     }
 
     @Test void B11_unexpectedDatabaseErrorReturnsSafeRetryableResponse() throws Exception {
-        when(auth.requireUserId(any())).thenReturn("u");
+        when(auth.requireFreshUserId(any())).thenReturn("u");
         when(billing.status("u",null)).thenThrow(new IllegalStateException("fixture-private-database-info"));
         mvc.perform(get(base("status"))).andExpect(status().isServiceUnavailable())
             .andExpect(jsonPath("$.code").value("BILLING_UNAVAILABLE"))

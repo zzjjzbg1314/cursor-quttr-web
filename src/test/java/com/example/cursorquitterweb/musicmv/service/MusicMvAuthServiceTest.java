@@ -217,7 +217,7 @@ class MusicMvAuthServiceTest {
         org.mockito.Mockito.verify(repository, org.mockito.Mockito.atLeastOnce()).findBySessionTokenHash(anyString());
         request.setCookies(new javax.servlet.http.Cookie(MusicMvAuthService.SESSION_COOKIE, "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"));
         org.springframework.mock.web.MockHttpServletResponse cleared = response(); service.logout(request, cleared);
-        assertEquals(2, cleared.getHeaders("Set-Cookie").size());
+        assertEquals(3, cleared.getHeaders("Set-Cookie").size());
         for (String value : cleared.getHeaders("Set-Cookie")) org.junit.jupiter.api.Assertions.assertTrue(value.contains("Max-Age=0"));
         when(repository.findBySessionTokenHash(anyString())).thenReturn(null);
         assertEquals(Boolean.FALSE, service.currentSession(request, response()).get("authenticated"));
