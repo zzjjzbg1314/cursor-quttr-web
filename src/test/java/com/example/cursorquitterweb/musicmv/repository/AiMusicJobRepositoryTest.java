@@ -166,6 +166,81 @@ class AiMusicJobRepositoryTest {
         assertThat(d1.batchStatements.get(2).getSql()).contains("selected_candidate_id");
     }
 
+    @Test
+    void newJobsEnrollAtomicallyAndHistoryNeverEntersSyncQueue() throws Exception {
+        CapturingD1 d1=new CapturingD1(); AiMusicJobRepository repo=new AiMusicJobRepository(d1);
+        repo.create("new","owner","req","sunoapi","fp","{}");
+        assertThat(d1.batchStatements).hasSize(2);
+        List<Map<String,Object>> statements=new ArrayList<>();
+        for(D1Statement stmt:d1.batchStatements) {
+            Map<String,Object> value=new java.util.LinkedHashMap<>();
+            value.put("sql",stmt.getSql());value.put("params",stmt.getParams());statements.add(value);
+        }
+        repo.pendingSongSync();statements.add(captured(d1));
+        repo.claimSongSync("new","lease");statements.add(captured(d1));
+        repo.finishSongSync("new","wrong-lease",true);statements.add(captured(d1));
+        repo.finishSongSync("new","lease",false);statements.add(captured(d1));
+        repo.finishSongSync("new","lease",true);statements.add(captured(d1));
+        String script=String.join("\n",
+                "import sqlite3,json,sys,pathlib",
+                "db=sqlite3.connect(':memory:')",
+                "db.executescript(pathlib.Path('src/main/resources/db/music-mv-d1-schema.sql').read_text())",
+                "statements=json.loads(sys.argv[1])",
+                "def run(i): return db.execute(statements[i]['sql'],statements[i]['params']).fetchall()",
+                "run(0);run(1)",
+                "db.execute(\"INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,request_fingerprint,request_json,created_at,updated_at) VALUES('historical','owner','owner','old','completed','done','sunoapi','fp','{}',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)\")",
+                "assert run(2)==[]",
+                "db.execute(\"UPDATE ai_music_jobs SET status='completed' WHERE job_id='new'\")",
+                "assert [r[0] for r in run(2)]==['new']",
+                "assert run(3)==[('new',)]; assert run(3)==[]; assert run(2)==[]",
+                "run(4);assert db.execute(\"SELECT status,lease_token FROM ai_music_song_sync\").fetchone()==('pending','lease')",
+                "run(5);assert run(2)==[]",
+                "db.execute(\"UPDATE ai_music_song_sync SET retry_at='2000-01-01'\")",
+                "assert run(3)==[('new',)]",
+                "db.execute(\"UPDATE ai_music_song_sync SET lease_until='2000-01-01'\")",
+                "assert run(3)==[('new',)]",
+                "run(6);assert run(2)==[]",
+                "assert db.execute('SELECT COUNT(*) FROM ai_music_song_sync').fetchone()[0]==1");
+        runSqlite(script,statements);
+    }
+
+    @Test
+    void repeatedProviderCallbackPreservesArchivedAudioCoverAndBothLyricFormats() throws Exception {
+        CapturingD1 d1=new CapturingD1();AiMusicJobRepository repo=new AiMusicJobRepository(d1);
+        List<Map<String,Object>> statements=new ArrayList<>();
+        repo.upsertCandidate("song","job","attempt","sunoapi","task","audio","Title","lyrics","pop",4.0,
+                "https://provider/audio","https://provider/stream","https://provider/image","{\"title\":\"updated\"}");
+        statements.add(captured(d1));
+        repo.markCandidateStored("song","songs/song/audio.mp3","https://video/audio","sha",4,"song.mp3","audio/mpeg");statements.add(captured(d1));
+        repo.saveSongCover("song","https://video/cover");statements.add(captured(d1));
+        repo.saveAlignedWords("owner","song","[{\"word\":\"Hello\"}]");statements.add(captured(d1));
+        repo.saveAlignedLyrics("owner","song","{\"cues\":[]}");statements.add(captured(d1));
+        repo.candidates("job");statements.add(captured(d1));
+        String script=String.join("\n",
+                "import sqlite3,json,sys,pathlib",
+                "db=sqlite3.connect(':memory:')",
+                "db.executescript(pathlib.Path('src/main/resources/db/music-mv-d1-schema.sql').read_text())",
+                "db.execute(\"INSERT INTO ai_music_jobs(job_id,user_id,client_id,request_id,status,stage,primary_provider_code,request_fingerprint,request_json,created_at,updated_at) VALUES('job','owner','owner','req','completed','done','sunoapi','fp','{}',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)\")",
+                "statements=json.loads(sys.argv[1])",
+                "def run(i): return db.execute(statements[i]['sql'],statements[i]['params']).fetchall()",
+                "for i in range(5): run(i)",
+                "run(0)",
+                "row=db.execute('SELECT status,storage_url,raw_json FROM ai_music_candidates').fetchone()",
+                "assert row[:2]==('stored','https://video/audio')",
+                "raw=json.loads(row[2]);assert raw['storyaiCoverUrl']=='https://video/cover'",
+                "assert raw['storyaiAlignedWordsV1']==[{'word':'Hello'}] and raw['storyaiLyricsTimelineV1']=={'cues':[]}",
+                "assert 'https://video/cover' in run(5)[0]");
+        runSqlite(script,statements);
+    }
+
+    private void runSqlite(String script,List<Map<String,Object>> statements) throws Exception {
+        Process process=new ProcessBuilder("python3","-c",script.replace("statements=json.loads(sys.argv[1])", "db.executescript(sys.argv[2]);statements=json.loads(sys.argv[1])"),new ObjectMapper().writeValueAsString(statements),AiMusicJobRepository.SONG_SYNC_SCHEMA)
+                .redirectErrorStream(true).start();
+        assertThat(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        String output=new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(process.exitValue()).withFailMessage(output).isZero();
+    }
+
     private static class CapturingD1 extends D1DatabaseClient {
         private String sql;
         private List<Object> params = new ArrayList<Object>();

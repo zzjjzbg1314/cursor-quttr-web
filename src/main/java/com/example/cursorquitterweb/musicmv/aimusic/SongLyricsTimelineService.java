@@ -23,6 +23,12 @@ public class SongLyricsTimelineService {
         Arrays.setAll(locks, i -> new Object());
     }
     public Map<String,Object> get(String owner, String candidateId) {
+        return get(owner, candidateId, false);
+    }
+    public Map<String,Object> synchronize(String owner, String candidateId) {
+        return get(owner, candidateId, true);
+    }
+    private Map<String,Object> get(String owner, String candidateId, boolean retainWords) {
         synchronized (locks[Math.floorMod(Objects.hash(owner,candidateId), locks.length)]) {
             Map<String,Object> row=repository.ownedLyricsCandidate(owner,candidateId);
             if(row==null || row.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND,"SONG_NOT_FOUND","Song not found");
@@ -32,11 +38,22 @@ public class SongLyricsTimelineService {
                 JsonNode raw=mapper.readTree(Optional.ofNullable(RowUtils.str(row,"raw_json")).orElse("{}"));
                 JsonNode cached=raw==null?null:raw.get("storyaiLyricsTimelineV1");
                 if(cached!=null && candidateId.equals(cached.path("candidateId").asText())
-                        && "provider-lines-v1".equals(cached.path("cueGrouping").asText()))
+                        && "provider-lines-v1".equals(cached.path("cueGrouping").asText())
+                        && (!retainWords || raw.has("storyaiAlignedWordsV1")))
                     return mapper.convertValue(cached,Map.class);
-                Map<String,Object> response=providers.require(RowUtils.str(row,"provider_code")).timestampedLyrics(
-                        RowUtils.str(row,"provider_task_id"),RowUtils.str(row,"provider_audio_id"));
+                Map<String,Object> response;
+                if (raw != null && raw.has("storyaiAlignedWordsV1")) {
+                    response = new LinkedHashMap<>(); response.put("code", 200);
+                    response.put("data", Collections.singletonMap("alignedWords", raw.get("storyaiAlignedWordsV1")));
+                } else {
+                    response=providers.require(RowUtils.str(row,"provider_code")).timestampedLyrics(
+                            RowUtils.str(row,"provider_task_id"),RowUtils.str(row,"provider_audio_id"));
+                }
                 Map<String,Object> result=normalize(candidateId,mapper.valueToTree(response));
+                // 只缓存通过校验的完整时间数据，避免服务商暂未就绪的空结果阻断后续重试。
+                if (raw == null || !raw.has("storyaiAlignedWordsV1"))
+                    repository.saveAlignedWords(owner,candidateId,mapper.writeValueAsString(
+                            mapper.valueToTree(response).path("data").path("alignedWords")));
                 repository.saveAlignedLyrics(owner,candidateId,mapper.writeValueAsString(result));
                 return result;
             } catch(ApiException e) {throw e;}

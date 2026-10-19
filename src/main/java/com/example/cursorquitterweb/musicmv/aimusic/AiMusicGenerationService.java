@@ -582,8 +582,8 @@ public class AiMusicGenerationService {
             value.put("durationSeconds", RowUtils.dbl(row, "duration_seconds"));
             value.put("audioUrl", first(RowUtils.str(row, "storage_url"),
                     RowUtils.str(row, "provider_audio_url")));
-            value.put("streamUrl", RowUtils.str(row, "provider_stream_url"));
-            value.put("imageUrl", RowUtils.str(row, "provider_image_url"));
+            value.put("streamUrl", first(RowUtils.str(row, "storage_url"), RowUtils.str(row, "provider_stream_url")));
+            value.put("imageUrl", first(RowUtils.str(row, "stored_image_url"), RowUtils.str(row, "provider_image_url")));
             value.put("selected", Boolean.valueOf(RowUtils.bool(row, "selected")));
             value.put("createdAt", RowUtils.str(row, "created_at"));
             value.put("updatedAt", RowUtils.str(row, "updated_at"));

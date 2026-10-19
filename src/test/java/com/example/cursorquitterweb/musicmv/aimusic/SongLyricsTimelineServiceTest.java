@@ -100,6 +100,40 @@ class SongLyricsTimelineServiceTest {
         when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);when(providers.require("sunoapi")).thenReturn(provider);
         when(provider.timestampedLyrics("task","audio")).thenReturn(mapper.readValue("{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"新词\",\"startS\":1,\"endS\":2,\"success\":true}]}}",Map.class));
         assertEquals("s",new SongLyricsTimelineService(repo,providers,mapper).get("u","s").get("candidateId"));
-        verify(repo).saveAlignedLyrics(eq("u"),eq("s"),contains("startSeconds"));verify(provider).timestampedLyrics("task","audio");
+        verify(repo).saveAlignedWords(eq("u"),eq("s"),contains("新词"));verify(repo).saveAlignedLyrics(eq("u"),eq("s"),contains("startSeconds"));verify(provider).timestampedLyrics("task","audio");
+    }
+    @Test void rawWordCacheBuildsTimelineWithoutCallingProvider() throws Exception {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        Map<String,Object> row=new HashMap<>();row.put("provider_code","sunoapi");
+        row.put("raw_json","{\"storyaiAlignedWordsV1\":[{\"word\":\"你好\",\"startS\":1,\"endS\":2,\"success\":true}]}");
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+        Map<String,Object> result=new SongLyricsTimelineService(repo,providers,mapper).synchronize("u","s");
+        assertEquals("s",result.get("candidateId"));
+        org.mockito.Mockito.verifyNoInteractions(providers);
+        verify(repo).saveAlignedLyrics(eq("u"),eq("s"),contains("你好"));
+    }
+    @Test void synchronizedLyricsReuseBothCachedFormats() throws Exception {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        Map<String,Object> row=new HashMap<>();row.put("provider_code","sunoapi");
+        row.put("raw_json","{\"storyaiAlignedWordsV1\":[{\"word\":\"你好\",\"startS\":1,\"endS\":2,\"success\":true}],\"storyaiLyricsTimelineV1\":{\"candidateId\":\"s\",\"cueGrouping\":\"provider-lines-v1\",\"cues\":[]}}");
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+        assertEquals("s",new SongLyricsTimelineService(repo,providers,mapper).synchronize("u","s").get("candidateId"));
+        org.mockito.Mockito.verifyNoInteractions(providers);
+        verify(repo,org.mockito.Mockito.never()).saveAlignedWords(anyString(),anyString(),anyString());
+        verify(repo,org.mockito.Mockito.never()).saveAlignedLyrics(anyString(),anyString(),anyString());
+    }
+    @Test void notReadyProviderWordsAreNotCachedAndCanBeRetried() throws Exception {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        AiMusicProvider provider=mock(AiMusicProvider.class);
+        Map<String,Object> row=new HashMap<>();row.put("raw_json","{}");row.put("provider_code","sunoapi");row.put("provider_task_id","task");row.put("provider_audio_id","audio");
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);when(providers.require("sunoapi")).thenReturn(provider);
+        when(provider.timestampedLyrics("task","audio"))
+                .thenReturn(mapper.readValue("{\"code\":200,\"data\":{\"alignedWords\":[]}}",Map.class))
+                .thenReturn(mapper.readValue("{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"Hello\",\"startS\":1,\"endS\":2,\"success\":true}]}}",Map.class));
+        SongLyricsTimelineService service=new SongLyricsTimelineService(repo,providers,mapper);
+        assertThrows(ApiException.class,()->service.synchronize("u","s"));
+        verify(repo,never()).saveAlignedWords(anyString(),anyString(),anyString());
+        assertEquals("s",service.synchronize("u","s").get("candidateId"));
+        verify(repo).saveAlignedWords(eq("u"),eq("s"),contains("Hello"));
     }
 }

@@ -24,6 +24,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    @SuppressWarnings("unchecked")
+    void libraryUsesArchivedAudioForPlaybackAndArchivedCover() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        AiMusicProvider provider=mock(AiMusicProvider.class);when(provider.providerCode()).thenReturn("sunoapi");
+        Map<String,Object> row=new LinkedHashMap<>();row.put("candidate_id","song");
+        row.put("provider_audio_url","https://provider/audio");row.put("provider_stream_url","https://provider/stream");
+        row.put("provider_image_url","https://provider/cover");row.put("storage_url","https://video/audio");
+        row.put("stored_image_url","https://video/cover");row.put("storage_sha256","sha");
+        AiMusicGenerationService service=syncService(repo,provider);
+        try {
+            List<Map<String,Object>> result=org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                    "candidateViews",Collections.singletonList(row));
+            assertThat(result.get(0).get("audioUrl")).isEqualTo("https://video/audio");
+            assertThat(result.get(0).get("streamUrl")).isEqualTo("https://video/audio");
+            assertThat(result.get(0).get("imageUrl")).isEqualTo("https://video/cover");
+            assertThat(((Map<String,Object>)result.get(0).get("renderMusicAsset")).get("url")).isEqualTo("https://video/audio");
+        } finally {service.close();}
+    }
+
+    @Test
     void quotaRejectionHappensBeforeAnyPaidProviderSubmission() {
         AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
         AiMusicProvider provider = mock(AiMusicProvider.class);

@@ -36,6 +36,8 @@ public class AiMusicCandidateStorageService {
     private final AiMusicJobRepository repository;
     private final MusicMvInputAssetStorageService storage;
     private final RestTemplate restTemplate;
+    @Autowired(required = false)
+    private SongArchiveStorageService songArchive;
 
     @Autowired
     public AiMusicCandidateStorageService(AiMusicJobRepository repository,
@@ -53,6 +55,23 @@ public class AiMusicCandidateStorageService {
 
     public void materialize(String clientId, Map<String, Object> candidate,
                             String requestBaseUrl) {
+        if (songArchive != null && songArchive.isArchived(candidate)) {
+            Map<String,Object> owned = repository.ownedCandidate(clientId, RowUtils.str(candidate,"candidate_id"));
+            if (owned == null || !songArchive.isArchived(owned))
+                throw new ApiException(HttpStatus.NOT_FOUND,"AI_MUSIC_CANDIDATE_NOT_FOUND","Song not found");
+            return;
+        }
+        if (songArchive != null && repository.isSongSyncRegistered(RowUtils.str(candidate,"job_id"))) {
+            Map<String,Object> owned = repository.ownedCandidate(clientId, RowUtils.str(candidate,"candidate_id"));
+            if (owned == null)
+                throw new ApiException(HttpStatus.NOT_FOUND,"AI_MUSIC_CANDIDATE_NOT_FOUND","Song not found");
+            try { songArchive.audio(owned); }
+            catch (RuntimeException e) {
+                throw new ApiException(HttpStatus.BAD_GATEWAY,"AI_MUSIC_AUDIO_PERSIST_FAILED",
+                        "Unable to persist the selected generated song",true,null);
+            }
+            return;
+        }
         if (hasStoredAsset(candidate)) {
             try {
                 storage.requireOwnedAsset(clientId, storedAsset(candidate), "music");
@@ -117,7 +136,7 @@ public class AiMusicCandidateStorageService {
         return output.toByteArray();
     }
 
-    private void requireSafeProviderUrl(String value) {
+    static void requireSafeProviderUrl(String value) {
         try {
             URI uri = URI.create(value);
             if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
@@ -175,7 +194,7 @@ public class AiMusicCandidateStorageService {
                 || "MV_INPUT_ASSET_URL_INVALID".equals(code);
     }
 
-    private static RestTemplate downloadClient() {
+    static RestTemplate downloadClient() {
         RequestConfig config = RequestConfig.custom().setConnectTimeout(15000)
                 .setConnectionRequestTimeout(15000).setSocketTimeout(120000).build();
         CloseableHttpClient client = HttpClients.custom().setDefaultRequestConfig(config)

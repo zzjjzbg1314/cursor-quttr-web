@@ -20,6 +20,7 @@ public class AiMusicJobRepository {
             + "request_json,error_code,error_message,retryable,created_at,updated_at,completed_at,provider_synced_at,status_refresh_at,status_refresh_until,status_refresh_token";
 
     private final D1DatabaseClient d1;
+    private volatile boolean songSyncSchemaReady;
 
     public AiMusicJobRepository(D1DatabaseClient d1) {
         this.d1 = d1;
@@ -42,10 +43,13 @@ public class AiMusicJobRepository {
 
     public void create(String jobId, String userId, String requestId, String providerCode,
                        String fingerprint, String requestJson) {
-        d1.query("INSERT INTO ai_music_jobs (job_id,user_id,client_id,request_id,status,stage,progress,"
+        ensureSongSyncSchema();
+        // 新任务和同步登记一起落库，不扫描或补登历史歌曲。
+        d1.batch(Arrays.asList(D1Statement.of("INSERT INTO ai_music_jobs (job_id,user_id,client_id,request_id,status,stage,progress,"
                         + "primary_provider_code,request_fingerprint,request_json,retryable,created_at,updated_at) "
                         + "VALUES (?,?,?,?,'submitting','provider_submission',0,?,?,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
-                jobId, userId, userId, requestId, providerCode, fingerprint, requestJson);
+                jobId, userId, userId, requestId, providerCode, fingerprint, requestJson),
+                D1Statement.of("INSERT INTO ai_music_song_sync(job_id) VALUES (?)", jobId)));
     }
 
     public void createAttempt(String attemptId, String jobId, String providerCode,
@@ -184,10 +188,10 @@ public class AiMusicJobRepository {
                         + "provider_audio_url,provider_stream_url,provider_image_url,raw_json,created_at,updated_at) "
                         + "VALUES (?,?,?,?,?,?,'ready',?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
                         + "ON CONFLICT(provider_code,provider_task_id,provider_audio_id) DO UPDATE SET "
-                        + "status='ready',title=COALESCE(NULLIF(excluded.title,''),ai_music_candidates.title),lyrics=COALESCE(NULLIF(excluded.lyrics,''),ai_music_candidates.lyrics),style=COALESCE(NULLIF(excluded.style,''),ai_music_candidates.style),"
+                        + "status=CASE WHEN ai_music_candidates.storage_url IS NOT NULL THEN 'stored' ELSE 'ready' END,title=COALESCE(NULLIF(excluded.title,''),ai_music_candidates.title),lyrics=COALESCE(NULLIF(excluded.lyrics,''),ai_music_candidates.lyrics),style=COALESCE(NULLIF(excluded.style,''),ai_music_candidates.style),"
                         + "duration_seconds=COALESCE(excluded.duration_seconds,ai_music_candidates.duration_seconds),provider_audio_url=COALESCE(NULLIF(excluded.provider_audio_url,''),ai_music_candidates.provider_audio_url),"
                         + "provider_stream_url=COALESCE(NULLIF(excluded.provider_stream_url,''),ai_music_candidates.provider_stream_url),provider_image_url=COALESCE(NULLIF(excluded.provider_image_url,''),ai_music_candidates.provider_image_url),"
-                        + "raw_json=excluded.raw_json,updated_at=CURRENT_TIMESTAMP",
+                        + "raw_json=json_patch(CASE WHEN json_valid(ai_music_candidates.raw_json) THEN ai_music_candidates.raw_json ELSE '{}' END,CASE WHEN json_valid(excluded.raw_json) THEN excluded.raw_json ELSE '{}' END),updated_at=CURRENT_TIMESTAMP",
                 candidateId, jobId, attemptId, providerCode, providerTaskId, providerAudioId,
                 title, lyrics, style, durationSeconds, audioUrl, streamUrl, imageUrl, rawJson);
     }
@@ -196,6 +200,7 @@ public class AiMusicJobRepository {
         return d1.query("SELECT candidate_id,job_id,provider_code,status,title,lyrics,style,duration_seconds,"
                         + "provider_audio_url,provider_stream_url,provider_image_url,storage_url,storage_sha256,"
                         + "storage_size_bytes,storage_file_name,storage_content_type,selected,created_at,updated_at,"
+                        + "json_extract(CASE WHEN json_valid(c.raw_json) THEN c.raw_json ELSE '{}' END,'$.storyaiCoverUrl') AS stored_image_url,"
                         + candidateVersionColumn() + " "
                         + "FROM ai_music_candidates c "
                 + "WHERE job_id=? ORDER BY created_at,candidate_id", jobId).getRows();
@@ -227,6 +232,7 @@ public class AiMusicJobRepository {
                         + "c.provider_image_url,c.storage_url,c.storage_sha256,c.storage_size_bytes,"
                         + "c.storage_file_name,c.storage_content_type,c.selected,c.created_at,c.updated_at,"
                         + "j.status AS job_status,j.completed_at AS job_completed_at,"
+                        + "json_extract(CASE WHEN json_valid(c.raw_json) THEN c.raw_json ELSE '{}' END,'$.storyaiCoverUrl') AS stored_image_url,"
                         + candidateVersionColumn() + " "
                         + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                         + where + " ORDER BY " + orderBy + " LIMIT ?",
@@ -305,7 +311,8 @@ public class AiMusicJobRepository {
         return d1.query("SELECT c.candidate_id,c.job_id,c.provider_code,c.status,c.title,c.lyrics,c.style,"
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
-                        + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,c.selected "
+                        + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,c.selected,"
+                        + "json_extract(CASE WHEN json_valid(c.raw_json) THEN c.raw_json ELSE '{}' END,'$.storyaiCoverUrl') AS stored_image_url "
                         + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                         + "WHERE j.user_id=? AND c.candidate_id=? LIMIT 1",
                 userId, candidateId).firstRow();
@@ -318,7 +325,8 @@ public class AiMusicJobRepository {
                         + "c.duration_seconds,c.provider_audio_url,c.provider_stream_url,"
                         + "c.provider_image_url,c.storage_key,c.storage_url,c.storage_sha256,"
                         + "c.storage_size_bytes,c.storage_file_name,c.storage_content_type,"
-                        + "c.selected,j.status AS job_status "
+                        + "c.selected,j.status AS job_status,"
+                        + "json_extract(CASE WHEN json_valid(c.raw_json) THEN c.raw_json ELSE '{}' END,'$.storyaiCoverUrl') AS stored_image_url "
                         + "FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                         + "WHERE j.user_id=? AND j.job_id=? AND c.candidate_id=? LIMIT 1",
                 userId, jobId, candidateId).firstRow();
@@ -344,6 +352,58 @@ public class AiMusicJobRepository {
                         + "storage_content_type=?,updated_at=CURRENT_TIMESTAMP WHERE candidate_id=?",
                 storageKey, storageUrl, sha256, Long.valueOf(sizeBytes), fileName, contentType,
                 candidateId);
+    }
+
+    public static final String SONG_SYNC_SCHEMA = "CREATE TABLE IF NOT EXISTS ai_music_song_sync ("
+            + "job_id TEXT PRIMARY KEY,status TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,"
+            + "retry_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,lease_until TEXT,lease_token TEXT,last_error TEXT)";
+
+    public synchronized void ensureSongSyncSchema() {
+        if (songSyncSchemaReady) return;
+        d1.query(SONG_SYNC_SCHEMA);
+        songSyncSchemaReady = true;
+    }
+
+    public boolean isSongSyncRegistered(String jobId) {
+        ensureSongSyncSchema();
+        return d1.query("SELECT job_id FROM ai_music_song_sync WHERE job_id=?", jobId).firstRow()!=null;
+    }
+
+    public List<Map<String, Object>> pendingSongSync() {
+        ensureSongSyncSchema();
+        return d1.query("SELECT s.job_id,j.user_id,j.request_json FROM ai_music_song_sync s "
+                + "JOIN ai_music_jobs j ON j.job_id=s.job_id WHERE s.status='pending' "
+                + "AND j.status='completed' AND s.retry_at<=CURRENT_TIMESTAMP "
+                + "AND (s.lease_until IS NULL OR s.lease_until<CURRENT_TIMESTAMP) "
+                + "ORDER BY s.retry_at,s.job_id LIMIT 4").getRows();
+    }
+
+    public boolean claimSongSync(String jobId, String token) {
+        return d1.query("UPDATE ai_music_song_sync SET lease_token=?,lease_until=datetime('now','+30 minutes'),"
+                + "attempts=attempts+1 WHERE job_id=? AND status='pending' AND retry_at<=CURRENT_TIMESTAMP "
+                + "AND (lease_until IS NULL OR lease_until<CURRENT_TIMESTAMP) RETURNING job_id", token, jobId).firstRow()!=null;
+    }
+
+    public List<Map<String, Object>> songSyncCandidates(String jobId) {
+        return d1.query("SELECT * FROM ai_music_candidates WHERE job_id=? ORDER BY candidate_id", jobId).getRows();
+    }
+
+    public void finishSongSync(String jobId, String token, boolean complete) {
+        d1.query("UPDATE ai_music_song_sync SET status=?,lease_until=NULL,lease_token=NULL,last_error=?,"
+                + "retry_at=datetime('now','+' || MIN(21600,60 * (1 << MIN(attempts,9))) || ' seconds') "
+                + "WHERE job_id=? AND lease_token=?", complete ? "completed" : "pending",
+                complete ? null : "SONG_SYNC_INCOMPLETE", jobId, token);
+    }
+
+    public void saveSongCover(String candidateId, String url) {
+        d1.query("UPDATE ai_music_candidates SET raw_json=json_set(CASE WHEN json_valid(raw_json) THEN raw_json ELSE '{}' END,"
+                + "'$.storyaiCoverUrl',?),updated_at=CURRENT_TIMESTAMP WHERE candidate_id=?", url, candidateId);
+    }
+
+    public void saveAlignedWords(String owner, String candidateId, String words) {
+        d1.query("UPDATE ai_music_candidates SET raw_json=json_set(CASE WHEN json_valid(raw_json) THEN raw_json ELSE '{}' END,"
+                + "'$.storyaiAlignedWordsV1',json(?)) WHERE candidate_id=? AND job_id IN "
+                + "(SELECT job_id FROM ai_music_jobs WHERE user_id=?)", words, candidateId, owner);
     }
 
     public List<Map<String, Object>> events(String jobId) {

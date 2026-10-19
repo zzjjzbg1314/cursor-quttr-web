@@ -34,6 +34,34 @@ class AiMusicCandidateStorageServiceTest {
     Path tempDir;
 
     @Test
+    void archivedSongIsOwnershipCheckedAndNeverFetchedFromProvider() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService inputs=mock(MusicMvInputAssetStorageService.class);
+        RestTemplate http=mock(RestTemplate.class);
+        SongArchiveStorageService archive=mock(SongArchiveStorageService.class);
+        Map<String,Object> song=new LinkedHashMap<>();song.put("candidate_id","song");
+        when(archive.isArchived(song)).thenReturn(true);when(repo.ownedCandidate("owner","song")).thenReturn(song);
+        AiMusicCandidateStorageService service=new AiMusicCandidateStorageService(repo,inputs,http);
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"songArchive",archive);
+        service.materialize("owner",song,"");
+        org.mockito.Mockito.verifyNoInteractions(http,inputs);
+        org.junit.jupiter.api.Assertions.assertThrows(ApiException.class,()->service.materialize("other",song,""));
+    }
+
+    @Test
+    void newSongRequestedBeforeBackgroundSyncUsesSameArchiveDirectory() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        MusicMvInputAssetStorageService inputs=mock(MusicMvInputAssetStorageService.class);
+        RestTemplate http=mock(RestTemplate.class);SongArchiveStorageService archive=mock(SongArchiveStorageService.class);
+        Map<String,Object> song=new LinkedHashMap<>();song.put("candidate_id","song");song.put("job_id","new");
+        when(repo.isSongSyncRegistered("new")).thenReturn(true);when(repo.ownedCandidate("owner","song")).thenReturn(song);
+        AiMusicCandidateStorageService service=new AiMusicCandidateStorageService(repo,inputs,http);
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"songArchive",archive);
+        service.materialize("owner",song,"");verify(archive).audio(song);
+        org.mockito.Mockito.verifyNoInteractions(http,inputs);
+    }
+
+    @Test
     void springSelectsTheProductionConstructor() {
         AiMusicJobRepository repository = mock(AiMusicJobRepository.class);
         MusicMvInputAssetStorageService storage = mock(MusicMvInputAssetStorageService.class);

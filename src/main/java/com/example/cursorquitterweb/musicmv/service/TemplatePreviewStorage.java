@@ -20,5 +20,7 @@ public class TemplatePreviewStorage {
         String account = endpoint.isEmpty() ? "" : URI.create(endpoint).getHost().split("\\.")[0];
         storage = new R2StorageService(publicUrl, account, bucket, key, secret);
     }
+    public R2StorageService songStorage() { return storage; }
+
     TemplatePreviewStorage(R2StorageService storage) { this.storage = storage; }
 }
