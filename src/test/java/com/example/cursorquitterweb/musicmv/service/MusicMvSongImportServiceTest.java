@@ -88,4 +88,22 @@ class MusicMvSongImportServiceTest {
         assertThrows(ApiException.class,()->service.complete("owner",key,"song.wav",2,"https://site"));
         verifyNoInteractions(assets,d1,songs);
     }
+
+    @Test void m4aUploadUsesMatchingObjectExtensionAndAudioType()throws Exception {
+        when(r2.isConfigured()).thenReturn(true);when(storage.isCloudStorageConfigured()).thenReturn(true);
+        String key=String.valueOf(service.prepare("owner","Song.M4A",16).get("objectKey"));assertTrue(key.endsWith(".m4a"));
+        byte[] bytes=new byte[16];System.arraycopy("ftypM4A ".getBytes("US-ASCII"),0,bytes,4,8);
+        when(r2.size(key)).thenReturn(16L);when(r2.openRange(key,0,15)).thenReturn(new ResponseInputStream<>(GetObjectResponse.builder().build(),new ByteArrayInputStream(bytes)));
+        Map<String,Object> asset=new HashMap<>();asset.put("assetId","mva_m4a");asset.put("url","https://site/audio");asset.put("sha256","hash");asset.put("sizeBytes",16L);asset.put("fileName","Song.M4A");asset.put("contentType","audio/mp4");
+        when(assets.upload(eq("owner"),isNull(),eq("music"),eq("Song.M4A"),eq("audio/mp4"),eq(16L),any(),eq("https://site"))).thenReturn(asset);
+        service.complete("owner",key,"Song.M4A",10,"https://site");verify(d1).batch(anyList());verify(r2).delete(key);
+    }
+    @Test void invalidDurationDoesNotPersistAssets()throws Exception {
+        String key=prepare();when(r2.size(key)).thenReturn(44L);
+        for(double duration:new double[]{0,-1,901,Double.NaN,Double.POSITIVE_INFINITY}) {
+            when(r2.openRange(key,0,43)).thenReturn(new ResponseInputStream<>(GetObjectResponse.builder().build(),new ByteArrayInputStream(new byte[44])));
+            assertThrows(ApiException.class,()->service.complete("owner",key,"song.wav",duration,"https://site"));
+        }
+        verifyNoInteractions(assets,d1,songs);
+    }
 }

@@ -15,9 +15,16 @@ public class MusicMvSongImportController {
     private final MusicMvRenderClientAuthenticationService authentication;
     private final MusicMvAuthService auth;
     private final MusicMvSongImportService service;
+    private final SunoSongImportService suno;
     public MusicMvSongImportController(MusicMvRenderClientAuthenticationService authentication,
-            MusicMvAuthService auth, MusicMvSongImportService service) {
-        this.authentication=authentication; this.auth=auth; this.service=service;
+            MusicMvAuthService auth, MusicMvSongImportService service, SunoSongImportService suno) {
+        this.suno=suno; this.authentication=authentication; this.auth=auth; this.service=service;
+    }
+    @PostMapping("/suno")
+    public Map<String,Object> suno(@RequestHeader(value="X-Music-Mv-Client-Token",required=false) String token,
+            @RequestParam String url,HttpServletRequest request) throws IOException {
+        authentication.requireAuthorized(token);
+        return suno.importSong(auth.requireUserId(request),url,ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString());
     }
     @PostMapping("/prepare")
     public Map<String,Object> prepare(@RequestHeader(value="X-Music-Mv-Client-Token",required=false) String token,

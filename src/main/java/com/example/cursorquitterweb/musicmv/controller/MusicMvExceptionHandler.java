@@ -28,6 +28,7 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
         MusicMvD1SchemaController.class,
         MusicMvAuthController.class,
         AiMusicSongController.class,
+        MusicMvSongImportController.class,
         AiVoiceController.class,
         AiMusicLyricsController.class,
         KieAiMusicWebhookController.class,
