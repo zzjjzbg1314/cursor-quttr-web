@@ -77,6 +77,7 @@ class MusicMvTemplateCatalogRepositoryTest {
                 repository.templates(locale, "published", "public", "category".equals(filter) ? "birthday" : null,
                         "collection".equals(filter) ? "collection" : null, "search".equals(filter) ? "birthday" : null,
                         null, null, null, null, null, 3, 3, "tag".equals(filter) ? "birthday" : null);
+                assertTrue(client.sql.contains("en.name AS english_name"));
                 String actual = client.sql.substring(client.sql.indexOf("ORDER BY t.sort_order"));
                 if (order == null) order = actual;
                 assertEquals(order, actual);

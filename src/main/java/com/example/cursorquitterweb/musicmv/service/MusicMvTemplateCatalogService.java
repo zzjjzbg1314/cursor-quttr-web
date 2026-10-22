@@ -2378,6 +2378,7 @@ public class MusicMvTemplateCatalogService {
         putCapCutFeatured(result, row);
         copy(result, "slug", row, "slug");
         copy(result, "name", row, "display_name");
+        copy(result, "nameEn", row, "english_name");
         copy(result, "description", row, "description");
         copy(result, "categoryKey", row, "category_key");
         List<String> categoryKeys = parseStringList(RowUtils.str(row, "category_keys_json"));

@@ -215,7 +215,7 @@ public class MusicMvTemplateCatalogRepository {
                 .append("WHERE i.template_id=t.template_id AND c.enabled=1 ")
                 .append("ORDER BY i.is_primary DESC,i.confidence DESC,c.sort_order,c.category_key)), '[]') ")
                 .append("AS category_keys_json, ")
-                .append("COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
+                .append("en.name AS english_name, COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
                 .append("COALESCE(req.description, en.description, zh.description, '') AS description, ")
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
                 .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
