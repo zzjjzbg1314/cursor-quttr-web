@@ -1263,6 +1263,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
         Map<String, Object> scene = row("status", "ready");
         scene.put("manifest_sha256", hash('c'));
+        scene.put("scene_json", "{\"capability\":{\"browserExportReady\":true,\"blockingFeatures\":[]}}");
         when(repository.browserScene("tplver_1")).thenReturn(scene);
         Map<String, Object> reference = row("status", "ready");
         reference.put("source_sha256", hash('d'));
@@ -1303,6 +1304,28 @@ class MusicMvTemplateCatalogServiceTest {
         preview.put("provider_details_json", ((String) preview.get("provider_details_json")).replace(hash('d'), hash('a')));
         ApiException stale = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", stale.getCode());
+        verify(repository, never()).publish(anyString(), anyString());
+    }
+
+    @Test
+    void publishRejectsReadyLabelsWhenActualExportCapabilityIsMissingOrBlocked() {
+        when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
+        when(repository.version("tpl_1", "tplver_1")).thenReturn(row("validation_status", "browser_ready"));
+        Map<String, Object> scene = featuredRow("status", "ready", "manifest_sha256", hash('c'));
+        when(repository.browserScene("tplver_1")).thenReturn(scene);
+        when(repository.mediaByRole("tplver_1", "browser_parity_reference"))
+                .thenReturn(featuredRow("status", "ready", "source_sha256", hash('d')));
+        when(repository.browserParity("tplver_1"))
+                .thenReturn(featuredRow("status", "passed", "scene_manifest_sha256", hash('c'), "reference_sha256", hash('d')));
+        stubPublishPreview();
+        for (String json : Arrays.asList("{}",
+                "{\"capability\":{\"browserExportReady\":false,\"blockingFeatures\":[]}}",
+                "{\"capability\":{\"browserExportReady\":true,\"blockingFeatures\":[\"sticker_layers\"]}}",
+                "{\"capability\":{\"browserExportReady\":true}}")) {
+            scene.put("scene_json", json);
+            ApiException error = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+            assertEquals("TEMPLATE_BROWSER_EXPORT_NOT_READY", error.getCode());
+        }
         verify(repository, never()).publish(anyString(), anyString());
     }
 

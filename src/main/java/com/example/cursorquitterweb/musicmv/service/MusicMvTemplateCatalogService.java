@@ -2101,12 +2101,29 @@ public class MusicMvTemplateCatalogService {
             }
         }
         requirePublishablePreviewMp4(versionId);
+        requireBrowserPublicationCapability(browserScene);
         if (!repository.publish(templateId, versionId)) {
             invalidateDetail(templateId);
             throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");
         }
         invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
+    }
+
+    private void requireBrowserPublicationCapability(Map<String, Object> browserScene) {
+        Map<String, Object> scene = parseObject(RowUtils.str(browserScene, "scene_json"));
+        Object raw = scene.get("capability");
+        Map<?, ?> capability = raw instanceof Map ? (Map<?, ?>) raw : Collections.emptyMap();
+        Object blockers = capability.get("blockingFeatures");
+        boolean direct = Boolean.TRUE.equals(capability.get("browserExportReady"))
+                && blockers instanceof List && ((List<?>) blockers).isEmpty();
+        if (!direct && !BrowserNativeSceneCapabilities.ownsEffectBlockers(scene)) {
+            Map<String, Object> details = new LinkedHashMap<>();
+            details.put("blockingFeatures", blockers);
+            details.put("browserExportReady", capability.get("browserExportReady"));
+            throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_BROWSER_EXPORT_NOT_READY",
+                    "发布前必须通过实际浏览器导出能力检查，场景就绪或 SSIM 不能替代导出验收", true, details);
+        }
     }
 
     private void requirePublishablePreviewMp4(String versionId) {
