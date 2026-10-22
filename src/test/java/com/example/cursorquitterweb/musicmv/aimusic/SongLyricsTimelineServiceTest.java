@@ -136,4 +136,58 @@ class SongLyricsTimelineServiceTest {
         assertEquals("s",service.synchronize("u","s").get("candidateId"));
         verify(repo).saveAlignedWords(eq("u"),eq("s"),contains("Hello"));
     }
+    @Test void uploadedTimelineCacheIsReadableWithoutProvider() throws Exception {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        Map<String,Object> row=new HashMap<>();row.put("provider_code","upload");
+        Map<String,Object> timeline=SongLyricsTimelineService.normalize("s",mapper.readTree(
+                "{\"code\":200,\"data\":{\"alignedWords\":[{\"word\":\"原始歌词\",\"startS\":1,\"endS\":2,\"success\":true}]}}"));
+        row.put("raw_json",mapper.writeValueAsString(Collections.singletonMap("storyaiLyricsTimelineV1",timeline)));
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+        SongLyricsTimelineService service=new SongLyricsTimelineService(repo,providers,mapper);
+        assertEquals(timeline,service.get("u","s"));
+        // 同步流程需要逐词数据，不能把仅有逐行缓存误报为已完整同步。
+        assertEquals("SONG_LYRICS_UPLOAD_UNAVAILABLE",assertThrows(ApiException.class,
+                ()->service.synchronize("u","s")).getCode());
+        verifyNoInteractions(providers);
+    }
+    @Test void uploadedWordCacheSupportsReadAndSynchronization() throws Exception {
+        for(boolean sync:Arrays.asList(false,true)) {
+            AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+            AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+            Map<String,Object> row=new HashMap<>();row.put("provider_code","upload");
+            row.put("raw_json","{\"storyaiAlignedWordsV1\":[{\"word\":\"朝の光\",\"start_s\":1,\"end_s\":2,\"success\":true}]}");
+            when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+            SongLyricsTimelineService service=new SongLyricsTimelineService(repo,providers,mapper);
+            Map<String,Object> result=sync?service.synchronize("u","s"):service.get("u","s");
+            assertEquals("朝の光",((Map)((List)result.get("cues")).get(0)).get("text"));
+            verify(repo).saveAlignedLyrics(eq("u"),eq("s"),contains("朝の光"));
+            verifyNoInteractions(providers);
+        }
+    }
+    @Test void uploadedInvalidWordsAreNotSavedOrSentToProvider() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+        Map<String,Object> row=new HashMap<>();row.put("provider_code","upload");
+        row.put("raw_json","{\"storyaiAlignedWordsV1\":[{\"word\":\"invalid\",\"startS\":3,\"endS\":2,\"success\":true}]}");
+        when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+        assertEquals("SONG_LYRICS_UNAVAILABLE",assertThrows(ApiException.class,
+                ()->new SongLyricsTimelineService(repo,providers,mapper).get("u","s")).getCode());
+        verify(repo,never()).saveAlignedLyrics(anyString(),anyString(),anyString());
+        verifyNoInteractions(providers);
+    }
+    @Test void missingProviderIdentifiersNeverReachRemoteProvider() {
+        for(String field:Arrays.asList("provider_task_id","provider_audio_id")) {
+            for(String value:Arrays.asList(null,""," ")) {
+                AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+                AiMusicProviderRegistry providers=mock(AiMusicProviderRegistry.class);
+                Map<String,Object> row=new HashMap<>();row.put("provider_code","sunoapi");
+                row.put("provider_task_id","task");row.put("provider_audio_id","audio");row.put(field,value);
+                when(repo.ownedLyricsCandidate("u","s")).thenReturn(row);
+                assertEquals("SONG_LYRICS_UNAVAILABLE",assertThrows(ApiException.class,
+                        ()->new SongLyricsTimelineService(repo,providers,mapper).get("u","s")).getCode());
+                verifyNoInteractions(providers);
+            }
+        }
+    }
 }

@@ -32,8 +32,6 @@ public class SongLyricsTimelineService {
         synchronized (locks[Math.floorMod(Objects.hash(owner,candidateId), locks.length)]) {
             Map<String,Object> row=repository.ownedLyricsCandidate(owner,candidateId);
             if(row==null || row.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND,"SONG_NOT_FOUND","Song not found");
-            if ("upload".equals(RowUtils.str(row,"provider_code"))) throw new ApiException(HttpStatus.CONFLICT,
-                    "SONG_LYRICS_UPLOAD_UNAVAILABLE","Uploaded songs do not have synchronized lyrics. Choose a template without automatic lyrics.");
             try {
                 JsonNode raw=mapper.readTree(Optional.ofNullable(RowUtils.str(row,"raw_json")).orElse("{}"));
                 JsonNode cached=raw==null?null:raw.get("storyaiLyricsTimelineV1");
@@ -46,8 +44,14 @@ public class SongLyricsTimelineService {
                     response = new LinkedHashMap<>(); response.put("code", 200);
                     response.put("data", Collections.singletonMap("alignedWords", raw.get("storyaiAlignedWordsV1")));
                 } else {
-                    response=providers.require(RowUtils.str(row,"provider_code")).timestampedLyrics(
-                            RowUtils.str(row,"provider_task_id"),RowUtils.str(row,"provider_audio_id"));
+                    // 上传来源可以复用已保存的时间轴，但不能用本站任务标识查询第三方生成任务。
+                    if ("upload".equals(RowUtils.str(row,"provider_code"))) throw new ApiException(HttpStatus.CONFLICT,
+                            "SONG_LYRICS_UPLOAD_UNAVAILABLE","Uploaded songs do not have synchronized lyrics. Choose a template without automatic lyrics.");
+                    String taskId=RowUtils.str(row,"provider_task_id"), audioId=RowUtils.str(row,"provider_audio_id");
+                    if (taskId==null || taskId.trim().isEmpty() || audioId==null || audioId.trim().isEmpty())
+                        throw new ApiException(HttpStatus.CONFLICT,"SONG_LYRICS_UNAVAILABLE",
+                                "Song lyrics could not be synchronized. Please try again.",true,null);
+                    response=providers.require(RowUtils.str(row,"provider_code")).timestampedLyrics(taskId,audioId);
                 }
                 Map<String,Object> result=normalize(candidateId,mapper.valueToTree(response));
                 // 只缓存通过校验的完整时间数据，避免服务商暂未就绪的空结果阻断后续重试。
