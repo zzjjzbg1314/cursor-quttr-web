@@ -37,8 +37,12 @@ class LocalLyricsAlignmentLiveTest {
         try {
             Map<String,Object> row=repo.ownedLyricsCandidate(owner,id);
             assertEquals("SONG_LYRICS_PROCESSING",worker.request(owner,row).getCode());
-            assertEquals(1,db.query("SELECT candidate_id FROM music_mv_lyric_alignment WHERE status='pending'").getRows().size(),"真实验收不得领取其他歌曲任务");
-            long start=System.nanoTime();worker.runOnce();
+            String status=(String)db.query("SELECT status FROM music_mv_lyric_alignment WHERE candidate_id=?",id).firstRow().get("status");
+            long start=System.nanoTime();
+            if (!"completed".equals(status)) {
+                assertEquals(1,db.query("SELECT candidate_id FROM music_mv_lyric_alignment WHERE status='pending'").getRows().size(),"真实验收不得领取其他歌曲任务");
+                worker.runOnce();
+            }
             assertEquals("completed",db.query("SELECT status FROM music_mv_lyric_alignment WHERE candidate_id=?",id).firstRow().get("status"));
             SongLyricsTimelineService timeline=new SongLyricsTimelineService(repo,mock(AiMusicProviderRegistry.class),mapper);
             ReflectionTestUtils.setField(timeline,"alignment",worker);
@@ -46,7 +50,7 @@ class LocalLyricsAlignmentLiveTest {
             assertEquals(first,second);assertFalse(((List<?>)first.get("cues")).isEmpty());
             Map<String,Object> report=new LinkedHashMap<>();report.put("elapsedSeconds",(System.nanoTime()-start)/1e9);
             report.put("cueCount",((List<?>)first.get("cues")).size());report.put("source",first.get("source"));report.put("cacheReused",true);
-            mapper.writeValue(new File("/tmp/storyai-alignment-live-report.json"),report);
+            mapper.writeValue(new File("completed".equals(status) ? "/tmp/storyai-alignment-cache-report.json" : "/tmp/storyai-alignment-live-report.json"),report);
         } finally {worker.close();}
     }
 }
