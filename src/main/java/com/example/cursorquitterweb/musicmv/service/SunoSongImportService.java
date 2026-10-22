@@ -6,6 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
+import java.security.MessageDigest;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -19,7 +22,7 @@ import com.example.cursorquitterweb.musicmv.support.*;
 public class SunoSongImportService {
     private static final String UUID_PATTERN="[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}";
     private static final Set<String> PAGES=new HashSet<>(Arrays.asList("suno.com","www.suno.com","suno.ai","www.suno.ai"));
-    private static final Set<String> MEDIA=new HashSet<>(Arrays.asList("cdn1.suno.ai","cdn2.suno.ai","cdn1.suno.com","cdn2.suno.com"));
+    private static final Set<String> MEDIA=new HashSet<>(Arrays.asList("cdn1.suno.ai","cdn2.suno.ai","cdn1.suno.com","cdn2.suno.com","d2lwuy8qc234o3.cloudfront.net"));
     private final MusicMvSongImportService imports;
     private final AiMusicJobRepository repository;
     private final AiMusicGenerationService songs;
@@ -56,28 +59,91 @@ public class SunoSongImportService {
             String id=match.group(1).toLowerCase(Locale.ROOT),requestId="suno:"+id;
             Map<String,Object> existing=repository.byClientRequest(owner,requestId);
             if(existing!=null&&!existing.isEmpty())return songs.get(owner,RowUtils.str(existing,"job_id"),false);
-            // 只读取公开歌曲元数据；私有、受保护或未提供下载的歌曲明确失败。
+            // 只读取公开歌曲元数据，不借用第三方登录凭证或解析代理。
             URI api=URI.create("https://studio-api.prod.suno.com/api/clip/"+id+"/");
             byte[] json=read(api,Collections.singleton("studio-api.prod.suno.com"),2*1024*1024);
             JsonNode clip=mapper.readTree(json);
             if(!id.equalsIgnoreCase(clip.path("id").asText())||!"complete".equals(clip.path("status").asText()))throw unavailable();
             double duration=clip.path("metadata").path("duration").asDouble(0);
             if(!Double.isFinite(duration)||duration<=0||duration>900)throw unavailable();
-            URI audio=URI.create(clip.path("audio_url").asText());validateUri(audio,MEDIA);
-            if(!audio.getPath().toLowerCase(Locale.ROOT).endsWith(".mp3"))throw unavailable();
-            temporary=Files.createTempFile("suno-import-", ".mp3");
+            URI audio=selectAudio(clip,id);
+            String extension=audio.getPath().toLowerCase(Locale.ROOT).endsWith(".m4a")?".m4a":".mp3";
+            temporary=Files.createTempFile("suno-import-", extension);
+            Cipher decoder=audioDecoder(clip,audio,id);
             HttpURLConnection connection=open(audio,MEDIA);
             long size;
-            try(InputStream in=successfulBody(connection);OutputStream out=Files.newOutputStream(temporary)) {
+            try(InputStream raw=successfulBody(connection);InputStream in=decoder==null?raw:new CipherInputStream(raw,decoder);OutputStream out=Files.newOutputStream(temporary)) {
                 size=copyBounded(in,out,100L*1024*1024);
             } finally {connection.disconnect();}
             String title=clip.path("title").asText("Suno song").replaceAll("[\\p{Cntrl}/\\\\]","_");
             if(title.trim().isEmpty())title="Suno song";
             title=title.substring(0,Math.min(150,title.length()));
-            try(InputStream in=Files.newInputStream(temporary)) {return imports.upload(owner,requestId,title+".mp3",size,duration,in,baseUrl);}
+            try(InputStream in=Files.newInputStream(temporary)) {return imports.upload(owner,requestId,title+extension,size,duration,in,baseUrl);}
         } catch(ApiException e) {throw e;}
         catch(Exception e) {throw unavailable();}
         finally {if(temporary!=null)Files.deleteIfExists(temporary);}
+    }
+    static URI selectAudio(JsonNode clip,String id) {
+        // 新版 Suno 的 audio_url 可能是占位地址，实际公开音频位于 media_urls。
+        for(JsonNode media:clip.path("media_urls")) {
+            if(!"progressive".equals(media.path("delivery").asText()))continue;
+            String encoding=media.path("encoding").asText("");
+            if(!encoding.isEmpty()&&!"1.0.0".equals(encoding))continue;
+            String type=media.path("content_type").asText();
+            if(!Arrays.asList("m4a-opus","m4a","mp3").contains(type))continue;
+            URI audio=audioCandidate(media.path("url").asText(),id);
+            if(audio!=null&&audio.getPath().toLowerCase(Locale.ROOT).endsWith(type.startsWith("m4a")?".m4a":".mp3"))return audio;
+        }
+        URI legacy=audioCandidate(clip.path("audio_url").asText(),id);
+        if(legacy!=null)return legacy;
+        throw unavailable();
+    }
+    private Cipher audioDecoder(JsonNode clip,URI audio,String id)throws Exception {
+        boolean encoded=false;
+        for(JsonNode media:clip.path("media_urls")) {
+            if(audio.toString().equals(media.path("url").asText())&&!media.path("encoding").asText("").isEmpty()) {
+                if(!"1.0.0".equals(media.path("encoding").asText()))throw unavailable();
+                encoded=true;
+            }
+        }
+        if(!encoded)return null;
+        // 按官方匿名播放协议请求授权；拒绝授权或缺少访客令牌时终止，不使用其他账户凭证。
+        HttpURLConnection connection=open(URI.create("https://studio-api.prod.suno.com/api/mango/rights"),Collections.singleton("studio-api.prod.suno.com"));
+        JsonNode rights;
+        try {
+            connection.setRequestMethod("POST");connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type","application/json");
+            Map<String,String> params=new LinkedHashMap<>();params.put("content_id",id);params.put("content_type","clip");
+            byte[] request=mapper.writeValueAsBytes(Collections.singletonMap("content_params",params));
+            try(OutputStream out=connection.getOutputStream()){out.write(request);}
+            try(InputStream in=successfulBody(connection);ByteArrayOutputStream out=new ByteArrayOutputStream()) {
+                copyBounded(in,out,64*1024);rights=mapper.readTree(out.toByteArray());
+            }
+        } finally {connection.disconnect();}
+        String token=rights.path("glt").asText("");if(token.isEmpty())throw unavailable();
+        byte[] wrappingKey=MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
+        byte[] key=unwrap(rights.path("key").asText(),id,wrappingKey),iv=unwrap(rights.path("iv").asText(),id,wrappingKey);
+        if((key.length!=16&&key.length!=24&&key.length!=32)||iv.length!=16)throw unavailable();
+        Cipher decoder=Cipher.getInstance("AES/CTR/NoPadding");
+        decoder.init(Cipher.DECRYPT_MODE,new SecretKeySpec(key,"AES"),new IvParameterSpec(iv));return decoder;
+    }
+    private static byte[] unwrap(String value,String id,byte[] wrappingKey)throws Exception {
+        byte[] wrapped=Base64.getDecoder().decode(value);if(wrapped.length<28)throw unavailable();
+        Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE,new SecretKeySpec(wrappingKey,"AES"),new GCMParameterSpec(128,Arrays.copyOf(wrapped,12)));
+        cipher.updateAAD(id.getBytes(StandardCharsets.UTF_8));
+        return cipher.doFinal(wrapped,12,wrapped.length-12);
+    }
+    private static URI audioCandidate(String value,String id) {
+        try {
+            URI uri=URI.create(value);validateUri(uri,MEDIA);
+            String path=uri.getPath().toLowerCase(Locale.ROOT);
+            if(!path.endsWith(".mp3")&&!path.endsWith(".m4a"))return null;
+            // CloudFront 仅允许已验证的 Suno 分发域和当前歌曲路径，不放开整个 CDN。
+            if("d2lwuy8qc234o3.cloudfront.net".equalsIgnoreCase(uri.getHost())
+                    &&!path.equals("/1/clip/"+id.toLowerCase(Locale.ROOT)+".m4a"))return null;
+            return uri;
+        } catch(IllegalArgumentException e) {return null;}
     }
     HttpURLConnection open(URI uri,Set<String> hosts) throws IOException {
         validateUri(uri,hosts);
