@@ -573,6 +573,10 @@ public class AiMusicGenerationService {
             Map<String, Object> value = new LinkedHashMap<String, Object>();
             value.put("candidateId", RowUtils.str(row, "candidate_id"));
             value.put("source", "upload".equals(RowUtils.str(row,"provider_code")) ? "upload" : "generated");
+            if ("upload".equals(RowUtils.str(row, "provider_code"))) {
+                String requestId = RowUtils.str(row, "import_request_id");
+                value.put("importSource", requestId != null && requestId.startsWith("suno:") ? "suno" : "file");
+            }
             value.put("versionNumber", RowUtils.lng(row, "version_number"));
             value.put("jobId", RowUtils.str(row, "job_id"));
             value.put("status", RowUtils.str(row, "status"));

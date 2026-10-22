@@ -24,6 +24,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicGenerationServiceTest {
     @Test
+    void importedSourceDistinguishesHistoricalSunoImportsFromFilesAndGeneratedSongs() {
+        AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
+        AiMusicProvider provider=mock(AiMusicProvider.class);when(provider.providerCode()).thenReturn("sunoapi");
+        AiMusicGenerationService service=syncService(repo,provider);
+        try {
+            for(String source:Arrays.asList("suno:existing-song","import:object-key","old-upload")) {
+                Map<String,Object> row=new LinkedHashMap<>();row.put("provider_code","upload");row.put("import_request_id",source);
+                List<Map<String,Object>> result=org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"candidateViews",Collections.singletonList(row));
+                assertThat(result.get(0).get("source")).isEqualTo("upload");
+                assertThat(result.get(0).get("importSource")).isEqualTo(source.startsWith("suno:")?"suno":"file");
+            }
+            Map<String,Object> row=new LinkedHashMap<>();row.put("provider_code","sunoapi");row.put("import_request_id","suno:not-an-import");
+            List<Map<String,Object>> result=org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"candidateViews",Collections.singletonList(row));
+            assertThat(result.get(0).get("source")).isEqualTo("generated");assertThat(result.get(0)).doesNotContainKey("importSource");
+        } finally {service.close();}
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void libraryUsesArchivedAudioForPlaybackAndArchivedCover() {
         AiMusicJobRepository repo=mock(AiMusicJobRepository.class);
