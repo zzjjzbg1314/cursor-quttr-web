@@ -1260,6 +1260,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("validation_status", "browser_ready");
         version.put("source_availability", "unavailable");
+        version.put("cycle_duration_seconds", 10d);
         when(repository.version("tpl_1", "tplver_1")).thenReturn(version);
         Map<String, Object> scene = row("status", "ready");
         scene.put("manifest_sha256", hash('c'));
@@ -1272,6 +1273,9 @@ class MusicMvTemplateCatalogServiceTest {
         Map<String, Object> parity = row("status", "passed");
         parity.put("scene_manifest_sha256", hash('c'));
         parity.put("reference_sha256", hash('d'));
+        parity.put("output_sha256", hash('a'));
+        try { parity.put("report_json", new ObjectMapper().writeValueAsString(BrowserExportAcceptanceTest.report())); }
+        catch (Exception error) { throw new AssertionError(error); }
         when(repository.browserParity("tplver_1")).thenReturn(parity);
 
         stubPublishPreview();
@@ -1287,6 +1291,10 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.publish("tpl_1", "tplver_1")).thenReturn(false);
         ApiException superseded = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_PUBLICATION_SUPERSEDED", superseded.getCode());
+        parity.put("report_json", "{}");
+        ApiException noExport = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+        assertEquals("TEMPLATE_BROWSER_EXPORT_ACCEPTANCE_REQUIRED", noExport.getCode());
+
     }
 
     @Test
