@@ -27,8 +27,14 @@ public class SunoSongImportService {
     private final AiMusicJobRepository repository;
     private final AiMusicGenerationService songs;
     private final ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    private com.example.cursorquitterweb.musicmv.aimusic.LocalLyricsAlignmentService alignment;
     public SunoSongImportService(MusicMvSongImportService imports,AiMusicJobRepository repository,AiMusicGenerationService songs,ObjectMapper mapper) {
         this.imports=imports;this.repository=repository;this.songs=songs;this.mapper=mapper;
+    }
+    private void enqueueAlignment(String owner,Map<String,Object> result) {
+        try {if(alignment!=null)alignment.enqueueImported(owner,result);}
+        catch(Exception ignored) { /* 不阻断音频导入，歌词查询会再次登记任务。 */ }
     }
     static URI validateSongUrl(String value) {
         try {
@@ -75,7 +81,9 @@ public class SunoSongImportService {
             if(lyrics.length()>50000)lyrics="";
             if(imported) {
                 repository.fillImportedLyrics(owner,requestId,lyrics);
-                return songs.get(owner,RowUtils.str(existing,"job_id"),false);
+                Map<String,Object> result=songs.get(owner,RowUtils.str(existing,"job_id"),false);
+                enqueueAlignment(owner,result);
+                return result;
             }
             double duration=clip.path("metadata").path("duration").asDouble(0);
             if(!Double.isFinite(duration)||duration<=0||duration>900)throw unavailable();
@@ -98,6 +106,7 @@ public class SunoSongImportService {
             if(candidates instanceof List && !lyrics.trim().isEmpty()) {
                 for(Object candidate:(List<?>)candidates)if(candidate instanceof Map)((Map)candidate).put("lyrics",lyrics);
             }
+            enqueueAlignment(owner,result);
             return result;
         } catch(ApiException e) {throw e;}
         catch(Exception e) {throw unavailable();}

@@ -297,7 +297,7 @@ public class AiMusicJobRepository {
 
     /** Returns only a candidate that belongs to the authenticated user. */
     public Map<String, Object> ownedLyricsCandidate(String userId, String candidateId) {
-        return d1.query("SELECT c.* FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
+        return d1.query("SELECT c.*,j.request_id AS import_request_id FROM ai_music_candidates c JOIN ai_music_jobs j ON j.job_id=c.job_id "
                 + "WHERE j.user_id=? AND c.candidate_id=? LIMIT 1", userId, candidateId).firstRow();
     }
 

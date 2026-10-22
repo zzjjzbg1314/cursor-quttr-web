@@ -200,6 +200,14 @@ public class MusicMvInputAssetStorageService {
                 Long.parseLong(metadata.getProperty("sizeBytes", "0")));
     }
 
+    /** 后台对齐只读取经归属和完整元数据校验的音频，不请求任意外部 URL。 */
+    public InputStream openOwnedMusic(String ownerId, MusicMvRenderJobCreateRequest.Asset asset) throws IOException {
+        requireOwnedAsset(ownerId, asset, "music");
+        AssetCapability capability = parseCapability(asset.getUrl());
+        if (r2.isConfigured()) return r2.openRange(r2ObjectKey("music", capability.assetId, capability.accessToken), 0, asset.getSizeBytes()-1);
+        return localAsset(capability.assetId, capability.accessToken).getResource().getInputStream();
+    }
+
     /** Kept for local-storage tests and callers that explicitly need a resource. */
     public LocalAsset localAsset(String assetId, String accessToken) throws IOException {
         InputAssetAccess result = access(assetId, accessToken);

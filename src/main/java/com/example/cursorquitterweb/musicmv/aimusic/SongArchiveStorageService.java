@@ -44,6 +44,11 @@ public class SongArchiveStorageService {
                 && RowUtils.str(candidate,"storage_file_name")!=null
                 && RowUtils.str(candidate,"storage_content_type")!=null;
     }
+    public InputStream openArchivedAudio(Map<String,Object> candidate) {
+        if (!isArchived(candidate)) throw new IllegalArgumentException("Song audio is not archived");
+        return r2.openRange(RowUtils.str(candidate,"storage_key"),0,RowUtils.lng(candidate,"storage_size_bytes")-1);
+    }
+
     public void audio(Map<String,Object> candidate) {
         if(isArchived(candidate)) return;
         String prefix=prefix(candidate);

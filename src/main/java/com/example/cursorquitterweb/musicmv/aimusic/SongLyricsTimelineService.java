@@ -17,6 +17,8 @@ public class SongLyricsTimelineService {
     private final AiMusicJobRepository repository;
     private final AiMusicProviderRegistry providers;
     private final ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    private LocalLyricsAlignmentService alignment;
     private final Object[] locks = new Object[32];
     public SongLyricsTimelineService(AiMusicJobRepository repository, AiMusicProviderRegistry providers, ObjectMapper mapper) {
         this.repository=repository; this.providers=providers; this.mapper=mapper;
@@ -34,6 +36,7 @@ public class SongLyricsTimelineService {
             if(row==null || row.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND,"SONG_NOT_FOUND","Song not found");
             try {
                 JsonNode raw=mapper.readTree(Optional.ofNullable(RowUtils.str(row,"raw_json")).orElse("{}"));
+                if(alignment!=null && !alignment.current(row,raw)) raw=mapper.createObjectNode();
                 JsonNode cached=raw==null?null:raw.get("storyaiLyricsTimelineV1");
                 if(cached!=null && candidateId.equals(cached.path("candidateId").asText())
                         && "provider-lines-v1".equals(cached.path("cueGrouping").asText())
@@ -45,6 +48,7 @@ public class SongLyricsTimelineService {
                     response.put("data", Collections.singletonMap("alignedWords", raw.get("storyaiAlignedWordsV1")));
                 } else {
                     // 上传来源可以复用已保存的时间轴，但不能用本站任务标识查询第三方生成任务。
+                    if ("upload".equals(RowUtils.str(row,"provider_code")) && alignment!=null && alignment.eligible(row)) throw alignment.request(owner,row);
                     if ("upload".equals(RowUtils.str(row,"provider_code"))) throw new ApiException(HttpStatus.CONFLICT,
                             "SONG_LYRICS_UPLOAD_UNAVAILABLE","Uploaded songs do not have synchronized lyrics. Choose a template without automatic lyrics.");
                     String taskId=RowUtils.str(row,"provider_task_id"), audioId=RowUtils.str(row,"provider_audio_id");
@@ -60,8 +64,12 @@ public class SongLyricsTimelineService {
                             mapper.valueToTree(response).path("data").path("alignedWords")));
                 repository.saveAlignedLyrics(owner,candidateId,mapper.writeValueAsString(result));
                 return result;
-            } catch(ApiException e) {throw e;}
-            catch(Exception e) {throw new ApiException(HttpStatus.CONFLICT,"SONG_LYRICS_UNAVAILABLE",
+            } catch(ApiException e) {
+                if(alignment!=null && alignment.eligible(row) && !Arrays.asList("SONG_LYRICS_PROCESSING", "SONG_LYRICS_ALIGNMENT_FAILED").contains(e.getCode())) throw alignment.request(owner,row);
+                throw e;
+            }
+            catch(Exception e) {if(alignment!=null && alignment.eligible(row))throw alignment.request(owner,row);
+                throw new ApiException(HttpStatus.CONFLICT,"SONG_LYRICS_UNAVAILABLE",
                     "Song lyrics could not be synchronized. Please try again.",true,null);}
         }
     }

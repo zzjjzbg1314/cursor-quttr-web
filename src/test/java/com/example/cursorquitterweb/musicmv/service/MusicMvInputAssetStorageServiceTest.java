@@ -203,4 +203,15 @@ class MusicMvInputAssetStorageServiceTest {
                 + token + ".properties");
         verify(r2, never()).exists(org.mockito.ArgumentMatchers.anyString());
     }
+
+    @Test void alignmentReadsOnlyOwnedAudio() throws Exception {
+        MusicMvInputAssetStorageService service = new MusicMvInputAssetStorageService(
+            mock(R2StorageService.class), tempDir.toString(), "http://127.0.0.1:8080", false, 3650L);
+        byte[] bytes = new byte[]{1,2,3};
+        StoredInputAsset stored=service.store("owner","music","song.mp3","audio/mpeg",3,new ByteArrayInputStream(bytes),"");
+        com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest.Asset asset=new com.example.cursorquitterweb.musicmv.dto.MusicMvRenderJobCreateRequest.Asset();
+        asset.setUrl(stored.getUrl());asset.setSha256(stored.getSha256());asset.setSizeBytes(3L);asset.setFileName("song.mp3");asset.setContentType("audio/mpeg");
+        assertThrows(ApiException.class,()->service.openOwnedMusic("other",asset));
+        try(java.io.InputStream input=service.openOwnedMusic("owner",asset)) {assertArrayEquals(bytes,StreamUtils.copyToByteArray(input));}
+    }
 }
