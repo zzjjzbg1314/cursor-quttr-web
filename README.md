@@ -83,3 +83,21 @@ Content-Length、Accept-Ranges。MP4 上传带一年 immutable 缓存头，地�
 下的 `source`（GET）、`upload-session`（POST）、`complete`（POST）。
 先部署后端再部署前端，最后更新模板管理服务。历史补齐使用模板管理仓库的
 `scripts/backfill-template-previews.py`；部署本身不会自动批量迁移历史数据。
+
+### 本地模板目录增量部署检查
+
+本地 8080 使用多个 classes 目录叠加启动时，增量部署必须保留当前运行进程的完整
+classpath，再按优先级叠加本次产物。不能仅保留最新补丁目录和旧基础目录：最新补丁
+可能只包含 Repository、Service，而分页 Controller、搜索实现仍在先前补丁目录内。
+2026-10-22 的英文标题部署曾遗漏分页目录，导致 `/admin/templates/page` 和
+`/admin/templates/overview` 被旧 `/admin/templates/{templateId}` 路由接收并返回
+`Template was not found`。修复时保留标题补丁优先级，并恢复分页补丁在旧基础目录之前。
+
+每次重启 8080 后，除进程存活外，还应通过本地 8082 验证：
+
+- `/admin/api/template-library/templates/page?page=1`、`page=2` 返回分页对象，
+  `pageSize=20`，相邻页没有重复项，创建时间倒序。
+- `/admin/api/template-library/templates/overview` 返回全库统计，不误入单模板详情路由。
+- 分页项保留新版本字段（例如 `nameEn`）；浏览器完成列表、统计和一次真实翻页。
+
+这些是目录查询检查，不需要触发视频渲染、SSIM 或更改已上架模板。
