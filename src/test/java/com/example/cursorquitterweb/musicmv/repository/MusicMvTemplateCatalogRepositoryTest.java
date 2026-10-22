@@ -278,6 +278,27 @@ class MusicMvTemplateCatalogRepositoryTest {
     }
 
     @Test
+    void ordinaryDeletionRemovesCategoryAndSourceReferencesBeforeTemplate() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.deleteTemplate("tpl_1");
+        StringBuilder sql = new StringBuilder();
+        for (D1Statement statement : client.statements) {
+            assertEquals(placeholders(statement.getSql()), statement.getParams().size(), statement.getSql());
+            assertTrue(statement.getSql().contains("status='offline'"));
+            sql.append(statement.getSql()).append('\n');
+        }
+        String batch = sql.toString();
+        int parent = batch.indexOf("DELETE FROM templates WHERE");
+        assertTrue(batch.indexOf("DELETE FROM template_category_items") >= 0);
+        assertTrue(batch.indexOf("DELETE FROM template_source_metadata") >= 0);
+        assertTrue(batch.indexOf("DELETE FROM template_category_items") < parent);
+        assertTrue(batch.indexOf("DELETE FROM template_source_metadata") < parent);
+        assertFalse(batch.contains("music_mv_projects"));
+        assertFalse(batch.contains("music_mv_render_jobs"));
+    }
+
+    @Test
     void forceDeletionDetachesProjectsAndRemovesRenderReferencesBeforeTemplateGraph() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

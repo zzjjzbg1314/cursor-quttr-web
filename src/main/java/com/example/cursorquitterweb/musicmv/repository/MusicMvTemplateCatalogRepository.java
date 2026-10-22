@@ -1133,6 +1133,12 @@ public class MusicMvTemplateCatalogRepository {
                 statement("DELETE FROM template_collection_items WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
+                statement("DELETE FROM template_category_items WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
+                statement("DELETE FROM template_source_metadata WHERE template_id=? AND EXISTS ("
+                        + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
+                        templateId, templateId),
                 statement("DELETE FROM template_translations WHERE template_id=? AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND status='offline')",
                         templateId, templateId),
