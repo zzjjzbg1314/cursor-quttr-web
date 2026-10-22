@@ -23,11 +23,21 @@ class SunoSongImportServiceTest {
         ByteArrayOutputStream out=new ByteArrayOutputStream();assertThrows(ApiException.class,()->SunoSongImportService.copyBounded(new ByteArrayInputStream(new byte[11]),out,10));assertEquals(0,out.size());
         assertEquals(10,SunoSongImportService.copyBounded(new ByteArrayInputStream(new byte[10]),out,10));
     }
-    @Test void repeatedImportReturnsOwnedSongWithoutNetworkOrNewAssets()throws Exception {
+    @Test void repeatedImportEnrichesLyricsWithoutDownloadingAudio()throws Exception {
         AiMusicJobRepository repository=mock(AiMusicJobRepository.class);AiMusicGenerationService songs=mock(AiMusicGenerationService.class);MusicMvSongImportService imports=mock(MusicMvSongImportService.class);
-        when(repository.byClientRequest("owner","suno:fe43d24d-16b6-4e14-8af2-739e35e25c46")).thenReturn(Collections.singletonMap("job_id","existing"));
+        when(repository.byClientRequest("owner","suno:"+ID)).thenReturn(Collections.singletonMap("job_id","existing"));
         when(songs.get("owner","existing",false)).thenReturn(Collections.singletonMap("jobId","existing"));
-        assertEquals("existing",new SunoSongImportService(imports,repository,songs,new ObjectMapper()).importSong("owner","https://suno.com/song/fe43d24d-16b6-4e14-8af2-739e35e25c46","https://site").get("jobId"));verifyNoInteractions(imports);
+        SunoSongImportService service=new SunoSongImportService(imports,repository,songs,new ObjectMapper()) {
+            @Override java.net.HttpURLConnection open(URI uri,Set<String> hosts)throws IOException {
+                assertEquals("studio-api.prod.suno.com",uri.getHost());
+                java.net.HttpURLConnection c=mock(java.net.HttpURLConnection.class);when(c.getResponseCode()).thenReturn(200);
+                com.fasterxml.jackson.databind.node.ObjectNode clip=mediaClip(M4A);
+                ((com.fasterxml.jackson.databind.node.ObjectNode)clip.path("metadata")).put("prompt","[Verse]\nOriginal lyrics");
+                when(c.getInputStream()).thenReturn(new ByteArrayInputStream(clip.toString().getBytes("UTF-8")));return c;
+            }
+        };
+        assertEquals("existing",service.importSong("owner","https://suno.com/song/"+ID,"https://site").get("jobId"));
+        verify(repository).fillImportedLyrics("owner","suno:"+ID,"[Verse]\nOriginal lyrics");verifyNoInteractions(imports);
     }
 
     @Test void publicSongDownloadsAndRegistersOwnedAudio()throws Exception {

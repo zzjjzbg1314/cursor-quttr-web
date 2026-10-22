@@ -16,6 +16,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class AiMusicJobRepositoryTest {
     @Test
+    void lyricsBackfillIsOwnerScopedAndDoesNotOverwriteExistingLyrics() {
+        D1DatabaseClient d1=org.mockito.Mockito.mock(D1DatabaseClient.class);
+        AiMusicJobRepository repository=new AiMusicJobRepository(d1);
+        repository.fillImportedLyrics("owner","suno:song","Original lyrics");
+        org.mockito.Mockito.verify(d1).query(org.mockito.ArgumentMatchers.contains("user_id=? AND request_id=?"),
+                org.mockito.ArgumentMatchers.eq("Original lyrics"),org.mockito.ArgumentMatchers.eq("owner"),org.mockito.ArgumentMatchers.eq("suno:song"));
+        org.mockito.Mockito.verify(d1).query(org.mockito.ArgumentMatchers.contains("lyrics IS NULL OR TRIM(lyrics)=''"),
+                org.mockito.ArgumentMatchers.eq("Original lyrics"),org.mockito.ArgumentMatchers.eq("owner"),org.mockito.ArgumentMatchers.eq("suno:song"));
+    }
+
+    @Test
     void sqliteLeaseProtectsPollingAndCompletedSnapshots() throws Exception {
         CapturingD1 d1 = new CapturingD1();
         AiMusicJobRepository repository = new AiMusicJobRepository(d1);

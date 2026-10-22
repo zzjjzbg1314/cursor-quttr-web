@@ -58,12 +58,25 @@ public class SunoSongImportService {
             if(!match.find())throw unavailable();
             String id=match.group(1).toLowerCase(Locale.ROOT),requestId="suno:"+id;
             Map<String,Object> existing=repository.byClientRequest(owner,requestId);
-            if(existing!=null&&!existing.isEmpty())return songs.get(owner,RowUtils.str(existing,"job_id"),false);
+            boolean imported=existing!=null&&!existing.isEmpty();
             // 只读取公开歌曲元数据，不借用第三方登录凭证或解析代理。
             URI api=URI.create("https://studio-api.prod.suno.com/api/clip/"+id+"/");
-            byte[] json=read(api,Collections.singleton("studio-api.prod.suno.com"),2*1024*1024);
+            byte[] json;
+            try {json=read(api,Collections.singleton("studio-api.prod.suno.com"),2*1024*1024);}
+            catch(Exception e) {
+                // 上游暂时不可用时仍允许复用已保存的歌曲，下次导入再补齐歌词。
+                if(imported)return songs.get(owner,RowUtils.str(existing,"job_id"),false);
+                throw e;
+            }
             JsonNode clip=mapper.readTree(json);
             if(!id.equalsIgnoreCase(clip.path("id").asText())||!"complete".equals(clip.path("status").asText()))throw unavailable();
+            String lyrics=clip.path("metadata").path("prompt").asText("");
+            if(clip.path("metadata").path("make_instrumental").asBoolean(false))lyrics="";
+            if(lyrics.length()>50000)lyrics="";
+            if(imported) {
+                repository.fillImportedLyrics(owner,requestId,lyrics);
+                return songs.get(owner,RowUtils.str(existing,"job_id"),false);
+            }
             double duration=clip.path("metadata").path("duration").asDouble(0);
             if(!Double.isFinite(duration)||duration<=0||duration>900)throw unavailable();
             URI audio=selectAudio(clip,id);
@@ -78,7 +91,14 @@ public class SunoSongImportService {
             String title=clip.path("title").asText("Suno song").replaceAll("[\\p{Cntrl}/\\\\]","_");
             if(title.trim().isEmpty())title="Suno song";
             title=title.substring(0,Math.min(150,title.length()));
-            try(InputStream in=Files.newInputStream(temporary)) {return imports.upload(owner,requestId,title+extension,size,duration,in,baseUrl);}
+            Map<String,Object> result;
+            try(InputStream in=Files.newInputStream(temporary)) {result=imports.upload(owner,requestId,title+extension,size,duration,in,baseUrl);}
+            repository.fillImportedLyrics(owner,requestId,lyrics);
+            Object candidates=result.get("candidates");
+            if(candidates instanceof List && !lyrics.trim().isEmpty()) {
+                for(Object candidate:(List<?>)candidates)if(candidate instanceof Map)((Map)candidate).put("lyrics",lyrics);
+            }
+            return result;
         } catch(ApiException e) {throw e;}
         catch(Exception e) {throw unavailable();}
         finally {if(temporary!=null)Files.deleteIfExists(temporary);}

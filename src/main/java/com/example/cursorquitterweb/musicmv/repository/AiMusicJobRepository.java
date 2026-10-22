@@ -301,6 +301,15 @@ public class AiMusicJobRepository {
                 + "WHERE j.user_id=? AND c.candidate_id=? LIMIT 1", userId, candidateId).firstRow();
     }
 
+    /** 只补齐当前用户导入歌曲的空歌词，不覆盖用户已有内容。 */
+    public void fillImportedLyrics(String owner,String requestId,String lyrics) {
+        if(lyrics==null||lyrics.trim().isEmpty())return;
+        d1.query("UPDATE ai_music_candidates SET lyrics=?,updated_at=CURRENT_TIMESTAMP "
+                + "WHERE provider_code='upload' AND (lyrics IS NULL OR TRIM(lyrics)='') "
+                + "AND job_id IN (SELECT job_id FROM ai_music_jobs WHERE user_id=? AND request_id=?)",
+                lyrics,owner,requestId);
+    }
+
     public void saveAlignedLyrics(String userId, String candidateId, String timeline) {
         d1.query("UPDATE ai_music_candidates SET raw_json=json_set(CASE WHEN json_valid(raw_json) THEN raw_json ELSE '{}' END,"
                 + "'$.storyaiLyricsTimelineV1',json(?)) WHERE candidate_id=? AND job_id IN "
