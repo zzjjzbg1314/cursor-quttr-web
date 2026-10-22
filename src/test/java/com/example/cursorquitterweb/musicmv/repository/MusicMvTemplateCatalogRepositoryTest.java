@@ -283,10 +283,34 @@ class MusicMvTemplateCatalogRepositoryTest {
 
         assertTrue(client.sql.contains("v.source_availability AS source_availability"));
         assertTrue(client.sql.contains("$.runtimeDelivery.totalSizeBytes"));
-        assertTrue(client.sql.contains("END AS runtime_package_size_bytes"));
-        assertTrue(client.sql.contains("runtime_scene.version_id=t.current_version_id"));
+        assertTrue(client.sql.contains(") AS runtime_package_size_bytes"));
+        assertTrue(client.sql.contains("runtime_size.version_id=t.current_version_id"));
+        assertFalse(client.sql.contains("LEFT JOIN template_browser_scenes"));
         assertFalse(client.sql.contains("renderer_nodes"));
         assertFalse(client.sql.contains("last_seen_at"));
+    }
+
+    @Test
+    void 目录大小保持当前版本绑定并区分空包与缺失场景() throws Exception {
+        CapturingD1 client = new CapturingD1();
+        new MusicMvTemplateCatalogRepository(client).templates("en", null, null, null, null, null,
+                null, null, null, null, null, 100, 0);
+        String expression = client.sql.substring(client.sql.indexOf("(SELECT CASE WHEN json_extract(runtime_size"),
+                client.sql.indexOf(" AS runtime_package_size_bytes"));
+        String script = String.join("\n",
+                "import sqlite3,json,sys",
+                "db=sqlite3.connect(':memory:')",
+                "db.execute('CREATE TABLE templates(template_id TEXT,current_version_id TEXT)')",
+                "db.execute('CREATE TABLE template_browser_scenes(version_id TEXT,scene_json TEXT)')",
+                "db.executemany('INSERT INTO templates VALUES (?,?)',[('current','new'),('empty','zero'),('missing','absent'),('unsupported','old-schema')])",
+                "def scene(version,size,schema='browser-runtime-delivery-v1'): db.execute('INSERT INTO template_browser_scenes VALUES (?,?)',(version,json.dumps({'runtimeDelivery':{'schemaVersion':schema,'totalSizeBytes':size},'payload':'x'*1000000})))",
+                "scene('new',948743); scene('old',99); scene('zero',0); scene('old-schema',123,'unsupported')",
+                "rows=dict(db.execute('SELECT t.template_id,'+sys.argv[1]+' FROM templates t'))",
+                "assert rows=={'current':948743,'empty':0,'missing':None,'unsupported':None},rows");
+        Process process = new ProcessBuilder("python3", "-c", script, expression).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+        String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0, process.exitValue(), output);
     }
 
     @Test
