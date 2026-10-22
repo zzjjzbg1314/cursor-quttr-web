@@ -12,7 +12,7 @@ final class BrowserNativeSceneCapabilities {
             List<?> blockers = list(capability.get("blockingFeatures"));
             // 仅接管有原生源契约和最小资源绑定的缺口，未知能力继续阻止导出。
             if (blockers.isEmpty() || new HashSet<>(blockers).size() != blockers.size()
-                    || !Arrays.asList("post_effects", "blend_modes", "animations", "sticker_layers", "text_template_decorations").containsAll(blockers)) return false;
+                    || !Arrays.asList("post_effects", "blend_modes", "animations", "text_template_decorations").containsAll(blockers)) return false;
             Map<?, ?> delivery = map(scene.get("runtimeDelivery"));
             if (!"browser-runtime-delivery-v1".equals(delivery.get("schemaVersion"))) return false;
             Set<String> delivered = new HashSet<>();
@@ -22,7 +22,7 @@ final class BrowserNativeSceneCapabilities {
             }
             Map<String, Object> descriptor = BrowserNativeRuntimeContract.validate(map(delivery.get("nativeEngine")), delivered, scene);
             Set<String> globalEffects=BrowserNativeGlobalEffectContract.validate(scene,descriptor);
-            Set<String> stickers = BrowserNativeStickerContract.validate(scene,descriptor);
+            BrowserNativeStickerContract.validate(scene,descriptor);
             Map<String, String> bindingKinds = new HashMap<>();
             Set<String> bindings = new HashSet<>();
             for (Object value : list(descriptor.get("bindings"))) {
@@ -49,8 +49,6 @@ final class BrowserNativeSceneCapabilities {
             if (ownsFixed) for (Map<?, ?> layer : layers.values()) {
                 if ("static_image".equals(layer.get("type")) || (ownsVideo && "video".equals(layer.get("type")))) segments.add(layer);
             }
-            if (blockers.contains("sticker_layers")
-                    && !ownsStickerDeficit(scene, descriptor, layers, bindingKinds, stickers)) return false;
             if(blockers.contains("text_template_decorations")
                     && !BrowserNativeDecorationCapabilities.owns(scene,descriptor,layers,bindingKinds))return false;
             if (blockers.contains("animations")
@@ -83,7 +81,6 @@ final class BrowserNativeSceneCapabilities {
             for (Object value : list(capability.get("resourceDiagnostics"))) {
                 Map<?, ?> diagnostic = map(value);
                 if (!Boolean.TRUE.equals(diagnostic.get("blocksExport"))) continue;
-                if (blockers.contains("sticker_layers") && "sticker_layers".equals(diagnostic.get("feature"))) continue;
                 if (!"post_effects".equals(diagnostic.get("feature")) || !blockers.contains("post_effects")) return false;
                 String effectId = string(diagnostic.get("segmentId")), resourceId = string(diagnostic.get("resourceId"));
                 if (!bindings.contains(resourceId) || !seen.add(effectId + "\u0000" + resourceId)) return false;
@@ -116,42 +113,6 @@ final class BrowserNativeSceneCapabilities {
         } catch (RuntimeException invalid) {
             return false;
         }
-    }
-
-    private static boolean ownsStickerDeficit(Map<String, Object> scene, Map<String, Object> descriptor,
-            Map<String, Map<?, ?>> layers, Map<String, String> bindings, Set<String> owned) {
-        if (!"original_resources_v1".equals(descriptor.get("stickerPolicy")) || owned.isEmpty()) return false;
-        Map<?, ?> capability = map(scene.get("capability"));
-        int layerCount = 0, summaries = 0, deficit = -1;
-        for (Map<?, ?> layer : layers.values()) if ("sticker".equals(layer.get("type"))) {
-            layerCount++;
-            if (!owned.contains(string(layer.get("layerId")))) return false;
-        }
-        if (!validCount(capability.get("draftStickerLayerCount"))
-                || ((Number) capability.get("draftStickerLayerCount")).intValue() != layerCount) return false;
-        for (Object raw : list(capability.get("executionCapabilities"))) {
-            Map<?, ?> item = map(raw);
-            if (!"sticker_layers".equals(item.get("feature"))) continue;
-            summaries++;
-            if (!validCount(item.get("declaredCount")) || !validCount(item.get("executableCount"))
-                    || !validCount(capability.get("browserStickerLayerCount"))) return false;
-            double declared = ((Number) item.get("declaredCount")).doubleValue();
-            double executable = ((Number) item.get("executableCount")).doubleValue();
-            if (declared != layerCount || executable > declared
-                    || executable != ((Number) capability.get("browserStickerLayerCount")).doubleValue()) return false;
-            deficit = (int) (declared - executable);
-        }
-        Set<String> seen = new HashSet<>();
-        for (Object raw : list(capability.get("resourceDiagnostics"))) {
-            Map<?, ?> item = map(raw);
-            if (!Boolean.TRUE.equals(item.get("blocksExport")) || !"sticker_layers".equals(item.get("feature"))) continue;
-            String id = string(item.get("segmentId")), resource = string(item.get("resourceId"));
-            Map<?, ?> layer = layers.get(id);
-            if (!owned.contains(id) || !seen.add(id) || layer == null
-                    || !resource.equals(map(layer.get("nativeStickerSource")).get("resourceId"))
-                    || !"sticker".equals(bindings.get(resource))) return false;
-        }
-        return summaries == 1 && deficit > 0 && seen.size() == deficit;
     }
 
     private static boolean validCount(Object value) {

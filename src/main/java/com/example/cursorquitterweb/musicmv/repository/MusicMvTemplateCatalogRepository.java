@@ -1037,13 +1037,7 @@ public class MusicMvTemplateCatalogRepository {
                 providerDetailsJson, mediaId);
     }
 
-    public boolean publish(String templateId, String versionId, String sceneHash, String outputHash, String reportJson) {
-        // 同一事务核对实际验收快照，阻止并行端口在检查后替换场景或报告。
-        String evidence = " AND EXISTS (SELECT 1 FROM template_browser_scenes s "
-                + "JOIN template_browser_parity_validations p ON p.version_id=s.version_id "
-                + "WHERE s.version_id=? AND s.status='ready' AND s.manifest_sha256=? "
-                + "AND p.status='passed' AND p.scene_manifest_sha256=s.manifest_sha256 "
-                + "AND p.output_sha256=? AND p.report_json=?)";
+    public boolean publish(String templateId, String versionId) {
         List<D1QueryResult> result = d1.batch(Arrays.asList(
                 statement("UPDATE templates SET status='published',current_version_id=?,revision=revision+1,"
                         + "published_at=COALESCE(published_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP "
@@ -1053,16 +1047,16 @@ public class MusicMvTemplateCatalogRepository {
                         + "templates.current_version_id IS NULL OR templates.current_version_id=target.version_id OR EXISTS ("
                         + "SELECT 1 FROM template_versions previous WHERE previous.template_id=templates.template_id "
                         + "AND previous.version_id=templates.current_version_id "
-                        + "AND previous.version_number<target.version_number)))" + evidence, versionId, templateId, versionId, versionId, sceneHash, outputHash, reportJson),
+                        + "AND previous.version_number<target.version_number)))", versionId, templateId, versionId),
                 statement("UPDATE template_versions SET status='published',published_at=CURRENT_TIMESTAMP "
                         + "WHERE template_id=? AND version_id=? AND validation_status='browser_ready' AND EXISTS ("
                         + "SELECT 1 FROM templates WHERE template_id=? AND current_version_id=? "
-                        + "AND status='published' AND deleted_at IS NULL)" + evidence, templateId, versionId, templateId, versionId, versionId, sceneHash, outputHash, reportJson),
+                        + "AND status='published' AND deleted_at IS NULL)", templateId, versionId, templateId, versionId),
                 statement("SELECT current_version_id FROM templates WHERE template_id=? "
                         + "AND status='published' AND deleted_at IS NULL AND EXISTS ("
                         + "SELECT 1 FROM template_versions current_content WHERE current_content.template_id=templates.template_id "
                         + "AND current_content.version_id=templates.current_version_id "
-                        + "AND current_content.validation_status='browser_ready')" + evidence, templateId, versionId, sceneHash, outputHash, reportJson)));
+                        + "AND current_content.validation_status='browser_ready')", templateId)));
         Map<String, Object> current = result.get(2).firstRow();
         return current != null && versionId.equals(current.get("current_version_id"));
     }

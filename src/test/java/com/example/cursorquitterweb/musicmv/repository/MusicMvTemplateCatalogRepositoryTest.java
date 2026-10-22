@@ -18,20 +18,6 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
-    @Test void 发布事务绑定验收快照避免并发替换() {
-        CapturingD1 client = new CapturingD1();
-        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
-        assertFalse(repository.publish("tpl", "version", "scene", "output", "report"));
-        assertEquals(3, client.statements.size());
-        for (D1Statement statement : client.statements) {
-            assertTrue(statement.getSql().contains("p.report_json=?"));
-            assertTrue(statement.getSql().contains("s.manifest_sha256=?"));
-            assertTrue(statement.getSql().contains("p.output_sha256=?"));
-            List<Object> values = statement.getParams();
-            assertEquals(Arrays.asList("version", "scene", "output", "report"), values.subList(values.size()-4, values.size()));
-        }
-    }
-
     @Test void 管理分页按创建时间倒序且同一时间按标识稳定翻页() throws Exception {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

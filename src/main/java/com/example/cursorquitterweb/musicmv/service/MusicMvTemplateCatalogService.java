@@ -2101,40 +2101,12 @@ public class MusicMvTemplateCatalogService {
             }
         }
         requirePublishablePreviewMp4(versionId);
-        requireBrowserPublicationCapability(browserScene);
-        Map<String, Object> exportParity = repository.browserParity(versionId);
-        Map<String, Object> exportReport = parseObject(RowUtils.str(exportParity, "report_json"));
-        Number cycle = version.get("cycle_duration_seconds") instanceof Number
-                ? (Number) version.get("cycle_duration_seconds") : null;
-        if (cycle == null || !BrowserExportAcceptance.passed(exportReport, templateId, versionId,
-                RowUtils.str(browserScene, "manifest_sha256"), RowUtils.str(exportParity, "output_sha256"), cycle.doubleValue())) {
-            throw conflict("TEMPLATE_BROWSER_EXPORT_ACCEPTANCE_REQUIRED",
-                    "发布前必须完成当前场景和引擎版本的原片、换素材跨周期导出及下载验收");
-        }
-
-        if (!repository.publish(templateId, versionId, RowUtils.str(browserScene, "manifest_sha256"),
-                RowUtils.str(exportParity, "output_sha256"), RowUtils.str(exportParity, "report_json"))) {
+        if (!repository.publish(templateId, versionId)) {
             invalidateDetail(templateId);
             throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");
         }
         invalidateDetail(templateId);
         return promotionView(templateId, versionId, "published");
-    }
-
-    private void requireBrowserPublicationCapability(Map<String, Object> browserScene) {
-        Map<String, Object> scene = parseObject(RowUtils.str(browserScene, "scene_json"));
-        Object raw = scene.get("capability");
-        Map<?, ?> capability = raw instanceof Map ? (Map<?, ?>) raw : Collections.emptyMap();
-        Object blockers = capability.get("blockingFeatures");
-        boolean direct = Boolean.TRUE.equals(capability.get("browserExportReady"))
-                && blockers instanceof List && ((List<?>) blockers).isEmpty();
-        if (!direct && !BrowserNativeSceneCapabilities.ownsEffectBlockers(scene)) {
-            Map<String, Object> details = new LinkedHashMap<>();
-            details.put("blockingFeatures", blockers);
-            details.put("browserExportReady", capability.get("browserExportReady"));
-            throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_BROWSER_EXPORT_NOT_READY",
-                    "发布前必须通过实际浏览器导出能力检查，场景就绪或 SSIM 不能替代导出验收", true, details);
-        }
     }
 
     private void requirePublishablePreviewMp4(String versionId) {

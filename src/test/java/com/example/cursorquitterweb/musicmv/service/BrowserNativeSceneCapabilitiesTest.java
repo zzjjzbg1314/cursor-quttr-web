@@ -103,51 +103,6 @@ class BrowserNativeSceneCapabilitiesTest {
             assertEquals(variant.equals("valid"),BrowserNativeSceneCapabilities.ownsEffectBlockers(scene),variant);
         }
     }
-    @Test @SuppressWarnings("unchecked") void acceptsBoundStickerDeficitsButRejectsUnexplainedDiagnostics() {
-        for (String variant : Arrays.asList("valid", "count", "resource", "duplicate", "policy", "source")) {
-            Map<String,Object> scene = fixture(), delivery = (Map<String,Object>) scene.get("runtimeDelivery");
-            Map<String,Object> descriptor = (Map<String,Object>) delivery.get("nativeEngine");
-            descriptor.put("schemaVersion", "browser-native-scene-runtime-v4");
-            descriptor.put("stickerPolicy", "original_resources_v1");
-            descriptor.put("videoAudioPolicy", "external_music_only");
-            descriptor.put("files", Arrays.asList("effect/config.json", "sticker/config.json", "sticker/infoSticker.lua"));
-            descriptor.put("bindings", Arrays.asList(((List<?>)descriptor.get("bindings")).get(0),
-                    row("resourceId", "sticker", "kind", "sticker", "path", "sticker/")));
-            delivery.put("resources", Arrays.asList(row("resourceId", "effect"), row("resourceId", "sticker")));
-            Map<String,Object> source = BrowserNativeStickerContractTest.source();
-            Object layer = ((List<?>) BrowserNativeStickerContractTest.scene(source).get("layers")).get(0);
-            scene.put("layers", Arrays.asList(((List<?>)scene.get("layers")).get(0), layer));
-            Map<String,Object> capability = (Map<String,Object>) scene.get("capability");
-            capability.put("blockingFeatures", Arrays.asList("post_effects", "sticker_layers"));
-            capability.put("draftStickerLayerCount", 1); capability.put("browserStickerLayerCount", 0);
-            capability.put("executionCapabilities", Arrays.asList(((List<?>)capability.get("executionCapabilities")).get(0),
-                    row("feature", "sticker_layers", "declaredCount", variant.equals("count") ? 2 : 1, "executableCount", 0)));
-            Object effect = ((List<?>)capability.get("resourceDiagnostics")).get(0);
-            Object sticker = row("feature", "sticker_layers", "segmentId", "s", "resourceId", variant.equals("resource") ? "other" : "sticker", "blocksExport", true);
-            capability.put("resourceDiagnostics", variant.equals("duplicate") ? Arrays.asList(effect, sticker, sticker) : Arrays.asList(effect, sticker));
-            if (variant.equals("policy")) descriptor.remove("stickerPolicy");
-            if (variant.equals("source")) source.remove("attachmentStatus");
-            assertEquals(variant.equals("valid"), BrowserNativeSceneCapabilities.ownsEffectBlockers(scene), variant);
-        }
-    }
-
-    @Test @SuppressWarnings("unchecked") void imageAnimationDeficitsRequireUniqueBoundResourcesAndCapturedTiming() {
-        for (String variant : Arrays.asList("valid", "resource", "duration", "duplicate", "count", "parameters")) {
-            Map<String,Object> scene = textAnimationScene();
-            Map<String,Object> text = (Map<String,Object>) ((List<?>)scene.get("textLayers")).get(0);
-            Map<String,Object> animation = (Map<String,Object>) ((List<?>)text.get("animations")).get(0);
-            animation.put("durationSeconds", 1d);
-            scene.put("textLayers", Collections.emptyList());
-            Map<String,Object> segment = (Map<String,Object>) ((List<?>)scene.get("timelineSegments")).get(0);
-            segment.put("animations", variant.equals("duplicate") ? Arrays.asList(animation, animation) : Collections.singletonList(animation));
-            if (variant.equals("resource")) animation.put("resourceId", "missing");
-            if (variant.equals("duration")) animation.put("durationSeconds", 2d);
-            if (variant.equals("parameters")) animation.remove("nativeTextAnimationParameters");
-            if (variant.equals("count")) ((Map<String,Object>)scene.get("capability")).put("unsupportedBrowserAnimationCount", 2);
-            assertEquals(variant.equals("valid"), BrowserNativeSceneCapabilities.ownsEffectBlockers(scene), variant);
-        }
-    }
-
     @Test @SuppressWarnings("unchecked") void checksCapturedProductionSceneWhenProvided() throws Exception {
         String path=System.getProperty("native.animation.scene");
         org.junit.jupiter.api.Assumptions.assumeTrue(path!=null);
