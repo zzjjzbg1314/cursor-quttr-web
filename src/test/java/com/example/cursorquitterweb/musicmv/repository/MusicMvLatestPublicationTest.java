@@ -11,19 +11,19 @@ class MusicMvLatestPublicationTest {
     @Test void newerCommitCannotBeOverwrittenByLateOlderRequest() throws Exception {
         try (Connection connection = database()) {
             MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(connection));
-            assertTrue(repository.publish("t", "v3"));
-            assertFalse(repository.publish("t", "v2"));
+            assertTrue(repository.publish("t", "v3", "scene", "output", "report"));
+            assertFalse(repository.publish("t", "v2", "scene", "output", "report"));
             assertEquals("v3", scalar(connection, "SELECT current_version_id FROM templates"));
             assertEquals("draft", scalar(connection, "SELECT status FROM template_versions WHERE version_id='v2'"));
-            assertTrue(repository.publish("t", "v3"));
+            assertTrue(repository.publish("t", "v3", "scene", "output", "report"));
             connection.createStatement().execute("UPDATE template_versions SET validation_status='blocked' WHERE version_id='v3'");
-            assertFalse(repository.publish("t", "v3"));
+            assertFalse(repository.publish("t", "v3", "scene", "output", "report"));
         }
         try (Connection connection = database()) {
             MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(connection));
-            assertTrue(repository.publish("t", "v2"));
-            assertTrue(repository.publish("t", "v3"));
-            assertFalse(repository.publish("t", "v2"));
+            assertTrue(repository.publish("t", "v2", "scene", "output", "report"));
+            assertTrue(repository.publish("t", "v3", "scene", "output", "report"));
+            assertFalse(repository.publish("t", "v2", "scene", "output", "report"));
             assertEquals("v3", scalar(connection, "SELECT current_version_id FROM templates"));
         }
     }
@@ -31,21 +31,42 @@ class MusicMvLatestPublicationTest {
     @Test void missingUnreadyForeignOrDeletedTargetCannotChangeCurrent() throws Exception {
         try (Connection connection = database()) {
             MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(connection));
-            assertFalse(repository.publish("t", "missing"));
+            assertFalse(repository.publish("t", "missing", "scene", "output", "report"));
             connection.createStatement().execute("UPDATE template_versions SET validation_status='blocked' WHERE version_id='v3'");
-            assertFalse(repository.publish("t", "v3"));
+            assertFalse(repository.publish("t", "v3", "scene", "output", "report"));
             connection.createStatement().execute("UPDATE template_versions SET template_id='other' WHERE version_id='v2'");
-            assertFalse(repository.publish("t", "v2"));
+            assertFalse(repository.publish("t", "v2", "scene", "output", "report"));
             assertNull(scalar(connection, "SELECT current_version_id FROM templates"));
             connection.createStatement().execute("UPDATE templates SET deleted_at=CURRENT_TIMESTAMP");
-            assertFalse(repository.publish("t", "v1"));
+            assertFalse(repository.publish("t", "v1", "scene", "output", "report"));
+        }
+    }
+
+    @Test void changedAcceptanceSnapshotCannotPublishOrPretendSuccess() throws Exception {
+        for (String mutation : Arrays.asList(
+                "UPDATE template_browser_scenes SET manifest_sha256='changed' WHERE version_id='v3'",
+                "UPDATE template_browser_parity_validations SET report_json='changed' WHERE version_id='v3'",
+                "UPDATE template_browser_parity_validations SET output_sha256='changed' WHERE version_id='v3'",
+                "UPDATE template_browser_parity_validations SET status='failed' WHERE version_id='v3'")) {
+            for (boolean alreadyPublished : Arrays.asList(false, true)) {
+                try (Connection c = database()) {
+                    MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(new SqlD1(c));
+                    if (alreadyPublished) assertTrue(repository.publish("t", "v3", "scene", "output", "report"));
+                    String before = scalar(c, "SELECT current_version_id FROM templates");
+                    String revision = scalar(c, "SELECT revision FROM templates");
+                    c.createStatement().execute(mutation);
+                    assertFalse(repository.publish("t", "v3", "scene", "output", "report"));
+                    assertEquals(before, scalar(c, "SELECT current_version_id FROM templates"));
+                    assertEquals(revision, scalar(c, "SELECT revision FROM templates"));
+                }
+            }
         }
     }
 
     @Test void cleanupTracksSpecificContentAndExplicitReferences() throws Exception {
         try (Connection c = database()) {
             c.createStatement().execute("CREATE TABLE template_media(provider VARCHAR,provider_asset_id VARCHAR,version_id VARCHAR,status VARCHAR)");
-            c.createStatement().execute("CREATE TABLE template_browser_scenes(scene_json VARCHAR)");
+            
             c.createStatement().execute("CREATE TABLE music_mv_projects(template_id VARCHAR,template_version_id VARCHAR,draft_json VARCHAR)");
             c.createStatement().execute("CREATE TABLE music_mv_render_jobs(template_id VARCHAR,version_id VARCHAR,request_json VARCHAR,result_json VARCHAR,evidence_json VARCHAR)");
             c.createStatement().execute("INSERT INTO music_mv_projects VALUES('t','v3','{}')");
@@ -82,7 +103,7 @@ class MusicMvLatestPublicationTest {
             c.createStatement().execute("UPDATE music_mv_render_jobs SET version_id='v1'");
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
             c.createStatement().execute("UPDATE music_mv_render_jobs SET version_id='v3'");
-            c.createStatement().execute("INSERT INTO template_browser_scenes VALUES('asset-old')");
+            c.createStatement().execute("INSERT INTO template_browser_scenes(scene_json) VALUES('asset-old')");
             assertTrue(repository.cleanupAssetReferenced("cloudflare_images", "asset-old", "t", "v1"));
             c.createStatement().execute("DELETE FROM template_browser_scenes");
             c.createStatement().execute("INSERT INTO template_media VALUES('cloudflare_images','asset-old','v3','ready')");
@@ -94,6 +115,12 @@ class MusicMvLatestPublicationTest {
         Connection c = DriverManager.getConnection("jdbc:h2:mem:" + UUID.randomUUID() + ";DATABASE_TO_LOWER=TRUE");
         c.createStatement().execute("CREATE TABLE templates(template_id VARCHAR PRIMARY KEY,status VARCHAR,current_version_id VARCHAR,revision INT DEFAULT 0,published_at TIMESTAMP,updated_at TIMESTAMP,deleted_at TIMESTAMP)");
         c.createStatement().execute("CREATE TABLE template_versions(version_id VARCHAR PRIMARY KEY,template_id VARCHAR,version_number INT,status VARCHAR,validation_status VARCHAR,published_at TIMESTAMP)");
+        c.createStatement().execute("CREATE TABLE template_browser_scenes(version_id VARCHAR,status VARCHAR,manifest_sha256 VARCHAR,scene_json VARCHAR)");
+        c.createStatement().execute("CREATE TABLE template_browser_parity_validations(version_id VARCHAR,status VARCHAR,scene_manifest_sha256 VARCHAR,output_sha256 VARCHAR,report_json VARCHAR)");
+        for (int n=1;n<=3;n++) {
+            c.createStatement().execute("INSERT INTO template_browser_scenes VALUES('v"+n+"','ready','scene','{}')");
+            c.createStatement().execute("INSERT INTO template_browser_parity_validations VALUES('v"+n+"','passed','scene','output','report')");
+        }
         c.createStatement().execute("INSERT INTO templates(template_id,status) VALUES('t','draft')");
         for (int n=1;n<=3;n++) c.createStatement().execute("INSERT INTO template_versions VALUES('v"+n+"','t',"+n+",'draft','browser_ready',NULL)");
         return c;

@@ -960,7 +960,7 @@ class MusicMvTemplateCatalogServiceTest {
         assertFalse("tplver_published".equals(result.get("versionId")));
         verify(repository).promote(eq(request), anyString(), eq(2), anyString(), anyString(), anyString());
         verify(repository, never()).replaceSynchronizedVersion(any(), anyString(), anyString(), anyString(), anyString());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -1251,12 +1251,12 @@ class MusicMvTemplateCatalogServiceTest {
             ApiException error = assertThrows(ApiException.class, () -> service.publish("tpl_1", "old"));
             assertEquals("TEMPLATE_NEWER_CONTENT_REQUIRED", error.getCode());
         }
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
     void publishesBrowserReadyVersionAfterMatchingVisualParity() {
-        when(repository.publish("tpl_1", "tplver_1")).thenReturn(true);
+        when(repository.publish(eq("tpl_1"), eq("tplver_1"), anyString(), anyString(), anyString())).thenReturn(true);
         when(repository.template("tpl_1")).thenReturn(row("template_id", "tpl_1"));
         Map<String, Object> version = row("validation_status", "browser_ready");
         version.put("source_availability", "unavailable");
@@ -1287,8 +1287,8 @@ class MusicMvTemplateCatalogServiceTest {
         assertEquals("published", service.publish("tpl_1", "tplver_1").get("status"));
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "tplver_1"));
         assertEquals("published", service.publish("tpl_1", "tplver_1").get("status"));
-        verify(repository, org.mockito.Mockito.times(3)).publish("tpl_1", "tplver_1");
-        when(repository.publish("tpl_1", "tplver_1")).thenReturn(false);
+        verify(repository, org.mockito.Mockito.times(3)).publish(eq("tpl_1"), eq("tplver_1"), anyString(), anyString(), anyString());
+        when(repository.publish(eq("tpl_1"), eq("tplver_1"), anyString(), anyString(), anyString())).thenReturn(false);
         ApiException superseded = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_PUBLICATION_SUPERSEDED", superseded.getCode());
         parity.put("report_json", "{}");
@@ -1312,7 +1312,7 @@ class MusicMvTemplateCatalogServiceTest {
         preview.put("provider_details_json", ((String) preview.get("provider_details_json")).replace(hash('d'), hash('a')));
         ApiException stale = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", stale.getCode());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -1334,7 +1334,7 @@ class MusicMvTemplateCatalogServiceTest {
             ApiException error = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
             assertEquals("TEMPLATE_BROWSER_EXPORT_NOT_READY", error.getCode());
         }
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     private Map<String, Object> stubPublishPreview() {
@@ -1366,7 +1366,7 @@ class MusicMvTemplateCatalogServiceTest {
         ApiException error = assertThrows(ApiException.class, () ->
                 org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1"));
         assertEquals("TEMPLATE_PREVIEW_MP4_SOURCE_MISMATCH", error.getCode());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -1387,7 +1387,7 @@ class MusicMvTemplateCatalogServiceTest {
                     org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requirePublishablePreviewMp4", "tplver_1"));
             assertEquals("TEMPLATE_PREVIEW_MP4_INVALID", error.getCode(), change);
         }
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -1426,7 +1426,7 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.publish("tpl_1", "tplver_1"));
 
         assertEquals("TEMPLATE_BROWSER_PARITY_REQUIRED", error.getCode());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -1532,7 +1532,7 @@ class MusicMvTemplateCatalogServiceTest {
                 () -> service.publish("tpl_1", "tplver_1"));
 
         assertEquals("TEMPLATE_RUNTIME_PACKAGE_NOT_READY", error.getCode());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -2338,7 +2338,7 @@ class MusicMvTemplateCatalogServiceTest {
         ApiException error = assertThrows(ApiException.class,
                 () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_VERSION_NOT_PUBLISHABLE", error.getCode());
-        verify(repository, never()).publish(anyString(), anyString());
+        verify(repository, never()).publish(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test

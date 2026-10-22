@@ -2112,7 +2112,8 @@ public class MusicMvTemplateCatalogService {
                     "发布前必须完成当前场景和引擎版本的原片、换素材跨周期导出及下载验收");
         }
 
-        if (!repository.publish(templateId, versionId)) {
+        if (!repository.publish(templateId, versionId, RowUtils.str(browserScene, "manifest_sha256"),
+                RowUtils.str(exportParity, "output_sha256"), RowUtils.str(exportParity, "report_json"))) {
             invalidateDetail(templateId);
             throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");
         }
