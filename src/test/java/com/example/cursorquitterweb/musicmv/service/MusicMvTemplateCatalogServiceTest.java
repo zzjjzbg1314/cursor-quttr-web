@@ -39,6 +39,24 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    @Test void 管理分页固定二十条并在筛选收缩后返回末页() {
+        when(repository.templateCount("published",null,null,null,"source123",null,null,null,null,null)).thenReturn(45L);
+        when(repository.adminTemplatePage(null,"published","source123",20,40)).thenReturn(Collections.singletonList(
+                featuredRow("template_id","last","created_at","2026-10-01T00:00:00Z")));
+        Map<String,Object> page = service.adminPage(99,null,"published","source123");
+        assertEquals(3,page.get("page")); assertEquals(20,page.get("pageSize")); assertEquals(45L,page.get("total"));
+        assertEquals(false,page.get("hasMore"));
+        assertEquals("2026-10-01T00:00:00Z",((List<Map<String,Object>>)page.get("items")).get(0).get("createdAt"));
+        when(repository.adminTemplateOverview()).thenReturn(Arrays.asList(
+                featuredRow("template_id","published","status","published","validation_status","browser_ready"),
+                featuredRow("template_id","draft","status","draft","validation_status","exact"),
+                featuredRow("template_id","offline","status","offline")));
+        Map<String,Object> overview=service.adminOverview();
+        assertEquals(3,overview.get("total"));assertEquals(1,overview.get("published"));
+        assertEquals(2,overview.get("pending"));assertEquals(2,overview.get("ready"));
+        assertEquals(1,((List<?>)overview.get("publishedTemplates")).size());
+    }
+
     @Test
     void previewMp4FollowsSelectedStreamIdentityAndRejectsStaleDerivatives() {
         Map<String,Object> parity=featuredRow("role","browser_parity_reference","status","ready","mediaId","parity","sourceSha256","a");

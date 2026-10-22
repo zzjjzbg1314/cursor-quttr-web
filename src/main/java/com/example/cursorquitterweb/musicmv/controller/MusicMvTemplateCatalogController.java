@@ -121,6 +121,21 @@ public class MusicMvTemplateCatalogController {
         return service.similar(templateId, locale, limit);
     }
 
+    @GetMapping("/admin/templates/page")
+    public Map<String,Object> adminPage(
+            @RequestHeader(value="X-Music-Mv-Client-Token",required=false) String token,
+            @RequestParam(value="page",required=false) Integer page,
+            @RequestParam(value="category",required=false) String category,
+            @RequestParam(value="status",required=false) String status,
+            @RequestParam(value="q",required=false) String keyword) {
+        authentication.requireAuthorized(token); return service.adminPage(page,category,status,keyword);
+    }
+
+    @GetMapping("/admin/templates/overview")
+    public Map<String,Object> adminOverview(@RequestHeader(value="X-Music-Mv-Client-Token",required=false) String token) {
+        authentication.requireAuthorized(token); return service.adminOverview();
+    }
+
     @GetMapping("/admin/templates")
     public Map<String, Object> adminTemplates(
             @RequestHeader(value = "X-Music-Mv-Client-Token", required = false) String token,

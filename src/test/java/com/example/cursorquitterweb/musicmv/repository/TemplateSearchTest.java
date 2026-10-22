@@ -19,7 +19,7 @@ class TemplateSearchTest {
     }
     @Test void actualSqlFindsPublishedTemplatesInAnyLanguageAndAfterInsert() throws Exception {
         List<Map<String,Object>> cases=new ArrayList<>();
-        for(String query:Arrays.asList("wedding","婚礼","boda","casamento","pernikahan","unique spanish","golden memory","ocean","100%","unmatched")) {
+        for(String query:Arrays.asList("wedding","婚礼","boda","casamento","pernikahan","unique spanish","golden memory","ocean","source123","100%","unmatched")) {
             List<Object> params=new ArrayList<>();StringBuilder sql=new StringBuilder();TemplateSearch.append(sql,params,query);
             Map<String,Object> row=new LinkedHashMap<>();row.put("q",query);row.put("sql",sql.toString());row.put("params",params);cases.add(row);
         }

@@ -18,6 +18,30 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void 管理分页按创建时间倒序且同一时间按标识稳定翻页() throws Exception {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.adminTemplatePage(null,"published",null,20,20);
+        String order = client.sql.substring(client.sql.indexOf("ORDER BY t.created_at"));
+        assertEquals(Arrays.asList("zh-CN","published",20,20),client.params);
+        String script = String.join("\n", "import sqlite3,sys", "db=sqlite3.connect(':memory:')",
+                "db.execute('CREATE TABLE templates(template_id TEXT,created_at TEXT,sort_order INT,published_at TEXT)')",
+                "db.executemany('INSERT INTO templates VALUES (?,?,?,?)',[(str(i).zfill(3),'2026-10-'+str(i//3+1).zfill(2),100-i,'2000') for i in range(45)])",
+                "q='SELECT template_id FROM templates t '+sys.argv[1]",
+                "pages=[list(db.execute(q,(20,offset))) for offset in (0,20,40)]",
+                "assert list(map(len,pages))==[20,20,5]",
+                "assert [x[0] for p in pages for x in p]==[str(i).zfill(3) for i in range(44,-1,-1)]");
+        Process process = new ProcessBuilder("python3","-c",script,order).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals(0,process.exitValue(),new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8));
+        repository.adminTemplatePage("__review__",null,"source123",20,0);
+        String predicate = client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL"),client.sql.indexOf("ORDER BY t.created_at"));
+        java.util.List<Object> params = new ArrayList<>(client.params.subList(1,client.params.size()-2));
+        repository.templateCount(null,null,"__review__",null,"source123",null,null,null,null,null);
+        assertEquals(predicate,client.sql.substring(client.sql.indexOf("WHERE t.deleted_at IS NULL")));
+        assertEquals(params,client.params);
+    }
+
     @Test void 精选回填保留成功值且不改变渲染版本() throws Exception {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

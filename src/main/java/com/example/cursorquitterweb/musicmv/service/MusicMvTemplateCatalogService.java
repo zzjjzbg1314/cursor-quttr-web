@@ -201,6 +201,41 @@ public class MusicMvTemplateCatalogService {
         return result;
     }
 
+    public Map<String,Object> adminPage(Integer page, String category, String status, String keyword) {
+        int current = page == null ? 1 : Math.max(1, Math.min(1000000, page));
+        String topic = blankToNull(category);
+        if (topic != null && !"__review__".equals(topic)) requireCategory(topic);
+        String state = blankToNull(status), query = blankToNull(keyword);
+        long total = repository.templateCount(state,null,topic,null,query,null,null,null,null,null);
+        int pages = (int)Math.max(1, (total+19)/20);
+        current = Math.min(current, pages);
+        List<Map<String,Object>> items = new ArrayList<>();
+        for (Map<String,Object> row : repository.adminTemplatePage(topic,state,query,20,(current-1)*20)) {
+            Map<String,Object> item = summary(row); copy(item,"createdAt",row,"created_at"); items.add(item);
+        }
+        Map<String,Object> result = new LinkedHashMap<>();
+        result.put("items",items); result.put("total",total); result.put("page",current);
+        result.put("pageSize",20); result.put("hasMore",current<pages); return result;
+    }
+
+    public Map<String,Object> adminOverview() {
+        List<Map<String,Object>> rows = repository.adminTemplateOverview(), published = new ArrayList<>();
+        int ready = 0;
+        for (Map<String,Object> row : rows) {
+            String status = RowUtils.str(row,"status"), validation = RowUtils.str(row,"validation_status");
+            if ("published".equals(status)) {
+                Map<String,Object> item = new LinkedHashMap<>();
+                copy(item,"templateId",row,"template_id"); copy(item,"capcutTemplateId",row,"capcut_template_id");
+                item.put("status",status); published.add(item);
+            }
+            if ("browser_ready".equals(validation) || "exact".equals(validation)) ready++;
+        }
+        Map<String,Object> result = new LinkedHashMap<>();
+        result.put("total",rows.size()); result.put("published",published.size());
+        result.put("pending",rows.size()-published.size()); result.put("ready",ready);
+        result.put("publishedTemplates",published); return result;
+    }
+
     public Map<String, Object> similar(String templateId, String locale, Integer limit) {
         Map<String, Object> template = requireTemplate(templateId);
         int size = limit == null ? 6 : Math.max(1, Math.min(24, limit.intValue()));

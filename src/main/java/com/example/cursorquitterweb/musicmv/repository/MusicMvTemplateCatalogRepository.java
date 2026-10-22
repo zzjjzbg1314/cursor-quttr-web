@@ -187,6 +187,19 @@ public class MusicMvTemplateCatalogRepository {
                                                 Double minDuration, Double maxDuration,
                                                 String aspectRatio,
                                                 int limit, int offset, String tagKey) {
+        return templateRows(locale, status, visibility, categoryKey, collectionKey, keyword, minSlots, maxSlots,
+                minDuration, maxDuration, aspectRatio, limit, offset, tagKey, false);
+    }
+
+    public List<Map<String, Object>> adminTemplatePage(String category, String status, String keyword, int limit, int offset) {
+        return templateRows("zh-CN", status, null, category, null, keyword, null, null, null, null, null,
+                limit, offset, null, true);
+    }
+
+    private List<Map<String, Object>> templateRows(String locale, String status, String visibility,
+            String categoryKey, String collectionKey, String keyword, Integer minSlots, Integer maxSlots,
+            Double minDuration, Double maxDuration, String aspectRatio, int limit, int offset, String tagKey,
+            boolean createdDescending) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
         // 只物化小型摘要，避免大场景 JSON 进入目录连接与排序的临时结果。
@@ -237,7 +250,9 @@ public class MusicMvTemplateCatalogRepository {
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
         if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
-        if (categoryKey != null) {
+        if ("__review__".equals(categoryKey)) {
+            appendUnclassified(sql, params);
+        } else if (categoryKey != null) {
             sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
                     + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("
                     + "SELECT 1 FROM template_category_items ti JOIN template_categories tc "
@@ -256,6 +271,11 @@ public class MusicMvTemplateCatalogRepository {
         }
         TemplateSearch.append(sql, params, keyword);
         appendTechnicalFilters(sql, params, minSlots, maxSlots, minDuration, maxDuration, aspectRatio);
+        if (createdDescending) {
+            sql.append("ORDER BY t.created_at DESC, t.template_id DESC LIMIT ? OFFSET ?");
+            params.add(Integer.valueOf(limit)); params.add(Integer.valueOf(offset));
+            return d1.query(sql.toString(), params).getRows();
+        }
         sql.append("ORDER BY t.sort_order DESC, ");
         if ("public".equals(visibility)) {
             sql.append("CASE WHEN json_valid(t.capcut_featured_json) THEN CASE WHEN ")
@@ -267,6 +287,21 @@ public class MusicMvTemplateCatalogRepository {
         params.add(Integer.valueOf(limit));
         params.add(Integer.valueOf(offset));
         return d1.query(sql.toString(), params).getRows();
+    }
+
+    private void appendUnclassified(StringBuilder sql, List<Object> params) {
+        sql.append("AND COALESCE(t.category_key,'') NOT IN (");
+        List<Map<String,Object>> topics = com.example.cursorquitterweb.musicmv.service.TemplateTopics.items();
+        for (int i=0; i<topics.size(); i++) {
+            if (i>0) sql.append(","); sql.append("?"); params.add(topics.get(i).get("key"));
+        }
+        sql.append(") ");
+    }
+
+    public List<Map<String,Object>> adminTemplateOverview() {
+        return d1.query("SELECT t.template_id,t.capcut_template_id,t.status,v.validation_status "
+                + "FROM templates t LEFT JOIN template_versions v ON v.version_id=t.current_version_id "
+                + "WHERE t.deleted_at IS NULL").getRows();
     }
 
     public long templateCount(String status, String visibility, String categoryKey,
@@ -287,7 +322,9 @@ public class MusicMvTemplateCatalogRepository {
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
         if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
-        if (categoryKey != null) {
+        if ("__review__".equals(categoryKey)) {
+            appendUnclassified(sql, params);
+        } else if (categoryKey != null) {
             sql.append("AND (EXISTS (SELECT 1 FROM template_category_items ti "
                     + "WHERE ti.template_id=t.template_id AND ti.category_key=?) OR EXISTS ("
                     + "SELECT 1 FROM template_category_items ti JOIN template_categories tc "
