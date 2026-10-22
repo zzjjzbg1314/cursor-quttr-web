@@ -283,7 +283,7 @@ class MusicMvTemplateCatalogRepositoryTest {
 
         assertTrue(client.sql.contains("v.source_availability AS source_availability"));
         assertTrue(client.sql.contains("$.runtimeDelivery.totalSizeBytes"));
-        assertTrue(client.sql.contains(") AS runtime_package_size_bytes"));
+        assertTrue(client.sql.contains("END AS runtime_package_size_bytes"));
         assertTrue(client.sql.contains("runtime_size.version_id=t.current_version_id"));
         assertFalse(client.sql.contains("LEFT JOIN template_browser_scenes"));
         assertFalse(client.sql.contains("renderer_nodes"));
@@ -295,8 +295,10 @@ class MusicMvTemplateCatalogRepositoryTest {
         CapturingD1 client = new CapturingD1();
         new MusicMvTemplateCatalogRepository(client).templates("en", null, null, null, null, null,
                 null, null, null, null, null, 100, 0);
-        String expression = client.sql.substring(client.sql.indexOf("(SELECT CASE WHEN json_extract(runtime_size"),
+        String prefix = client.sql.substring(0, client.sql.indexOf("SELECT t.template_id"));
+        String expression = client.sql.substring(client.sql.indexOf("CASE WHEN json_extract(runtime_size"),
                 client.sql.indexOf(" AS runtime_package_size_bytes"));
+        assertTrue(prefix.contains("AS MATERIALIZED"));
         String script = String.join("\n",
                 "import sqlite3,json,sys",
                 "db=sqlite3.connect(':memory:')",
@@ -305,9 +307,9 @@ class MusicMvTemplateCatalogRepositoryTest {
                 "db.executemany('INSERT INTO templates VALUES (?,?)',[('current','new'),('empty','zero'),('missing','absent'),('unsupported','old-schema')])",
                 "def scene(version,size,schema='browser-runtime-delivery-v1'): db.execute('INSERT INTO template_browser_scenes VALUES (?,?)',(version,json.dumps({'runtimeDelivery':{'schemaVersion':schema,'totalSizeBytes':size},'payload':'x'*1000000})))",
                 "scene('new',948743); scene('old',99); scene('zero',0); scene('old-schema',123,'unsupported')",
-                "rows=dict(db.execute('SELECT t.template_id,'+sys.argv[1]+' FROM templates t'))",
+                "rows=dict(db.execute(sys.argv[1]+'SELECT t.template_id,'+sys.argv[2]+' FROM templates t LEFT JOIN runtime_sizes runtime_size ON runtime_size.version_id=t.current_version_id'))",
                 "assert rows=={'current':948743,'empty':0,'missing':None,'unsupported':None},rows");
-        Process process = new ProcessBuilder("python3", "-c", script, expression).redirectErrorStream(true).start();
+        Process process = new ProcessBuilder("python3", "-c", script, prefix, expression).redirectErrorStream(true).start();
         assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
         String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, process.exitValue(), output);

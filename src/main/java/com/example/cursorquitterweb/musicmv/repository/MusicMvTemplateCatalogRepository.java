@@ -189,7 +189,11 @@ public class MusicMvTemplateCatalogRepository {
                                                 int limit, int offset, String tagKey) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT t.template_id, t.capcut_template_id, t.capcut_featured_json, t.slug, t.category_key, t.tags_json, t.status, ")
+        // 只物化小型摘要，避免大场景 JSON 进入目录连接与排序的临时结果。
+        sql.append("WITH runtime_sizes AS MATERIALIZED (SELECT version_id, ")
+                .append("json_extract(scene_json, '$.runtimeDelivery.schemaVersion', '$.runtimeDelivery.totalSizeBytes') ")
+                .append("AS size_metadata FROM template_browser_scenes) ")
+                .append("SELECT t.template_id, t.capcut_template_id, t.capcut_featured_json, t.slug, t.category_key, t.tags_json, t.status, ")
                 .append("t.visibility, t.current_version_id, t.sort_order, t.revision, ")
                 .append("t.created_at, t.updated_at, t.published_at, ")
                 .append("COALESCE((SELECT json_group_array(category_key) FROM (")
@@ -203,10 +207,8 @@ public class MusicMvTemplateCatalogRepository {
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
                 .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
                 .append("v.source_availability AS source_availability, ")
-                // 大场景 JSON 不参与目录排序的连接临时表，只按当前版本读取标量大小。
-                .append("(SELECT CASE WHEN json_extract(runtime_size.scene_json, '$.runtimeDelivery.schemaVersion')='browser-runtime-delivery-v1' ")
-                .append("THEN json_extract(runtime_size.scene_json, '$.runtimeDelivery.totalSizeBytes') END ")
-                .append("FROM template_browser_scenes runtime_size WHERE runtime_size.version_id=t.current_version_id) AS runtime_package_size_bytes, ")
+                .append("CASE WHEN json_extract(runtime_size.size_metadata, '$[0]')='browser-runtime-delivery-v1' ")
+                .append("THEN json_extract(runtime_size.size_metadata, '$[1]') END AS runtime_package_size_bytes, ")
                 .append("cover.provider AS cover_provider, cover.provider_asset_id AS cover_asset_id, ")
                 .append("cover.provider_details_json AS cover_provider_details_json, ")
                 .append("preview.provider AS preview_provider, preview.provider_asset_id AS preview_asset_id, ")
@@ -218,6 +220,7 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_translations en ON en.template_id=t.template_id AND en.locale='en' ")
                 .append("LEFT JOIN template_translations zh ON zh.template_id=t.template_id AND zh.locale='zh-CN' ")
                 .append("LEFT JOIN template_versions v ON v.version_id=t.current_version_id ")
+                .append("LEFT JOIN runtime_sizes runtime_size ON runtime_size.version_id=t.current_version_id ")
                 .append("LEFT JOIN template_media cover ON cover.version_id=t.current_version_id ")
                 .append("AND cover.media_role='cover' AND cover.status='ready' ")
                 .append("LEFT JOIN template_media preview ON preview.media_id=(")
