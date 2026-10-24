@@ -38,6 +38,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class CloudflareTemplateMediaProviderTest {
     @Test
+    void previewUrlUsesCurrentStorageDomainWithoutMutatingSavedDetails() {
+        CloudflareTemplateMediaProvider provider = provider(new RestTemplate());
+        String key = "templates/version/hash.mp4";
+        Map<String,Object> saved = new LinkedHashMap<>();
+        saved.put("playbackUrl", "https://video.musicvideomaker.net/" + key);
+        saved.put("width", 720);
+        for (String base : new String[]{"https://video.songtovideo.ai", "https://preview.example/"}) {
+            provider.setTemplatePreviewStorage(new TemplatePreviewStorage(base, "", "video-previews", "", ""));
+            Map<String,Object> resolved = provider.resolveDeliveryDetails("cloudflare_r2_preview", key, saved);
+            assertEquals(base.replaceAll("/+$", "") + "/" + key, resolved.get("playbackUrl"));
+            assertEquals(720, resolved.get("width"));
+        }
+        assertEquals("https://video.musicvideomaker.net/" + key, saved.get("playbackUrl"));
+        assertEquals(saved, provider.resolveDeliveryDetails("other_provider", key, saved));
+        assertEquals(saved, provider.resolveDeliveryDetails("cloudflare_r2_preview", "", saved));
+    }
+
+    @Test
     void recentlyReadyImageReusesBoundedCache() {
         RestTemplate rest = new RestTemplate();
         MockRestServiceServer server = MockRestServiceServer.bindTo(rest).build();

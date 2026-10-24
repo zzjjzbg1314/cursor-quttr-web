@@ -39,6 +39,32 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    @Test
+    @SuppressWarnings("unchecked")
+    void listAndDetailMediaUseCurrentPreviewDomain() throws Exception {
+        CloudflareTemplateMediaProvider actual = new CloudflareTemplateMediaProvider(
+                new ObjectMapper(), "https://api.example", "", "", "", "", "", "");
+        actual.setTemplatePreviewStorage(new TemplatePreviewStorage(
+                "https://video.songtovideo.ai", "", "video-previews", "", ""));
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"mediaProvider",actual);
+        String key="templates/version/hash.mp4";
+        String saved="{\"playbackUrl\":\"https://video.musicvideomaker.net/"+key+"\",\"width\":720}";
+        Map<String,Object> row=new LinkedHashMap<>();
+        row.put("preview_mp4_provider","cloudflare_r2_preview");
+        row.put("preview_mp4_asset_id",key);
+        row.put("preview_mp4_provider_details_json",saved);
+        Map<String,Object> listMedia=org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"providerMedia",row,"preview_mp4");
+        row.put("provider","cloudflare_r2_preview");row.put("provider_asset_id",key);
+        row.put("provider_details_json",saved);
+        List<Map<String,Object>> detailMedia=org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"mediaViews",Collections.singletonList(row));
+        for(Map<String,Object> media:Arrays.asList(listMedia,detailMedia.get(0))) {
+            Map<String,Object> details=(Map<String,Object>)media.get("providerDetails");
+            assertEquals("https://video.songtovideo.ai/"+key,details.get("playbackUrl"));
+            assertEquals(720,details.get("width"));
+        }
+        assertEquals(saved,row.get("provider_details_json"));
+    }
+
     @Test void 管理分页固定二十条并在筛选收缩后返回末页() {
         when(repository.templateCount("published",null,null,null,"source123",null,null,null,null,null)).thenReturn(45L);
         when(repository.adminTemplatePage(null,"published","source123",20,40)).thenReturn(Collections.singletonList(

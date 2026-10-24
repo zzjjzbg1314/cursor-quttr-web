@@ -74,6 +74,13 @@ public class CloudflareTemplateMediaProvider {
         this.streamDeliveryBaseUrl = trimSlash(streamDeliveryBaseUrl);
     }
 
+    private TemplatePreviewStorage templatePreviewStorage;
+
+    @Autowired
+    public void setTemplatePreviewStorage(TemplatePreviewStorage storage) {
+        this.templatePreviewStorage = storage;
+    }
+
     private R2StorageService templateVideoStorage;
 
     @Autowired
@@ -133,7 +140,10 @@ public class CloudflareTemplateMediaProvider {
         String assetId = trim(providerAssetId);
         if (assetId.isEmpty()) return details;
 
-        if ("cloudflare_r2".equals(provider) && templateVideoStorageConfigured()) {
+        if ("cloudflare_r2_preview".equals(provider) && templatePreviewStorage != null) {
+            // 预览域名由当前配置决定，不沿用数据库中发布时保存的地址。
+            details.put("playbackUrl", templatePreviewStorage.storage.publicUrl(assetId));
+        } else if ("cloudflare_r2".equals(provider) && templateVideoStorageConfigured()) {
             details.put("playbackUrl",templateVideoStorage.presignedGetUrl(assetId,java.time.Duration.ofMinutes(15)));
         } else if ("cloudflare_images".equals(provider) && imagesDeliveryConfigured()) {
             putIfBlank(details, "deliveryUrl",

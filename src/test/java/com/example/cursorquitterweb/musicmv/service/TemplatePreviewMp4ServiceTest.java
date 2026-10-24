@@ -29,6 +29,23 @@ class TemplatePreviewMp4ServiceTest {
         when(r2.isConfigured()).thenReturn(true);
         return r;
     }
+    @Test void existingPreviewQueryResolvesCurrentDeliveryUrl() {
+        TemplatePreviewMp4Request r=request();
+        Map<String,Object> existing=new HashMap<>();
+        existing.put("status","ready");existing.put("provider","cloudflare_r2_preview");
+        existing.put("provider_asset_id","templates/version/hash.mp4");
+        Map<String,Object> saved=new HashMap<>();
+        saved.put("sourceMediaId",r.sourceMediaId);saved.put("sourceSha256",r.sourceSha256);
+        saved.put("playbackUrl","https://video.musicvideomaker.net/templates/version/hash.mp4");
+        try { existing.put("provider_details_json",new ObjectMapper().writeValueAsString(saved)); }
+        catch(Exception e) { throw new AssertionError(e); }
+        when(repository.mediaByRole("ver_1","preview_mp4")).thenReturn(existing);
+        Map<String,Object> resolved=Collections.singletonMap("playbackUrl","https://video.songtovideo.ai/templates/version/hash.mp4");
+        when(provider.resolveDeliveryDetails("cloudflare_r2_preview","templates/version/hash.mp4",saved)).thenReturn(resolved);
+        assertEquals(resolved,service.source("tpl_1","ver_1").get("previewMp4"));
+        verifyNoInteractions(r2);
+    }
+
     @Test void rejects1080AndStaleSourceBeforeUpload() {
         TemplatePreviewMp4Request r=request();r.width=1080;
         assertEquals("PREVIEW_METADATA_INVALID",assertThrows(ApiException.class,()->service.upload("tpl_1","ver_1",r)).getCode());

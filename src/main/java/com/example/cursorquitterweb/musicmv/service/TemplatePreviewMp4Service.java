@@ -40,7 +40,8 @@ public class TemplatePreviewMp4Service {
         if (existing!=null && "ready".equals(existing.get("status"))) {
             Map<String,Object> saved=details(existing);
             if (Objects.equals(row.get("media_id"),saved.get("sourceMediaId"))
-                    && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))) result.put("previewMp4",saved);
+                    && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))) result.put("previewMp4",provider.resolveDeliveryDetails(
+                            RowUtils.str(existing,"provider"),RowUtils.str(existing,"provider_asset_id"),saved));
         }
         result.put("playbackUrl",provider.resolveDeliveryDetails(RowUtils.str(row,"provider"),
                 RowUtils.str(row,"provider_asset_id"),details(row)).get("playbackUrl"));
