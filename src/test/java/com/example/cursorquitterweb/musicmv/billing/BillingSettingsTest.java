@@ -7,7 +7,7 @@ class BillingSettingsTest {
     @Test void returnUrlsPreserveAllSupportedLanguages() {
         BillingSettings settings=new BillingSettings();
         String[][] languages={{"en",""},{"zh-CN","/zh-cn"},{"zh-TW","/zh-tw"},{"ja","/ja"},{"ko","/ko"},
-            {"es","/es"},{"pt-BR","/pt-br"},{"de","/de"},{"fr","/fr"}};
+            {"es","/es"},{"pt-BR","/pt-br"},{"de","/de"},{"fr","/fr"},{"it","/it"}};
         String[][] sites={{"https://www.suno.film","https://www.suno.film"},{"https://www.suno.film/","https://www.suno.film"},
             {"https://www.suno.film///","https://www.suno.film"},{"http://localhost:3000/","http://localhost:3000"},
             {"http://localhost","http://localhost"},{"http://127.0.0.1:3000///","http://127.0.0.1:3000"}};

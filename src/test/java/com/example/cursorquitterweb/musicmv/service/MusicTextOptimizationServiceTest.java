@@ -103,4 +103,34 @@ class MusicTextOptimizationServiceTest {
    .optimize("lyrics","Original lyrics","","","en","f","drums"));
   server.verify();
  }
+ @Test void supportsTenInterfaceLanguagesWithoutOverridingSourceLanguage() {
+  String[][] languages = {
+   {"en", "English"}, {"zh-CN", "Simplified Chinese"}, {"zh-TW", "Traditional Chinese"},
+   {"ja", "Japanese"}, {"ko", "Korean"}, {"es", "Spanish"},
+   {"pt-BR", "Brazilian Portuguese"}, {"fr", "French"}, {"de", "German"}, {"it", "Italian"}
+  };
+  for (String[] language : languages) {
+   for (String source : new String[]{"90 BPM", "温暖的钢琴与柔和人声", "Piano chaleureux et voix douce"}) {
+    RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+    server.expect(requestTo("https://example.com"))
+     .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("fallback language: "+language[1]+".")))
+     .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("Only when the source language is ambiguous or cannot be determined")))
+     .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("fallback must not override a recognizable source language")))
+     .andExpect(jsonPath("$.messages[1].content").value(org.hamcrest.Matchers.containsString("Source text:\n"+source)))
+     .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"Optimized style\"}}]}",MediaType.APPLICATION_JSON));
+    assertEquals("Optimized style", new MusicTextOptimizationService(client,"key","https://example.com","test")
+     .optimize("styles",source,"","Different lyrics language",language[0]));
+    server.verify();
+   }
+   RestTemplate client=new RestTemplate(); MockRestServiceServer server=MockRestServiceServer.createServer(client);
+   server.expect(requestTo("https://example.com"))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("Keep the original language and intent")))
+    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("fallback language:"))))
+    .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"Paroles révisées\"}}]}",MediaType.APPLICATION_JSON));
+   assertEquals("Paroles révisées", new MusicTextOptimizationService(client,"key","https://example.com","test")
+    .optimize("lyrics","Paroles originales","",null,language[0]));
+   server.verify();
+  }
+ }
+
 }

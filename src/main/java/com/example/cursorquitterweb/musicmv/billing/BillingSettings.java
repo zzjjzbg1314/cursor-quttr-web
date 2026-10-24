@@ -44,7 +44,7 @@ public class BillingSettings {
         if ((!local && !"https".equals(uri.getScheme())) || uri.getHost()==null || uri.getUserInfo()!=null
                 || uri.getQuery()!=null || uri.getFragment()!=null) throw new IllegalStateException("Invalid billing site URL");
         String language = locale == null ? "en" : locale.toLowerCase(java.util.Locale.ROOT);
-        String prefix = java.util.Arrays.asList("zh-cn", "zh-tw", "ja", "ko", "es", "pt-br", "de", "fr")
+        String prefix = java.util.Arrays.asList("zh-cn", "zh-tw", "ja", "ko", "es", "pt-br", "de", "fr", "it")
                 .contains(language) ? "/" + language : "";
         return siteUrl.replaceAll("/+$", "") + prefix + "/pricing";
     }
