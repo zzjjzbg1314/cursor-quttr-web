@@ -2101,6 +2101,7 @@ public class MusicMvTemplateCatalogService {
             }
         }
         requirePublishablePreviewMp4(versionId);
+        TemplatePublicationCopy.requireComplete(repository.translations(templateId));
         if (!repository.publish(templateId, versionId)) {
             invalidateDetail(templateId);
             throw conflict("TEMPLATE_PUBLICATION_SUPERSEDED", "Template content changed during publication; refresh and retry");

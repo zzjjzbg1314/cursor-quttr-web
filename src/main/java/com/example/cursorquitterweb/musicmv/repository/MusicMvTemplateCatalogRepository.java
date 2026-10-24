@@ -831,8 +831,8 @@ public class MusicMvTemplateCatalogRepository {
                 + "revision=templates.revision+1,updated_at=CURRENT_TIMESTAMP",
                 request.getTemplateId(), request.getCapcutTemplateId(), request.getSlug(),
                 request.getCategoryKey(), tagsJson));
-        statements.add(translation(request.getTemplateId(), "zh-CN", request.getNameZh(), request.getDescriptionZh()));
-        statements.add(translation(request.getTemplateId(), "en", request.getNameEn(), request.getDescriptionEn()));
+        statements.add(initialTranslation(request.getTemplateId(), "zh-CN", request.getNameZh(), request.getDescriptionZh()));
+        statements.add(initialTranslation(request.getTemplateId(), "en", request.getNameEn(), request.getDescriptionEn()));
         statements.add(statement("INSERT INTO template_versions "
                 + "(version_id,template_id,version_number,status,width,height,fps,duration_seconds,"
                 + "base_duration_seconds,cycle_duration_seconds,slot_count,validation_status,"
@@ -1198,6 +1198,13 @@ public class MusicMvTemplateCatalogRepository {
                 + "(SELECT COUNT(*) FROM template_versions) AS version_count, "
                 + "(SELECT COUNT(*) FROM template_slots) AS slot_count, "
                 + "(SELECT COUNT(*) FROM template_media WHERE status='ready') AS ready_media_count").firstRow();
+    }
+
+    // 同步只初始化文案，已编辑的中英文名称和描述由资料接口独立维护。
+    private D1Statement initialTranslation(String templateId, String locale, String name, String description) {
+        return statement("INSERT INTO template_translations (template_id,locale,name,description) "
+                + "VALUES (?,?,?,?) ON CONFLICT(template_id,locale) DO NOTHING", templateId, locale, name,
+                description == null ? "" : description);
     }
 
     private D1Statement translation(String templateId, String locale, String name, String description) {

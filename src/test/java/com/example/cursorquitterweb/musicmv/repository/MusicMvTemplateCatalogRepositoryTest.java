@@ -278,6 +278,25 @@ class MusicMvTemplateCatalogRepositoryTest {
     }
 
     @Test
+    void resyncKeepsEditedTranslationsAndInitializesMissingLanguages() throws Exception {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.promote(validPromotion(), "tplver_1", 1, "[]", "{}", "{}");
+        String sql = client.statements.stream().map(D1Statement::getSql)
+                .filter(value -> value.startsWith("INSERT INTO template_translations")).findFirst().get();
+        String script = String.join("\n", "import sqlite3,sys", "db=sqlite3.connect(':memory:')",
+                "db.execute('CREATE TABLE template_translations(template_id TEXT,locale TEXT,name TEXT,description TEXT,PRIMARY KEY(template_id,locale))')",
+                "db.execute(sys.argv[1],('one','en','Edited title','Edited description'))",
+                "db.execute(sys.argv[1],('one','en','0923',''))",
+                "assert db.execute('SELECT name,description FROM template_translations').fetchone()==('Edited title','Edited description')",
+                "db.execute(sys.argv[1],('one','zh-CN','New title','New description'))",
+                "assert db.execute('SELECT COUNT(*) FROM template_translations').fetchone()[0]==2");
+        Process process = new ProcessBuilder("python3", "-c", script, sql).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals(0, process.exitValue());
+    }
+
+    @Test
     void ordinaryDeletionRemovesCategoryAndSourceReferencesBeforeTemplate() {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);

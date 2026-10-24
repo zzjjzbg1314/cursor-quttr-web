@@ -1274,6 +1274,11 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.browserParity("tplver_1")).thenReturn(parity);
 
         stubPublishPreview();
+        ApiException copyMissing = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
+        assertEquals("TEMPLATE_BILINGUAL_COPY_REQUIRED", copyMissing.getCode());
+        when(repository.translations("tpl_1")).thenReturn(Arrays.asList(
+                featuredRow("locale", "zh-CN", "name", "水面倒影黑胶", "description", "唱片与水面倒影组合成柔和的音乐画面。"),
+                featuredRow("locale", "en", "name", "Ripple Reflection Vinyl", "description", "A spinning record sits above soft rippling reflections.")));
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
         assertEquals("published", result.get("status"));
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "older"));
