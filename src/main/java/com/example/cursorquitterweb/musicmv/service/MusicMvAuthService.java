@@ -73,27 +73,21 @@ public class MusicMvAuthService {
     public Map<String, Object> login(String provider, String idToken, String requestedDisplayName,
                                      String anonymousClientId, HttpServletRequest request,
                                      HttpServletResponse response) {
-        if (!"google".equals(provider)) throw new ApiException(HttpStatus.BAD_REQUEST, "AUTH_CHALLENGE_REQUIRED", "Start sign-in again.");
-        return finishLogin(oidc.verify(provider, idToken, requestedDisplayName), requestedDisplayName,
-                anonymousClientId, null, request, response);
-    }
-
-    public Map<String, Object> finishLogin(VerifiedIdentity identity, String requestedDisplayName,
-            String anonymousClientId, String targetUserId, HttpServletRequest request, HttpServletResponse response) {
+        VerifiedIdentity identity = oidc.verify(provider, idToken, requestedDisplayName);
         Map<String, Object> user = repository.findByIdentity(identity.getProvider(), identity.getSubject());
         String displayName = displayName(identity, requestedDisplayName);
-        if (user == null) user = repository.resolveNewIdentity(id("usr"), id("identity"), "story-" + shortId(),
-                displayName, locale(request), identity, targetUserId);
-        if (user == null) throw new ApiException(HttpStatus.CONFLICT, targetUserId == null ? "AUTH_LINK_REQUIRED" : "AUTH_IDENTITY_IN_USE", "Sign in with your original method, then link this method in your account menu.");
-        String userId = RowUtils.str(user, "user_id");
-        if (targetUserId != null && !targetUserId.equals(userId))
-            throw new ApiException(HttpStatus.CONFLICT, "AUTH_IDENTITY_IN_USE", "This sign-in method belongs to another account. No accounts have been merged.");
-        if (user.get("status") != null && !"active".equals(RowUtils.str(user, "status"))) throw loginRequired();
-        repository.touchIdentity(userId, identity, displayName);
-        if (targetUserId != null) return currentSession(request, response);
+        String userId;
+        if (user == null) {
+            userId = id("usr");
+            repository.createUserAndIdentity(userId, id("identity"), "story-" + shortId(),
+                    displayName, locale(request), identity);
+        } else {
+            userId = RowUtils.str(user, "user_id");
+            repository.touchIdentity(userId, identity, displayName);
+        }
 
         String anonymous = validatedAnonymousClientId(anonymousClientId, false);
-        if (anonymous != null && !anonymous.startsWith("usr_")) repository.claimAnonymousWork(userId, anonymous);
+        if (anonymous != null) repository.claimAnonymousWork(userId, anonymous);
         repository.revokeExpiredSessions(userId);
 
         String rawSessionToken = randomToken();

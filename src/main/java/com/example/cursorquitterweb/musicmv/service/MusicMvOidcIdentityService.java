@@ -108,14 +108,6 @@ public class MusicMvOidcIdentityService {
         }
     }
 
-    public VerifiedIdentity verifyWithNonce(String provider, String token, String name, String nonce) {
-        VerifiedIdentity identity = verify(provider, token, name);
-        try {
-            if (nonce == null || !nonce.equals(decodeJson(token.split("\\.")[1]).path("nonce").asText())) throw invalidToken();
-            return identity;
-        } catch (Exception exception) { throw invalidToken(); }
-    }
-
     private Map<String, Object> providerView(ProviderConfig provider) {
         Map<String, Object> view = new LinkedHashMap<String, Object>();
         view.put("configured", Boolean.valueOf(provider.configured()));
@@ -258,7 +250,7 @@ public class MusicMvOidcIdentityService {
         }
 
         private boolean configured() {
-            return !clientId.isEmpty() && !jwksUrl.isEmpty() && (!"apple".equals(code) || redirectUri.startsWith("https://"));
+            return !clientId.isEmpty() && !jwksUrl.isEmpty();
         }
     }
 
@@ -280,7 +272,7 @@ public class MusicMvOidcIdentityService {
         private final String displayName;
         private final String avatarUrl;
 
-        public VerifiedIdentity(String provider, String subject, String email,
+        private VerifiedIdentity(String provider, String subject, String email,
                                  boolean emailVerified, String displayName, String avatarUrl) {
             this.provider = provider;
             this.subject = subject;

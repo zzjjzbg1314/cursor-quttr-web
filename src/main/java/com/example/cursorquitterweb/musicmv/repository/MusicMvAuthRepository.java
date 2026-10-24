@@ -60,7 +60,10 @@ public class MusicMvAuthRepository {
 
     public void touchIdentity(String userId, VerifiedIdentity identity, String displayName) {
         d1.batch(Arrays.asList(
-                D1Statement.of("UPDATE music_mv_users SET last_login_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?", userId),
+                D1Statement.of("UPDATE music_mv_users SET display_name=COALESCE(?,display_name),"
+                                + "avatar_url=COALESCE(?,avatar_url),email=COALESCE(?,email),"
+                                + "last_login_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
+                        displayName, identity.getAvatarUrl(), identity.getEmail(), userId),
                 D1Statement.of("UPDATE music_mv_user_identities SET provider_email=COALESCE(?,provider_email),"
                                 + "email_verified=?,provider_display_name=COALESCE(?,provider_display_name),"
                                 + "provider_avatar_url=COALESCE(?,provider_avatar_url),last_login_at=CURRENT_TIMESTAMP,"
@@ -69,39 +72,6 @@ public class MusicMvAuthRepository {
                         identity.getDisplayName(), identity.getAvatarUrl(), userId,
                         identity.getProvider(), identity.getSubject())
         ));
-    }
-
-    public List<Map<String, Object>> identities(String userId) {
-        return d1.query("SELECT provider,provider_email AS email FROM music_mv_user_identities WHERE user_id=? ORDER BY created_at", userId).getRows();
-    }
-
-    // 在同一 D1 事务内判定邮箱归属和创建身份，避免并发登录创建两个工作区。
-    public Map<String, Object> resolveNewIdentity(String candidate, String identityId, String handle,
-            String name, String locale, VerifiedIdentity identity, String targetUserId) {
-        String email = identity.isEmailVerified() && identity.getEmail() != null
-                ? identity.getEmail().trim().toLowerCase(java.util.Locale.ROOT) : null;
-        String matches = "SELECT DISTINCT user_id FROM music_mv_user_identities WHERE email_verified=1 AND lower(trim(provider_email))=?";
-        String owner = targetUserId;
-        List<D1Statement> statements = new java.util.ArrayList<>();
-        statements.add(D1Statement.of("INSERT INTO music_mv_users "
-                + "(user_id,display_name,handle,avatar_url,email,locale,status,last_login_at,created_at,updated_at) "
-                + "SELECT ?,?,?,?,?,?,'active',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP "
-                + "WHERE ? IS NULL AND NOT EXISTS (SELECT 1 FROM music_mv_user_identities WHERE provider=? AND provider_subject=?) "
-                + "AND NOT EXISTS (" + matches + ")", candidate,name,handle,identity.getAvatarUrl(),email,locale,
-                owner,identity.getProvider(),identity.getSubject(),email));
-        String resolved = "COALESCE(?, CASE WHEN ?='email' AND (SELECT count(*) FROM (" + matches + "))=1 "
-                + "THEN (" + matches + ") ELSE ? END)";
-        statements.add(D1Statement.of("INSERT INTO music_mv_user_identities "
-                + "(identity_id,user_id,provider,provider_subject,provider_email,email_verified,provider_display_name,provider_avatar_url,last_login_at,created_at,updated_at) "
-                + "SELECT ?,u.user_id,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM music_mv_users u "
-                + "WHERE u.user_id=" + resolved + " AND u.status='active' AND u.deleted_at IS NULL "
-                + "AND NOT EXISTS (SELECT 1 FROM music_mv_user_identities WHERE provider=? AND provider_subject=?) "
-                + "AND (NOT EXISTS (SELECT 1 FROM music_mv_user_identities WHERE email_verified=1 "
-                + "AND lower(trim(provider_email))=? AND user_id<>u.user_id))",
-                identityId,identity.getProvider(),identity.getSubject(),email,identity.isEmailVerified()?1:0,identity.getDisplayName(),identity.getAvatarUrl(),
-                owner,identity.getProvider(),email,email,candidate,identity.getProvider(),identity.getSubject(),email));
-        d1.batch(statements);
-        return findByIdentity(identity.getProvider(), identity.getSubject());
     }
 
     public void createSession(String sessionId, String userId, String tokenSha256, int sessionDays) {
