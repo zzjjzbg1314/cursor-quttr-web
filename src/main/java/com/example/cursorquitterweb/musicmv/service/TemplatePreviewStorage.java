@@ -12,7 +12,7 @@ public class TemplatePreviewStorage {
     final R2StorageService storage;
     @org.springframework.beans.factory.annotation.Autowired
     public TemplatePreviewStorage(
-            @Value("${music-mv.preview-r2.public-base-url:https://video.musicvideomaker.net}") String publicUrl,
+            @Value("${music-mv.preview-r2.public-base-url:https://video.songtovideo.ai}") String publicUrl,
             @Value("${music-mv.preview-r2.endpoint:${cloudflare.r2.endpoint:}}") String endpoint,
             @Value("${music-mv.preview-r2.bucket:video-previews}") String bucket,
             @Value("${music-mv.preview-r2.access-key:${cloudflare.r2.access-key:}}") String key,

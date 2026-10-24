@@ -214,7 +214,7 @@ music-mv:
   preview-r2:
     endpoint: ${MUSIC_MV_PREVIEW_R2_ENDPOINT:${cloudflare.r2.endpoint:}}
     bucket: ${MUSIC_MV_PREVIEW_R2_BUCKET:video-previews}
-    public-base-url: ${MUSIC_MV_PREVIEW_R2_PUBLIC_BASE_URL:https://video.musicvideomaker.net}
+    public-base-url: ${MUSIC_MV_PREVIEW_R2_PUBLIC_BASE_URL:https://video.songtovideo.ai}
     access-key: ${MUSIC_MV_PREVIEW_R2_ACCESS_KEY:${cloudflare.r2.access-key:}}
     secret-key: ${MUSIC_MV_PREVIEW_R2_SECRET_KEY:${cloudflare.r2.secret-key:}}
 
