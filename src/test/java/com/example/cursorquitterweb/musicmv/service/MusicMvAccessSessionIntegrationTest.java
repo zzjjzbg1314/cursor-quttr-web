@@ -27,7 +27,7 @@ class MusicMvAccessSessionIntegrationTest {
         when(repository.findBySessionTokenHash(anyString())).thenReturn(user);
         Map<String, Object> credits = new LinkedHashMap<String, Object>(); credits.put("remaining", 10);
         when(billing.credits("usr_one")).thenReturn(credits);
-        MockMvc mvc = MockMvcBuilders.standaloneSetup(new MusicMvAuthController(client,auth), new MusicBillingController(billing,auth,client))
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new MusicMvAuthController(client,auth,org.mockito.Mockito.mock(MusicMvAuthChallengeService.class),org.mockito.Mockito.mock(MusicMvOidcIdentityService.class),org.mockito.Mockito.mock(com.example.cursorquitterweb.musicmv.repository.MusicMvAuthRepository.class)), new MusicBillingController(billing,auth,client))
                 .setControllerAdvice(new MusicMvExceptionHandler()).build();
         Cookie session = new Cookie(MusicMvAuthService.SESSION_COOKIE,"abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG");
         MvcResult refreshed = mvc.perform(get("/api/music-mv/v1/auth/session").cookie(session))
