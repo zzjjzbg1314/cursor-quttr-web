@@ -38,6 +38,18 @@ public class RendererTemplateCatalogController {
         this.service = service;
     }
 
+    @PostMapping("/{templateId}/titles/localize")
+    public Map<String,Object> localizeTitles(
+            @RequestHeader(value="X-Music-Mv-Template-Sync-Token", required=false) String token,
+            @PathVariable String templateId,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue="true") boolean dryRun,
+            @org.springframework.web.bind.annotation.RequestParam(required=false) Long expectedRevision,
+            @RequestBody(required=false) com.example.cursorquitterweb.musicmv.dto.TemplateTitleLocalizationRequest request) {
+        authentication.requireAuthorized(token);
+        return service.synchronizeTitles(templateId,dryRun,expectedRevision,
+            request==null?null:request.getTitles(),request==null?null:request.getExpectedSource());
+    }
+
     @PostMapping("/{templateId}/capcut-featured")
     public Map<String, Object> syncFeatured(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,

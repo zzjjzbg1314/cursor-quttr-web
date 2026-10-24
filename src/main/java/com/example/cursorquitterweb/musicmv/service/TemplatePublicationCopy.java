@@ -11,6 +11,14 @@ final class TemplatePublicationCopy {
     private TemplatePublicationCopy() { }
 
     static void requireComplete(List<Map<String, Object>> translations) {
+        requireSources(translations);
+        for(String locale:TemplateTitleLocalizationService.LOCALES) {
+            if(!TemplateTitleLocalizationService.validLocalizedTitle(locale,text(find(translations,locale),"name")))
+                throw new ApiException(HttpStatus.CONFLICT,"TEMPLATE_MULTILINGUAL_TITLES_REQUIRED","发布前需要补齐十种语言的模板标题。");
+        }
+    }
+
+    static void requireSources(List<Map<String, Object>> translations) {
         Map<String, Object> zh = find(translations, "zh-CN"), en = find(translations, "en");
         String zn = text(zh, "name"), zd = text(zh, "description");
         String ename = text(en, "name"), ed = text(en, "description");

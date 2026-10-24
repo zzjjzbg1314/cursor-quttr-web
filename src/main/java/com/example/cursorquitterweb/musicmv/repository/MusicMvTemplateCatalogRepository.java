@@ -216,7 +216,7 @@ public class MusicMvTemplateCatalogRepository {
                 .append("ORDER BY i.is_primary DESC,i.confidence DESC,c.sort_order,c.category_key)), '[]') ")
                 .append("AS category_keys_json, ")
                 .append("en.name AS english_name, COALESCE(req.name, en.name, zh.name, t.slug) AS display_name, ")
-                .append("COALESCE(req.description, en.description, zh.description, '') AS description, ")
+                .append("COALESCE(NULLIF(req.description,''), en.description, zh.description, '') AS description, ")
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
                 .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
                 .append("v.source_availability AS source_availability, ")
@@ -833,6 +833,9 @@ public class MusicMvTemplateCatalogRepository {
                 request.getCategoryKey(), tagsJson));
         statements.add(initialTranslation(request.getTemplateId(), "zh-CN", request.getNameZh(), request.getDescriptionZh()));
         statements.add(initialTranslation(request.getTemplateId(), "en", request.getNameEn(), request.getDescriptionEn()));
+        for (Map.Entry<String,String> title : request.getLocalizedTitles().entrySet()) {
+            statements.add(titleTranslation(request.getTemplateId(), title.getKey(), title.getValue()));
+        }
         statements.add(statement("INSERT INTO template_versions "
                 + "(version_id,template_id,version_number,status,width,height,fps,duration_seconds,"
                 + "base_duration_seconds,cycle_duration_seconds,slot_count,validation_status,"
@@ -1212,6 +1215,60 @@ public class MusicMvTemplateCatalogRepository {
                 + "VALUES (?,?,?,?) ON CONFLICT(template_id,locale) DO UPDATE SET name=excluded.name,"
                 + "description=excluded.description", templateId, locale, name,
                 description == null ? "" : description);
+    }
+
+    private D1Statement titleTranslation(String templateId, String locale, String name) {
+        return statement("INSERT INTO template_translations (template_id,locale,name,description) VALUES (?,?,?,'') "
+                + "ON CONFLICT(template_id,locale) DO UPDATE SET name=excluded.name", templateId, locale, name);
+    }
+
+    public boolean updateTitles(String templateId, long revision, String sourceZh, String sourceEn,
+                                Map<String,String> titles) {
+        String guard="EXISTS (SELECT 1 FROM templates WHERE template_id=? AND revision=? AND deleted_at IS NULL) "
+            + "AND EXISTS (SELECT 1 FROM template_translations WHERE template_id=? AND locale='zh-CN' AND name=?) "
+            + "AND EXISTS (SELECT 1 FROM template_translations WHERE template_id=? AND locale='en' AND name=?)";
+        List<D1Statement> statements=new ArrayList<>();
+        for(Map.Entry<String,String> title:titles.entrySet()) {
+            if("zh-CN".equals(title.getKey())||"en".equals(title.getKey())) continue;
+            statements.add(statement("INSERT INTO template_translations (template_id,locale,name,description) "
+                + "SELECT ?,?,?,'' WHERE "+guard+" ON CONFLICT(template_id,locale) DO UPDATE SET name=excluded.name",
+                templateId,title.getKey(),title.getValue(),templateId,revision,templateId,sourceZh,templateId,sourceEn));
+        }
+        statements.add(statement("UPDATE templates SET revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE template_id=? AND "+guard+" RETURNING revision",
+            templateId,templateId,revision,templateId,sourceZh,templateId,sourceEn));
+        List<D1QueryResult> results=d1.batch(statements);
+        return results!=null&&results.size()==statements.size()&&results.get(results.size()-1).firstRow()!=null;
+    }
+
+    public boolean updateSourceTitles(String templateId, long revision, Map<String,String> titles) {
+        List<D1Statement> statements=new ArrayList<>();
+        for(Map.Entry<String,String> title:titles.entrySet()) statements.add(statement(
+            "INSERT INTO template_translations (template_id,locale,name,description) SELECT ?,?,?,'' "
+            + "WHERE EXISTS (SELECT 1 FROM templates WHERE template_id=? AND revision=? AND deleted_at IS NULL) "
+            + "ON CONFLICT(template_id,locale) DO UPDATE SET name=excluded.name",
+            templateId,title.getKey(),title.getValue(),templateId,revision));
+        statements.add(statement("UPDATE templates SET revision=revision+1,updated_at=CURRENT_TIMESTAMP "
+            + "WHERE template_id=? AND revision=? AND deleted_at IS NULL RETURNING revision",templateId,revision));
+        List<D1QueryResult> results=d1.batch(statements);
+        return results!=null&&results.size()==statements.size()&&results.get(results.size()-1).firstRow()!=null;
+    }
+
+    public boolean updateMetadataWithTitles(String templateId, long revision, String categoryKey, String tagsJson,
+            String nameZh, String descriptionZh, String nameEn, String descriptionEn,
+            String visibility, int sortOrder, Map<String,String> titles) {
+        String guard="EXISTS (SELECT 1 FROM templates WHERE template_id=? AND revision=? AND deleted_at IS NULL)";
+        List<D1Statement> statements=new ArrayList<>();
+        for(Map.Entry<String,String> title:titles.entrySet()) {
+            boolean source=title.getKey().equals("zh-CN")||title.getKey().equals("en");
+            String description=title.getKey().equals("zh-CN")?descriptionZh:title.getKey().equals("en")?descriptionEn:"";
+            statements.add(statement("INSERT INTO template_translations (template_id,locale,name,description) "
+                + "SELECT ?,?,?,? WHERE "+guard+" ON CONFLICT(template_id,locale) DO UPDATE SET name=excluded.name"
+                +(source?",description=excluded.description":""),templateId,title.getKey(),title.getValue(),description==null?"":description,templateId,revision));
+        }
+        statements.add(statement("UPDATE templates SET category_key=?,tags_json=?,visibility=?,sort_order=?,revision=revision+1,updated_at=CURRENT_TIMESTAMP "
+            + "WHERE template_id=? AND revision=? AND deleted_at IS NULL RETURNING revision",categoryKey,tagsJson,visibility,sortOrder,templateId,revision));
+        List<D1QueryResult> results=d1.batch(statements);
+        return results!=null&&results.size()==statements.size()&&results.get(results.size()-1).firstRow()!=null;
     }
 
     private D1Statement statement(String sql, Object... params) {

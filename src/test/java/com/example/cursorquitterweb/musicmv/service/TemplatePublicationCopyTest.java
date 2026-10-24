@@ -8,7 +8,16 @@ class TemplatePublicationCopyTest {
         Map<String,Object> zh=new HashMap<>(), en=new HashMap<>();
         zh.put("locale","zh-CN");zh.put("name","水面倒影黑胶");zh.put("description","唱片与水面倒影组合成柔和的音乐画面。");
         en.put("locale","en");en.put("name",enName);en.put("description",enDescription);
-        return Arrays.asList(zh,en);
+        List<Map<String,Object>> rows=new ArrayList<>(Arrays.asList(zh,en));
+        for(Map.Entry<String,String> title:TemplateTitleLocalizationServiceTest.translated().entrySet()) {
+            Map<String,Object> row=new HashMap<>();row.put("locale",title.getKey());row.put("name",title.getValue());rows.add(row);
+        }
+        return rows;
+    }
+    @Test void rejectsMissingTargetTitle() {
+        List<Map<String,Object>> rows=copy("Ripple Reflection Vinyl","A spinning record sits above soft rippling reflections.");
+        rows.remove(rows.size()-1);
+        assertEquals("TEMPLATE_MULTILINGUAL_TITLES_REQUIRED",assertThrows(ApiException.class,()->TemplatePublicationCopy.requireComplete(rows)).getCode());
     }
     @Test void requiresBothLanguagesAndSpecificNames() {
         assertThrows(ApiException.class,()->TemplatePublicationCopy.requireComplete(Collections.emptyList()));

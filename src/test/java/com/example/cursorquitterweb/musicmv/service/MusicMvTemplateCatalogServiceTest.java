@@ -291,6 +291,9 @@ class MusicMvTemplateCatalogServiceTest {
         service = new MusicMvTemplateCatalogService(repository,
                 mediaProvider, runtimePackages, mock(D1DatabaseClient.class),
                 new ObjectMapper());
+        TemplateTitleLocalizationService titleService=mock(TemplateTitleLocalizationService.class);
+        when(titleService.prepare(org.mockito.ArgumentMatchers.anyMap(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyMap());
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"titleLocalization",titleService);
         when(repository.versionByValidationJob(anyString())).thenReturn(null);
         Map<String, Object> category = new LinkedHashMap<String, Object>();
         category.put("enabled", Integer.valueOf(1));
@@ -1276,9 +1279,7 @@ class MusicMvTemplateCatalogServiceTest {
         stubPublishPreview();
         ApiException copyMissing = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_BILINGUAL_COPY_REQUIRED", copyMissing.getCode());
-        when(repository.translations("tpl_1")).thenReturn(Arrays.asList(
-                featuredRow("locale", "zh-CN", "name", "水面倒影黑胶", "description", "唱片与水面倒影组合成柔和的音乐画面。"),
-                featuredRow("locale", "en", "name", "Ripple Reflection Vinyl", "description", "A spinning record sits above soft rippling reflections.")));
+        when(repository.translations("tpl_1")).thenReturn(TemplateTitleLocalizationServiceTest.rows(TemplateTitleLocalizationServiceTest.complete()));
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
         assertEquals("published", result.get("status"));
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "older"));

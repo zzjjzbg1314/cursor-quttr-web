@@ -16,6 +16,12 @@ import javax.validation.constraints.Size;
  * validation result is promoted into the cloud template catalog.
  */
 public class TemplatePromotionRequest {
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private java.util.Map<String,String> localizedTitles = java.util.Collections.emptyMap();
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public java.util.Map<String,String> getLocalizedTitles() { return localizedTitles; }
+    public void setLocalizedTitles(java.util.Map<String,String> value) { localizedTitles = value; }
+
     @javax.validation.Valid private CapCutFeaturedMetadata capcutFeaturedSync;
     public CapCutFeaturedMetadata getCapcutFeaturedSync() { return capcutFeaturedSync; }
     public void setCapcutFeaturedSync(CapCutFeaturedMetadata value) { capcutFeaturedSync = value; }

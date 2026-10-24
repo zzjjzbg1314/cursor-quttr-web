@@ -17,6 +17,15 @@ import com.example.cursorquitterweb.musicmv.service.TemplateSyncAuthenticationSe
 class RendererTemplateCatalogControllerTest {
     private MockMvc mockMvc;
 
+    @Test void titleSynchronizationRequiresDedicatedToken() throws Exception {
+        mockMvc.perform(post("/internal/music-mv/v1/templates/tpl_1/titles/localize"))
+            .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/internal/music-mv/v1/templates/tpl_1/titles/localize?dryRun=true&expectedRevision=7")
+            .header("X-Music-Mv-Template-Sync-Token","sync-only")
+            .contentType("application/json").content("{\"titles\":{\"it\":\"Titolo\"},\"expectedSource\":{\"en\":\"Original\",\"zh-CN\":\"原中文\"}}"))
+            .andExpect(status().isOk());
+    }
+
     @BeforeEach
     void setUp() {
         RendererTemplateCatalogController controller = new RendererTemplateCatalogController(
