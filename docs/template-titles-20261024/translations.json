@@ -1,0 +1,1046 @@
+[
+  {
+    "source": {
+      "templateId": "tpl_094d8190a907078a",
+      "name": "留白微光播放器",
+      "nameEn": "Quiet Glow Player",
+      "currentVersionId": "tplver_06a859b533b8479f87d27e4b9a7a5842"
+    },
+    "titles": {
+      "zh-TW": "留白微光播放器",
+      "ja": "余白とほのかな光のプレーヤー",
+      "ko": "은은한 빛 미니멀 플레이어",
+      "es": "Reproductor de luz tenue",
+      "pt-BR": "Player de brilho suave",
+      "fr": "Lecteur à la lueur douce",
+      "de": "Player im sanften Licht",
+      "it": "Lettore a luce soffusa"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_0d56c59fb1dce7a4",
+      "name": "红线光盘声波",
+      "nameEn": "Red Line Disc Player",
+      "currentVersionId": "tplver_b91cb627be554908bf44dabd85e4910d"
+    },
+    "titles": {
+      "zh-TW": "紅線光碟聲波",
+      "ja": "赤いラインのディスクプレーヤー",
+      "ko": "레드 라인 디스크 플레이어",
+      "es": "Disco con onda roja",
+      "pt-BR": "Disco com onda vermelha",
+      "fr": "Disque à l’onde rouge",
+      "de": "Disc mit roter Klangwelle",
+      "it": "Disco con onda rossa"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_0a1439715de48c3f",
+      "name": "立体唱片封套",
+      "nameEn": "Record Sleeve Turntable",
+      "currentVersionId": "tplver_99a41079723045eda28e85bdbedcc970"
+    },
+    "titles": {
+      "zh-TW": "立體唱片封套",
+      "ja": "立体レコードジャケット",
+      "ko": "입체 레코드 재킷",
+      "es": "Funda de disco en relieve",
+      "pt-BR": "Capa de disco em relevo",
+      "fr": "Pochette de disque en relief",
+      "de": "Plattenhülle in 3D",
+      "it": "Copertina di disco in rilievo"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_a72a5fda2682b111",
+      "name": "竖屏悬浮唱片",
+      "nameEn": "Floating Disc Portrait",
+      "currentVersionId": "tplver_c387b834de0e462488f2eb756a9ebf91"
+    },
+    "titles": {
+      "zh-TW": "直式懸浮唱片",
+      "ja": "浮かぶレコード・縦型",
+      "ko": "세로형 플로팅 레코드",
+      "es": "Disco flotante vertical",
+      "pt-BR": "Disco flutuante vertical",
+      "fr": "Disque flottant vertical",
+      "de": "Schwebende Platte im Hochformat",
+      "it": "Disco sospeso verticale"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_5f7f28184c02c4fa",
+      "name": "杂志叠影相框",
+      "nameEn": "Editorial Layered Frame",
+      "currentVersionId": "tplver_1e8d6c2cb7914e9ab385f5757f9425c8"
+    },
+    "titles": {
+      "zh-TW": "雜誌疊影相框",
+      "ja": "写真を重ねるマガジンフレーム",
+      "ko": "잡지풍 레이어 포토 프레임",
+      "es": "Marco de revista en capas",
+      "pt-BR": "Moldura de revista em camadas",
+      "fr": "Cadre de magazine en couches",
+      "de": "Magazinrahmen in Ebenen",
+      "it": "Cornice a strati da rivista"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_87c353dfec940aed",
+      "name": "心线唱片播放器",
+      "nameEn": "Heartline Disc Player",
+      "currentVersionId": "tplver_925f2093f9c44f7a9cce8ce5e518d5b3"
+    },
+    "titles": {
+      "zh-TW": "心動聲波唱片",
+      "ja": "鼓動のレコードプレーヤー",
+      "ko": "심장박동 레코드 플레이어",
+      "es": "Disco al ritmo del corazón",
+      "pt-BR": "Disco no ritmo do coração",
+      "fr": "Disque au rythme du cœur",
+      "de": "Platte im Herzrhythmus",
+      "it": "Disco al ritmo del cuore"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_5134354d743d0f05",
+      "name": "雾面封套唱片",
+      "nameEn": "Misty Sleeve Player",
+      "currentVersionId": "tplver_ad965a7158ee48c8b586320e2a7addef"
+    },
+    "titles": {
+      "zh-TW": "霧面封套唱片",
+      "ja": "霞むレコードジャケット",
+      "ko": "안개빛 레코드 재킷",
+      "es": "Disco con funda brumosa",
+      "pt-BR": "Disco com capa enevoada",
+      "fr": "Disque à la pochette brumeuse",
+      "de": "Platte mit nebliger Hülle",
+      "it": "Disco con copertina velata"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_71210f2afbc038cb",
+      "name": "红色星幕唱片",
+      "nameEn": "Red Spotlight Vinyl",
+      "currentVersionId": "tplver_85e85d265ddb41e8a617eea2c4795d56"
+    },
+    "titles": {
+      "zh-TW": "紅色星幕唱片",
+      "ja": "赤い星明かりのレコード",
+      "ko": "붉은 별빛 레코드",
+      "es": "Vinilo bajo estrellas rojas",
+      "pt-BR": "Vinil sob estrelas vermelhas",
+      "fr": "Vinyle sous les étoiles rouges",
+      "de": "Vinyl unter roten Sternen",
+      "it": "Vinile sotto stelle rosse"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_1c7d84df2f82490c",
+      "name": "星光圆环相册",
+      "nameEn": "Starlight Halo Portrait",
+      "currentVersionId": "tplver_d3878132587e4a51b5bab4875f556be0"
+    },
+    "titles": {
+      "zh-TW": "星光圓環相簿",
+      "ja": "星の光輪フォトアルバム",
+      "ko": "별빛 링 포토 앨범",
+      "es": "Álbum con halo de estrellas",
+      "pt-BR": "Álbum com halo de estrelas",
+      "fr": "Album au halo d’étoiles",
+      "de": "Album im Sternenring",
+      "it": "Album con alone di stelle"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_820c4feca4d1c52c",
+      "name": "白页杂志唱片",
+      "nameEn": "White Page Vinyl",
+      "currentVersionId": "tplver_bbf5d7ddf19f405a87cb5a18286d391d"
+    },
+    "titles": {
+      "zh-TW": "白頁雜誌唱片",
+      "ja": "白い誌面とレコード",
+      "ko": "하얀 잡지 속 레코드",
+      "es": "Vinilo en página blanca",
+      "pt-BR": "Vinil na página branca",
+      "fr": "Vinyle sur page blanche",
+      "de": "Vinyl auf weißer Seite",
+      "it": "Vinile su pagina bianca"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_948b22f7206a8596",
+      "name": "星点字幕肖像",
+      "nameEn": "Sparkle Caption Portrait",
+      "currentVersionId": "tplver_1abc875097404eb39bb306a00fecb809"
+    },
+    "titles": {
+      "zh-TW": "星點字幕人像",
+      "ja": "きらめく字幕とポートレート",
+      "ko": "반짝이는 자막 포트레이트",
+      "es": "Retrato con texto y destellos",
+      "pt-BR": "Retrato com texto e brilhos",
+      "fr": "Portrait, texte et étincelles",
+      "de": "Porträt mit Text und Funkeln",
+      "it": "Ritratto con testo e scintille"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_c7a947cf57e41a52",
+      "name": "柔焦双层唱片",
+      "nameEn": "Soft Focus Album Card",
+      "currentVersionId": "tplver_a0bf65bbc23447afaa2db0f8800f2a2a"
+    },
+    "titles": {
+      "zh-TW": "柔焦雙層唱片",
+      "ja": "ソフトフォーカスの二層レコード",
+      "ko": "소프트 포커스 이중 레코드",
+      "es": "Disco en capas y enfoque suave",
+      "pt-BR": "Disco em camadas e foco suave",
+      "fr": "Disque en couches au flou doux",
+      "de": "Platte in sanfter Unschärfe",
+      "it": "Disco a strati e fuoco morbido"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_7075f39ec05a12d9",
+      "name": "柔雾边缘播放器",
+      "nameEn": "Soft Edge Player",
+      "currentVersionId": "tplver_82825c3a96134e668313413795211d44"
+    },
+    "titles": {
+      "zh-TW": "柔霧邊緣播放器",
+      "ja": "ふんわりぼかしプレーヤー",
+      "ko": "소프트 블러 플레이어",
+      "es": "Reproductor de bordes difuminados",
+      "pt-BR": "Player com bordas suaves",
+      "fr": "Lecteur aux contours flous",
+      "de": "Player mit weichen Rändern",
+      "it": "Lettore dai bordi sfumati"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_8160c6f16d57c358",
+      "name": "透明光盘浮窗",
+      "nameEn": "Clear Disc Player",
+      "currentVersionId": "tplver_7d07838c02c7452eac1bab95da3e1df9"
+    },
+    "titles": {
+      "zh-TW": "透明光碟浮窗",
+      "ja": "透明ディスクのフローティング窓",
+      "ko": "투명 디스크 플로팅 플레이어",
+      "es": "Disco transparente flotante",
+      "pt-BR": "Disco transparente flutuante",
+      "fr": "Disque transparent flottant",
+      "de": "Schwebende transparente Disc",
+      "it": "Disco trasparente sospeso"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_c1cd00094ccb201b",
+      "name": "水面倒影黑胶",
+      "nameEn": "Ripple Reflection Vinyl",
+      "currentVersionId": "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2"
+    },
+    "titles": {
+      "zh-TW": "水面倒影黑膠",
+      "ja": "水面に映るレコード",
+      "ko": "물 위에 비친 바이닐",
+      "es": "Vinilo reflejado en el agua",
+      "pt-BR": "Vinil refletido na água",
+      "fr": "Vinyle en reflet sur l’eau",
+      "de": "Vinyl im Wasserspiegel",
+      "it": "Vinile riflesso nell’acqua"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_54a871b7966e9740",
+      "name": "薄荷唱片便笺",
+      "nameEn": "Mint Record Notes",
+      "currentVersionId": "tplver_c493be36f65b4bbb8da6b6fa457f1957"
+    },
+    "titles": {
+      "zh-TW": "薄荷唱片便箋",
+      "ja": "ミントカラーのレコードメモ",
+      "ko": "민트빛 레코드 메모",
+      "es": "Notas y disco en verde menta",
+      "pt-BR": "Notas e disco em verde-menta",
+      "fr": "Notes et disque vert menthe",
+      "de": "Notizen und Platte in Mint",
+      "it": "Note e disco verde menta"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_00a93e67727d29bb",
+      "name": "声波封套叠影",
+      "nameEn": "Waveform Album Layers",
+      "currentVersionId": "tplver_36e01a3b8d43498e87ed85f836e1bc0a"
+    },
+    "titles": {
+      "zh-TW": "聲波封套疊影",
+      "ja": "音の波形と重なるジャケット",
+      "ko": "음파와 겹쳐진 앨범 재킷",
+      "es": "Portadas y ondas en capas",
+      "pt-BR": "Capas e ondas sobrepostas",
+      "fr": "Pochettes et ondes superposées",
+      "de": "Plattencover und Klangwellen in Ebenen",
+      "it": "Copertine e onde sovrapposte"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_cae6e48306de0d45",
+      "name": "复古唱片匣",
+      "nameEn": "Vintage Record Case",
+      "currentVersionId": "tplver_d77d544207f6430a990842c1afb83c7f"
+    },
+    "titles": {
+      "zh-TW": "復古唱片匣",
+      "ja": "レトロなレコードケース",
+      "ko": "레트로 레코드 케이스",
+      "es": "Estuche de discos retro",
+      "pt-BR": "Estojo de discos retrô",
+      "fr": "Coffret de disques rétro",
+      "de": "Retro-Plattenkoffer",
+      "it": "Custodia per dischi vintage"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_8a2da5c25dd3cef2",
+      "name": "满幅圆盘相框",
+      "nameEn": "Full Circle Portrait",
+      "currentVersionId": "tplver_345c6e51f6f54926a18a876690a7b422"
+    },
+    "titles": {
+      "zh-TW": "滿版圓盤相框",
+      "ja": "画面いっぱいの円形フレーム",
+      "ko": "화면 가득 원형 포토 프레임",
+      "es": "Retrato a círculo completo",
+      "pt-BR": "Retrato em círculo completo",
+      "fr": "Portrait en plein cercle",
+      "de": "Porträt im Vollkreis",
+      "it": "Ritratto a cerchio pieno"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_d1df91204ba101d4",
+      "name": "酒红唱片海报",
+      "nameEn": "Burgundy Record Poster",
+      "currentVersionId": "tplver_35fe674c6fbd44078d631d878cee4d7f"
+    },
+    "titles": {
+      "zh-TW": "酒紅唱片海報",
+      "ja": "ボルドーのレコードポスター",
+      "ko": "버건디 레코드 포스터",
+      "es": "Póster de disco en burdeos",
+      "pt-BR": "Pôster de disco em bordô",
+      "fr": "Affiche de disque bordeaux",
+      "de": "Plattenposter in Bordeauxrot",
+      "it": "Poster con disco bordeaux"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_968d336dad46aa5c",
+      "name": "白页三重影像",
+      "nameEn": "Triple Frame Editorial",
+      "currentVersionId": "tplver_7f7068b261d0454896afff93aec9f8a2"
+    },
+    "titles": {
+      "zh-TW": "白頁三重影像",
+      "ja": "白い誌面のトリプルフォト",
+      "ko": "하얀 페이지 속 세 장의 사진",
+      "es": "Página blanca con tres imágenes",
+      "pt-BR": "Página branca com três imagens",
+      "fr": "Page blanche à trois images",
+      "de": "Weiße Seite mit drei Bildern",
+      "it": "Pagina bianca con tre immagini"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4d8b919a4d8a3941",
+      "name": "暗幕星光唱片",
+      "nameEn": "Night Glow Disc",
+      "currentVersionId": "tplver_718fc7ff1de148689eed9ede6cea5b1e"
+    },
+    "titles": {
+      "zh-TW": "暗幕星光唱片",
+      "ja": "夜の星明かりレコード",
+      "ko": "어둠 속 별빛 레코드",
+      "es": "Disco bajo un cielo estrellado",
+      "pt-BR": "Disco sob um céu estrelado",
+      "fr": "Disque sous un ciel étoilé",
+      "de": "Platte unter dem Sternenhimmel",
+      "it": "Disco sotto un cielo stellato"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_71785f187241aaff",
+      "name": "银灰雨幕圆盘",
+      "nameEn": "Silver Rain Disc",
+      "currentVersionId": "tplver_a180723cca1e44db89e2f9acf3ed4cd7"
+    },
+    "titles": {
+      "zh-TW": "銀灰雨幕圓盤",
+      "ja": "銀色の雨とディスク",
+      "ko": "은빛 빗속 디스크",
+      "es": "Disco de lluvia plateada",
+      "pt-BR": "Disco de chuva prateada",
+      "fr": "Disque sous une pluie argentée",
+      "de": "Disc im Silberregen",
+      "it": "Disco sotto pioggia argentata"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4ba72e2b13817e7c",
+      "name": "微光水岸相框",
+      "nameEn": "Waterside Glow Frame",
+      "currentVersionId": "tplver_efde586ce15a4d51872e2a7fbd363e9b"
+    },
+    "titles": {
+      "zh-TW": "微光水岸相框",
+      "ja": "水辺の淡い光フレーム",
+      "ko": "물가의 은은한 빛 프레임",
+      "es": "Marco de luz junto al agua",
+      "pt-BR": "Moldura de luz à beira d’água",
+      "fr": "Cadre lumineux au bord de l’eau",
+      "de": "Lichtrahmen am Wasser",
+      "it": "Cornice luminosa sull’acqua"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_b9729f363d982877",
+      "name": "黑白雾光唱片",
+      "nameEn": "Monochrome Haze Player",
+      "currentVersionId": "tplver_91767f3744b14f2087eb2a9c01babdac"
+    },
+    "titles": {
+      "zh-TW": "黑白霧光唱片",
+      "ja": "モノクロの霞みレコード",
+      "ko": "흑백 안개빛 레코드",
+      "es": "Disco entre bruma en blanco y negro",
+      "pt-BR": "Disco na névoa em preto e branco",
+      "fr": "Disque dans la brume monochrome",
+      "de": "Platte im Schwarz-Weiß-Nebel",
+      "it": "Disco nella foschia in bianco e nero"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4ce246b2db6fded5",
+      "name": "右侧唱片杂志",
+      "nameEn": "Right Side Record Layout",
+      "currentVersionId": "tplver_18443c2d36544cbe9d361216287a24e9"
+    },
+    "titles": {
+      "zh-TW": "右側唱片雜誌",
+      "ja": "右寄せレコードのマガジン",
+      "ko": "오른쪽 레코드 매거진",
+      "es": "Revista con disco a la derecha",
+      "pt-BR": "Revista com disco à direita",
+      "fr": "Magazine avec disque à droite",
+      "de": "Magazin mit Platte rechts",
+      "it": "Rivista con disco a destra"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_6ea372cbd17a2077",
+      "name": "蓝色水纹封套",
+      "nameEn": "Blue Ripple Album",
+      "currentVersionId": "tplver_333b02aa601b4437b95236831879a9b6"
+    },
+    "titles": {
+      "zh-TW": "藍色水紋封套",
+      "ja": "青い波紋のジャケット",
+      "ko": "푸른 물결 앨범 재킷",
+      "es": "Portada con ondas azules",
+      "pt-BR": "Capa com ondulações azuis",
+      "fr": "Pochette aux ondulations bleues",
+      "de": "Cover mit blauen Wasserwellen",
+      "it": "Copertina con increspature blu"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_e0b8cb2a5dd8d363",
+      "name": "怀旧留声机相册",
+      "nameEn": "Nostalgic Turntable Album",
+      "currentVersionId": "tplver_304124cc1c5e4e1ca36d119ed0050bc8"
+    },
+    "titles": {
+      "zh-TW": "懷舊留聲機相簿",
+      "ja": "懐かしの蓄音機アルバム",
+      "ko": "추억의 축음기 앨범",
+      "es": "Álbum de gramófono nostálgico",
+      "pt-BR": "Álbum de gramofone nostálgico",
+      "fr": "Album au gramophone nostalgique",
+      "de": "Nostalgisches Grammofonalbum",
+      "it": "Album con grammofono nostalgico"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_8c62c11cdf169b0c",
+      "name": "花影琴弦肖像",
+      "nameEn": "Floral Strings Portrait",
+      "currentVersionId": "tplver_f9cc89e0b4f5460d880dfc632449a489"
+    },
+    "titles": {
+      "zh-TW": "花影琴弦人像",
+      "ja": "花と弦のポートレート",
+      "ko": "꽃과 현의 포트레이트",
+      "es": "Retrato entre flores y cuerdas",
+      "pt-BR": "Retrato entre flores e cordas",
+      "fr": "Portrait entre fleurs et cordes",
+      "de": "Porträt mit Blüten und Saiten",
+      "it": "Ritratto tra fiori e corde"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_73e3eaddb14a067e",
+      "name": "蓝蝶黑胶杂志",
+      "nameEn": "Blue Butterfly Vinyl",
+      "currentVersionId": "tplver_fc8ecbdb12dd499fb95383be1042d057"
+    },
+    "titles": {
+      "zh-TW": "藍蝶黑膠雜誌",
+      "ja": "青い蝶とレコード",
+      "ko": "푸른 나비와 바이닐",
+      "es": "Vinilo con mariposa azul",
+      "pt-BR": "Vinil com borboleta azul",
+      "fr": "Vinyle au papillon bleu",
+      "de": "Vinyl mit blauem Schmetterling",
+      "it": "Vinile con farfalla blu"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_6a3a6a51e37039da",
+      "name": "黑白杂志浮窗",
+      "nameEn": "Monochrome Editorial Cards",
+      "currentVersionId": "tplver_975a1dd5c13145f68778d28f2e82f67e"
+    },
+    "titles": {
+      "zh-TW": "黑白雜誌浮窗",
+      "ja": "モノクロのマガジンカード",
+      "ko": "흑백 매거진 카드",
+      "es": "Tarjetas de revista en blanco y negro",
+      "pt-BR": "Cartões de revista em preto e branco",
+      "fr": "Cartes de magazine monochromes",
+      "de": "Magazinkarten in Schwarz-Weiß",
+      "it": "Schede da rivista in bianco e nero"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_e1289b47162e209d",
+      "name": "几何镜面相框",
+      "nameEn": "Geometric Reflection Frame",
+      "currentVersionId": "tplver_c47628897fc24197a950cc4beec98b6d"
+    },
+    "titles": {
+      "zh-TW": "幾何鏡面相框",
+      "ja": "幾何学ミラーフレーム",
+      "ko": "기하학 미러 프레임",
+      "es": "Marco de reflejos geométricos",
+      "pt-BR": "Moldura de reflexos geométricos",
+      "fr": "Cadre aux reflets géométriques",
+      "de": "Rahmen mit geometrischen Spiegelungen",
+      "it": "Cornice a riflessi geometrici"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_e875713df75f64fe",
+      "name": "蓝夜星点唱片",
+      "nameEn": "Blue Night Album",
+      "currentVersionId": "tplver_9a6c83c5e707469389177e4f72245249"
+    },
+    "titles": {
+      "zh-TW": "藍夜星點唱片",
+      "ja": "青い夜の星空レコード",
+      "ko": "푸른 밤 별빛 레코드",
+      "es": "Disco de noche azul estrellada",
+      "pt-BR": "Disco de noite azul estrelada",
+      "fr": "Disque dans la nuit bleue étoilée",
+      "de": "Platte in blauer Sternennacht",
+      "it": "Disco nella notte blu stellata"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_878da32eac3f5615",
+      "name": "宽幕字幕留影",
+      "nameEn": "Letterbox Lyric Portrait",
+      "currentVersionId": "tplver_8f171e72576a4058affbfee8e6edaa97"
+    },
+    "titles": {
+      "zh-TW": "寬銀幕字幕留影",
+      "ja": "シネマ風字幕ポートレート",
+      "ko": "시네마 자막 포트레이트",
+      "es": "Retrato panorámico con letra",
+      "pt-BR": "Retrato panorâmico com letra",
+      "fr": "Portrait panoramique avec paroles",
+      "de": "Breitbildporträt mit Songtext",
+      "it": "Ritratto panoramico con testo"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4a3e1a7eb04c827c",
+      "name": "毕业三联明信片",
+      "nameEn": "Graduation Contact Sheet",
+      "currentVersionId": "tplver_38f1173edcac47eab3b32aed51455a87"
+    },
+    "titles": {
+      "zh-TW": "畢業三聯明信片",
+      "ja": "卒業の三連ポストカード",
+      "ko": "졸업 추억 3단 엽서",
+      "es": "Tríptico de postales de graduación",
+      "pt-BR": "Tríptico de cartões de formatura",
+      "fr": "Triptyque de cartes de fin d’études",
+      "de": "Postkarten-Trio zum Abschluss",
+      "it": "Trittico di cartoline del diploma"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_29ebf6cfd5a35707",
+      "name": "毕业拍立得开场",
+      "nameEn": "Graduation Polaroid Intro",
+      "currentVersionId": "tplver_508ffc6620b149fd922100eb4e92661a"
+    },
+    "titles": {
+      "zh-TW": "畢業拍立得開場",
+      "ja": "卒業ポラロイド・オープニング",
+      "ko": "졸업 폴라로이드 오프닝",
+      "es": "Inicio de graduación con fotos instantáneas",
+      "pt-BR": "Abertura de formatura com fotos instantâneas",
+      "fr": "Intro de fin d’études en photos instantanées",
+      "de": "Abschluss-Intro mit Sofortbildern",
+      "it": "Apertura del diploma con foto istantanee"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_a1887e9f11242add",
+      "name": "金色毕业圆框",
+      "nameEn": "Golden Graduation Circles",
+      "currentVersionId": "tplver_13ce9d3b455b4005aeaf2461d94f180d"
+    },
+    "titles": {
+      "zh-TW": "金色畢業圓框",
+      "ja": "卒業のゴールドサークル",
+      "ko": "졸업 골드 서클 프레임",
+      "es": "Círculos dorados de graduación",
+      "pt-BR": "Círculos dourados de formatura",
+      "fr": "Cercles dorés de fin d’études",
+      "de": "Goldene Kreise zum Abschluss",
+      "it": "Cerchi dorati del diploma"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_d90ffe2e66599239",
+      "name": "毕业回忆环幕",
+      "nameEn": "Graduation Memory Carousel",
+      "currentVersionId": "tplver_2110d1be4d4e489d94cd3cfc1634f86e"
+    },
+    "titles": {
+      "zh-TW": "畢業回憶環幕",
+      "ja": "卒業の思い出カルーセル",
+      "ko": "졸업 추억 캐러셀",
+      "es": "Carrusel de recuerdos de graduación",
+      "pt-BR": "Carrossel de memórias da formatura",
+      "fr": "Carrousel de souvenirs de fin d’études",
+      "de": "Erinnerungskarussell zum Abschluss",
+      "it": "Carosello di ricordi del diploma"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_99924da09b9ff0ba",
+      "name": "毕业字母拼墙",
+      "nameEn": "GRAD Photo Wall",
+      "currentVersionId": "tplver_9c4273234e214c8d8214d7c034169d2d"
+    },
+    "titles": {
+      "zh-TW": "畢業字母拼貼牆",
+      "ja": "GRAD文字のフォトウォール",
+      "ko": "GRAD 글자 포토월",
+      "es": "Mural de fotos GRAD",
+      "pt-BR": "Mural de fotos GRAD",
+      "fr": "Mur de photos GRAD",
+      "de": "Fotowand GRAD",
+      "it": "Parete fotografica GRAD"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4130698add65b612",
+      "name": "毕业三格影集",
+      "nameEn": "Graduation Triple Strip",
+      "currentVersionId": "tplver_8c4d09c95dcf49ce88a28250e565ede1"
+    },
+    "titles": {
+      "zh-TW": "畢業三格相簿",
+      "ja": "卒業の三連フォトアルバム",
+      "ko": "졸업 3컷 포토 앨범",
+      "es": "Graduación en tres fotogramas",
+      "pt-BR": "Formatura em três quadros",
+      "fr": "Fin d’études en trois images",
+      "de": "Abschluss in drei Bildern",
+      "it": "Diploma in tre fotogrammi"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_c90ac0e9e8c6fe7f",
+      "name": "校园时光胶片墙",
+      "nameEn": "Campus Filmstrip Memories",
+      "currentVersionId": "tplver_c66d53ef905d4708ab71cf2689ed4851"
+    },
+    "titles": {
+      "zh-TW": "校園時光底片牆",
+      "ja": "学生時代のフィルムウォール",
+      "ko": "학창 시절 필름 포토월",
+      "es": "Mural de película escolar",
+      "pt-BR": "Mural de filme da escola",
+      "fr": "Mur de pellicule scolaire",
+      "de": "Filmstreifenwand der Schulzeit",
+      "it": "Parete di pellicole scolastiche"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_98917e3626b6633b",
+      "name": "父爱环绕照片墙",
+      "nameEn": "Dad's Memory Carousel",
+      "currentVersionId": "tplver_a05db5357b274fd6bff1c878ed2b90d1"
+    },
+    "titles": {
+      "zh-TW": "父愛環繞照片牆",
+      "ja": "お父さんとの思い出カルーセル",
+      "ko": "아빠와의 추억 캐러셀",
+      "es": "Carrusel de recuerdos de papá",
+      "pt-BR": "Carrossel de memórias do pai",
+      "fr": "Carrousel de souvenirs de papa",
+      "de": "Papas Erinnerungskarussell",
+      "it": "Carosello di ricordi di papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_5c66ebce53924059",
+      "name": "黑白父爱拼图",
+      "nameEn": "Dad in Black and White",
+      "currentVersionId": "tplver_adc4c67c3e28456eac6dbfa76d1ea029"
+    },
+    "titles": {
+      "zh-TW": "黑白父愛拼貼",
+      "ja": "お父さんとのモノクロコラージュ",
+      "ko": "아빠와의 흑백 콜라주",
+      "es": "Collage de papá en blanco y negro",
+      "pt-BR": "Colagem do pai em preto e branco",
+      "fr": "Collage de papa en noir et blanc",
+      "de": "Papa-Collage in Schwarz-Weiß",
+      "it": "Collage di papà in bianco e nero"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_3ed880ad85b3f8fb",
+      "name": "奶油色父亲节拼格",
+      "nameEn": "Soft Grid for Dad",
+      "currentVersionId": "tplver_c84a195200fa4f1191efa2fb03fee035"
+    },
+    "titles": {
+      "zh-TW": "奶油色父親節拼貼",
+      "ja": "父の日のクリーム色コラージュ",
+      "ko": "크림빛 아버지의 날 콜라주",
+      "es": "Collage en crema para papá",
+      "pt-BR": "Colagem em creme para o pai",
+      "fr": "Collage crème pour papa",
+      "de": "Cremefarbene Collage für Papa",
+      "it": "Collage color crema per papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_43eed532ee212a70",
+      "name": "给爸爸的爱心相纸",
+      "nameEn": "Heart Notes for Dad",
+      "currentVersionId": "tplver_96813dbd76114eb1b6a45dd3ea764ae4"
+    },
+    "titles": {
+      "zh-TW": "給爸爸的愛心相紙",
+      "ja": "お父さんへ贈るハートフォト",
+      "ko": "아빠에게 전하는 하트 사진",
+      "es": "Fotos con corazones para papá",
+      "pt-BR": "Fotos com corações para o pai",
+      "fr": "Photos avec des cœurs pour papa",
+      "de": "Herzfotos für Papa",
+      "it": "Foto con cuori per papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_d4374d7c95aabd9a",
+      "name": "给爸爸的字母相册",
+      "nameEn": "DAD Letter Album",
+      "currentVersionId": "tplver_48bac0a3d4f14667964421555eb51343"
+    },
+    "titles": {
+      "zh-TW": "給爸爸的字母相簿",
+      "ja": "DAD文字のフォトアルバム",
+      "ko": "DAD 글자 포토 앨범",
+      "es": "Álbum con letras DAD",
+      "pt-BR": "Álbum com letras DAD",
+      "fr": "Album aux lettres DAD",
+      "de": "Buchstabenalbum DAD",
+      "it": "Album con lettere DAD"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_e81a7d19f371d32d",
+      "name": "父亲节回忆长卷",
+      "nameEn": "Dad's Many Moments",
+      "currentVersionId": "tplver_3627aa54d77041f48b281c5116304eb3"
+    },
+    "titles": {
+      "zh-TW": "父親節回憶長卷",
+      "ja": "父の日の思い出スクロール",
+      "ko": "아버지의 날 추억 파노라마",
+      "es": "Panorama de recuerdos de papá",
+      "pt-BR": "Panorama de memórias do pai",
+      "fr": "Panorama de souvenirs de papa",
+      "de": "Erinnerungspanorama für Papa",
+      "it": "Panorama di ricordi di papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_d1027d321aeb2c04",
+      "name": "爸爸的暖色剪贴簿",
+      "nameEn": "Dad's Warm Scrapbook",
+      "currentVersionId": "tplver_309332f8ceae485ba6344871a1b5c948"
+    },
+    "titles": {
+      "zh-TW": "爸爸的暖色剪貼簿",
+      "ja": "お父さんとのぬくもりスクラップブック",
+      "ko": "아빠와의 따뜻한 스크랩북",
+      "es": "Álbum de recortes cálido de papá",
+      "pt-BR": "Álbum de recortes do pai em tons quentes",
+      "fr": "Carnet de papa aux tons chauds",
+      "de": "Papas Scrapbook in warmen Tönen",
+      "it": "Album di ritagli di papà dai toni caldi"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_33ab242fe21f4a72",
+      "name": "爸爸的清新剪贴簿",
+      "nameEn": "Dad's Airy Scrapbook",
+      "currentVersionId": "tplver_3b52eb3c451d43d5a99a302832b04ec1"
+    },
+    "titles": {
+      "zh-TW": "爸爸的清新剪貼簿",
+      "ja": "お父さんとの爽やかスクラップブック",
+      "ko": "아빠와의 산뜻한 스크랩북",
+      "es": "Álbum de recortes ligero de papá",
+      "pt-BR": "Álbum de recortes do pai em tons leves",
+      "fr": "Carnet de papa tout en légèreté",
+      "de": "Papas luftig-leichtes Scrapbook",
+      "it": "Album di ritagli di papà dal tocco leggero"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_583b4ede52b775a5",
+      "name": "父爱三张相纸",
+      "nameEn": "Three Prints for Dad",
+      "currentVersionId": "tplver_c93944d788f9466a86d927f93e7ab81a"
+    },
+    "titles": {
+      "zh-TW": "父愛三張相紙",
+      "ja": "お父さんへ贈る三枚の写真",
+      "ko": "아빠에게 전하는 사진 세 장",
+      "es": "Tres fotos para papá",
+      "pt-BR": "Três fotos para o pai",
+      "fr": "Trois photos pour papa",
+      "de": "Drei Fotos für Papa",
+      "it": "Tre foto per papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_dd65293f3f73d14a",
+      "name": "与爸爸的日常影集",
+      "nameEn": "Everyday Moments with Dad",
+      "currentVersionId": "tplver_267efb1496b54cf08052641a7dc49950"
+    },
+    "titles": {
+      "zh-TW": "與爸爸的日常相簿",
+      "ja": "お父さんとの日々のアルバム",
+      "ko": "아빠와 함께한 일상 앨범",
+      "es": "Momentos cotidianos con papá",
+      "pt-BR": "Momentos do dia a dia com o pai",
+      "fr": "Instants du quotidien avec papa",
+      "de": "Alltagsmomente mit Papa",
+      "it": "Momenti quotidiani con papà"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_02ec720f7bfe216b",
+      "name": "好友心动拼贴",
+      "nameEn": "Friendship Heart Collage",
+      "currentVersionId": "tplver_e3e5682f3773437c9a9ef3e71dc23822"
+    },
+    "titles": {
+      "zh-TW": "好友愛心拼貼",
+      "ja": "友だちとのハートコラージュ",
+      "ko": "친구와의 하트 콜라주",
+      "es": "Collage de corazones y amistad",
+      "pt-BR": "Colagem de corações e amizade",
+      "fr": "Collage de cœurs et d’amitié",
+      "de": "Herzcollage der Freundschaft",
+      "it": "Collage di cuori e amicizia"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_a8de64267fcf9569",
+      "name": "恋爱剪贴簿",
+      "nameEn": "Love Sticker Scrapbook",
+      "currentVersionId": "tplver_20ff2c5c66934c9f9010c9ed6f0fa289"
+    },
+    "titles": {
+      "zh-TW": "戀愛剪貼簿",
+      "ja": "恋のスクラップブック",
+      "ko": "사랑의 스크랩북",
+      "es": "Álbum de amor con pegatinas",
+      "pt-BR": "Álbum de amor com adesivos",
+      "fr": "Carnet d’amour et autocollants",
+      "de": "Liebesalbum mit Stickern",
+      "it": "Album d’amore con adesivi"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_82841f8bd0e68562",
+      "name": "生日胶片回忆",
+      "nameEn": "Birthday Filmstrip",
+      "currentVersionId": "tplver_a78ae2c9129341f981082f9c3c8a0ee3"
+    },
+    "titles": {
+      "zh-TW": "生日底片回憶",
+      "ja": "誕生日の思い出フィルム",
+      "ko": "생일 추억 필름",
+      "es": "Recuerdos de cumpleaños en película",
+      "pt-BR": "Memórias de aniversário em filme",
+      "fr": "Souvenirs d’anniversaire sur pellicule",
+      "de": "Geburtstagserinnerungen auf Film",
+      "it": "Ricordi di compleanno su pellicola"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_4f5f4d98b4875fe9",
+      "name": "婚礼电影胶卷",
+      "nameEn": "Wedding Cinema Reel",
+      "currentVersionId": "tplver_57fdb2efc44846e7a96ea98522d20f32"
+    },
+    "titles": {
+      "zh-TW": "婚禮電影膠卷",
+      "ja": "ウェディング・シネマフィルム",
+      "ko": "웨딩 시네마 필름",
+      "es": "Rollo de cine de boda",
+      "pt-BR": "Rolo de cinema do casamento",
+      "fr": "Bobine de cinéma du mariage",
+      "de": "Hochzeit auf Filmrolle",
+      "it": "Bobina cinematografica di nozze"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_00155fb2815b8892",
+      "name": "周年手写影集",
+      "nameEn": "Anniversary Notes",
+      "currentVersionId": "tplver_f23cc690555747e5910f9df37e18a97d"
+    },
+    "titles": {
+      "zh-TW": "週年手寫相簿",
+      "ja": "記念日の手書きアルバム",
+      "ko": "기념일 손글씨 앨범",
+      "es": "Álbum de aniversario manuscrito",
+      "pt-BR": "Notas de aniversário a dois",
+      "fr": "Notes d’anniversaire de couple",
+      "de": "Jahrestagsalbum mit Handschrift",
+      "it": "Album d’anniversario scritto a mano"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_899b566996bf5d52",
+      "name": "宝宝初见影集",
+      "nameEn": "Baby's First Album",
+      "currentVersionId": "tplver_051c4483083347f0b03579ddae5faf42"
+    },
+    "titles": {
+      "zh-TW": "寶寶初見相簿",
+      "ja": "赤ちゃんのはじめてのアルバム",
+      "ko": "아기의 첫 앨범",
+      "es": "El primer álbum del bebé",
+      "pt-BR": "O primeiro álbum do bebê",
+      "fr": "Le premier album de bébé",
+      "de": "Babys erstes Album",
+      "it": "Il primo album del bebè"
+    }
+  },
+  {
+    "source": {
+      "templateId": "tpl_47e185857552ba81",
+      "name": "感恩宣言海报",
+      "nameEn": "Gratitude Statement",
+      "currentVersionId": "tplver_6b369d99a9694eb28e71f483d566380a"
+    },
+    "titles": {
+      "zh-TW": "感謝宣言海報",
+      "ja": "感謝を伝えるメッセージポスター",
+      "ko": "감사를 전하는 메시지 포스터",
+      "es": "Póster de gratitud",
+      "pt-BR": "Pôster de gratidão",
+      "fr": "Affiche de gratitude",
+      "de": "Dankbarkeit als Poster",
+      "it": "Poster di gratitudine"
+    }
+  }
+]

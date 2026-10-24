@@ -1,0 +1,23 @@
+{
+  "scope": "数据库全量580标题验证通过；线上详情抽查，先前全量HTTP探测发生读取超时",
+  "results": [
+    {
+      "templateId": "tpl_094d8190a907078a",
+      "titlesMatch": true,
+      "publishedVersionUnchanged": true,
+      "localeCount": 10
+    },
+    {
+      "templateId": "tpl_8c62c11cdf169b0c",
+      "titlesMatch": true,
+      "publishedVersionUnchanged": true,
+      "localeCount": 10
+    },
+    {
+      "templateId": "tpl_47e185857552ba81",
+      "titlesMatch": true,
+      "publishedVersionUnchanged": true,
+      "localeCount": 10
+    }
+  ]
+}
