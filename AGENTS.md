@@ -34,6 +34,8 @@
 
 ## 模板标题多语言维护
 
-- 模板标题与界面文案独立维护，`template_translations.name` 必须覆盖十种网站语言。保留人工中英文源标题，其他八种标题按本地表达翻译；本轮不自动翻译模板描述。
+- 模板标题与界面文案独立维护，`template_translations.name` 必须覆盖十种网站语言。保留人工中英文源标题，其他八种标题按本地表达翻译；描述同样覆盖十语言，保留人工中英文源描述，其他八种由同一后端服务翻译；源描述变化重新翻译，完整且未变时复用。
 - 新增模板、修改源标题、发布模板均经过标题本地化服务。完整且源标题未变时复用已有译文；源标题改变先完成翻译再保存，服务失败明确阻断，禁止用英文或原文假充目标语言。
 - 既有模板只补标题时使用受同步凭证保护的 `/internal/music-mv/v1/templates/{templateId}/titles/localize`：先 dry-run 留存备份，再携带版本和源标题校验执行。不得借此修改媒体、运行包或发布版本指针。
+
+- 描述回填使用 `/internal/music-mv/v1/templates/{templateId}/descriptions/localize`，先 dry-run 保存备份，再携带 expectedRevision 执行；人工译稿另需 expectedSource。描述回填不得改标题、SEO、媒体、运行包或发布指针。新增、资料修改和发布均须完成十语言描述校验。

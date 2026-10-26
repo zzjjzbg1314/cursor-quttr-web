@@ -10,7 +10,7 @@ class TemplatePublicationCopyTest {
         en.put("locale","en");en.put("name",enName);en.put("description",enDescription);
         List<Map<String,Object>> rows=new ArrayList<>(Arrays.asList(zh,en));
         for(Map.Entry<String,String> title:TemplateTitleLocalizationServiceTest.translated().entrySet()) {
-            Map<String,Object> row=new HashMap<>();row.put("locale",title.getKey());row.put("name",title.getValue());rows.add(row);
+            Map<String,Object> row=new HashMap<>();row.put("locale",title.getKey());row.put("name",title.getValue());row.put("description",TemplateDescriptionLocalizationServiceTest.translated().get(title.getKey()));rows.add(row);
         }
         return rows;
     }
@@ -18,6 +18,11 @@ class TemplatePublicationCopyTest {
         List<Map<String,Object>> rows=copy("Ripple Reflection Vinyl","A spinning record sits above soft rippling reflections.");
         rows.remove(rows.size()-1);
         assertEquals("TEMPLATE_MULTILINGUAL_TITLES_REQUIRED",assertThrows(ApiException.class,()->TemplatePublicationCopy.requireComplete(rows)).getCode());
+    }
+    @Test void rejectsMissingTargetDescription() {
+        List<Map<String,Object>> rows=copy("Ripple Reflection Vinyl","A spinning record sits above soft rippling reflections.");
+        rows.get(2).put("description","");
+        assertEquals("TEMPLATE_MULTILINGUAL_DESCRIPTIONS_REQUIRED",assertThrows(ApiException.class,()->TemplatePublicationCopy.requireComplete(rows)).getCode());
     }
     @Test void requiresBothLanguagesAndSpecificNames() {
         assertThrows(ApiException.class,()->TemplatePublicationCopy.requireComplete(Collections.emptyList()));

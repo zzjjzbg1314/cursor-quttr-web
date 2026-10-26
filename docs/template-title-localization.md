@@ -2,7 +2,7 @@
 
 支持 `en`、`zh-CN`、`zh-TW`、`ja`、`ko`、`es`、`pt-BR`、`fr`、`de`、`it`。
 
-中英文源标题由资料维护接口提供；其他八种标题利用 `music-mv.text-ai`（兼容原 `deepseek.api` 配置）一次请求翻译。新增、源标题变更及发布缺失标题时自动调用。已有完整标题且源名未变不再调用。翻译失败返回明确错误，不生成占位译文，不触发真实视频渲染。模板描述不新增翻译，空描述读取时回退英文。
+中英文源标题由资料维护接口提供；其他八种标题利用 `music-mv.text-ai`（兼容原 `deepseek.api` 配置）一次请求翻译。新增、源标题变更及发布缺失标题时自动调用。已有完整标题且源名未变不再调用。翻译失败返回明确错误，不生成占位译文，不触发真实视频渲染。模板描述同样通过该服务翻译：保留中英文源说明，补齐其他八种；源说明变化重译，完整且未变复用。
 
 ## 内部接口
 
@@ -32,4 +32,16 @@
 
 逐模板保存 dry-run JSON 作为备份，再同步。接口只更新目标语言标题并递增资料 revision，保留原有 description、SEO字段、媒体、版本状态及发布指针。不需要数据库迁移。重复提交完全相同译稿不产生写入。
 
-发布仍要求已有中英文设计说明满足原有质量门禁，并额外要求十语言标题完整。接口校验目标键、长度、危险标记和主要字符集，不能替代人工语义复核；新增自动翻译遵循同一术语提示，但未进行真实付费模型验收。
+发布仍要求已有中英文设计说明满足原有质量门禁，并要求十语言标题与说明完整。接口校验目标键、长度、危险标记和主要字符集，不能替代人工语义复核；新增自动翻译遵循同一术语提示，但未进行真实付费模型验收。
+
+## 模板描述十语言同步（2026-10-26）
+
+`POST /internal/music-mv/v1/templates/{templateId}/descriptions/localize?dryRun=true`
+
+认证与标题接口相同。预检不调用模型、不写库，返回 `backup`、`source`、`before`、`missingLocales`、`revision`。写入必须携带 `expectedRevision`；自动翻译无需请求体，人工复核译稿提供 `descriptions`（恰好八种目标语言）和 `expectedSource`（中英文源说明）。并发修改返回 `TEMPLATE_DESCRIPTION_SOURCE_CHANGED`。仅更新目标语言 description 和资料 revision，保留名称、SEO 与所有发布状态。
+
+新增 promotion、资料 metadata 更新先准备标题和描述，翻译失败不写入本次文案；描述变化不重译无变化的标题。发布会补齐缺失描述并校验十语言。说明上限 2000 字符，校验字符集、空内容、品牌与 HTML 标记，并拒绝直接复制英文。字符集校验不能代替语义复核。
+
+旧服务尚未部署新接口时，运维工具 `tool/TemplateDescriptionBackfill.java` 复用本仓库的翻译服务和版本保护数据库方法，不另建翻译业务。依次执行 `snapshot`、`prepare`、人工复核、`apply`、`verify`；第二参数为证据目录。snapshot 拒绝覆盖备份，prepare 按模板保存检查点，apply 遇到版本/源文案变化停止；verify 校验所有译文、标题、SEO和发布指针。凭证只从环境读取，不写入报告。该工具的数据回填不等于新服务已部署。
+
+编译使用 Maven 生成的依赖 classpath、`target/classes` 和 `javac -d <临时目录> tool/TemplateDescriptionBackfill.java`。调用完整类名 `com.example.cursorquitterweb.musicmv.service.TemplateDescriptionBackfill`。D1 环境使用 `MUSIC_MV_CLOUDFLARE_ACCOUNT_ID`、`MUSIC_MV_CLOUDFLARE_D1_DATABASE_ID`、`MUSIC_MV_CLOUDFLARE_API_TOKEN`，翻译沿用 `MUSIC_MV_TEXT_AI_*` 或 `DEEPSEEK_*`。不要输出密钥、重启其他工作中的服务或部署工作区无关变更。

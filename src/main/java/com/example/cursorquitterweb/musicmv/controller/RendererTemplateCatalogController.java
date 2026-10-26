@@ -50,6 +50,21 @@ public class RendererTemplateCatalogController {
             request==null?null:request.getTitles(),request==null?null:request.getExpectedSource());
     }
 
+    @PostMapping("/{templateId}/descriptions/localize")
+    public Map<String,Object> localizeDescriptions(
+            @RequestHeader(value="X-Music-Mv-Template-Sync-Token", required=false) String token,
+            @PathVariable String templateId,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue="true") boolean dryRun,
+            @org.springframework.web.bind.annotation.RequestParam(required=false) Long expectedRevision,
+            @RequestBody(required=false) com.example.cursorquitterweb.musicmv.dto.TemplateDescriptionLocalizationRequest request) {
+        authentication.requireAuthorized(token);
+        if(!dryRun && expectedRevision==null)
+            throw new com.example.cursorquitterweb.musicmv.support.ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                "TEMPLATE_DESCRIPTION_REVISION_REQUIRED","请先预检并提供模板版本。");
+        return service.synchronizeDescriptions(templateId,dryRun,expectedRevision,
+            request==null?null:request.getDescriptions(),request==null?null:request.getExpectedSource());
+    }
+
     @PostMapping("/{templateId}/capcut-featured")
     public Map<String, Object> syncFeatured(
             @RequestHeader(value = "X-Music-Mv-Template-Sync-Token", required = false) String token,

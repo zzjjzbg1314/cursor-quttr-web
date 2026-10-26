@@ -335,6 +335,7 @@ class MusicMvTemplateCatalogServiceTest {
                 new ObjectMapper());
         TemplateTitleLocalizationService titleService=mock(TemplateTitleLocalizationService.class);
         when(titleService.prepare(org.mockito.ArgumentMatchers.anyMap(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyMap());
+        when(titleService.prepareDescriptions(org.mockito.ArgumentMatchers.anyMap(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyMap());
         org.springframework.test.util.ReflectionTestUtils.setField(service,"titleLocalization",titleService);
         when(repository.versionByValidationJob(anyString())).thenReturn(null);
         Map<String, Object> category = new LinkedHashMap<String, Object>();
@@ -1321,7 +1322,7 @@ class MusicMvTemplateCatalogServiceTest {
         stubPublishPreview();
         ApiException copyMissing = assertThrows(ApiException.class, () -> service.publish("tpl_1", "tplver_1"));
         assertEquals("TEMPLATE_BILINGUAL_COPY_REQUIRED", copyMissing.getCode());
-        when(repository.translations("tpl_1")).thenReturn(TemplateTitleLocalizationServiceTest.rows(TemplateTitleLocalizationServiceTest.complete()));
+        when(repository.translations("tpl_1")).thenReturn(TemplateDescriptionLocalizationServiceTest.rows());
         Map<String, Object> result = service.publish("tpl_1", "tplver_1");
         assertEquals("published", result.get("status"));
         when(repository.template("tpl_1")).thenReturn(row("current_version_id", "older"));

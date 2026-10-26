@@ -26,6 +26,17 @@ class RendererTemplateCatalogControllerTest {
             .andExpect(status().isOk());
     }
 
+    @Test void descriptionSynchronizationRequiresTokenAndRevisionForWrites() throws Exception {
+        String path="/internal/music-mv/v1/templates/tpl_1/descriptions/localize";
+        mockMvc.perform(post(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(post(path).header("X-Music-Mv-Template-Sync-Token","sync-only"))
+            .andExpect(status().isOk());
+        mockMvc.perform(post(path+"?dryRun=false").header("X-Music-Mv-Template-Sync-Token","sync-only"))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("TEMPLATE_DESCRIPTION_REVISION_REQUIRED"));
+        mockMvc.perform(post(path+"?dryRun=false&expectedRevision=7").header("X-Music-Mv-Template-Sync-Token","sync-only"))
+            .andExpect(status().isOk());
+    }
+
     @BeforeEach
     void setUp() {
         RendererTemplateCatalogController controller = new RendererTemplateCatalogController(

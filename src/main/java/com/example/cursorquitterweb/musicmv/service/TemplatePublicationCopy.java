@@ -15,6 +15,8 @@ final class TemplatePublicationCopy {
         for(String locale:TemplateTitleLocalizationService.LOCALES) {
             if(!TemplateTitleLocalizationService.validLocalizedTitle(locale,text(find(translations,locale),"name")))
                 throw new ApiException(HttpStatus.CONFLICT,"TEMPLATE_MULTILINGUAL_TITLES_REQUIRED","发布前需要补齐十种语言的模板标题。");
+            if(!TemplateTitleLocalizationService.validLocalizedDescription(locale,text(find(translations,locale),"description")))
+                throw new ApiException(HttpStatus.CONFLICT,"TEMPLATE_MULTILINGUAL_DESCRIPTIONS_REQUIRED","发布前需要补齐十种语言的模板说明。");
         }
     }
 

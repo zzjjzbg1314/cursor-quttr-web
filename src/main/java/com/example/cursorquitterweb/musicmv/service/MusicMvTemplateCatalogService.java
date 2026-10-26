@@ -528,12 +528,14 @@ public class MusicMvTemplateCatalogService {
                     RowUtils.str(existing, "validation_master_sha256"));
             if (!same) throw conflict("TEMPLATE_PROMOTION_IDEMPOTENCY_CONFLICT",
                     "Validation render job is already bound to different template evidence");
-            Map<String,String> previousTitles=TemplateTitleLocalizationService.titles(repository.translations(request.getTemplateId()));
+            List<Map<String,Object>> previousCopy=repository.translations(request.getTemplateId());
+            Map<String,String> previousTitles=TemplateTitleLocalizationService.titles(previousCopy);
+            Map<String,String> previousDescriptions=TemplateTitleLocalizationService.descriptions(previousCopy);
             Map<String,Object> titleSnapshot=repository.template(request.getTemplateId());
             preparePromotionTitles(request);
-            if(!previousTitles.equals(request.getLocalizedTitles())) {
+            if(!previousTitles.equals(request.getLocalizedTitles())||!previousDescriptions.equals(request.getLocalizedDescriptions())) {
                 if(titleSnapshot==null) throw conflict("TEMPLATE_TITLE_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
-                if(!repository.updateSourceTitles(request.getTemplateId(), titleRevision(titleSnapshot), request.getLocalizedTitles()))
+                if(!repository.updateSourceCopy(request.getTemplateId(), titleRevision(titleSnapshot), request.getLocalizedTitles(), request.getLocalizedDescriptions()))
                     throw conflict("TEMPLATE_TITLE_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
                 invalidateDetail(request.getTemplateId());
             }
@@ -1787,12 +1789,15 @@ public class MusicMvTemplateCatalogService {
         if (visibility == null || !VISIBILITIES.contains(visibility)) {
             throw badRequest("TEMPLATE_VISIBILITY_INVALID", "Template visibility is invalid");
         }
+        List<Map<String,Object>> existingCopy=repository.translations(templateId);
         Map<String,String> localizedTitles=titleLocalization.prepare(
-                TemplateTitleLocalizationService.titles(repository.translations(templateId)), request.getNameZh(), request.getNameEn());
+                TemplateTitleLocalizationService.titles(existingCopy), request.getNameZh(), request.getNameEn());
+        Map<String,String> localizedDescriptions=titleLocalization.prepareDescriptions(
+                TemplateTitleLocalizationService.descriptions(existingCopy),request.getDescriptionZh(),request.getDescriptionEn());
         if(!repository.updateMetadataWithTitles(templateId, titleRevision(titleSnapshot), primaryCategory, json(sourceHashtags),
                 request.getNameZh(), request.getDescriptionZh(), request.getNameEn(),
                 request.getDescriptionEn(), visibility,
-                request.getSortOrder() == null ? 0 : request.getSortOrder().intValue(), localizedTitles))
+                request.getSortOrder() == null ? 0 : request.getSortOrder().intValue(), localizedTitles, localizedDescriptions))
             throw conflict("TEMPLATE_TITLE_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
         repository.replaceTemplateCategories(templateId, primaryCategory, categoryAssignments);
         templateTags.replace(templateId, request.getTagKeys());
@@ -2126,6 +2131,7 @@ public class MusicMvTemplateCatalogService {
         requirePublishablePreviewMp4(versionId);
         TemplatePublicationCopy.requireSources(repository.translations(templateId));
         synchronizeTitles(templateId, false, null);
+        synchronizeDescriptions(templateId, false, null, null, null);
         TemplatePublicationCopy.requireComplete(repository.translations(templateId));
         if (!repository.publish(templateId, versionId)) {
             invalidateDetail(templateId);
@@ -3045,9 +3051,11 @@ public class MusicMvTemplateCatalogService {
     }
 
     private void preparePromotionTitles(TemplatePromotionRequest request) {
+        List<Map<String,Object>> existing=repository.translations(request.getTemplateId());
         request.setLocalizedTitles(titleLocalization.prepare(
-            TemplateTitleLocalizationService.titles(repository.translations(request.getTemplateId())),
-            request.getNameZh(),request.getNameEn()));
+            TemplateTitleLocalizationService.titles(existing),request.getNameZh(),request.getNameEn()));
+        request.setLocalizedDescriptions(titleLocalization.prepareDescriptions(
+            TemplateTitleLocalizationService.descriptions(existing),request.getDescriptionZh(),request.getDescriptionEn()));
     }
 
     private long titleRevision(Map<String,Object> template) {
@@ -3084,6 +3092,35 @@ public class MusicMvTemplateCatalogService {
         if(suppliedTitles==null) after=titleLocalization.prepare(before,zh,en);
         if(!repository.updateTitles(templateId,revision,zh,en,after))
             throw conflict("TEMPLATE_TITLE_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
+        invalidateDetail(templateId);
+        result.put("after",after);result.put("changed",true);result.put("revision",revision+1);return result;
+    }
+    public Map<String,Object> synchronizeDescriptions(String templateId, boolean dryRun, Long expectedRevision,
+            Map<String,String> suppliedDescriptions, Map<String,String> expectedSource) {
+        Map<String,Object> snapshot=requireTemplate(templateId);
+        long revision=titleRevision(snapshot);
+        if(expectedRevision!=null&&expectedRevision.longValue()!=revision)
+            throw conflict("TEMPLATE_DESCRIPTION_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
+        List<Map<String,Object>> translations=repository.translations(templateId);
+        Map<String,String> before=TemplateTitleLocalizationService.descriptions(translations);
+        String zh=before.get("zh-CN"),en=before.get("en");
+        if(suppliedDescriptions!=null&&(expectedRevision==null||expectedSource==null
+                ||!Objects.equals(zh,expectedSource.get("zh-CN"))||!Objects.equals(en,expectedSource.get("en"))))
+            throw conflict("TEMPLATE_DESCRIPTION_SOURCE_CHANGED", "提交人工译稿必须提供匹配的版本及中英文源说明。");
+        if(!TemplateTitleLocalizationService.validLocalizedDescription("zh-CN",zh)||!TemplateTitleLocalizationService.validLocalizedDescription("en",en))
+            throw conflict("TEMPLATE_DESCRIPTION_SOURCE_REQUIRED", "请先填写准确的中英文模板说明。");
+        List<String> missing=TemplateTitleLocalizationService.missingDescriptions(before,zh,en);
+        Map<String,Object> result=new LinkedHashMap<>();
+        result.put("templateId",templateId);result.put("revision",revision);result.put("dryRun",dryRun);
+        result.put("before",before);result.put("backup",translations);result.put("missingLocales",missing);
+        Map<String,String> sources=new LinkedHashMap<>();sources.put("zh-CN",zh);sources.put("en",en);result.put("source",sources);
+        Map<String,String> after=suppliedDescriptions==null?before:TemplateTitleLocalizationService.validateSuppliedDescriptions(before,suppliedDescriptions);
+        if(dryRun||(suppliedDescriptions==null&&missing.isEmpty())||after.equals(before)&&suppliedDescriptions!=null) {
+            result.put("after",after);result.put("changed",false);result.put("wouldChange",!after.equals(before)||!missing.isEmpty());return result;
+        }
+        if(suppliedDescriptions==null) after=titleLocalization.prepareDescriptions(before,zh,en);
+        if(!repository.updateDescriptions(templateId,revision,zh,en,after))
+            throw conflict("TEMPLATE_DESCRIPTION_SOURCE_CHANGED", "模板资料已变化，请刷新后重试。");
         invalidateDetail(templateId);
         result.put("after",after);result.put("changed",true);result.put("revision",revision+1);return result;
     }
