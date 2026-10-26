@@ -43,7 +43,7 @@ final class BrowserNativeStickerContract {
                 String category=id(animation.get("category"));
                 if(materialIds.isEmpty()||!Arrays.asList("in","out","loop").contains(category)||!categories.add(category)
                         ||!"exact".equals(animation.get("fidelity"))||!"native_sticker_animation".equals(animation.get("preset"))
-                        ||integer(timing.get("startUs"))!=0||integer(timing.get("durationUs"))<=0
+                        ||integer(timing.get("startUs"))!=0||integer(timing.get("durationUs"))<0
                         ||!seconds(animation.get("durationSeconds"),integer(timing.get("durationUs")))
                         ||!"native-text-animation-parameters-v1".equals(params.get("schemaVersion"))||!"captured".equals(params.get("status"))
                         ||!(params.get("adjustmentDeclared") instanceof Boolean)||!(params.get("direction") instanceof String)

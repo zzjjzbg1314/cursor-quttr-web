@@ -88,4 +88,17 @@ class BrowserNativeStickerContractTest {
         assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
     }
 
+    @Test void zeroDurationResourceAnimationRetainsBindingAndRejectsInvalidClock() {
+        Map<String,Object> source=source(),timing=map("startUs","0","durationUs","0");
+        Map<String,Object> animation=map("category","out","resourceId","animation","fidelity","exact","preset","native_sticker_animation",
+            "durationSeconds",0,"rawAnimationTiming",timing,
+            "nativeTextAnimationParameters",map("schemaVersion","native-text-animation-parameters-v1","status","captured","adjustmentDeclared",false,"direction","","animMode",""));
+        source.put("animations",Collections.singletonList(animation));
+        assertEquals(Collections.singleton("s"),BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        timing.put("durationUs","-1");assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        timing.remove("durationUs");assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        timing.put("durationUs","0");animation.put("durationSeconds",.1);assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+        animation.put("durationSeconds",0);animation.put("resourceId","missing");assertThrows(RuntimeException.class,()->BrowserNativeStickerContract.validate(scene(source),descriptor()));
+    }
+
 }
