@@ -175,7 +175,6 @@ public class MusicMvTemplateCatalogService {
         if (tag != null) templateTags.validate(Collections.singletonList(tag));
 
         String category = blankToNull(categoryKey);
-        if (category != null) requireCategory(category);
         String collectionKey = null;
         String collection = blankToNull(collectionSlug);
         if (collection != null) {

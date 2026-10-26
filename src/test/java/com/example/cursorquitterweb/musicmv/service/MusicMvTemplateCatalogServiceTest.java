@@ -40,6 +40,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
     @Test
+    void 列表直接按分类筛选而不额外校验分类() {
+        for (String category : Arrays.asList("music-player", "lyrics", "unknown-category")) {
+            Map<String, Object> page = service.list("en", category, null, null,
+                    null, null, null, null, null, 1, 30, false, null);
+            assertEquals(0L, page.get("total"));
+            assertEquals(Collections.emptyList(), page.get("items"));
+            assertEquals(false, page.get("hasMore"));
+            verify(repository).templateCount("published", "public", category, null, null,
+                    null, null, null, null, null);
+            verify(repository).templates("en", "published", "public", category, null, null,
+                    null, null, null, null, null, 30, 0);
+        }
+        verify(repository, never()).category(anyString());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void listAndDetailMediaUseCurrentPreviewDomain() throws Exception {
         CloudflareTemplateMediaProvider actual = new CloudflareTemplateMediaProvider(
