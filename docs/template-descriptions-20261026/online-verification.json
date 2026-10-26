@@ -1,0 +1,82 @@
+[
+  {
+    "locale": "en",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 4.08
+  },
+  {
+    "locale": "zh-CN",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 4.53
+  },
+  {
+    "locale": "zh-TW",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 2.71
+  },
+  {
+    "locale": "ja",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 3.19
+  },
+  {
+    "locale": "ko",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 1.35
+  },
+  {
+    "locale": "es",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 2.74
+  },
+  {
+    "locale": "pt-BR",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 1.54
+  },
+  {
+    "locale": "fr",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 1.6
+  },
+  {
+    "locale": "de",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 1.58
+  },
+  {
+    "locale": "it",
+    "count": 62,
+    "total": 62,
+    "completeSet": true,
+    "mismatches": [],
+    "seconds": 1.25
+  }
+]

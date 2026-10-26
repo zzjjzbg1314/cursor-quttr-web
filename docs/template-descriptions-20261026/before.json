@@ -1,0 +1,6201 @@
+[ {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "de",
+  "name" : "Jahrestagsalbum mit Handschrift",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "en",
+  "name" : "Anniversary Notes",
+  "description" : "A collage opens into full-frame photos beneath delicate handwritten anniversary lettering, suited to shared trips and everyday milestones.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "es",
+  "name" : "Álbum de aniversario manuscrito",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "fr",
+  "name" : "Notes d’anniversaire de couple",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "it",
+  "name" : "Album d’anniversario scritto a mano",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "ja",
+  "name" : "記念日の手書きアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "ko",
+  "name" : "기념일 손글씨 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "pt-BR",
+  "name" : "Notas de aniversário a dois",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "zh-CN",
+  "name" : "周年手写影集",
+  "description" : "照片从拼排过渡到单张大画面，中央叠加细白手写周年字样，适合情侣旅途与生活纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00155fb2815b8892",
+  "status" : "published",
+  "current_version_id" : "tplver_f23cc690555747e5910f9df37e18a97d",
+  "revision" : 7,
+  "locale" : "zh-TW",
+  "name" : "週年手寫相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Plattencover und Klangwellen in Ebenen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Waveform Album Layers",
+  "description" : "A horizontal waveform crosses a soft-focus backdrop above a layered photo sleeve and spinning record for a textured music presentation.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Portadas y ondas en capas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Pochettes et ondes superposées",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Copertine e onde sovrapposte",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "音の波形と重なるジャケット",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "음파와 겹쳐진 앨범 재킷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Capas e ondas sobrepostas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "声波封套叠影",
+  "description" : "横向声波覆盖柔焦背景，下方叠放照片封套与旋转唱片，适合有层次的个人音乐展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_00a93e67727d29bb",
+  "status" : "published",
+  "current_version_id" : "tplver_36e01a3b8d43498e87ed85f836e1bc0a",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "聲波封套疊影",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "de",
+  "name" : "Herzcollage der Freundschaft",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "en",
+  "name" : "Friendship Heart Collage",
+  "description" : "Photos build into a collage before giving individual memories the full frame, with a small sketched heart linking gatherings and trips with friends.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "es",
+  "name" : "Collage de corazones y amistad",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "fr",
+  "name" : "Collage de cœurs et d’amitié",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "it",
+  "name" : "Collage di cuori e amicizia",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "ja",
+  "name" : "友だちとのハートコラージュ",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "ko",
+  "name" : "친구와의 하트 콜라주",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "pt-BR",
+  "name" : "Colagem de corações e amizade",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "zh-CN",
+  "name" : "好友心动拼贴",
+  "description" : "多张照片逐步铺满画面，再切换到单张回忆，手绘小爱心贯穿其中，适合朋友聚会与旅行记录。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_02ec720f7bfe216b",
+  "status" : "published",
+  "current_version_id" : "tplver_e3e5682f3773437c9a9ef3e71dc23822",
+  "revision" : 10,
+  "locale" : "zh-TW",
+  "name" : "好友愛心拼貼",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Player im sanften Licht",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Quiet Glow Player",
+  "description" : "A full-size photo, fine editorial text and a miniature player near the bottom keep attention on your image for a restrained music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Reproductor de luz tenue",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Lecteur à la lueur douce",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Lettore a luce soffusa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "余白とほのかな光のプレーヤー",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "은은한 빛 미니멀 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Player de brilho suave",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "留白微光播放器",
+  "description" : "整幅照片搭配细小排版、留白与底部迷你播放面板，让主体保持突出，适合简洁的人像音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_094d8190a907078a",
+  "status" : "published",
+  "current_version_id" : "tplver_06a859b533b8479f87d27e4b9a7a5842",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "留白微光播放器",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "de",
+  "name" : "Plattenhülle in 3D",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "en",
+  "name" : "Record Sleeve Turntable",
+  "description" : "An upright photo sleeve sits behind an angled spinning vinyl record, with caption accents for an album-cover presentation.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "es",
+  "name" : "Funda de disco en relieve",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "fr",
+  "name" : "Pochette de disque en relief",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "it",
+  "name" : "Copertina di disco in rilievo",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "ja",
+  "name" : "立体レコードジャケット",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "ko",
+  "name" : "입체 레코드 재킷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "pt-BR",
+  "name" : "Capa de disco em relevo",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "zh-CN",
+  "name" : "立体唱片封套",
+  "description" : "竖立的封套照片与斜放黑胶唱盘组成空间感画面，唱片转动并叠加字幕，适合专辑封面式展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0a1439715de48c3f",
+  "status" : "published",
+  "current_version_id" : "tplver_99a41079723045eda28e85bdbedcc970",
+  "revision" : 10,
+  "locale" : "zh-TW",
+  "name" : "立體唱片封套",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Disc mit roter Klangwelle",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Red Line Disc Player",
+  "description" : "A rotating photo disc and horizontal waveform cross a darkened photo backdrop with red line accents for a dramatic music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco con onda roja",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque à l’onde rouge",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco con onda rossa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "赤いラインのディスクプレーヤー",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "레드 라인 디스크 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco com onda vermelha",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "红线光盘声波",
+  "description" : "圆形照片持续旋转，横向声波穿过画面，叠加红色线条与暗色背景，适合有张力的人像封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_0d56c59fb1dce7a4",
+  "status" : "published",
+  "current_version_id" : "tplver_b91cb627be554908bf44dabd85e4910d",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "紅線光碟聲波",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Album im Sternenring",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Starlight Halo Portrait",
+  "description" : "A glowing ring frames a smaller circular photo over a large portrait, with star accents and simple playback graphics for a gentle keepsake.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Álbum con halo de estrellas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Album au halo d’étoiles",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Album con alone di stelle",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "星の光輪フォトアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "별빛 링 포토 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Álbum com halo de estrelas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "星光圆环相册",
+  "description" : "发光圆环围绕小幅圆形照片，背景展示大幅人像，搭配星点和简洁播放控件，适合柔和的个人纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_1c7d84df2f82490c",
+  "status" : "published",
+  "current_version_id" : "tplver_d3878132587e4a51b5bab4875f556be0",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "星光圓環相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "de",
+  "name" : "Abschluss-Intro mit Sofortbildern",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "en",
+  "name" : "Graduation Polaroid Intro",
+  "description" : "Tilted white-bordered photos surround a graduation title before giving each image the full frame, gathering the highlights of graduation day.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "es",
+  "name" : "Inicio de graduación con fotos instantáneas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "fr",
+  "name" : "Intro de fin d’études en photos instantanées",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "it",
+  "name" : "Apertura del diploma con foto istantanee",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "ja",
+  "name" : "卒業ポラロイド・オープニング",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "ko",
+  "name" : "졸업 폴라로이드 오프닝",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "pt-BR",
+  "name" : "Abertura de formatura com fotos instantâneas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "zh-CN",
+  "name" : "毕业拍立得开场",
+  "description" : "倾斜白边相片围绕毕业标题开场，随后切换到单张大画面，适合汇集毕业当天的重要时刻。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_29ebf6cfd5a35707",
+  "status" : "published",
+  "current_version_id" : "tplver_508ffc6620b149fd922100eb4e92661a",
+  "revision" : 10,
+  "locale" : "zh-TW",
+  "name" : "畢業拍立得開場",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "de",
+  "name" : "Geburtstags-Fotoraster-Vorlage",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "en",
+  "name" : "Happy Birthday Photo Grid",
+  "description" : "Celebrate with a three-photo birthday collage, a spinning record, colorful bunting, a crown, and birthday stickers. The portrait 3:4 design plays continuously with your song.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "es",
+  "name" : "Plantilla de cuadrícula de fotos de feliz cumpleaños",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "fr",
+  "name" : "Modèle de grille photo joyeux anniversaire",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "it",
+  "name" : "Modello griglia foto buon compleanno",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "ja",
+  "name" : "誕生日フォトグリッド お誕生日おめでとうテンプレート",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "ko",
+  "name" : "생일 사진 그리드 생일 축하 템플릿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "pt-BR",
+  "name" : "Modelo de grade de fotos de feliz aniversário",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "zh-CN",
+  "name" : "生日宫格生日快乐模板",
+  "description" : "用三张照片组成生日拼贴，搭配旋转唱片、彩旗、皇冠和生日祝福贴纸。竖向 3:4 画面支持随歌曲连续播放。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_2a65d99a9730cbde",
+  "status" : "published",
+  "current_version_id" : "tplver_11ca86b8d51d4a818c795b8faf46282a",
+  "revision" : 5,
+  "locale" : "zh-TW",
+  "name" : "生日相片宮格生日快樂範本",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Papas luftig-leichtes Scrapbook",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Dad's Airy Scrapbook",
+  "description" : "An airy blue-and-light collage combines white cutout borders and Father's Day notes for bright family portraits and outdoor memories.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Álbum de recortes ligero de papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Carnet de papa tout en légèreté",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Album di ritagli di papà dal tocco leggero",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんとの爽やかスクラップブック",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠와의 산뜻한 스크랩북",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Álbum de recortes do pai em tons leves",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "爸爸的清新剪贴簿",
+  "description" : "浅蓝与浅色照片拼贴搭配白色剪纸轮廓和父亲节文字，适合明亮的家庭合影与户外回忆。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_33ab242fe21f4a72",
+  "status" : "published",
+  "current_version_id" : "tplver_3b52eb3c451d43d5a99a302832b04ec1",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "爸爸的清新剪貼簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "de",
+  "name" : "Geburtstags-CD-Player",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "en",
+  "name" : "Birthday CD Player",
+  "description" : "Turn seven photos into a rounded birthday collage with a record player, a softly blurred background and a Happy Birthday greeting at its heart. The original entrance animations repeat with each template cycle as your song plays.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "es",
+  "name" : "Reproductor de CD de cumpleaños",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "fr",
+  "name" : "Lecteur CD d'anniversaire",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "it",
+  "name" : "Lettore CD di compleanno",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "ja",
+  "name" : "バースデーCDプレーヤー",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "ko",
+  "name" : "생일 CD 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "pt-BR",
+  "name" : "Player de CD de aniversário",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "zh-CN",
+  "name" : "生日CD唱片播放器",
+  "description" : "七张照片组成圆角生日拼贴，中间搭配唱片播放器、柔焦背景与 Happy Birthday 字样。保留原模板的入场和循环动画，让生日回忆随着音乐一轮轮播放。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_39a17f5e8c11d414",
+  "status" : "published",
+  "current_version_id" : "tplver_449267cae7c44f7dbcf589f2b8ac11ee",
+  "revision" : 5,
+  "locale" : "zh-TW",
+  "name" : "生日CD唱片播放器",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Cremefarbene Collage für Papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Soft Grid for Dad",
+  "description" : "Soft neutral tiles mix photos, sketched hearts and Father's Day lettering for a warm collection of family moments.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Collage en crema para papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Collage crème pour papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Collage color crema per papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "父の日のクリーム色コラージュ",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "크림빛 아버지의 날 콜라주",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Colagem em creme para o pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "奶油色父亲节拼格",
+  "description" : "柔和浅色方格穿插照片、手绘爱心与父亲节文字，适合温馨的亲子合影和家庭片段。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_3ed880ad85b3f8fb",
+  "status" : "published",
+  "current_version_id" : "tplver_c84a195200fa4f1191efa2fb03fee035",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "奶油色父親節拼貼",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Abschluss in drei Bildern",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Graduation Triple Strip",
+  "description" : "Three horizontal photo strips stack around a simple graduation title, keeping group shots and celebration moments together on screen.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Graduación en tres fotogramas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Fin d’études en trois images",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Diploma in tre fotogrammi",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "卒業の三連フォトアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "졸업 3컷 포토 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Formatura em três quadros",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "毕业三格影集",
+  "description" : "三条横向照片带上下排列，搭配简洁毕业标题，适合将合影和庆祝瞬间组合在同一屏。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4130698add65b612",
+  "status" : "published",
+  "current_version_id" : "tplver_8c4d09c95dcf49ce88a28250e565ede1",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "畢業三格相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "de",
+  "name" : "Herzfotos für Papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "en",
+  "name" : "Heart Notes for Dad",
+  "description" : "A tilted white-bordered photo sits on a pale greeting card with sketched hearts and Father's Day wishes for a gentle family keepsake.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "es",
+  "name" : "Fotos con corazones para papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "fr",
+  "name" : "Photos avec des cœurs pour papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "it",
+  "name" : "Foto con cuori per papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "ja",
+  "name" : "お父さんへ贈るハートフォト",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "ko",
+  "name" : "아빠에게 전하는 하트 사진",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "pt-BR",
+  "name" : "Fotos com corações para o pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "zh-CN",
+  "name" : "给爸爸的爱心相纸",
+  "description" : "浅色贺卡上摆放倾斜白边照片，手绘爱心与父亲节祝福围绕四周，适合温柔的亲子纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_43eed532ee212a70",
+  "status" : "published",
+  "current_version_id" : "tplver_96813dbd76114eb1b6a45dd3ea764ae4",
+  "revision" : 9,
+  "locale" : "zh-TW",
+  "name" : "給爸爸的愛心相紙",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "de",
+  "name" : "Dankbarkeit als Poster",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "en",
+  "name" : "Gratitude Statement",
+  "description" : "Bold black and red lettering overlays your photos in a statement-poster layout for personal reflections and gratitude.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "es",
+  "name" : "Póster de gratitud",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "fr",
+  "name" : "Affiche de gratitude",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "it",
+  "name" : "Poster di gratitudine",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "ja",
+  "name" : "感謝を伝えるメッセージポスター",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "ko",
+  "name" : "감사를 전하는 메시지 포스터",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "pt-BR",
+  "name" : "Pôster de gratidão",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "zh-CN",
+  "name" : "感恩宣言海报",
+  "description" : "醒目的黑红字句覆盖在照片上，形成杂志式宣言海报，适合个人生活记录与感恩主题。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_47e185857552ba81",
+  "status" : "published",
+  "current_version_id" : "tplver_6b369d99a9694eb28e71f483d566380a",
+  "revision" : 7,
+  "locale" : "zh-TW",
+  "name" : "感謝宣言海報",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Postkarten-Trio zum Abschluss",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Graduation Contact Sheet",
+  "description" : "Three small photos across the top sit above changing full-size portraits, with graduation lettering for a ceremony contact sheet.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Tríptico de postales de graduación",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Triptyque de cartes de fin d’études",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Trittico di cartoline del diploma",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "卒業の三連ポストカード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "졸업 추억 3단 엽서",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Tríptico de cartões de formatura",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "毕业三联明信片",
+  "description" : "顶部三张小照片与下方轮换大图组成明信片式布局，搭配毕业字样，适合毕业人像与典礼记录。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4a3e1a7eb04c827c",
+  "status" : "published",
+  "current_version_id" : "tplver_38f1173edcac47eab3b32aed51455a87",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "畢業三聯明信片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Lichtrahmen am Wasser",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Waterside Glow Frame",
+  "description" : "An upper photo frame and smaller disc below are connected by a soft backdrop, light flecks and water reflections for a quiet, lyrical scene.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Marco de luz junto al agua",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Cadre lumineux au bord de l’eau",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Cornice luminosa sull’acqua",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "水辺の淡い光フレーム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "물가의 은은한 빛 프레임",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Moldura de luz à beira d’água",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "微光水岸相框",
+  "description" : "上方方形照片与下方小唱片分层摆放，柔焦背景、光点和水面反光连接画面，适合安静的抒情影像。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ba72e2b13817e7c",
+  "status" : "published",
+  "current_version_id" : "tplver_efde586ce15a4d51872e2a7fbd363e9b",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "微光水岸相框",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Magazin mit Platte rechts",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Right Side Record Layout",
+  "description" : "A large photo on the left balances a spinning record on the right and a white player card below for a horizontal portrait or lifestyle layout.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Revista con disco a la derecha",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Magazine avec disque à droite",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Rivista con disco a destra",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "右寄せレコードのマガジン",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "오른쪽 레코드 매거진",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Revista com disco à direita",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "右侧唱片杂志",
+  "description" : "大幅照片放在左侧，右侧旋转唱片与底部白色播放卡片相呼应，适合横向人像和生活展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4ce246b2db6fded5",
+  "status" : "published",
+  "current_version_id" : "tplver_18443c2d36544cbe9d361216287a24e9",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "右側唱片雜誌",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Platte unter dem Sternenhimmel",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Night Glow Disc",
+  "description" : "A bright-edged photo disc, horizontal waveform and glowing title accents sit over a dark full-photo backdrop for a striking portrait cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco bajo un cielo estrellado",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque sous un ciel étoilé",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco sotto un cielo stellato",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "夜の星明かりレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "어둠 속 별빛 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco sob um céu estrelado",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "暗幕星光唱片",
+  "description" : "暗色大幅照片上叠放亮边圆形唱片、横向声波和星光标题，适合轮廓鲜明的人像音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4d8b919a4d8a3941",
+  "status" : "published",
+  "current_version_id" : "tplver_718fc7ff1de148689eed9ede6cea5b1e",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "暗幕星光唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "de",
+  "name" : "Hochzeit auf Filmrolle",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "en",
+  "name" : "Wedding Cinema Reel",
+  "description" : "Black film frames and warm-toned moments connect wedding photos, from the ceremony to embraces and portraits together.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "es",
+  "name" : "Rollo de cine de boda",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "fr",
+  "name" : "Bobine de cinéma du mariage",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "it",
+  "name" : "Bobina cinematografica di nozze",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "ja",
+  "name" : "ウェディング・シネマフィルム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "ko",
+  "name" : "웨딩 시네마 필름",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "pt-BR",
+  "name" : "Rolo de cinema do casamento",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "zh-CN",
+  "name" : "婚礼电影胶卷",
+  "description" : "黑色胶片边框衔接婚礼照片，局部带暖色光感，适合仪式、拥抱和双人合影。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_4f5f4d98b4875fe9",
+  "status" : "published",
+  "current_version_id" : "tplver_57fdb2efc44846e7a96ea98522d20f32",
+  "revision" : 7,
+  "locale" : "zh-TW",
+  "name" : "婚禮電影膠卷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Platte mit nebliger Hülle",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Misty Sleeve Player",
+  "description" : "A square photo sleeve and partially exposed record sit over a fading backdrop with a compact player for a quiet, spacious composition.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Disco con funda brumosa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Disque à la pochette brumeuse",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Disco con copertina velata",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "霞むレコードジャケット",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "안개빛 레코드 재킷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Disco com capa enevoada",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "雾面封套唱片",
+  "description" : "渐隐背景上摆放方形封套与半露唱片，配合小型播放面板，适合安静、留白较多的照片展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5134354d743d0f05",
+  "status" : "published",
+  "current_version_id" : "tplver_ad965a7158ee48c8b586320e2a7addef",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "霧面封套唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Notizen und Platte in Mint",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Mint Record Notes",
+  "description" : "A spinning record, mint-colored player card and script heading layer over your photo for a light personal album.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Notas y disco en verde menta",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Notes et disque vert menthe",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Note e disco verde menta",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "ミントカラーのレコードメモ",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "민트빛 레코드 메모",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Notas e disco em verde-menta",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "薄荷唱片便笺",
+  "description" : "旋转唱片、薄荷色播放卡片与手写风标题叠在照片上，适合轻快的生活记录和个人影集。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_54a871b7966e9740",
+  "status" : "published",
+  "current_version_id" : "tplver_c493be36f65b4bbb8da6b6fa457f1957",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "薄荷唱片便箋",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Drei Fotos für Papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Three Prints for Dad",
+  "description" : "Three color prints stack over a monochrome photo collage, with the Father's Day greeting split between them for memories across the years.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Tres fotos para papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Trois photos pour papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Tre foto per papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんへ贈る三枚の写真",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠에게 전하는 사진 세 장",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Três fotos para o pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "父爱三张相纸",
+  "description" : "黑白照片拼成背景，三张彩色白边相片纵向叠放，并分行展示父亲节祝福，适合跨时间的家庭纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_583b4ede52b775a5",
+  "status" : "published",
+  "current_version_id" : "tplver_c93944d788f9466a86d927f93e7ab81a",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "父愛三張相紙",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Papa-Collage in Schwarz-Weiß",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Dad in Black and White",
+  "description" : "Black-and-white photos gradually fill a grid on a dark background, with a Father's Day greeting at the center for everyday memories with Dad.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Collage de papá en blanco y negro",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Collage de papa en noir et blanc",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Collage di papà in bianco e nero",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんとのモノクロコラージュ",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠와의 흑백 콜라주",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Colagem do pai em preto e branco",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "黑白父爱拼图",
+  "description" : "黑底上的黑白照片逐步拼成网格，中央保留父亲节祝福，适合记录与爸爸相处的日常。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5c66ebce53924059",
+  "status" : "published",
+  "current_version_id" : "tplver_adc4c67c3e28456eac6dbfa76d1ea029",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "黑白父愛拼貼",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "de",
+  "name" : "CD mit Geburtstagswünschen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "en",
+  "name" : "Birthday Wishes CD",
+  "description" : "Celebrate a birthday with two photos, a white instant-photo frame, a spinning record, pastel butterflies and roses. A softly blurred background and a delicate music-player layout give your birthday wishes a warm, personal feel.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "es",
+  "name" : "CD de deseos de cumpleaños",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "fr",
+  "name" : "CD de vœux d’anniversaire",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "it",
+  "name" : "CD di auguri di compleanno",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "ja",
+  "name" : "誕生日のお祝いCD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "ko",
+  "name" : "생일 축하 CD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "pt-BR",
+  "name" : "CD de desejos de aniversário",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "zh-CN",
+  "name" : "生日祝福CD",
+  "description" : "白色拍立得相框搭配旋转唱片、彩色蝴蝶和玫瑰装饰，以两张照片制作温暖的生日音乐视频。柔焦背景与底部播放器让生日祝福随音乐缓缓展开。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5e9f023107009319",
+  "status" : "published",
+  "current_version_id" : "tplver_1b04b4c9d82a4216a4dd4f790c7b35e9",
+  "revision" : 5,
+  "locale" : "zh-TW",
+  "name" : "生日祝福CD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Magazinrahmen in Ebenen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Editorial Layered Frame",
+  "description" : "A rounded landscape frame overlays a larger background photo, with magazine-style headlines and fine text to pair two related images.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Marco de revista en capas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Cadre de magazine en couches",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Cornice a strati da rivista",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "写真を重ねるマガジンフレーム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "잡지풍 레이어 포토 프레임",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Moldura de revista em camadas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "杂志叠影相框",
+  "description" : "大幅背景照片上叠放圆角横向相框，搭配杂志标题与细字排版，适合突出两张相关照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_5f7f28184c02c4fa",
+  "status" : "published",
+  "current_version_id" : "tplver_1e8d6c2cb7914e9ab385f5757f9425c8",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "雜誌疊影相框",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Magazinkarten in Schwarz-Weiß",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Monochrome Editorial Cards",
+  "description" : "A split light-and-dark backdrop holds a small portrait frame, translucent player card and circular disc for a three-photo editorial layout.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Tarjetas de revista en blanco y negro",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Cartes de magazine monochromes",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Schede da rivista in bianco e nero",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "モノクロのマガジンカード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "흑백 매거진 카드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Cartões de revista em preto e branco",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "黑白杂志浮窗",
+  "description" : "黑白分区背景上叠放竖向小相框、半透明播放卡片和圆形光盘，适合三张照片的杂志式展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6a3a6a51e37039da",
+  "status" : "published",
+  "current_version_id" : "tplver_975a1dd5c13145f68778d28f2e82f67e",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "黑白雜誌浮窗",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Cover mit blauen Wasserwellen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Blue Ripple Album",
+  "description" : "Blue ripples surround a square photo sleeve and exposed disc, with the background image and captions continuing below for a dreamy music scene.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Portada con ondas azules",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Pochette aux ondulations bleues",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Copertina con increspature blu",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "青い波紋のジャケット",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "푸른 물결 앨범 재킷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Capa com ondulações azuis",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "蓝色水纹封套",
+  "description" : "蓝色水纹包围方形照片封套与半露光盘，下方延续背景照片与字幕，适合清凉、梦幻的音乐画面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_6ea372cbd17a2077",
+  "status" : "published",
+  "current_version_id" : "tplver_333b02aa601b4437b95236831879a9b6",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "藍色水紋封套",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Player mit weichen Rändern",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Soft Edge Player",
+  "description" : "Softened photo edges blend into the backdrop, with fine text and a small player near the bottom for a gentle portrait cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Reproductor de bordes difuminados",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Lecteur aux contours flous",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Lettore dai bordi sfumati",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "ふんわりぼかしプレーヤー",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "소프트 블러 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Player com bordas suaves",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "柔雾边缘播放器",
+  "description" : "照片边缘柔化融入背景，细小文字与底部播放面板形成轻盈层次，适合柔和的人像封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_7075f39ec05a12d9",
+  "status" : "published",
+  "current_version_id" : "tplver_82825c3a96134e668313413795211d44",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "柔霧邊緣播放器",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Vinyl unter roten Sternen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Red Spotlight Vinyl",
+  "description" : "Red light and scattered sparkles surround a rotating photo disc and translucent player panel for a stage-inspired music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Vinilo bajo estrellas rojas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Vinyle sous les étoiles rouges",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Vinile sotto stelle rosse",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "赤い星明かりのレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "붉은 별빛 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Vinil sob estrelas vermelhas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "红色星幕唱片",
+  "description" : "红色光束与细碎光点衬托旋转照片唱片和半透明播放面板，适合舞台感的音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71210f2afbc038cb",
+  "status" : "published",
+  "current_version_id" : "tplver_85e85d265ddb41e8a617eea2c4795d56",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "紅色星幕唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Disc im Silberregen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Silver Rain Disc",
+  "description" : "A rotating photo disc, geometric blocks and fine rain streaks form a silver-gray composition for cool-toned, layered imagery.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco de lluvia plateada",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque sous une pluie argentée",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco sotto pioggia argentata",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "銀色の雨とディスク",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "은빛 빗속 디스크",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco de chuva prateada",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "银灰雨幕圆盘",
+  "description" : "银灰色画面中叠加旋转圆形照片、几何方块和细密雨线，适合冷色调、层次分明的照片展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_71785f187241aaff",
+  "status" : "published",
+  "current_version_id" : "tplver_a180723cca1e44db89e2f9acf3ed4cd7",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "銀灰雨幕圓盤",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Vinyl mit blauem Schmetterling",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Blue Butterfly Vinyl",
+  "description" : "A white editorial layout combines spinning vinyl, a blue butterfly accent and a large side portrait for a fresh music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Vinilo con mariposa azul",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Vinyle au papillon bleu",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Vinile con farfalla blu",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "青い蝶とレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "푸른 나비와 바이닐",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Vinil com borboleta azul",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "蓝蝶黑胶杂志",
+  "description" : "白色杂志布局中搭配旋转黑胶、蓝色蝴蝶和侧边大幅照片，适合清新的人像音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_73e3eaddb14a067e",
+  "status" : "published",
+  "current_version_id" : "tplver_fc8ecbdb12dd499fb95383be1042d057",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "藍蝶黑膠雜誌",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Schwebende transparente Disc",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Clear Disc Player",
+  "description" : "A translucent spinning disc overlaps a rounded player card on a full-height photo, suited to bright everyday or travel images.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco transparente flotante",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque transparent flottant",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco trasparente sospeso",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "透明ディスクのフローティング窓",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "투명 디스크 플로팅 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco transparente flutuante",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "透明光盘浮窗",
+  "description" : "透明质感的旋转光盘搭配圆角半透明播放卡片，悬浮在竖屏背景照片上，适合明亮的生活或旅行照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8160c6f16d57c358",
+  "status" : "published",
+  "current_version_id" : "tplver_7d07838c02c7452eac1bab95da3e1df9",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "透明光碟浮窗",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Vinyl auf weißer Seite",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "White Page Vinyl",
+  "description" : "A white editorial layout pairs a rotating circular photo with fine headings and playback graphics for a clean portrait or lifestyle cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Vinilo en página blanca",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Vinyle sur page blanche",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Vinile su pagina bianca",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "白い誌面とレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "하얀 잡지 속 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Vinil na página branca",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "白页杂志唱片",
+  "description" : "白色杂志版面搭配旋转圆形照片、细字标题与底部播放控件，适合清爽的人像或生活照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_820c4feca4d1c52c",
+  "status" : "published",
+  "current_version_id" : "tplver_bbf5d7ddf19f405a87cb5a18286d391d",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "白頁雜誌唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "de",
+  "name" : "Geburtstagserinnerungen auf Film",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "en",
+  "name" : "Birthday Filmstrip",
+  "description" : "A vertical filmstrip moves through your photos with birthday lettering, bringing together memories of friends or family.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "es",
+  "name" : "Recuerdos de cumpleaños en película",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "fr",
+  "name" : "Souvenirs d’anniversaire sur pellicule",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "it",
+  "name" : "Ricordi di compleanno su pellicola",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "ja",
+  "name" : "誕生日の思い出フィルム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "ko",
+  "name" : "생일 추억 필름",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "pt-BR",
+  "name" : "Memórias de aniversário em filme",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "zh-CN",
+  "name" : "生日胶片回忆",
+  "description" : "竖向胶片相框依次展示照片，搭配生日祝福，适合用朋友或家人的合影串起生日回忆。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_82841f8bd0e68562",
+  "status" : "published",
+  "current_version_id" : "tplver_a78ae2c9129341f981082f9c3c8a0ee3",
+  "revision" : 9,
+  "locale" : "zh-TW",
+  "name" : "生日底片回憶",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "de",
+  "name" : "Breitbildporträt mit Songtext",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "en",
+  "name" : "Letterbox Lyric Portrait",
+  "description" : "A single photo sits between black letterbox bars while captions appear over the image, keeping attention on the portrait and song mood.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "es",
+  "name" : "Retrato panorámico con letra",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "fr",
+  "name" : "Portrait panoramique avec paroles",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "it",
+  "name" : "Ritratto panoramico con testo",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "ja",
+  "name" : "シネマ風字幕ポートレート",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "ko",
+  "name" : "시네마 자막 포트레이트",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "pt-BR",
+  "name" : "Retrato panorâmico com letra",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "zh-CN",
+  "name" : "宽幕字幕留影",
+  "description" : "单张照片以黑色上下留边展示，画面内叠加逐段字幕，适合突出人物与歌曲情绪。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_878da32eac3f5615",
+  "status" : "published",
+  "current_version_id" : "tplver_8f171e72576a4058affbfee8e6edaa97",
+  "revision" : 24,
+  "locale" : "zh-TW",
+  "name" : "寬銀幕字幕留影",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Platte im Herzrhythmus",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Heartline Disc Player",
+  "description" : "A rotating photo disc on the left connects to a waveform and outlined heart across a full-photo backdrop for a romantic or personal music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco al ritmo del corazón",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque au rythme du cœur",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco al ritmo del cuore",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "鼓動のレコードプレーヤー",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "심장박동 레코드 플레이어",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco no ritmo do coração",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "心线唱片播放器",
+  "description" : "左侧旋转照片唱片连接横向声波与线条爱心，背景保留大幅照片，适合情侣或个人音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_87c353dfec940aed",
+  "status" : "published",
+  "current_version_id" : "tplver_925f2093f9c44f7a9cce8ce5e518d5b3",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "心動聲波唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "de",
+  "name" : "Babys erstes Album",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "en",
+  "name" : "Baby's First Album",
+  "description" : "Collages, paired frames and full-size photos alternate under delicate script, preserving a baby's first days and little details.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "es",
+  "name" : "El primer álbum del bebé",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "fr",
+  "name" : "Le premier album de bébé",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "it",
+  "name" : "Il primo album del bebè",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "ja",
+  "name" : "赤ちゃんのはじめてのアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "ko",
+  "name" : "아기의 첫 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "pt-BR",
+  "name" : "O primeiro álbum do bebê",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "zh-CN",
+  "name" : "宝宝初见影集",
+  "description" : "照片在拼图、双格和单张画面间切换，配合细白手写字样，适合保存宝宝初生与成长细节。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_899b566996bf5d52",
+  "status" : "published",
+  "current_version_id" : "tplver_051c4483083347f0b03579ddae5faf42",
+  "revision" : 7,
+  "locale" : "zh-TW",
+  "name" : "寶寶初見相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Porträt im Vollkreis",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Full Circle Portrait",
+  "description" : "A large circular photo turns over a soft-focus full-height backdrop, with a restrained title above to emphasize your portraits.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Retrato a círculo completo",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Portrait en plein cercle",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Ritratto a cerchio pieno",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "画面いっぱいの円形フレーム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "화면 가득 원형 포토 프레임",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Retrato em círculo completo",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "满幅圆盘相框",
+  "description" : "大幅圆形照片缓缓旋转，背景以柔焦照片铺满竖屏，顶部保留简洁标题，适合突出一组人像。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8a2da5c25dd3cef2",
+  "status" : "published",
+  "current_version_id" : "tplver_345c6e51f6f54926a18a876690a7b422",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "滿版圓盤相框",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Porträt mit Blüten und Saiten",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Floral Strings Portrait",
+  "description" : "A portrait blends with flowers, a violin and golden lines in a vertical art-poster composition, suited to softly lit portraits and keepsakes.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Retrato entre flores y cuerdas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Portrait entre fleurs et cordes",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Ritratto tra fiori e corde",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "花と弦のポートレート",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "꽃과 현의 포트레이트",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Retrato entre flores e cordas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "花影琴弦肖像",
+  "description" : "人像与花朵、小提琴和金色线条柔和融合，形成竖屏艺术海报，适合柔光人像和纪念照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_8c62c11cdf169b0c",
+  "status" : "published",
+  "current_version_id" : "tplver_f9cc89e0b4f5460d880dfc632449a489",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "花影琴弦人像",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Porträt mit Text und Funkeln",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Sparkle Caption Portrait",
+  "description" : "A full-frame portrait stays in focus while captions change near the bottom with small sparkle accents for a lyrical presentation.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Retrato con texto y destellos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Portrait, texte et étincelles",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Ritratto con testo e scintille",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "きらめく字幕とポートレート",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "반짝이는 자막 포트레이트",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Retrato com texto e brilhos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "星点字幕肖像",
+  "description" : "单张照片铺满画面，底部字幕随时间变化并点缀细碎光点，适合以人像为主的抒情展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_948b22f7206a8596",
+  "status" : "published",
+  "current_version_id" : "tplver_1abc875097404eb39bb306a00fecb809",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "星點字幕人像",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Weiße Seite mit drei Bildern",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Triple Frame Editorial",
+  "description" : "A white editorial page combines a large image, rotating disc and smaller rounded frame to bring three related photos together.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Página blanca con tres imágenes",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Page blanche à trois images",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Pagina bianca con tre immagini",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "白い誌面のトリプルフォト",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "하얀 페이지 속 세 장의 사진",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Página branca com três imagens",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "白页三重影像",
+  "description" : "白色杂志版面组合大幅照片、旋转光盘和小幅圆角相框，适合三张有呼应关系的照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_968d336dad46aa5c",
+  "status" : "published",
+  "current_version_id" : "tplver_7f7068b261d0454896afff93aec9f8a2",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "白頁三重影像",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Papas Erinnerungskarussell",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Dad's Memory Carousel",
+  "description" : "Photos gradually fill a curved wall around a Father's Day greeting, gathering years of family portraits into one surrounding gallery.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Carrusel de recuerdos de papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Carrousel de souvenirs de papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Carosello di ricordi di papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんとの思い出カルーセル",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠와의 추억 캐러셀",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Carrossel de memórias do pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "父爱环绕照片墙",
+  "description" : "照片逐步铺成弧形环绕墙，中央汇聚父亲节祝福，适合把多年的亲子合影放在一起。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_98917e3626b6633b",
+  "status" : "published",
+  "current_version_id" : "tplver_a05db5357b274fd6bff1c878ed2b90d1",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "父愛環繞照片牆",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Fotowand GRAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "GRAD Photo Wall",
+  "description" : "Six photos form a vertical wall behind large outlined GRAD lettering, bringing portraits and group shots into one bold composition.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Mural de fotos GRAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Mur de photos GRAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Parete fotografica GRAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "GRAD文字のフォトウォール",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "GRAD 글자 포토월",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Mural de fotos GRAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "毕业字母拼墙",
+  "description" : "六张照片组成纵向拼墙，巨大描边毕业字母贯穿画面，适合人像与同学合影的集中展示。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_99924da09b9ff0ba",
+  "status" : "published",
+  "current_version_id" : "tplver_9c4273234e214c8d8214d7c034169d2d",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "畢業字母拼貼牆",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Goldene Kreise zum Abschluss",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Golden Graduation Circles",
+  "description" : "Layered gold circles frame your graduation photos, with a mortarboard, confetti and graduation lettering for a celebratory keepsake.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Círculos dorados de graduación",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Cercles dorés de fin d’études",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Cerchi dorati del diploma",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "卒業のゴールドサークル",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "졸업 골드 서클 프레임",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Círculos dourados de formatura",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "金色毕业圆框",
+  "description" : "金色圆形相框叠放多张毕业照片，搭配学士帽、纸屑与毕业字样，适合毕业合影纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a1887e9f11242add",
+  "status" : "published",
+  "current_version_id" : "tplver_13ce9d3b455b4005aeaf2461d94f180d",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "金色畢業圓框",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Schwebende Platte im Hochformat",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Floating Disc Portrait",
+  "description" : "A floating photo disc and compact player sit over a full-height image, suited to scenic photos or portraits with room around the subject.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco flotante vertical",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque flottant vertical",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco sospeso verticale",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "浮かぶレコード・縦型",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "세로형 플로팅 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco flutuante vertical",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "竖屏悬浮唱片",
+  "description" : "照片铺满竖屏，悬浮圆形唱片与小型播放控件置于上方区域，适合风景或主体留有空间的照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a72a5fda2682b111",
+  "status" : "published",
+  "current_version_id" : "tplver_c387b834de0e462488f2eb756a9ebf91",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "直式懸浮唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Liebesalbum mit Stickern",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Love Sticker Scrapbook",
+  "description" : "Photos overlap as cutout stickers among hearts and love notes, creating a scrapbook for everyday romance and anniversaries.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Álbum de amor con pegatinas",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Carnet d’amour et autocollants",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Album d’amore con adesivi",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "恋のスクラップブック",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "사랑의 스크랩북",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Álbum de amor com adesivos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "恋爱剪贴簿",
+  "description" : "照片以不规则贴纸轮廓叠放，穿插爱心与恋爱字样，适合情侣日常和周年纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_a8de64267fcf9569",
+  "status" : "published",
+  "current_version_id" : "tplver_20ff2c5c66934c9f9010c9ed6f0fa289",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "戀愛剪貼簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "de",
+  "name" : "Jedes Jahr ist kostbar",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "en",
+  "name" : "Every Year Is Precious",
+  "description" : "Create a birthday record-player video with one photo. Use your song’s timed lyrics with animated text and visuals that continue throughout the song.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "es",
+  "name" : "Cada año es valioso",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "fr",
+  "name" : "Chaque année est précieuse",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "it",
+  "name" : "Ogni anno è prezioso",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "ja",
+  "name" : "毎年が貴重",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "ko",
+  "name" : "매년이 소중해",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "pt-BR",
+  "name" : "Cada ano é precioso",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "zh-CN",
+  "name" : "每一岁都很珍贵",
+  "description" : "用一张照片制作生日唱片视频。支持所选歌曲的定时歌词，保留文字动画，画面随整首歌曲连续播放。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b4ffdb4b3c4cf09a",
+  "status" : "published",
+  "current_version_id" : "tplver_547319b3e1e848f3a43d738e9e8938bb",
+  "revision" : 5,
+  "locale" : "zh-TW",
+  "name" : "每一歲都很珍貴",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "de",
+  "name" : "Platte im Schwarz-Weiß-Nebel",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "en",
+  "name" : "Monochrome Haze Player",
+  "description" : "A monochrome photo disc and pale player card float over a dark blurred backdrop, with a waveform and fine typography below.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "es",
+  "name" : "Disco entre bruma en blanco y negro",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "fr",
+  "name" : "Disque dans la brume monochrome",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "it",
+  "name" : "Disco nella foschia in bianco e nero",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "ja",
+  "name" : "モノクロの霞みレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "ko",
+  "name" : "흑백 안개빛 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "pt-BR",
+  "name" : "Disco na névoa em preto e branco",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "zh-CN",
+  "name" : "黑白雾光唱片",
+  "description" : "黑白照片唱片与浅色播放浮窗置于暗色柔焦背景，底部波形与细字排版强化音乐感。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_b9729f363d982877",
+  "status" : "published",
+  "current_version_id" : "tplver_91767f3744b14f2087eb2a9c01babdac",
+  "revision" : 16,
+  "locale" : "zh-TW",
+  "name" : "黑白霧光唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Vinyl im Wasserspiegel",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Ripple Reflection Vinyl",
+  "description" : "A large vinyl record and tonearm sit above a rippling reflection, with your photo turning inside the disc for an atmospheric music cover.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Vinilo reflejado en el agua",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Vinyle en reflet sur l’eau",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Vinile riflesso nell’acqua",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "水面に映るレコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "물 위에 비친 바이닐",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Vinil refletido na água",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "水面倒影黑胶",
+  "description" : "大幅黑胶与唱针悬在水面倒影上方，照片随唱片转动，底部涟漪增加层次，适合氛围感音乐封面。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c1cd00094ccb201b",
+  "status" : "published",
+  "current_version_id" : "tplver_e6f0a5c67ecb410f9d51afd2ef2c6ac2",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "水面倒影黑膠",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Platte in sanfter Unschärfe",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Soft Focus Album Card",
+  "description" : "A crisp rounded photo frame sits over a soft-focus background, with a small spinning disc and player details below for a two-photo album layout.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Disco en capas y enfoque suave",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Disque en couches au flou doux",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Disco a strati e fuoco morbido",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "ソフトフォーカスの二層レコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "소프트 포커스 이중 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Disco em camadas e foco suave",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "柔焦双层唱片",
+  "description" : "清晰的圆角相框叠在柔焦背景上，下方搭配小唱片与播放信息，适合两张照片的专辑式组合。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c7a947cf57e41a52",
+  "status" : "published",
+  "current_version_id" : "tplver_a0bf65bbc23447afaa2db0f8800f2a2a",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "柔焦雙層唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Filmstreifenwand der Schulzeit",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Campus Filmstrip Memories",
+  "description" : "Campus photos unfold through stacked film frames with dark borders, creating a generous album of classmates and shared memories.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Mural de película escolar",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Mur de pellicule scolaire",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Parete di pellicole scolastiche",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "学生時代のフィルムウォール",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "학창 시절 필름 포토월",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Mural de filme da escola",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "校园时光胶片墙",
+  "description" : "多张校园照片沿竖向胶片格依次展开，黑色边框串联回忆，适合内容丰富的同学影集。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_c90ac0e9e8c6fe7f",
+  "status" : "published",
+  "current_version_id" : "tplver_c66d53ef905d4708ab71cf2689ed4851",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "校園時光底片牆",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "de",
+  "name" : "Retro-Plattenkoffer",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "en",
+  "name" : "Vintage Record Case",
+  "description" : "Rounded photo sleeves overlap a vinyl record with warm edging and playback details below, creating a vintage album display.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "es",
+  "name" : "Estuche de discos retro",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "fr",
+  "name" : "Coffret de disques rétro",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "it",
+  "name" : "Custodia per dischi vintage",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "ja",
+  "name" : "レトロなレコードケース",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "ko",
+  "name" : "레트로 레코드 케이스",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "pt-BR",
+  "name" : "Estojo de discos retrô",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "zh-CN",
+  "name" : "复古唱片匣",
+  "description" : "多层圆角照片封套与黑胶唱片交错叠放，带暖色边缘和底部播放信息，适合复古感照片集。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_cae6e48306de0d45",
+  "status" : "published",
+  "current_version_id" : "tplver_d77d544207f6430a990842c1afb83c7f",
+  "revision" : 11,
+  "locale" : "zh-TW",
+  "name" : "復古唱片匣",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Papas Scrapbook in warmen Tönen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Dad's Warm Scrapbook",
+  "description" : "White-bordered photos, cutout edges and Father's Day notes overlap in a warm collage for outings, embraces and everyday family life.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Álbum de recortes cálido de papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Carnet de papa aux tons chauds",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Album di ritagli di papà dai toni caldi",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんとのぬくもりスクラップブック",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠와의 따뜻한 스크랩북",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Álbum de recortes do pai em tons quentes",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "爸爸的暖色剪贴簿",
+  "description" : "暖色拼贴中叠放白边照片、贴纸轮廓和父亲节字样，适合拥抱、出游与亲子日常。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1027d321aeb2c04",
+  "status" : "published",
+  "current_version_id" : "tplver_309332f8ceae485ba6344871a1b5c948",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "爸爸的暖色剪貼簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Plattenposter in Bordeauxrot",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Burgundy Record Poster",
+  "description" : "A square photo sleeve and vinyl record sit on a spacious burgundy background, with fine typography and lower player graphics for an album poster.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Póster de disco en burdeos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Affiche de disque bordeaux",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Poster con disco bordeaux",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "ボルドーのレコードポスター",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "버건디 레코드 포스터",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Pôster de disco em bordô",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "酒红唱片海报",
+  "description" : "酒红色留白背景中摆放方形照片封套与黑胶唱片，细字排版和底部控件营造专辑海报感。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d1df91204ba101d4",
+  "status" : "published",
+  "current_version_id" : "tplver_35fe674c6fbd44078d631d878cee4d7f",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "酒紅唱片海報",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "de",
+  "name" : "Buchstabenalbum DAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "en",
+  "name" : "DAD Letter Album",
+  "description" : "Three photos alternate with dark letter tiles spelling DAD, finished with a Father's Day greeting for a simple personal tribute.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "es",
+  "name" : "Álbum con letras DAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "fr",
+  "name" : "Album aux lettres DAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "it",
+  "name" : "Album con lettere DAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "ja",
+  "name" : "DAD文字のフォトアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "ko",
+  "name" : "DAD 글자 포토 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "pt-BR",
+  "name" : "Álbum com letras DAD",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "zh-CN",
+  "name" : "给爸爸的字母相册",
+  "description" : "深色字母格与三张照片交错排列，拼出 DAD，底部搭配父亲节祝福，适合简洁的父爱纪念。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d4374d7c95aabd9a",
+  "status" : "published",
+  "current_version_id" : "tplver_48bac0a3d4f14667964421555eb51343",
+  "revision" : 10,
+  "locale" : "zh-TW",
+  "name" : "給爸爸的字母相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "de",
+  "name" : "Erinnerungskarussell zum Abschluss",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "en",
+  "name" : "Graduation Memory Carousel",
+  "description" : "Photos build a curved gallery before opening into individual full-frame moments, bringing ceremony shots, classmates and campus memories together.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "es",
+  "name" : "Carrusel de recuerdos de graduación",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "fr",
+  "name" : "Carrousel de souvenirs de fin d’études",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "it",
+  "name" : "Carosello di ricordi del diploma",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "ja",
+  "name" : "卒業の思い出カルーセル",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "ko",
+  "name" : "졸업 추억 캐러셀",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "pt-BR",
+  "name" : "Carrossel de memórias da formatura",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "zh-CN",
+  "name" : "毕业回忆环幕",
+  "description" : "照片先组成弧形环绕墙，再切换为单张大画面，适合串联毕业典礼、同学合影与校园回忆。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_d90ffe2e66599239",
+  "status" : "published",
+  "current_version_id" : "tplver_2110d1be4d4e489d94cd3cfc1634f86e",
+  "revision" : 9,
+  "locale" : "zh-TW",
+  "name" : "畢業回憶環幕",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Alltagsmomente mit Papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Everyday Moments with Dad",
+  "description" : "An opening collage gives way to individual everyday photos, linked by delicate Father's Day lettering for a relaxed family album.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Momentos cotidianos con papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Instants du quotidien avec papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Momenti quotidiani con papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "お父さんとの日々のアルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아빠와 함께한 일상 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Momentos do dia a dia com o pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "与爸爸的日常影集",
+  "description" : "照片先拼成开场画面，再逐张展示日常瞬间，细白父亲节字样贯穿其中，适合自然真实的家庭记录。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_dd65293f3f73d14a",
+  "status" : "published",
+  "current_version_id" : "tplver_267efb1496b54cf08052641a7dc49950",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "與爸爸的日常相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Nostalgisches Grammofonalbum",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Nostalgic Turntable Album",
+  "description" : "Your photo stands like an album sleeve behind a spinning turntable, with paper textures and warm tones for a nostalgic display.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Álbum de gramófono nostálgico",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Album au gramophone nostalgique",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Album con grammofono nostalgico",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "懐かしの蓄音機アルバム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "추억의 축음기 앨범",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Álbum de gramofone nostálgico",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "怀旧留声机相册",
+  "description" : "照片像唱片封套一样竖立，前景黑胶唱盘持续转动，纸张边缘与暖色调营造怀旧感。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e0b8cb2a5dd8d363",
+  "status" : "published",
+  "current_version_id" : "tplver_304124cc1c5e4e1ca36d119ed0050bc8",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "懷舊留聲機相簿",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "de",
+  "name" : "Rahmen mit geometrischen Spiegelungen",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "en",
+  "name" : "Geometric Reflection Frame",
+  "description" : "Layered geometric outlines turn around a photo window beside a larger image, with reflective ripples below for bold, clearly defined portraits.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "es",
+  "name" : "Marco de reflejos geométricos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "fr",
+  "name" : "Cadre aux reflets géométriques",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "it",
+  "name" : "Cornice a riflessi geometrici",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "ja",
+  "name" : "幾何学ミラーフレーム",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "ko",
+  "name" : "기하학 미러 프레임",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "pt-BR",
+  "name" : "Moldura de reflexos geométricos",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "zh-CN",
+  "name" : "几何镜面相框",
+  "description" : "大幅照片旁叠放多层旋转线框与照片窗口，底部带镜面水纹，适合轮廓清晰、对比鲜明的人像。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e1289b47162e209d",
+  "status" : "published",
+  "current_version_id" : "tplver_c47628897fc24197a950cc4beec98b6d",
+  "revision" : 10,
+  "locale" : "zh-TW",
+  "name" : "幾何鏡面相框",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Erinnerungspanorama für Papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Dad's Many Moments",
+  "description" : "A dense photo wall opens into individual full-frame memories, with yellow Father's Day lettering for a large family collection.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Panorama de recuerdos de papá",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Panorama de souvenirs de papa",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Panorama di ricordi di papà",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "父の日の思い出スクロール",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "아버지의 날 추억 파노라마",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Panorama de memórias do pai",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "父亲节回忆长卷",
+  "description" : "大量照片从拼墙展开为单张大画面，黄色父亲节文字点题，适合整理丰富的家庭回忆。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e81a7d19f371d32d",
+  "status" : "published",
+  "current_version_id" : "tplver_3627aa54d77041f48b281c5116304eb3",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "父親節回憶長卷",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "de",
+  "name" : "Platte in blauer Sternennacht",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "en",
+  "name" : "Blue Night Album",
+  "description" : "Blue haze and scattered light flecks frame a square photo sleeve and spinning disc, with simple controls below for night scenes or lyrical imagery.",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "es",
+  "name" : "Disco de noche azul estrellada",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "fr",
+  "name" : "Disque dans la nuit bleue étoilée",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "it",
+  "name" : "Disco nella notte blu stellata",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "ja",
+  "name" : "青い夜の星空レコード",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "ko",
+  "name" : "푸른 밤 별빛 레코드",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "pt-BR",
+  "name" : "Disco de noite azul estrelada",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "zh-CN",
+  "name" : "蓝夜星点唱片",
+  "description" : "深蓝柔焦背景与星点衬托方形封套和旋转唱片，下方保留简洁播放控件，适合夜景或抒情照片。",
+  "seo_title" : null,
+  "seo_description" : null
+}, {
+  "template_id" : "tpl_e875713df75f64fe",
+  "status" : "published",
+  "current_version_id" : "tplver_9a6c83c5e707469389177e4f72245249",
+  "revision" : 8,
+  "locale" : "zh-TW",
+  "name" : "藍夜星點唱片",
+  "description" : "",
+  "seo_title" : null,
+  "seo_description" : null
+} ]
