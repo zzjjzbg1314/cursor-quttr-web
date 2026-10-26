@@ -6,7 +6,7 @@
 - `generated-descriptions.json`：后端统一翻译服务的初稿。
 - `review-overrides.json`：13 处复核修正，修正前后层级关系、过窄的毕业表述和冗余句子。
 - `descriptions.json`：完整复核后译文；中英文原文保持不变。
-- `applied.log`：62 个模板写入记录，每个模板只递增一次资料 revision。
+- `applied.json`：62 个模板写入记录，每个模板只递增一次资料 revision。
 - `online-verification.json`：线上网站列表接口十语言 × 62 模板，620 条说明与复核稿完全一致。
 - `verification-summary.json`：独立全量比对结论。
 
