@@ -22,7 +22,7 @@ class MusicMvTemplateCatalogRepositoryTest {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
         repository.adminTemplatePage(null,"published",null,20,20);
-        String order = client.sql.substring(client.sql.indexOf("ORDER BY t.created_at"));
+        String order = client.sql.substring(client.sql.indexOf("ORDER BY t.created_at"), client.sql.indexOf("LIMIT ? OFFSET ?") + "LIMIT ? OFFSET ?".length());
         assertEquals(Arrays.asList("zh-CN","published",20,20),client.params);
         String script = String.join("\n", "import sqlite3,sys", "db=sqlite3.connect(':memory:')",
                 "db.execute('CREATE TABLE templates(template_id TEXT,created_at TEXT,sort_order INT,published_at TEXT)')",
@@ -78,7 +78,7 @@ class MusicMvTemplateCatalogRepositoryTest {
                         "collection".equals(filter) ? "collection" : null, "search".equals(filter) ? "birthday" : null,
                         null, null, null, null, null, 3, 3, "tag".equals(filter) ? "birthday" : null);
                 assertTrue(client.sql.contains("en.name AS english_name"));
-                String actual = client.sql.substring(client.sql.indexOf("ORDER BY t.sort_order"));
+                String actual = client.sql.substring(client.sql.indexOf("ORDER BY t.sort_order"), client.sql.indexOf("LIMIT ? OFFSET ?") + "LIMIT ? OFFSET ?".length());
                 if (order == null) order = actual;
                 assertEquals(order, actual);
             }
@@ -348,8 +348,8 @@ class MusicMvTemplateCatalogRepositoryTest {
 
         assertTrue(client.sql.contains("v.source_availability AS source_availability"));
         assertTrue(client.sql.contains("$.runtimeDelivery.totalSizeBytes"));
-        assertTrue(client.sql.contains("END AS runtime_package_size_bytes"));
-        assertTrue(client.sql.contains("runtime_size.version_id=t.current_version_id"));
+        assertTrue(client.sql.contains(") AS runtime_package_size_bytes"));
+        assertTrue(client.sql.contains("scene.version_id=t.current_version_id"));
         assertFalse(client.sql.contains("LEFT JOIN template_browser_scenes"));
         assertFalse(client.sql.contains("renderer_nodes"));
         assertFalse(client.sql.contains("last_seen_at"));
@@ -360,21 +360,38 @@ class MusicMvTemplateCatalogRepositoryTest {
         CapturingD1 client = new CapturingD1();
         new MusicMvTemplateCatalogRepository(client).templates("en", null, null, null, null, null,
                 null, null, null, null, null, 100, 0);
-        String prefix = client.sql.substring(0, client.sql.indexOf("SELECT t.template_id"));
-        String expression = client.sql.substring(client.sql.indexOf("CASE WHEN json_extract(runtime_size"),
-                client.sql.indexOf(" AS runtime_package_size_bytes"));
-        assertTrue(prefix.contains("AS MATERIALIZED"));
+        assertTrue(client.sql.startsWith("WITH current_page AS MATERIALIZED"));
         String script = String.join("\n",
                 "import sqlite3,json,sys",
                 "db=sqlite3.connect(':memory:')",
-                "db.execute('CREATE TABLE templates(template_id TEXT,current_version_id TEXT)')",
-                "db.execute('CREATE TABLE template_browser_scenes(version_id TEXT,scene_json TEXT)')",
-                "db.executemany('INSERT INTO templates VALUES (?,?)',[('current','new'),('empty','zero'),('missing','absent'),('unsupported','old-schema')])",
+                "db.execute('CREATE TABLE templates(template_id TEXT,capcut_template_id TEXT,capcut_featured_json TEXT,slug TEXT,category_key TEXT,tags_json TEXT,status TEXT,visibility TEXT,current_version_id TEXT,sort_order INTEGER,revision INTEGER,created_at TEXT,updated_at TEXT,published_at TEXT,deleted_at TEXT)')",
+                "db.execute('CREATE TABLE template_versions(version_id TEXT PRIMARY KEY,version_number INTEGER,width INTEGER,height INTEGER,fps REAL,duration_seconds REAL,cycle_duration_seconds REAL,slot_count INTEGER,validation_status TEXT,renderer_version TEXT,source_availability TEXT)')",
+                "db.execute('CREATE TABLE template_translations(template_id TEXT,locale TEXT,name TEXT,description TEXT)')",
+                "db.execute('CREATE TABLE template_category_items(template_id TEXT,category_key TEXT,is_primary INTEGER,confidence REAL)')",
+                "db.execute('CREATE TABLE template_categories(category_key TEXT,enabled INTEGER,is_selectable INTEGER,name_en TEXT,sort_order INTEGER,parent_key TEXT)')",
+                "db.execute('CREATE TABLE template_media(media_id TEXT,version_id TEXT,media_role TEXT,status TEXT,provider TEXT,provider_asset_id TEXT,provider_details_json TEXT,source_sha256 TEXT)')",
+                "db.execute('CREATE TABLE template_browser_scenes(version_id TEXT PRIMARY KEY,scene_json TEXT)')",
+                "db.executemany('INSERT INTO templates(template_id,current_version_id,sort_order,created_at) VALUES (?,?,?,?)',[('current','new',4,'4'),('empty','zero',3,'3'),('missing','absent',2,'2'),('unsupported','old-schema',1,'1'),('off-page','bad',0,'0')])",
                 "def scene(version,size,schema='browser-runtime-delivery-v1'): db.execute('INSERT INTO template_browser_scenes VALUES (?,?)',(version,json.dumps({'runtimeDelivery':{'schemaVersion':schema,'totalSizeBytes':size},'payload':'x'*1000000})))",
-                "scene('new',948743); scene('old',99); scene('zero',0); scene('old-schema',123,'unsupported')",
-                "rows=dict(db.execute(sys.argv[1]+'SELECT t.template_id,'+sys.argv[2]+' FROM templates t LEFT JOIN runtime_sizes runtime_size ON runtime_size.version_id=t.current_version_id'))",
-                "assert rows=={'current':948743,'empty':0,'missing':None,'unsupported':None},rows");
-        Process process = new ProcessBuilder("python3", "-c", script, prefix, expression).redirectErrorStream(true).start();
+                "scene('new',948743); scene('zero',0); scene('old-schema',123,'unsupported')",
+                "db.executemany('INSERT INTO template_browser_scenes VALUES (?,?)',[('old','invalid historical JSON'),('bad','invalid off-page JSON')])",
+                "sql=sys.argv[1]",
+                "plan=[r[3] for r in db.execute('EXPLAIN QUERY PLAN '+sql,('en',2,0))]",
+                "assert any('SEARCH scene USING INDEX' in p and 'version_id=?' in p for p in plan),plan",
+                "assert not any('SCAN scene' in p for p in plan),plan",
+                "for locale in ['en','zh-CN','zh-TW','ja','ko','es','pt-BR','fr','de','it']:",
+                "    rows={}",
+                "    for offset in [0,2]:",
+                "        cursor=db.execute(sql,(locale,2,offset))",
+                "        columns=[d[0] for d in cursor.description]",
+                "        assert 'scene_json' not in columns and 'size_metadata' not in columns,columns",
+                "        assert len(columns)==len(set(columns)),columns",
+                "        records=[dict(zip(columns,r)) for r in cursor]",
+                "        assert [r['template_id'] for r in records]==(['current','empty'] if offset==0 else ['missing','unsupported']),records",
+                "        rows.update({r['template_id']:r['runtime_package_size_bytes'] for r in records})",
+                "    assert rows=={'current':948743,'empty':0,'missing':None,'unsupported':None},rows",
+                "assert list(db.execute(sql,('en',2,99)))==[]");
+        Process process = new ProcessBuilder("python3", "-c", script, client.sql).redirectErrorStream(true).start();
         assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
         String output = new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, process.exitValue(), output);

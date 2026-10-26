@@ -202,11 +202,7 @@ public class MusicMvTemplateCatalogRepository {
             boolean createdDescending) {
         List<Object> params = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder();
-        // 只物化小型摘要，避免大场景 JSON 进入目录连接与排序的临时结果。
-        sql.append("WITH runtime_sizes AS MATERIALIZED (SELECT version_id, ")
-                .append("json_extract(scene_json, '$.runtimeDelivery.schemaVersion', '$.runtimeDelivery.totalSizeBytes') ")
-                .append("AS size_metadata FROM template_browser_scenes) ")
-                .append("SELECT t.template_id, t.capcut_template_id, t.capcut_featured_json, t.slug, t.category_key, t.tags_json, t.status, ")
+        sql.append("SELECT t.template_id, t.capcut_template_id, t.capcut_featured_json, t.slug, t.category_key, t.tags_json, t.status, ")
                 .append("t.visibility, t.current_version_id, t.sort_order, t.revision, ")
                 .append("t.created_at, t.updated_at, t.published_at, ")
                 .append("COALESCE((SELECT json_group_array(category_key) FROM (")
@@ -220,8 +216,6 @@ public class MusicMvTemplateCatalogRepository {
                 .append("v.version_number, v.width, v.height, v.fps, v.duration_seconds, ")
                 .append("v.cycle_duration_seconds, v.slot_count, v.validation_status, v.renderer_version, ")
                 .append("v.source_availability AS source_availability, ")
-                .append("CASE WHEN json_extract(runtime_size.size_metadata, '$[0]')='browser-runtime-delivery-v1' ")
-                .append("THEN json_extract(runtime_size.size_metadata, '$[1]') END AS runtime_package_size_bytes, ")
                 .append("cover.provider AS cover_provider, cover.provider_asset_id AS cover_asset_id, ")
                 .append("cover.provider_details_json AS cover_provider_details_json, ")
                 .append("preview.provider AS preview_provider, preview.provider_asset_id AS preview_asset_id, ")
@@ -233,7 +227,6 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_translations en ON en.template_id=t.template_id AND en.locale='en' ")
                 .append("LEFT JOIN template_translations zh ON zh.template_id=t.template_id AND zh.locale='zh-CN' ")
                 .append("LEFT JOIN template_versions v ON v.version_id=t.current_version_id ")
-                .append("LEFT JOIN runtime_sizes runtime_size ON runtime_size.version_id=t.current_version_id ")
                 .append("LEFT JOIN template_media cover ON cover.version_id=t.current_version_id ")
                 .append("AND cover.media_role='cover' AND cover.status='ready' ")
                 .append("LEFT JOIN template_media preview ON preview.media_id=(")
@@ -274,7 +267,7 @@ public class MusicMvTemplateCatalogRepository {
         if (createdDescending) {
             sql.append("ORDER BY t.created_at DESC, t.template_id DESC LIMIT ? OFFSET ?");
             params.add(Integer.valueOf(limit)); params.add(Integer.valueOf(offset));
-            return d1.query(sql.toString(), params).getRows();
+            return templatePageWithRuntimeSizes(sql.toString(), params);
         }
         sql.append("ORDER BY t.sort_order DESC, ");
         if ("public".equals(visibility)) {
@@ -286,7 +279,18 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LIMIT ? OFFSET ?");
         params.add(Integer.valueOf(limit));
         params.add(Integer.valueOf(offset));
-        return d1.query(sql.toString(), params).getRows();
+        return templatePageWithRuntimeSizes(sql.toString(), params);
+    }
+
+    private List<Map<String, Object>> templatePageWithRuntimeSizes(String pageSql, List<Object> params) {
+        // 先固定分页结果，再按版本主键读取场景，避免分页前解析全表及历史版本的大 JSON。
+        String order = pageSql.substring(pageSql.lastIndexOf("ORDER BY t."), pageSql.lastIndexOf("LIMIT ? OFFSET ?"));
+        String sql = "WITH current_page AS MATERIALIZED (" + pageSql + ") "
+                + "SELECT t.*, (SELECT CASE WHEN json_extract(scene.scene_json, '$.runtimeDelivery.schemaVersion') "
+                + "='browser-runtime-delivery-v1' THEN json_extract(scene.scene_json, '$.runtimeDelivery.totalSizeBytes') END "
+                + "FROM template_browser_scenes scene WHERE scene.version_id=t.current_version_id) AS runtime_package_size_bytes "
+                + "FROM current_page t " + order;
+        return d1.query(sql, params).getRows();
     }
 
     private void appendUnclassified(StringBuilder sql, List<Object> params) {
