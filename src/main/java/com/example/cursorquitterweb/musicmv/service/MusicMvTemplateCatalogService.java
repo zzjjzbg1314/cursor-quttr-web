@@ -1141,14 +1141,15 @@ public class MusicMvTemplateCatalogService {
             Map<?, ?> animation = (Map<?, ?>) raw;
             String preset = String.valueOf(animation.get("preset"));
             if ("native_resource_animation".equals(preset)) {
-                // 照片和文字分别校验归属；二者都保留原始零时长与已交付的动画依赖。
+                // 各类图层分别校验归属，保留原始零时长与已交付的动画依赖。
                 Object rawTiming = animation.get("rawAnimationTiming");
                 Map<?, ?> timing = rawTiming instanceof Map ? (Map<?, ?>) rawTiming : Collections.emptyMap();
                 boolean textOwner = validNativeTextAnimationOwner(layer, animation);
-                if (!(Arrays.asList("photo", "static_image").contains(layer.get("type")) || textOwner)
+                boolean stickerOwner = validNativeStickerAnimationOwner(layer, animation);
+                if (!(Arrays.asList("photo", "static_image").contains(layer.get("type")) || textOwner || stickerOwner)
                         || !"exact".equals(animation.get("fidelity"))
                         || !nativeResources.contains(animation.get("resourceId"))
-                        || !(textOwner ? Arrays.asList("in", "out", "loop") : Arrays.asList("in", "out", "group")).contains(animation.get("category"))
+                        || !((textOwner || stickerOwner) ? Arrays.asList("in", "out", "loop") : Arrays.asList("in", "out", "group")).contains(animation.get("category"))
                         || !(timing.get("startUs") instanceof String) || !(timing.get("durationUs") instanceof String)
                         || !((String) timing.get("startUs")).matches("0|[1-9][0-9]*")
                         || !((String) timing.get("durationUs")).matches("0|[1-9][0-9]*")) {
@@ -1210,6 +1211,25 @@ public class MusicMvTemplateCatalogService {
                         "Glyph texture animations require the verified semantic contract");
             }
         }
+    }
+
+    private boolean validNativeStickerAnimationOwner(Map<?, ?> layer, Map<?, ?> animation) {
+        if (!"sticker".equals(layer.get("type")) || !(layer.get("nativeStickerSource") instanceof Map)) return false;
+        Map<?,?> source=(Map<?,?>)layer.get("nativeStickerSource");
+        if (!"native-sticker-source-v1".equals(source.get("schemaVersion")) || !"source_projected".equals(source.get("status"))
+                || !"bound".equals(source.get("attachmentStatus")) || !Objects.equals(layer.get("layerId"),source.get("segmentId"))
+                || !(source.get("animations") instanceof List)) return false;
+        int matches=0;
+        for(Object raw:(List<?>)source.get("animations")) {
+            if(!(raw instanceof Map))return false;
+            Map<?,?> bound=(Map<?,?>)raw;
+            if("native_sticker_animation".equals(bound.get("preset")) && "exact".equals(bound.get("fidelity"))
+                    && Objects.equals(bound.get("resourceId"),animation.get("resourceId"))
+                    && Objects.equals(bound.get("category"),animation.get("category"))
+                    && Objects.equals(bound.get("rawAnimationTiming"),animation.get("rawAnimationTiming"))
+                    && Objects.equals(bound.get("nativeTextAnimationParameters"),animation.get("nativeTextAnimationParameters"))) matches++;
+        }
+        return matches==1;
     }
 
     private boolean validNativeTextAnimationOwner(Map<?, ?> layer, Map<?, ?> animation) {

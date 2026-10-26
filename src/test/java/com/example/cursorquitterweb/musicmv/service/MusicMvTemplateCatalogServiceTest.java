@@ -3094,4 +3094,21 @@ class MusicMvTemplateCatalogServiceTest {
         when(repository.template("tpl_1")).thenReturn(old);
         assertEquals("TEMPLATE_SOURCE_ID_CONFLICT", assertThrows(ApiException.class, () -> service.promote(request)).getCode());
     }
+    @Test void nativeStickerAnimationRequiresMatchingCompiledSource() {
+        Map<String,Object> timing=featuredRow("startUs","0","durationUs","0");
+        Map<String,Object> animation=featuredRow("preset","native_resource_animation","resourceId","animation");
+        animation.put("category","out");animation.put("durationSeconds",0.0);animation.put("fidelity","exact");animation.put("rawAnimationTiming",timing);
+        Map<String,Object> bound=new LinkedHashMap<>(animation);bound.put("preset","native_sticker_animation");
+        Map<String,Object> source=BrowserNativeStickerContractTest.source();source.put("animations",Collections.singletonList(bound));
+        Map<String,Object> layer=featuredRow("type","sticker","layerId","s");layer.put("nativeStickerSource",source);layer.put("animations",Collections.singletonList(animation));
+        Set<String> resources=Collections.singleton("animation");
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserLayerAnimations",layer,resources);
+        bound.put("rawAnimationTiming",featuredRow("startUs","0","durationUs","1"));
+        assertThrows(ApiException.class,()->org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserLayerAnimations",layer,resources));
+        bound.put("rawAnimationTiming",timing);source.put("segmentId","other");
+        assertThrows(ApiException.class,()->org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserLayerAnimations",layer,resources));
+        source.put("segmentId","s");
+        assertThrows(ApiException.class,()->org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,"requireValidBrowserLayerAnimations",layer,Collections.emptySet()));
+    }
+
 }
