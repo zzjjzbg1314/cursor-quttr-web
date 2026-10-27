@@ -114,6 +114,20 @@ class MusicMvTemplateCatalogServiceTest {
                 "matchingPreviewMp4",Arrays.asList(parity,mp4)));
     }
 
+
+    @Test void lowPreviewNeverFallsThroughToHighAndRejectsChangedSource() {
+        Map<String,Object> source=featuredRow("role","browser_parity_reference","status","ready","mediaId","source","sourceSha256","a");
+        Map<String,Object> low=featuredRow("role","preview_mp4_low","status","ready","providerDetails",
+                featuredRow("sourceMediaId","source","sourceSha256","a"));
+        assertEquals(low,org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(source,low),"preview_mp4_low"));
+        org.junit.jupiter.api.Assertions.assertNull(org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(source,low)));
+        source.put("sourceSha256","changed");
+        org.junit.jupiter.api.Assertions.assertNull(org.springframework.test.util.ReflectionTestUtils.invokeMethod(service,
+                "matchingPreviewMp4",Arrays.asList(source,low),"preview_mp4_low"));
+    }
+
     private Map<String,Object> nativeStickerScene() {
         Map<String,Object> scene = BrowserNativeStickerContractTest.scene(BrowserNativeStickerContractTest.source());
         scene.put("schemaVersion", "browser-template-scene-v4");

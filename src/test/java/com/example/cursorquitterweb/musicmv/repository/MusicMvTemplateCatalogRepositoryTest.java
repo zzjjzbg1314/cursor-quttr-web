@@ -18,6 +18,29 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+
+    @Test void lowPublicationSqlPreservesHighAndRejectsStaleSource() throws Exception {
+        CapturingD1 client=new CapturingD1();
+        MusicMvTemplateCatalogRepository repository=new MusicMvTemplateCatalogRepository(client);
+        repository.publishPreviewMp4Low("t","v","source","sourcehash","low.mp4","lowhash",100,480,854,30,"{}");
+        assertEquals("preview_mp4_low",client.params.get(3));
+        String script=String.join("\n",
+            "import sqlite3,json,sys",
+            "db=sqlite3.connect(':memory:')",
+            "db.execute('CREATE TABLE template_media(media_id TEXT,template_id TEXT,version_id TEXT,media_role TEXT,provider TEXT,provider_asset_id TEXT,status TEXT,source_sha256 TEXT,source_size_bytes INTEGER,width INTEGER,height INTEGER,duration_seconds REAL,provider_details_json TEXT,created_at TEXT,updated_at TEXT,ready_at TEXT,UNIQUE(version_id,media_role))')",
+            "db.execute(\"INSERT INTO template_media(media_id,template_id,version_id,media_role,status,source_sha256) VALUES('source','t','v','browser_parity_reference','ready','sourcehash')\")",
+            "db.execute(\"INSERT INTO template_media(media_id,template_id,version_id,media_role,provider_asset_id) VALUES('high','t','v','preview_mp4','original.mp4')\")",
+            "sql,params=sys.argv[1],json.loads(sys.argv[2])",
+            "db.execute(sql,params);db.execute(sql,params)",
+            "assert db.execute(\"SELECT count(*) FROM template_media WHERE media_role='preview_mp4_low'\").fetchone()[0]==1",
+            "assert db.execute(\"SELECT provider_asset_id FROM template_media WHERE media_role='preview_mp4'\").fetchone()[0]=='original.mp4'",
+            "db.execute(\"UPDATE template_media SET source_sha256='changed' WHERE media_id='source'\")",
+            "params[4]='stale.mp4';db.execute(sql,params)",
+            "assert db.execute(\"SELECT provider_asset_id FROM template_media WHERE media_role='preview_mp4_low'\").fetchone()[0]=='low.mp4'");
+        Process process=new ProcessBuilder("python3","-c",script,client.sql,new ObjectMapper().writeValueAsString(client.params)).redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15,java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals(0,process.exitValue(),new String(org.springframework.util.StreamUtils.copyToByteArray(process.getInputStream()),java.nio.charset.StandardCharsets.UTF_8));
+    }
     @Test void 管理分页按创建时间倒序且同一时间按标识稳定翻页() throws Exception {
         CapturingD1 client = new CapturingD1();
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
@@ -212,7 +235,8 @@ class MusicMvTemplateCatalogRepositoryTest {
         MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
         repository.publishPreviewMp4("t", "v", "source", "sourcehash", "preview.mp4", "hash", 100,
                 720, 1280, 30, "{}");
-        assertTrue(client.sql.contains("'preview_mp4','cloudflare_r2_preview'"));
+        assertEquals("preview_mp4", client.params.get(3));
+        assertTrue(client.sql.contains("?,'cloudflare_r2_preview'"));
         assertTrue(client.sql.contains("source.source_sha256=? AND source.status='ready'"));
         assertTrue(client.sql.contains("source.media_id=(SELECT media_id"));
         assertTrue(client.sql.contains("ON CONFLICT(version_id,media_role)"));
@@ -227,7 +251,7 @@ class MusicMvTemplateCatalogRepositoryTest {
         assertEquals(2, client.statements.size());
         assertTrue(client.statements.get(0).getSql().startsWith("INSERT OR IGNORE INTO template_media_cleanup"));
         for (D1Statement item : client.statements) {
-            assertTrue(item.getSql().contains("template_id=? AND version_id=? AND media_role<>'preview_mp4' AND media_role NOT IN (?,?)"));
+            assertTrue(item.getSql().contains("template_id=? AND version_id=? AND media_role NOT IN ('preview_mp4','preview_mp4_low') AND media_role NOT IN (?,?)"));
             assertEquals(placeholders(item.getSql()), item.getParams().size());
         }
     }

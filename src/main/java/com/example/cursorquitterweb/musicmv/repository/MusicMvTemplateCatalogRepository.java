@@ -221,7 +221,9 @@ public class MusicMvTemplateCatalogRepository {
                 .append("preview.provider AS preview_provider, preview.provider_asset_id AS preview_asset_id, ")
                 .append("preview.provider_details_json AS preview_provider_details_json, ")
                 .append("mp4.provider AS preview_mp4_provider, mp4.provider_asset_id AS preview_mp4_asset_id, ")
-                .append("mp4.provider_details_json AS preview_mp4_provider_details_json ")
+                .append("mp4.provider_details_json AS preview_mp4_provider_details_json, "
+                + "low.provider AS preview_mp4_low_provider, low.provider_asset_id AS preview_mp4_low_asset_id, "
+                + "low.provider_details_json AS preview_mp4_low_provider_details_json ")
                 .append("FROM templates t ")
                 .append("LEFT JOIN template_translations req ON req.template_id=t.template_id AND req.locale=? ")
                 .append("LEFT JOIN template_translations en ON en.template_id=t.template_id AND en.locale='en' ")
@@ -238,6 +240,10 @@ public class MusicMvTemplateCatalogRepository {
                 .append("LEFT JOIN template_media mp4 ON mp4.version_id=t.current_version_id AND mp4.media_role='preview_mp4' ")
                 .append("AND mp4.status='ready' AND preview.status='ready' AND json_extract(mp4.provider_details_json,'$.sourceMediaId')=preview.media_id ")
                 .append("AND json_extract(mp4.provider_details_json,'$.sourceSha256')=preview.source_sha256 ")
+                .append("LEFT JOIN template_media low ON low.version_id=t.current_version_id AND low.media_role='preview_mp4_low' ")
+                .append("AND low.status='ready' AND preview.status='ready' ")
+                .append("AND json_extract(low.provider_details_json,'$.sourceMediaId')=preview.media_id ")
+                .append("AND json_extract(low.provider_details_json,'$.sourceSha256')=preview.source_sha256 ")
                 .append("WHERE t.deleted_at IS NULL ");
         params.add(locale);
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
@@ -655,7 +661,7 @@ public class MusicMvTemplateCatalogRepository {
         params.add(templateId);
         params.add(versionId);
         params.addAll(roles);
-        String predicate = "template_id=? AND version_id=? AND media_role<>'preview_mp4' AND media_role NOT IN ("
+        String predicate = "template_id=? AND version_id=? AND media_role NOT IN ('preview_mp4','preview_mp4_low') AND media_role NOT IN ("
                 + String.join(",", java.util.Collections.nCopies(roles.size(), "?")) + ")";
         d1.batch(Arrays.asList(statement(enqueueCleanup(predicate), params.toArray()),
                 statement("DELETE FROM template_media WHERE " + predicate, params.toArray())));
@@ -992,10 +998,22 @@ public class MusicMvTemplateCatalogRepository {
     public void publishPreviewMp4(String templateId, String versionId, String sourceMediaId,
             String sourceSha, String objectKey, String sha, long size, int width, int height,
             double duration, String details) {
+        publishPreview("preview_mp4", templateId,versionId,sourceMediaId,sourceSha,objectKey,sha,size,width,height,duration,details);
+    }
+
+    public void publishPreviewMp4Low(String templateId, String versionId, String sourceMediaId,
+            String sourceSha, String objectKey, String sha, long size, int width, int height,
+            double duration, String details) {
+        publishPreview("preview_mp4_low", templateId,versionId,sourceMediaId,sourceSha,objectKey,sha,size,width,height,duration,details);
+    }
+
+    private void publishPreview(String role, String templateId, String versionId, String sourceMediaId,
+            String sourceSha, String objectKey, String sha, long size, int width, int height,
+            double duration, String details) {
         d1.query("INSERT INTO template_media (media_id,template_id,version_id,media_role,provider,"
                 + "provider_asset_id,status,source_sha256,source_size_bytes,width,height,duration_seconds,"
                 + "provider_details_json,created_at,updated_at,ready_at) "
-                + "SELECT ?,?,?,'preview_mp4','cloudflare_r2_preview',?,'ready',?,?,?,?,?,?,"
+                + "SELECT ?,?,?,?,'cloudflare_r2_preview',?,'ready',?,?,?,?,?,?,"
                 + "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM template_media source "
                 + "WHERE source.template_id=? AND source.version_id=? AND source.media_id=? "
                 + "AND source.source_sha256=? AND source.status='ready' "
@@ -1006,7 +1024,7 @@ public class MusicMvTemplateCatalogRepository {
                 + "source_sha256=excluded.source_sha256,source_size_bytes=excluded.source_size_bytes,"
                 + "width=excluded.width,height=excluded.height,duration_seconds=excluded.duration_seconds,"
                 + "provider_details_json=excluded.provider_details_json,status='ready',updated_at=CURRENT_TIMESTAMP",
-                "mp4_"+java.util.UUID.randomUUID().toString().replace("-",""),templateId,versionId,
+                "mp4_"+java.util.UUID.randomUUID().toString().replace("-",""),templateId,versionId,role,
                 objectKey,sha,size,width,height,duration,details,templateId,versionId,sourceMediaId,sourceSha,versionId);
     }
 

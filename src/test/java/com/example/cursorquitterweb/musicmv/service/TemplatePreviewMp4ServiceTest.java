@@ -95,4 +95,20 @@ class TemplatePreviewMp4ServiceTest {
         assertEquals("https://r2.example/source.mp4",service.source("tpl_1","ver_1").get("playbackUrl"));
         verify(provider,never()).resolveDeliveryDetails(eq("cloudflare_stream"),anyString(),anyMap());
     }
+
+    @Test void lowRejects720AndPublishesSeparateRoleAndKey() {
+        TemplatePreviewMp4Request r=request();
+        assertThrows(ApiException.class,()->service.upload("tpl_1","ver_1",r,true));
+        r.width=480;r.height=854;
+        String key=TemplatePreviewMp4Service.objectKey("ver_1",r,true);
+        assertTrue(key.contains("/480/"));
+        assertNotEquals(key,TemplatePreviewMp4Service.objectKey("ver_1",r));
+        service.upload("tpl_1","ver_1",r,true);
+        when(r2.objectInfo(key)).thenReturn(new R2StorageService.ObjectInfo(1234L,"video/mp4",Collections.singletonMap("sha256",r.sha256)));
+        when(repository.mediaByRole("ver_1","preview_mp4_low")).thenReturn(Collections.singletonMap("provider_asset_id",key));
+        assertEquals(480,service.complete("tpl_1","ver_1",r,true).get("maxShortEdge"));
+        verify(repository).publishPreviewMp4Low(eq("tpl_1"),eq("ver_1"),eq(r.sourceMediaId),eq(r.sourceSha256),
+                eq(key),eq(r.sha256),eq(1234L),eq(480),eq(854),eq(30.0),anyString());
+        verify(repository,never()).publishPreviewMp4(anyString(),anyString(),anyString(),anyString(),anyString(),anyString(),anyLong(),anyInt(),anyInt(),anyDouble(),anyString());
+    }
 }

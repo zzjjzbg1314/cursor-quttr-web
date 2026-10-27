@@ -29,6 +29,9 @@ public class TemplatePreviewMp4Service {
         this.catalog=catalog; this.mapper=mapper;
     }
     public Map<String,Object> source(String templateId,String versionId) {
+        return source(templateId,versionId,false);
+    }
+    public Map<String,Object> source(String templateId,String versionId,boolean low) {
         Map<String,Object> row=sourceRow(templateId,versionId);
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("sourceMediaId",row.get("media_id"));
@@ -36,11 +39,11 @@ public class TemplatePreviewMp4Service {
         result.put("providerAssetId",row.get("provider_asset_id"));
         result.put("width",row.get("width")); result.put("height",row.get("height"));
         result.put("durationSeconds",row.get("duration_seconds"));
-        Map<String,Object> existing=repository.mediaByRole(versionId,"preview_mp4");
+        Map<String,Object> existing=repository.mediaByRole(versionId,low ? "preview_mp4_low" : "preview_mp4");
         if (existing!=null && "ready".equals(existing.get("status"))) {
             Map<String,Object> saved=details(existing);
             if (Objects.equals(row.get("media_id"),saved.get("sourceMediaId"))
-                    && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))) result.put("previewMp4",provider.resolveDeliveryDetails(
+                    && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))) result.put(low ? "previewMp4Low" : "previewMp4",provider.resolveDeliveryDetails(
                             RowUtils.str(existing,"provider"),RowUtils.str(existing,"provider_asset_id"),saved));
         }
         result.put("playbackUrl",provider.resolveDeliveryDetails(RowUtils.str(row,"provider"),
@@ -48,9 +51,12 @@ public class TemplatePreviewMp4Service {
         return result;
     }
     public Map<String,Object> upload(String templateId,String versionId,TemplatePreviewMp4Request request) {
-        validate(templateId,versionId,request);
+        return upload(templateId,versionId,request,false);
+    }
+    public Map<String,Object> upload(String templateId,String versionId,TemplatePreviewMp4Request request,boolean low) {
+        validate(templateId,versionId,request,low);
         if (!storage.isConfigured()) throw error("PREVIEW_STORAGE_UNAVAILABLE");
-        String key=objectKey(versionId,request);
+        String key=objectKey(versionId,request,low);
         Map<String,String> metadata=Collections.singletonMap("sha256",request.sha256);
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("uploadUrl",storage.presignedPutUrl(key,"video/mp4",request.sizeBytes,metadata,
@@ -62,8 +68,11 @@ public class TemplatePreviewMp4Service {
         return result;
     }
     public Map<String,Object> complete(String templateId,String versionId,TemplatePreviewMp4Request request) {
-        Map<String,Object> source=validate(templateId,versionId,request);
-        String key=objectKey(versionId,request);
+        return complete(templateId,versionId,request,false);
+    }
+    public Map<String,Object> complete(String templateId,String versionId,TemplatePreviewMp4Request request,boolean low) {
+        Map<String,Object> source=validate(templateId,versionId,request,low);
+        String key=objectKey(versionId,request,low);
         R2StorageService.ObjectInfo info=storage.objectInfo(key);
         if (info.getSizeBytes()!=request.sizeBytes || !"video/mp4".equals(info.getContentType())
                 || !request.sha256.equals(info.getMetadata().get("sha256")))
@@ -73,25 +82,27 @@ public class TemplatePreviewMp4Service {
         details.put("sourceMediaId",request.sourceMediaId);
         details.put("sourceSha256",request.sourceSha256);
         details.put("sourceType",details(source).get("sourceType"));
-        details.put("format","mp4"); details.put("maxShortEdge",720);
+        details.put("format","mp4"); details.put("maxShortEdge",low ? 480 : 720);
         details.put("sha256",request.sha256); details.put("sizeBytes",request.sizeBytes);
         details.put("width",request.width); details.put("height",request.height);
         details.put("durationSeconds",request.durationSeconds);
         String json;
         try { json=mapper.writeValueAsString(details); }
         catch(Exception e) { throw new IllegalStateException(e); }
-        repository.publishPreviewMp4(templateId,versionId,request.sourceMediaId,request.sourceSha256,
+        if (low) repository.publishPreviewMp4Low(templateId,versionId,request.sourceMediaId,request.sourceSha256,
                 key,request.sha256,request.sizeBytes,request.width,request.height,request.durationSeconds,json);
-        Map<String,Object> saved=repository.mediaByRole(versionId,"preview_mp4");
+        else repository.publishPreviewMp4(templateId,versionId,request.sourceMediaId,request.sourceSha256,
+                key,request.sha256,request.sizeBytes,request.width,request.height,request.durationSeconds,json);
+        Map<String,Object> saved=repository.mediaByRole(versionId,low ? "preview_mp4_low" : "preview_mp4");
         if (saved==null || !key.equals(saved.get("provider_asset_id"))) throw error("PREVIEW_SOURCE_CHANGED");
-        validate(templateId,versionId,request);
+        validate(templateId,versionId,request,low);
         catalog.invalidateDetail(templateId);
         return details;
     }
-    private Map<String,Object> validate(String templateId,String versionId,TemplatePreviewMp4Request r) {
+    private Map<String,Object> validate(String templateId,String versionId,TemplatePreviewMp4Request r,boolean low) {
         if (!versionId.matches("[A-Za-z0-9_-]+") || r.sha256==null || !r.sha256.matches("[0-9a-f]{64}")
                 || r.sizeBytes==null || r.sizeBytes<=0 || r.sizeBytes>268435456L
-                || r.width==null || r.height==null || Math.min(r.width,r.height)>720
+                || r.width==null || r.height==null || Math.min(r.width,r.height)>(low ? 480 : 720)
                 || Math.min(r.width,r.height)<2 || Math.max(r.width,r.height)>4096
                 || r.durationSeconds==null || !Double.isFinite(r.durationSeconds) || r.durationSeconds<=0
                 || r.durationSeconds>3600) throw error("PREVIEW_METADATA_INVALID");
@@ -126,7 +137,10 @@ public class TemplatePreviewMp4Service {
         } catch(Exception e) { throw error("PREVIEW_SOURCE_INVALID"); }
     }
     static String objectKey(String versionId,TemplatePreviewMp4Request r) {
-        return "templates/"+versionId+"/"+r.sha256+".mp4";
+        return objectKey(versionId,r,false);
+    }
+    static String objectKey(String versionId,TemplatePreviewMp4Request r,boolean low) {
+        return "templates/"+versionId+"/"+(low ? "480/" : "")+r.sha256+".mp4";
     }
     private ApiException error(String code) { return new ApiException(HttpStatus.CONFLICT,code,"预览资源校验失败"); }
 }
