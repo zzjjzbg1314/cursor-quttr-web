@@ -48,6 +48,21 @@ public class TemplatePreviewMp4Service {
         }
         result.put("playbackUrl",provider.resolveDeliveryDetails(RowUtils.str(row,"provider"),
                 RowUtils.str(row,"provider_asset_id"),details(row)).get("playbackUrl"));
+        if (low) {
+            Map<String,Object> high=repository.mediaByRole(versionId,"preview_mp4");
+            if (high!=null && "ready".equals(high.get("status")) && "cloudflare_r2_preview".equals(high.get("provider"))) {
+                Map<String,Object> saved=details(high);
+                if (Objects.equals(row.get("media_id"),saved.get("sourceMediaId"))
+                        && Objects.equals(row.get("source_sha256"),saved.get("sourceSha256"))
+                        && saved.get("sha256") instanceof String && ((String)saved.get("sha256")).matches("[0-9a-f]{64}")) {
+                    Map<String,Object> delivery=provider.resolveDeliveryDetails("cloudflare_r2_preview",
+                            RowUtils.str(high,"provider_asset_id"),saved);
+                    result.put("playbackUrl",delivery.get("playbackUrl"));
+                    result.put("inputSha256",saved.get("sha256"));
+                    result.put("inputType","preview_mp4");
+                }
+            }
+        }
         return result;
     }
     public Map<String,Object> upload(String templateId,String versionId,TemplatePreviewMp4Request request) {

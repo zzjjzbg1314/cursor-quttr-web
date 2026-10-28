@@ -111,4 +111,24 @@ class TemplatePreviewMp4ServiceTest {
                 eq(key),eq(r.sha256),eq(1234L),eq(480),eq(854),eq(30.0),anyString());
         verify(repository,never()).publishPreviewMp4(anyString(),anyString(),anyString(),anyString(),anyString(),anyString(),anyLong(),anyInt(),anyInt(),anyDouble(),anyString());
     }
+
+    @Test void lowUsesVerifiedHighInputAndKeepsOriginalIdentity() throws Exception {
+        TemplatePreviewMp4Request r=request();
+        Map<String,Object> details=new HashMap<>();
+        details.put("sourceMediaId",r.sourceMediaId);details.put("sourceSha256",r.sourceSha256);
+        details.put("sha256",r.sha256);
+        Map<String,Object> high=new HashMap<>();
+        high.put("status","ready");high.put("provider","cloudflare_r2_preview");
+        high.put("provider_asset_id","high.mp4");high.put("provider_details_json",new ObjectMapper().writeValueAsString(details));
+        when(repository.mediaByRole("ver_1","preview_mp4")).thenReturn(high);
+        when(provider.resolveDeliveryDetails(eq("cloudflare_r2_preview"),eq("high.mp4"),anyMap()))
+                .thenReturn(Collections.singletonMap("playbackUrl","https://video.songtovideo.ai/high.mp4"));
+        Map<String,Object> result=service.source("tpl_1","ver_1",true);
+        assertEquals(r.sourceSha256,result.get("sourceSha256"));
+        assertEquals(r.sha256,result.get("inputSha256"));
+        assertEquals("https://video.songtovideo.ai/high.mp4",result.get("playbackUrl"));
+        details.put("sourceSha256","stale");
+        high.put("provider_details_json",new ObjectMapper().writeValueAsString(details));
+        assertFalse(service.source("tpl_1","ver_1",true).containsKey("inputSha256"));
+    }
 }
