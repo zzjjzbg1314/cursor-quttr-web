@@ -37,7 +37,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
     static final int SCHEMA_VERSION = 16;
-    static final long ENABLED_CATEGORY_COUNT = TemplateTopics.items().size();
+    static final long ENABLED_CATEGORY_COUNT = TemplateTopics.items().size() - TemplateTopics.internalKeys().size();
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
     private static final String D1_RESERVED_TABLE = "_cf_KV";
@@ -241,10 +241,10 @@ public class MusicMvD1SchemaInitializer {
         migration.add(D1Statement.of("UPDATE template_categories SET enabled=0,is_selectable=0 WHERE enabled=1"));
         for (Map<String, Object> item : TemplateTopics.items()) {
             migration.add(D1Statement.of("INSERT INTO template_categories (category_key,parent_key,level,slug_path,is_selectable,name_zh,name_en,sort_order,enabled,created_at,updated_at) "
-                    + "VALUES (?,NULL,1,?,1,?,?,?,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
+                    + "VALUES (?,NULL,1,?,1,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) "
                     + "ON CONFLICT(category_key) DO UPDATE SET parent_key=NULL,level=1,slug_path=excluded.slug_path,is_selectable=1,"
-                    + "name_zh=excluded.name_zh,name_en=excluded.name_en,sort_order=excluded.sort_order,enabled=1,updated_at=CURRENT_TIMESTAMP",
-                    item.get("key"), item.get("key"), item.get("nameZh"), item.get("nameEn"), item.get("sortOrder")));
+                    + "name_zh=excluded.name_zh,name_en=excluded.name_en,sort_order=excluded.sort_order,enabled=excluded.enabled,updated_at=CURRENT_TIMESTAMP",
+                    item.get("key"), item.get("key"), item.get("nameZh"), item.get("nameEn"), item.get("sortOrder"), TemplateTopics.isInternal(String.valueOf(item.get("key"))) ? 0 : 1));
         }
         for (Map.Entry<String, String> alias : TemplateTopics.aliases().entrySet()) {
             migration.add(D1Statement.of("INSERT OR IGNORE INTO template_category_items "
@@ -253,7 +253,7 @@ public class MusicMvD1SchemaInitializer {
                     + "FROM template_category_items WHERE category_key=?", alias.getValue(), alias.getKey()));
             migration.add(D1Statement.of("UPDATE templates SET category_key=?,updated_at=CURRENT_TIMESTAMP WHERE category_key=?", alias.getValue(), alias.getKey()));
         }
-        migration.add(D1Statement.of("DELETE FROM template_category_items WHERE category_key IN (SELECT category_key FROM template_categories WHERE enabled=0)"));
+        migration.add(D1Statement.of("DELETE FROM template_category_items WHERE category_key IN (SELECT category_key FROM template_categories WHERE enabled=0 AND is_selectable=0)"));
         migration.add(D1Statement.of("UPDATE template_category_items SET is_primary=CASE WHEN category_key=(SELECT category_key FROM templates t WHERE t.template_id=template_category_items.template_id) THEN 1 ELSE 0 END"));
         d1.batch(migration);
     }

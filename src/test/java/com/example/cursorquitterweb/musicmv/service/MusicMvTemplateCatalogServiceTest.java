@@ -39,6 +39,13 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    @Test void 关闭公开启用的内部分类仍可保存() {
+        Map<String,Object> category = row("enabled", 0); category.put("is_selectable", 1);
+        when(repository.category("ai-effects")).thenReturn(category);
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireLeafCategory", "ai-effects");
+        when(repository.category("birthday")).thenReturn(category);
+        assertThrows(ApiException.class, () -> org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "requireLeafCategory", "birthday"));
+    }
     @Test void 内部研究模板不开放公开详情() {
         Map<String,Object> template = row("category_key", "ai-effects");
         template.put("status", "published"); template.put("visibility", "public");
@@ -396,7 +403,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(mediaProvider.templateVideoStorageConfigured()).thenReturn(true);
         when(mediaProvider.imagesDeliveryValid()).thenReturn(true);
         when(mediaProvider.streamDeliveryValid()).thenReturn(true);
-        Map<String, Object> counts = row("category_count", 14);
+        Map<String, Object> counts = row("category_count", 13);
         counts.put("schema_sha256", String.join("", Collections.nCopies(64, "a")));
         when(repository.readiness()).thenReturn(counts);
         for (int version : Arrays.asList(14, 15, 16)) {
