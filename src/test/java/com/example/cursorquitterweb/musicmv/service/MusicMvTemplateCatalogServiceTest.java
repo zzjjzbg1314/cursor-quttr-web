@@ -39,6 +39,28 @@ import com.example.cursorquitterweb.musicmv.support.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogServiceTest {
+    @Test void 内部研究模板不开放公开详情() {
+        Map<String,Object> template = row("category_key", "ai-effects");
+        template.put("status", "published"); template.put("visibility", "public");
+        when(repository.templateDetail(eq("internal"), org.mockito.ArgumentMatchers.nullable(String.class)))
+                .thenReturn(new TemplateDetailRows(template, Collections.emptyList(), null,
+                        Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        assertThrows(ApiException.class, () -> service.detail("internal", false));
+    }
+    @Test void 内部研究分类不会出现在任意语言的公开分类中() {
+        Map<String,Object> internal = new LinkedHashMap<>();
+        internal.put("category_key", "ai-effects");
+        Map<String,Object> publicTopic = new LinkedHashMap<>();
+        publicTopic.put("category_key", "birthday");
+        when(repository.categories()).thenReturn(Arrays.asList(internal, publicTopic));
+        assertEquals("ai-effects", TemplateTopics.key("AI 特效"));
+        for (String locale : Arrays.asList("en", "zh-CN", "zh-TW", "ja", "ko", "es", "pt-BR", "fr", "de", "it")) {
+            List<?> items = (List<?>) service.categories(locale).get("flatItems");
+            assertEquals(1, items.size());
+            assertEquals("birthday", ((Map<?,?>) items.get(0)).get("key"));
+        }
+    }
+
     @Test
     void 列表直接按分类筛选而不额外校验分类() {
         for (String category : Arrays.asList("music-player", "lyrics", "unknown-category")) {
@@ -374,7 +396,7 @@ class MusicMvTemplateCatalogServiceTest {
         when(mediaProvider.templateVideoStorageConfigured()).thenReturn(true);
         when(mediaProvider.imagesDeliveryValid()).thenReturn(true);
         when(mediaProvider.streamDeliveryValid()).thenReturn(true);
-        Map<String, Object> counts = row("category_count", 13);
+        Map<String, Object> counts = row("category_count", 14);
         counts.put("schema_sha256", String.join("", Collections.nCopies(64, "a")));
         when(repository.readiness()).thenReturn(counts);
         for (int version : Arrays.asList(14, 15, 16)) {

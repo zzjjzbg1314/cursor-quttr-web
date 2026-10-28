@@ -18,6 +18,21 @@ import com.example.cursorquitterweb.musicmv.service.D1Statement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class MusicMvTemplateCatalogRepositoryTest {
+    @Test void 内部研究分类只在后台列表和计数可见() {
+        CapturingD1 client = new CapturingD1();
+        MusicMvTemplateCatalogRepository repository = new MusicMvTemplateCatalogRepository(client);
+        repository.templateCount("published", "public", null, null, null, null, null, null, null, null);
+        assertTrue(client.sql.contains("AND t.category_key<>?"));
+        assertTrue(client.params.contains("ai-effects"));
+        repository.templates("en", "published", "public", null, null, null, null, null, null, null, null, 20, 0);
+        assertTrue(client.sql.contains("AND t.category_key<>?"));
+        assertTrue(client.params.contains("ai-effects"));
+        repository.templateCount(null, null, null, null, null, null, null, null, null, null);
+        assertFalse(client.sql.contains("AND t.category_key<>?"));
+        repository.adminTemplatePage(null, null, null, 20, 0);
+        assertFalse(client.sql.contains("AND t.category_key<>?"));
+    }
+
 
     @Test void lowPublicationSqlPreservesHighAndRejectsStaleSource() throws Exception {
         CapturingD1 client=new CapturingD1();

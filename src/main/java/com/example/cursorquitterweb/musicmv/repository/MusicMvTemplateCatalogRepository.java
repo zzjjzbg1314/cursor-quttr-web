@@ -249,6 +249,7 @@ public class MusicMvTemplateCatalogRepository {
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
         if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
+        if ("public".equals(visibility)) appendPublicTopics(sql, params);
         if ("__review__".equals(categoryKey)) {
             appendUnclassified(sql, params);
         } else if (categoryKey != null) {
@@ -299,6 +300,13 @@ public class MusicMvTemplateCatalogRepository {
         return d1.query(sql, params).getRows();
     }
 
+    private void appendPublicTopics(StringBuilder sql, List<Object> params) {
+        for (String key : com.example.cursorquitterweb.musicmv.service.TemplateTopics.internalKeys()) {
+            sql.append("AND t.category_key<>? ");
+            params.add(key);
+        }
+    }
+
     private void appendUnclassified(StringBuilder sql, List<Object> params) {
         sql.append("AND COALESCE(t.category_key,'') NOT IN (");
         List<Map<String,Object>> topics = com.example.cursorquitterweb.musicmv.service.TemplateTopics.items();
@@ -332,6 +340,7 @@ public class MusicMvTemplateCatalogRepository {
         if (status != null) { sql.append("AND t.status=? "); params.add(status); }
         if (visibility != null) { sql.append("AND t.visibility=? "); params.add(visibility); }
         if ("public".equals(visibility)) sql.append("AND EXISTS (SELECT 1 FROM template_categories active_topic WHERE active_topic.category_key=t.category_key AND active_topic.enabled=1 AND active_topic.is_selectable=1) ");
+        if ("public".equals(visibility)) appendPublicTopics(sql, params);
         if ("__review__".equals(categoryKey)) {
             appendUnclassified(sql, params);
         } else if (categoryKey != null) {

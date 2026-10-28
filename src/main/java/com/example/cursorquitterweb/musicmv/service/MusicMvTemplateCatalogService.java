@@ -103,6 +103,7 @@ public class MusicMvTemplateCatalogService {
         List<Map<String, Object>> flatItems = new ArrayList<Map<String, Object>>();
         Map<String, Map<String, Object>> byKey = new LinkedHashMap<String, Map<String, Object>>();
         for (Map<String, Object> row : repository.categories()) {
+            if (TemplateTopics.isInternal(RowUtils.str(row, "category_key"))) continue;
             Map<String, Object> item = new LinkedHashMap<String, Object>();
             item.put("key", RowUtils.str(row, "category_key"));
             item.put("parentKey", RowUtils.str(row, "parent_key"));
@@ -334,7 +335,8 @@ public class MusicMvTemplateCatalogService {
         Map<String, Object> template = rows.getTemplate();
         if (template == null) throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         if (!admin && !candidate && (!"published".equals(RowUtils.str(template, "status"))
-                || !"public".equals(RowUtils.str(template, "visibility")))) {
+                || !"public".equals(RowUtils.str(template, "visibility"))
+                || TemplateTopics.isInternal(RowUtils.str(template, "category_key")))) {
             throw notFound("TEMPLATE_NOT_FOUND", "Template was not found");
         }
         Map<String, Object> result = templateView(template, admin,

@@ -78,6 +78,13 @@
       "nameZh": "歌词",
       "nameEn": "Lyrics",
       "sortOrder": 13
+    },
+    {
+      "key": "ai-effects",
+      "nameZh": "AI 特效",
+      "nameEn": "AI Effects",
+      "sortOrder": 14,
+      "publicVisible": false
     }
   ],
   "aliases": {

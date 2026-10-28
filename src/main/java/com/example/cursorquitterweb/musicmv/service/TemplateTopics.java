@@ -42,6 +42,14 @@ public final class TemplateTopics {
         }
         return result;
     }
+    public static List<String> internalKeys() {
+        List<String> result = new ArrayList<>();
+        for (JsonNode item : CONFIG.path("items")) {
+            if (!item.path("publicVisible").asBoolean(true)) result.add(item.path("key").asText());
+        }
+        return Collections.unmodifiableList(result);
+    }
+    public static boolean isInternal(String key) { return internalKeys().contains(key); }
     public static Map<String, String> aliases() {
         Map<String, String> result = new LinkedHashMap<>();
         CONFIG.path("aliases").fields().forEachRemaining(entry -> result.put(entry.getKey(), entry.getValue().asText()));
