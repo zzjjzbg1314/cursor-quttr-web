@@ -36,7 +36,7 @@ import com.example.cursorquitterweb.musicmv.support.RowUtils;
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvD1SchemaInitializer {
-    static final int SCHEMA_VERSION = 16;
+    static final int SCHEMA_VERSION = 18;
     static final long ENABLED_CATEGORY_COUNT = TemplateTopics.items().size() - TemplateTopics.internalKeys().size();
     private static final int BATCH_SIZE = 20;
     private static final String SCHEMA_KEY = "core";
@@ -69,6 +69,7 @@ public class MusicMvD1SchemaInitializer {
                     "template_resource_assets",
                     "template_version_resource_refs",
                     "ai_music_jobs",
+                    "music_mv_ai_photo_jobs",
                     "ai_music_provider_attempts",
                     "ai_music_candidates",
                     "ai_music_job_events",

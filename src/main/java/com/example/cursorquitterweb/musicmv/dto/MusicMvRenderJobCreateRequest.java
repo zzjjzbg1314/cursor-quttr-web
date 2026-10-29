@@ -132,6 +132,10 @@ public class MusicMvRenderJobCreateRequest {
     }
 
     public static class SlotBinding {
+        @Size(max = 160)
+        private String aiPhotoJobId;
+        public String getAiPhotoJobId() { return aiPhotoJobId; }
+        public void setAiPhotoJobId(String value) { aiPhotoJobId = value; }
         @NotBlank
         @Size(max = 128)
         private String slotKey;

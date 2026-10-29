@@ -1,0 +1,53 @@
+{
+  "status": "implemented_disabled_pending_provider_and_recipe_configuration",
+  "date": "2026-10-29",
+  "scope": "后台持久化图生图任务与用户资产关联，预览采用结果，渲染合同重新验证输入并绑定结果；AI 分类保持隐藏。",
+  "endpoints": {
+    "create": "POST /api/music-mv/v1/ai-photo-jobs",
+    "query": "GET /api/music-mv/v1/ai-photo-jobs/{jobId}",
+    "cancel": "POST /api/music-mv/v1/ai-photo-jobs/{jobId}/cancel",
+    "createFields": ["requestId", "templateId", "templateVersionId", "slotKey", "sourceAssetId"],
+    "renderSlotField": "aiPhotoJobId",
+    "ownership": "由登录会话获取用户；不接受客户端 ownerId。任务采用不可变输入快照，不回写项目原照片。换照片由新快照产生新任务，旧任务无法匹配新原图。"
+  },
+  "configuration": {
+    "music-mv.ai-photo.enabled": "默认 false；本轮没有启用真实生成。",
+    "music-mv.ai-photo.kie.api-key": "独立图片服务凭证，未自动复用音乐密钥。",
+    "music-mv.ai-photo.output-hosts": "逗号分隔的精确输出域名白名单，禁止重定向及非 HTTPS 下载；上线前按提供方真实返回值配置。",
+    "music-mv.ai-photo.poll-ms": "默认 5000；数据库租约保证单任务单 worker，查询或保存失败可恢复。",
+    "storage": "原图与结果都必须通过现有用户云图片资产校验，原图 URL 必须可由提供方 HTTPS 读取。"
+  },
+  "recipeContract": {
+    "location": "权威后端保存的模板 browser scene.aiPhotoRecipes[slotKey]，通过现有受保护场景同步入口保存，不接受浏览器提交提示词或模型。",
+    "fields": ["schemaVersion=ai-photo-recipe-v1", "revision", "provider", "model", "prompt", "parameters"],
+    "supportedAdapter": "kie / bytedance/seedream-v4-edit",
+    "parameters": ["image_size", "image_resolution", "seed"],
+    "outputCount": 1,
+    "important": "该适配器是明确命名的可选模型，不是原剪映 aip_high_aes_general_v43s_jm 的隐式替代。原样本未配置此映射，也没有宣称 4.0 与 4.3 等效。未知 strength 等字段明确阻断。"
+  },
+  "deployment": [
+    "先在目标数据库应用 db/migrations/music-mv-v18-ai-photo-jobs.sql；或使用既有显式且受保护的 schema 初始化流程。启动不自动修改数据库。",
+    "部署后端与前端；无配方的普通模板保持现有路径。",
+    "确认模型与参数、图片账户权限及费用后，给隐藏测试版本同步配方并配置图片服务；不得仅为通过测试删除原始草稿的 AI 阻断。",
+    "仅在明确允许的测试预算内进行真实生成验收。本轮未部署、未远程迁移、未发起新的生成。"
+  ],
+  "failureSemantics": [
+    "同用户同请求不同输入返回冲突；输入指纹包含用户、模板版本、槽位、原图身份与哈希、完整配方。",
+    "提交中断进入 submission_unknown，刷新不会重新提交；需要人工查询提供方核实，不提供自动重付费路径。",
+    "成功但空媒体、任务身份或模型不匹配、非图片或超限输出均阻断。",
+    "远端完成后先保存用户素材，再发布 ready；保存失败只重试保存。",
+    "取消清除租约，迟到 worker 无法回写 ready；不保证取消已发生的提供方费用。",
+    "30 分钟未完成任务超时。已确认失败后，用户点击重试才使用新请求身份。"
+  ],
+  "validation": {
+    "java": "189 项：188 通过；1 项既有动画场景夹具因本机未配置而跳过。",
+    "sql": "直接执行仓库实际 SQL 的 SQLite 幂等、单 worker、取消、未知提交、恢复查询 5 项通过；Python 语法检查通过。",
+    "frontend": "npm run check 通过（含类型、17 项本地化测试）；15 项相关功能测试通过。",
+    "ui": "复用正式状态组件检查十语言 360/720 像素容器：无横向溢出；是受影响提示组件验收，不是整个编辑器跨设备验收。",
+    "render": "AiPhotoRenderBindingTest 调用真实后端绑定服务构造合同，数据库和已有资产边界使用夹具；正式客户浏览器引擎实际编码 3 秒代表场景。使用已有生成图片，不伪称本轮重新生成成功。",
+    "renderResult": {"semanticIntegrity":"exact","videoEncodeCount":1,"materializedIntermediateVideoCount":0,"completedFrameCount":90,"totalSeconds":4.3356500000953675,"writerSidecarCount":0,"width":720,"height":960,"fileDurationSeconds":3.072,"sizeBytes":764241},
+    "ssim": "未运行：没有本次代表场景的有效原生成片参考。",
+    "firstAttempt": "编码前因测试夹具漏带 v6 capabilityReport 被阻断；恢复报告、完整静态场景校验与聚焦测试通过后，第二次基础渲染成功。"
+  },
+  "sources": ["https://docs.kie.ai/market/seedream/seedream-v4-edit", "https://docs.kie.ai/market/common/get-task-detail"]
+}

@@ -40,6 +40,8 @@ import com.example.cursorquitterweb.musicmv.service.MusicMvRenderArtifactStorage
 @Service
 @ConditionalOnProperty(prefix = "music-mv", name = "enabled", havingValue = "true")
 public class MusicMvRenderJobService {
+    @Autowired
+    private com.example.cursorquitterweb.musicmv.aiphoto.AiPhotoJobService aiPhotos;
     private static final long MAX_MUSIC_BYTES = 500L * 1024L * 1024L;
     private static final long MAX_IMAGE_BYTES = 50L * 1024L * 1024L;
     private static final int MAX_JSON_BYTES = 256 * 1024;
@@ -127,6 +129,14 @@ public class MusicMvRenderJobService {
                 runtimePackages, objectMapper, allowLoopbackHttp, defaultMaxAttempts);
     }
 
+    private MusicMvRenderJobCreateRequest.Asset resolveAiPhoto(String owner, String template, String version,
+            String slot, String jobId, MusicMvRenderJobCreateRequest.Asset source, com.fasterxml.jackson.databind.JsonNode scene) {
+        com.fasterxml.jackson.databind.JsonNode recipe = com.example.cursorquitterweb.musicmv.aiphoto.AiPhotoRecipe.find(scene, slot);
+        if (recipe == null && (jobId == null || jobId.isEmpty())) return source;
+        if (aiPhotos == null) throw com.example.cursorquitterweb.musicmv.aiphoto.AiPhotoRecipe.error("AI_PHOTO_PROVIDER_UNAVAILABLE");
+        return aiPhotos.resolve(owner, template, version, slot, jobId, source, recipe);
+    }
+
     public Map<String, Object> create(String clientId, MusicMvRenderJobCreateRequest request) {
         String normalizedClientId = requireId(clientId, "MV_RENDER_CLIENT_ID_INVALID");
         requireId(request.getRequestId(), "MV_RENDER_REQUEST_ID_INVALID");
@@ -204,6 +214,15 @@ public class MusicMvRenderJobService {
             if (lyricSceneRow != null && com.example.cursorquitterweb.musicmv.aimusic.SongLyricsTimelineService.hasLyrics(
                     objectMapper.valueToTree(parseObject(RowUtils.str(lyricSceneRow, "scene_json"))))) {
                 preparedRequest.put("lyricsTimeline", lyricsTimeline.get(clientId, request.getMusicCandidateId()));
+            }
+            if (lyricSceneRow != null) {
+                com.fasterxml.jackson.databind.JsonNode aiScene = objectMapper.valueToTree(parseObject(RowUtils.str(lyricSceneRow, "scene_json")));
+                for (MusicMvRenderJobCreateRequest.SlotBinding binding : request.getSlotBindings()) {
+                    if (!Boolean.TRUE.equals(binding.getUseTemplateDefault())) {
+                        resolveAiPhoto(clientId, request.getTemplateId(), request.getTemplateVersionId(),
+                                binding.getSlotKey(), binding.getAiPhotoJobId(), binding.getAsset(), aiScene);
+                    }
+                }
             }
             preparedRequest.put("outputVideo", requestedOutputVideo(request, contract.getVersion()));
             String preparedRequestJson = json(preparedRequest);
@@ -971,6 +990,11 @@ public class MusicMvRenderJobService {
                 Map<String, Object> asset = source.get("asset") instanceof Map
                         ? new LinkedHashMap<String, Object>((Map<String, Object>) source.get("asset"))
                         : new LinkedHashMap<String, Object>();
+                MusicMvRenderJobCreateRequest.Asset resolved = resolveAiPhoto(RowUtils.str(row, "client_id"),
+                        RowUtils.str(row, "template_id"), RowUtils.str(row, "version_id"), String.valueOf(source.get("slotKey")),
+                        source.get("aiPhotoJobId") == null ? null : String.valueOf(source.get("aiPhotoJobId")),
+                        objectMapper.convertValue(asset, MusicMvRenderJobCreateRequest.Asset.class), objectMapper.valueToTree(scene));
+                asset = objectMapper.convertValue(resolved, Map.class);
                 asset.put("url", browserAssetUrl(asset.get("url")));
                 item.put("asset", asset);
                 bindings.add(item);

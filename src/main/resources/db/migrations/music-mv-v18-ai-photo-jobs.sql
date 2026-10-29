@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS music_mv_ai_photo_jobs (
+  job_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  request_id TEXT NOT NULL,
+  input_fingerprint TEXT NOT NULL,
+  template_id TEXT NOT NULL,
+  version_id TEXT NOT NULL,
+  slot_key TEXT NOT NULL,
+  source_asset_id TEXT NOT NULL,
+  source_sha256 TEXT NOT NULL,
+  recipe_json TEXT NOT NULL,
+  base_url TEXT NOT NULL,
+  status TEXT NOT NULL CHECK(status IN ('queued','submitting','submission_unknown','generating','persisting','ready','failed','canceled')),
+  provider_task_id TEXT,
+  output_url TEXT,
+  result_asset_id TEXT,
+  error_code TEXT,
+  lease_token TEXT,
+  lease_until TEXT,
+  next_poll_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, request_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ai_photo_jobs_pending ON music_mv_ai_photo_jobs(status,next_poll_at,created_at);

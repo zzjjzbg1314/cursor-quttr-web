@@ -1,0 +1,436 @@
+{
+  "schemaVersion": "browser-template-scene-v6",
+  "templateId": "ai-photo-fixture",
+  "versionId": "ai-photo-fixture-v1",
+  "canvas": {
+    "width": 720,
+    "height": 960,
+    "ratio": "",
+    "fps": 30,
+    "durationRaw": 3000000,
+    "durationSeconds": 3
+  },
+  "slots": [
+    {
+      "slotKey": "photo_1",
+      "displayName": "Photo 1",
+      "timelineOrder": 0,
+      "browserMaterialId": "photo_material",
+      "browserSegmentIds": [
+        "F1CE01FB-FFE4-4776-BE3C-F674CA55CE46"
+      ],
+      "browserResolved": true,
+      "sourceWidth": 2304,
+      "sourceHeight": 1920
+    }
+  ],
+  "timelineSegments": [
+    {
+      "segmentId": "F1CE01FB-FFE4-4776-BE3C-F674CA55CE46",
+      "targetStartSeconds": 0,
+      "targetDurationSeconds": 3,
+      "renderIndex": 0,
+      "trackRenderIndex": 0,
+      "originalTimeline": {
+        "trackId": "94E08811-8B76-4F84-87E9-665623F92567",
+        "speed": 1,
+        "targetStartRaw": "0",
+        "targetDurationRaw": "3000000",
+        "sourceStartRaw": "0",
+        "sourceDurationRaw": "3000000"
+      },
+      "sourceWidth": 2304,
+      "sourceHeight": 1920,
+      "sourceCrop": {
+        "left": 0.1875,
+        "top": 0,
+        "right": 0.8125,
+        "bottom": 1
+      },
+      "videoCrop": {
+        "upper_left_x": 0.1875,
+        "upper_left_y": 0,
+        "upper_right_x": 0.8125,
+        "upper_right_y": 0,
+        "lower_left_x": 0.1875,
+        "lower_left_y": 1,
+        "lower_right_x": 0.8125,
+        "lower_right_y": 1,
+        "cropScale": 1,
+        "cropRatio": "free",
+        "coordinateSpace": "normalized_texture_quad",
+        "executionContract": "capcut_web_video_crop_filter_v1"
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {
+          "x": 1,
+          "y": 1
+        },
+        "transform": {
+          "x": 0,
+          "y": 0
+        },
+        "flip": {
+          "horizontal": false,
+          "vertical": false
+        },
+        "rotation": 0,
+        "alpha": 1
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [],
+      "layerId": "F1CE01FB-FFE4-4776-BE3C-F674CA55CE46",
+      "type": "photo",
+      "canvasColor": "#000000ff",
+      "slotKey": "photo_1"
+    }
+  ],
+  "textLayers": [],
+  "layers": [
+    {
+      "segmentId": "F1CE01FB-FFE4-4776-BE3C-F674CA55CE46",
+      "targetStartSeconds": 0,
+      "targetDurationSeconds": 3,
+      "renderIndex": 0,
+      "trackRenderIndex": 0,
+      "originalTimeline": {
+        "trackId": "94E08811-8B76-4F84-87E9-665623F92567",
+        "speed": 1,
+        "targetStartRaw": "0",
+        "targetDurationRaw": "3000000",
+        "sourceStartRaw": "0",
+        "sourceDurationRaw": "3000000"
+      },
+      "sourceWidth": 2304,
+      "sourceHeight": 1920,
+      "sourceCrop": {
+        "left": 0.1875,
+        "top": 0,
+        "right": 0.8125,
+        "bottom": 1
+      },
+      "videoCrop": {
+        "upper_left_x": 0.1875,
+        "upper_left_y": 0,
+        "upper_right_x": 0.8125,
+        "upper_right_y": 0,
+        "lower_left_x": 0.1875,
+        "lower_left_y": 1,
+        "lower_right_x": 0.8125,
+        "lower_right_y": 1,
+        "cropScale": 1,
+        "cropRatio": "free",
+        "coordinateSpace": "normalized_texture_quad",
+        "executionContract": "capcut_web_video_crop_filter_v1"
+      },
+      "animations": [],
+      "effects": [],
+      "clip": {
+        "scale": {
+          "x": 1,
+          "y": 1
+        },
+        "transform": {
+          "x": 0,
+          "y": 0
+        },
+        "flip": {
+          "horizontal": false,
+          "vertical": false
+        },
+        "rotation": 0,
+        "alpha": 1
+      },
+      "blendMode": "source-over",
+      "common_keyframes": [],
+      "layerId": "F1CE01FB-FFE4-4776-BE3C-F674CA55CE46",
+      "type": "photo",
+      "canvasColor": "#000000ff",
+      "slotKey": "photo_1"
+    }
+  ],
+  "postEffects": [],
+  "resources": [],
+  "layerModel": "original_draft_scene_graph_v2",
+  "capability": {
+    "formalPhotoSlotCount": 1,
+    "resolvedPhotoSlotCount": 1,
+    "photoReplacementReady": true,
+    "privateEffectsMode": "browser_scene_layers",
+    "privateEffectsEditable": false,
+    "photoAnimationReady": true,
+    "photoAnimationContract": "timeline_keyframes_v1",
+    "animatedPhotoSegmentCount": 0,
+    "photoKeyframeCount": 0,
+    "unsupportedPhotoKeyframeCount": 0,
+    "draftPhotoSegmentCount": 1,
+    "publishedPhotoSegmentCount": 1,
+    "browserFixedPhotoLayerCount": 0,
+    "unmappedDraftPhotoSegmentCount": 0,
+    "unsupportedBrowserAnimationCount": 0,
+    "browserAnimationApproximationCount": 0,
+    "unsupportedBrowserTransitionCount": 0,
+    "browserTransitionApproximationCount": 0,
+    "browserLayerEffectApproximationCount": 0,
+    "unsupportedBrowserLayerEffectCount": 0,
+    "browserLayerCompositionReady": true,
+    "browserTextLayerCount": 0,
+    "browserTextTemplateApproximationCount": 0,
+    "declaredTextTemplateDecorationCount": 0,
+    "browserTextTemplateDecorationCount": 0,
+    "fontSubstitutions": [],
+    "browserFontSubstitutionCount": 0,
+    "browserPostEffectApproximationCount": 0,
+    "unsupportedBrowserPostEffectCount": 0,
+    "unsupportedBrowserMaskCount": 0,
+    "browserMaskApproximationCount": 0,
+    "unsupportedBrowserBlendModeCount": 0,
+    "declaredBrowserVideoCropCount": 1,
+    "unsupportedBrowserVideoCropCount": 0,
+    "browserFontFallbackCount": 0,
+    "draftVideoLayerCount": 0,
+    "browserVideoLayerCount": 0,
+    "draftStickerLayerCount": 0,
+    "browserStickerLayerCount": 0,
+    "unsupportedVisualLayerCount": 0,
+    "executionCapabilities": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "blockingFeatures": [],
+    "resourceDiagnostics": [],
+    "browserExportReady": true,
+    "browserSceneExactReady": true
+  },
+  "renderStrategy": "browser_scene_graph_composition_v2",
+  "aiPhotoRecipes": {
+    "photo_1": {
+      "schemaVersion": "ai-photo-recipe-v1",
+      "revision": "fixture-only",
+      "provider": "kie",
+      "model": "bytedance/seedream-v4-edit",
+      "prompt": "仅用于离线绑定验收，不提交生成",
+      "parameters": {}
+    }
+  },
+  "capabilityReport": {
+    "schemaVersion": "browser-scene-capability-report-v1",
+    "effectRegistryContract": "browser_effect_registry_v1",
+    "features": [
+      {
+        "feature": "photo_layers",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "text_template_decorations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "sticker_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "masks",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "blend_modes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "video_crop",
+        "declaredCount": 1,
+        "executableCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      },
+      {
+        "feature": "animations",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "transitions",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "post_effects",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "unmapped_visual_layers",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "draft_keyframes",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      },
+      {
+        "feature": "font_resources",
+        "declaredCount": 0,
+        "executableCount": 0,
+        "fidelity": "not_present",
+        "blocksExport": false
+      }
+    ],
+    "effectImplementations": [
+      {
+        "kind": "blend_mode",
+        "implementationKey": "source-over",
+        "renderer": "canvas_composite_v1",
+        "usageCount": 1,
+        "fidelity": "exact",
+        "blocksExport": false
+      }
+    ],
+    "summary": {
+      "declaredItemCount": 2,
+      "executableItemCount": 2,
+      "exactFeatureCount": 3,
+      "approximateFeatureCount": 0,
+      "unsupportedFeatureCount": 0,
+      "effectImplementationCount": 1
+    }
+  }
+}
