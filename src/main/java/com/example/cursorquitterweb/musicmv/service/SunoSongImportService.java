@@ -127,7 +127,7 @@ public class SunoSongImportService {
         if(legacy!=null)return legacy;
         throw unavailable();
     }
-    private Cipher audioDecoder(JsonNode clip,URI audio,String id)throws Exception {
+    Cipher audioDecoder(JsonNode clip,URI audio,String id)throws Exception {
         boolean encoded=false;
         for(JsonNode media:clip.path("media_urls")) {
             if(audio.toString().equals(media.path("url").asText())&&!media.path("encoding").asText("").isEmpty()) {
