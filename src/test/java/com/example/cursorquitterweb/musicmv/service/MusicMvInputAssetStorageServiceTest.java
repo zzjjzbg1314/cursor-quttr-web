@@ -137,6 +137,7 @@ class MusicMvInputAssetStorageServiceTest {
         MusicMvInputAssetStorageService.InputAssetAccess result = service.access(
                 stored.getAssetId(), access);
         assertEquals("https://temporary-r2.example/song", result.getRedirectUrl());
+        verify(r2, never()).exists(org.mockito.ArgumentMatchers.argThat(key -> key != null && key.endsWith(".properties")));
         verify(r2).presignedGetUrl(
                 org.mockito.ArgumentMatchers.argThat(key -> key.startsWith("images/user/")),
                 org.mockito.ArgumentMatchers.any(Duration.class));
@@ -214,4 +215,25 @@ class MusicMvInputAssetStorageServiceTest {
         assertThrows(ApiException.class,()->service.openOwnedMusic("other",asset));
         try(java.io.InputStream input=service.openOwnedMusic("owner",asset)) {assertArrayEquals(bytes,StreamUtils.copyToByteArray(input));}
     }
+    @Test
+    void missingOrExpiredMetadataStillBlocksDownloadWithoutMetadataHead() throws Exception {
+        R2StorageService r2 = mock(R2StorageService.class);
+        when(r2.isConfigured()).thenReturn(true);
+        when(r2.exists(org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+        MusicMvInputAssetStorageService service = new MusicMvInputAssetStorageService(
+                r2, tempDir.toString(), "", true, 3650L);
+        String id = "mva_" + "11111111111111111111111111111111";
+        String capability = String.format("%016x", Instant.now().plusSeconds(3600).getEpochSecond()) + "222222222222222222222222222222222222222222222222";
+        when(r2.read(org.mockito.ArgumentMatchers.anyString())).thenThrow(new IllegalStateException("missing"));
+        assertThrows(ApiException.class, () -> service.access(id, capability));
+        Properties metadata = new Properties();
+        metadata.setProperty("expiresAt", Instant.now().minusSeconds(60).toString());
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        metadata.store(bytes, "test");
+        org.mockito.Mockito.doReturn(bytes.toByteArray()).when(r2).read(org.mockito.ArgumentMatchers.anyString());
+        ApiException expired = assertThrows(ApiException.class, () -> service.access(id, capability));
+        assertEquals("MV_INPUT_ASSET_EXPIRED", expired.getCode());
+        verify(r2, never()).presignedGetUrl(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(Duration.class));
+    }
+
 }

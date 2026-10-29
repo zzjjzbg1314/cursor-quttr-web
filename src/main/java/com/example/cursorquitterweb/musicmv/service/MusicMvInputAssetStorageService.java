@@ -481,9 +481,7 @@ public class MusicMvInputAssetStorageService {
 
     private Properties r2Metadata(String kind, String assetId, String accessToken) {
         String key = r2MetadataKey(kind, assetId, accessToken);
-        if (!r2.exists(key)) {
-            throw notFound();
-        }
+        // 读取本身即可判断元数据是否存在，避免每次下载多一次远端 HEAD。
         Properties metadata = new Properties();
         try (InputStream input = new ByteArrayInputStream(r2.read(key))) {
             metadata.load(input);
