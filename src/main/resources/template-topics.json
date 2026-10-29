@@ -84,7 +84,7 @@
       "nameZh": "AI 特效",
       "nameEn": "AI Effects",
       "sortOrder": 14,
-      "publicVisible": false
+      "publicVisible": true
     }
   ],
   "aliases": {

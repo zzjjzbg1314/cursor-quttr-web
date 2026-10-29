@@ -15,12 +15,12 @@ for attempt in range(2):
         if sql.startswith(("CREATE TABLE IF NOT EXISTS template_taxonomy_history", "INSERT OR IGNORE INTO template_taxonomy_history", "UPDATE template_categories", "INSERT INTO template_categories", "UPDATE templates SET category_key", "INSERT OR IGNORE INTO template_category_items", "UPDATE template_category_items", "DELETE FROM template_category_items")):
             connection.execute(sql, query["params"])
     assert connection.execute("SELECT COUNT(*) FROM templates").fetchone()[0] == 4
-    assert connection.execute("SELECT COUNT(*) FROM template_categories WHERE enabled=1 AND level=1 AND parent_key IS NULL AND is_selectable=1").fetchone()[0] == 13
-    assert connection.execute("SELECT name_zh,enabled,is_selectable FROM template_categories WHERE category_key='ai-effects'").fetchone() == ('AI 特效', 0, 1)
+    assert connection.execute("SELECT COUNT(*) FROM template_categories WHERE enabled=1 AND level=1 AND parent_key IS NULL AND is_selectable=1").fetchone()[0] == 14
+    assert connection.execute("SELECT name_zh,enabled,is_selectable FROM template_categories WHERE category_key='ai-effects'").fetchone() == ('AI 特效', 1, 1)
     assert dict(connection.execute("SELECT template_id,category_key FROM templates")) == {"graduation": "school-life", "memorial": "memorial", "birthday": "birthday", "dad": "family"}
     assert dict(connection.execute("SELECT template_id,old_category_key FROM template_taxonomy_history"))["graduation"] == "graduation"
     assert connection.execute("SELECT COUNT(*) FROM template_taxonomy_history").fetchone()[0] == 4
     assert connection.execute("SELECT COUNT(*) FROM template_category_items i JOIN template_categories c ON c.category_key=i.category_key WHERE c.enabled=0").fetchone()[0] == 0
     pending = connection.execute("SELECT t.template_id FROM templates t JOIN template_categories c ON c.category_key=t.category_key WHERE c.enabled=0").fetchall()
     assert pending == [("memorial",)]
-print("迁移和重复执行通过：4 个模板保留，13 个公开主题、1 个内部研究主题，1 个待人工归类，历史归属完整。")
+print("迁移和重复执行通过：4 个模板保留，14 个公开主题，1 个待人工归类，历史归属完整。")
