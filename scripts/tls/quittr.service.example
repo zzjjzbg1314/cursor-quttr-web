@@ -1,0 +1,22 @@
+# 模板，不能在保留旧手工Java进程时直接启动。
+[Unit]
+Description=Quittr API
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+# 当前应用位于/root/package，暂保留现有root运行方式；后续可独立迁移到专用用户。
+User=root
+WorkingDirectory=/root/package
+EnvironmentFile=/etc/quittr/app.env
+ExecStart=/usr/bin/java -jar /root/package/cursor-quitter-web-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=60
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

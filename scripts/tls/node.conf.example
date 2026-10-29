@@ -1,0 +1,8 @@
+# 安装为 /etc/quittr/tls/<域名>.conf，root所有，权限600。
+# 美国或其他节点仅需更改域名和本机服务名称。
+LINEAGE=/etc/letsencrypt/live/globalkejiapi.asia
+KEYSTORE=/etc/quittr/tls/globalkejiapi.asia.p12
+PASSWORD_FILE=/etc/quittr/tls/keystore.password
+KEY_ALIAS=server
+SERVICE=quittr.service
+VERIFY_PORT=443
