@@ -77,4 +77,13 @@ class ArkAiPhotoProviderTest {
         ObjectNode defaultSize=recipe("x");((ObjectNode)defaultSize.get("parameters")).remove("size");
         assertEquals("2K",ArkAiPhotoProvider.requestBody(defaultSize,"https://owned/photo").path("size").asText());
     }
+    @Test void validatesInlineReferenceImage() throws Exception {
+        java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(20,20,java.awt.image.BufferedImage.TYPE_INT_RGB),"png",bytes);
+        String data="data:image/png;base64,"+java.util.Base64.getEncoder().encodeToString(bytes.toByteArray());
+        assertEquals(data,ArkAiPhotoProvider.requestBody(recipe("x"),data).path("image").asText());
+        assertThrows(RuntimeException.class,()->ArkAiPhotoProvider.requestBody(recipe("x"),data.replace("image/png","image/jpeg")));
+        assertThrows(RuntimeException.class,()->ArkAiPhotoProvider.requestBody(recipe("x"),"data:image/png;base64,bm90LWltYWdl"));
+        assertThrows(RuntimeException.class,()->ArkAiPhotoProvider.requestBody(recipe("x"),"data:image/png;base64,!!!"));
+    }
 }

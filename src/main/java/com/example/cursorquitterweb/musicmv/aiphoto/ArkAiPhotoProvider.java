@@ -49,10 +49,24 @@ public class ArkAiPhotoProvider {
     static ObjectNode requestBody(JsonNode recipe,String input) {
         if (!"ark".equals(recipe.path("provider").asText()) || !MODEL.equals(recipe.path("model").asText()))
             throw AiPhotoRecipe.error("AI_PHOTO_MODEL_UNSUPPORTED");
-        URI uri;
-        try { uri=URI.create(input); } catch (IllegalArgumentException e) { throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE"); }
-        if (!"https".equals(uri.getScheme()) || uri.getHost()==null || uri.getUserInfo()!=null)
-            throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE");
+        if (input.startsWith("data:image/")) {
+            // 方舟支持内联参考图；校验真实图片，避免依赖额外的公开素材上传服务。
+            int comma=input.indexOf(',');
+            if (comma<0 || input.length()>35*1024*1024 ||
+                    !(input.startsWith("data:image/png;base64,") || input.startsWith("data:image/jpeg;base64,")))
+                throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE");
+            try {
+                byte[] bytes=Base64.getDecoder().decode(input.substring(comma+1));
+                if (bytes.length>25*1024*1024) throw new IllegalArgumentException();
+                KieAiPhotoProvider.Image image=KieAiPhotoProvider.inspect(bytes);
+                if (!input.startsWith("data:"+image.contentType+";base64,")) throw new IllegalArgumentException();
+            } catch (Exception e) { throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE"); }
+        } else {
+            URI uri;
+            try { uri=URI.create(input); } catch (IllegalArgumentException e) { throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE"); }
+            if (!"https".equals(uri.getScheme()) || uri.getHost()==null || uri.getUserInfo()!=null)
+                throw AiPhotoRecipe.error("AI_PHOTO_INPUT_UNREACHABLE");
+        }
         JsonNode params=recipe.path("parameters");
         if (!params.isObject()) throw AiPhotoRecipe.error("AI_PHOTO_PARAMETERS_UNSUPPORTED");
         params.fieldNames().forEachRemaining(k -> {
