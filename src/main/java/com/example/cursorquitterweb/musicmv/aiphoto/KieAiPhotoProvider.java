@@ -89,6 +89,9 @@ public class KieAiPhotoProvider {
         } catch (IOException e) { throw AiPhotoRecipe.error("AI_PHOTO_OUTPUT_INVALID"); }
     }
     public Image download(String value) throws IOException {
+        return download(value, hosts);
+    }
+    static Image download(String value, Set<String> hosts) throws IOException {
         URI uri=URI.create(value);
         if (!"https".equals(uri.getScheme()) || uri.getHost()==null || uri.getUserInfo()!=null
                 || uri.getPort()!=-1 && uri.getPort()!=443 || !hosts.contains(uri.getHost().toLowerCase(Locale.ROOT)))

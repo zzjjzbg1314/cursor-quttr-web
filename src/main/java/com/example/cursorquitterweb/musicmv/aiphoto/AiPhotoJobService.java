@@ -22,12 +22,13 @@ public class AiPhotoJobService {
     private final MusicMvInputAssetStorageService storage;
     private final MusicMvUserAssetService uploads;
     private final KieAiPhotoProvider provider;
+    private final ArkAiPhotoProvider ark;
     private final ObjectMapper json;
     public AiPhotoJobService(AiPhotoJobRepository jobs, MusicMvRenderJobRepository templates,
             MusicMvUserAssetRepository assets, MusicMvInputAssetStorageService storage,
-            MusicMvUserAssetService uploads, KieAiPhotoProvider provider,ObjectMapper json) {
+            MusicMvUserAssetService uploads, KieAiPhotoProvider provider,ArkAiPhotoProvider ark,ObjectMapper json) {
         this.jobs=jobs;this.templates=templates;this.assets=assets;this.storage=storage;
-        this.uploads=uploads;this.provider=provider;this.json=json;
+        this.uploads=uploads;this.provider=provider;this.ark=ark;this.json=json;
     }
     public Map<String,Object> create(String owner,Request request,String baseUrl) {
         JsonNode recipe=recipe(request.templateId,request.templateVersionId,request.slotKey);
@@ -37,7 +38,7 @@ public class AiPhotoJobService {
             request.slotKey,request.sourceAssetId,str(source,"sha256"),recipe);
         Map<String,Object> row=jobs.request(owner,request.requestId);
         if (row==null) {
-            provider.requireConfigured(recipe);
+            if (isArk(recipe)) ark.requireConfigured(recipe); else provider.requireConfigured(recipe);
             row=jobs.create(owner,request.requestId,IdUtils.token("aip"),fingerprint,request.templateId,
                 request.templateVersionId,request.slotKey,request.sourceAssetId,str(source,"sha256"),recipe.toString(),baseUrl);
         }
@@ -101,8 +102,12 @@ public class AiPhotoJobService {
     }
     @Scheduled(fixedDelayString="${music-mv.ai-photo.poll-ms:5000}")
     public void tick() {
-        if (!provider.enabled()) return;
+        if (!provider.enabled() && !ark.enabled()) return;
         for (Map<String,Object> pending:jobs.pending()) {
+            JsonNode pendingRecipe;
+            try { pendingRecipe=parse(str(pending,"recipe_json")); }
+            catch (RuntimeException invalid) { continue; }
+            if (isArk(pendingRecipe)?!ark.enabled():!provider.enabled()) continue;
             String token=IdUtils.token("aipl");
             Map<String,Object> job=jobs.claim(str(pending,"job_id"),str(pending,"status"),token);
             if (job!=null) advance(job,token);
@@ -117,10 +122,15 @@ public class AiPhotoJobService {
             Map<String,Object> source=ownedAsset(owner,str(row,"source_asset_id"));
             if (!str(source,"sha256").equals(str(row,"source_sha256"))) throw AiPhotoRecipe.error("AI_PHOTO_BINDING_STALE");
             if ("submitting".equals(state)) {
+                if (isArk(snapshot)) {
+                    String url=ark.generate(snapshot,str(source,"asset_url"));
+                    jobs.update(id,token,"persisting",null,url,null,null); return;
+                }
                 String task=provider.submit(snapshot,str(source,"asset_url"));
                 jobs.update(id,token,"generating",task,null,null,null); return;
             }
             if ("generating".equals(state)) {
+                if (isArk(snapshot)) throw AiPhotoRecipe.error("AI_PHOTO_RESPONSE_INVALID");
                 JsonNode result=provider.query(str(row,"provider_task_id"),snapshot);
                 String remote=result.path("state").asText();
                 if ("success".equals(remote)) {
@@ -132,7 +142,7 @@ public class AiPhotoJobService {
                 } else throw AiPhotoRecipe.error("AI_PHOTO_RESPONSE_INVALID");
                 return;
             }
-            KieAiPhotoProvider.Image image=provider.download(str(row,"output_url"));
+            KieAiPhotoProvider.Image image=isArk(snapshot)?ark.download(str(row,"output_url")):provider.download(str(row,"output_url"));
             Map<String,Object> output=uploads.upload(owner,null,"image","ai-photo."+image.extension,image.contentType,
                 image.bytes.length,new ByteArrayInputStream(image.bytes),str(row,"base_url"));
             jobs.update(id,token,"ready",null,null,String.valueOf(output.get("assetId")),null);
@@ -144,6 +154,7 @@ public class AiPhotoJobService {
             jobs.update(id,token,next,null,null,null,code);
         }
     }
+    private static boolean isArk(JsonNode recipe) { return "ark".equals(recipe.path("provider").asText()); }
     private JsonNode parse(String value) { try { return json.readTree(value); } catch(Exception e) { throw AiPhotoRecipe.error("AI_PHOTO_RECIPE_INVALID"); } }
     static String str(Map<String,Object> row,String key) { return row.get(key)==null?"":String.valueOf(row.get(key)); }
     public static class Request {

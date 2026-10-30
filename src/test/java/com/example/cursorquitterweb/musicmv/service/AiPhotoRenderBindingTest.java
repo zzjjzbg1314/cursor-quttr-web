@@ -19,7 +19,7 @@ class AiPhotoRenderBindingTest {
         MusicMvUserAssetRepository assets=mock(MusicMvUserAssetRepository.class);
         MusicMvInputAssetStorageService storage=mock(MusicMvInputAssetStorageService.class);
         AiPhotoJobRepository jobs=mock(AiPhotoJobRepository.class);
-        AiPhotoJobService ai=new AiPhotoJobService(jobs,repository,assets,storage,mock(MusicMvUserAssetService.class),mock(KieAiPhotoProvider.class),json);
+        AiPhotoJobService ai=new AiPhotoJobService(jobs,repository,assets,storage,mock(MusicMvUserAssetService.class),mock(KieAiPhotoProvider.class),mock(ArkAiPhotoProvider.class),json);
         String base="http://127.0.0.1:8130/assets/";
         Map<String,Object> source=row("asset_id","source","kind","image","asset_url",base+"source","sha256",String.join("",Collections.nCopies(64,"a")),"file_name","source.jpg","content_type","image/jpeg","size_bytes",100L);
         Map<String,Object> output=new LinkedHashMap<>(source);output.put("asset_id","output");output.put("asset_url",base+"result");output.put("sha256",String.join("",Collections.nCopies(64,"b")));

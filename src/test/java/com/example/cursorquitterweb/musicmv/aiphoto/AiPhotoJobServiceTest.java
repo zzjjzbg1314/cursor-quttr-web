@@ -18,7 +18,8 @@ class AiPhotoJobServiceTest {
     final MusicMvInputAssetStorageService storage=mock(MusicMvInputAssetStorageService.class);
     final MusicMvUserAssetService uploads=mock(MusicMvUserAssetService.class);
     final KieAiPhotoProvider provider=mock(KieAiPhotoProvider.class);
-    final AiPhotoJobService service=new AiPhotoJobService(jobs,templates,assets,storage,uploads,provider,json);
+    final ArkAiPhotoProvider ark=mock(ArkAiPhotoProvider.class);
+    final AiPhotoJobService service=new AiPhotoJobService(jobs,templates,assets,storage,uploads,provider,ark,json);
     final JsonNode recipe=node("{\"schemaVersion\":\"ai-photo-recipe-v1\",\"revision\":\"1\",\"provider\":\"kie\",\"model\":\"bytedance/seedream-v4-edit\",\"prompt\":\"保留人物\",\"parameters\":{}}");
     JsonNode node(String s){try{return json.readTree(s);}catch(Exception e){throw new RuntimeException(e);}}
     static Map<String,Object> row(Object... fields){Map<String,Object> m=new LinkedHashMap<>();for(int i=0;i<fields.length;i+=2)m.put((String)fields[i],fields[i+1]);return m;}
@@ -45,4 +46,44 @@ class AiPhotoJobServiceTest {
     @Test void persistenceFailureRetriesStorageOnly() throws Exception {Map<String,Object> job=setup("persisting");when(provider.download(anyString())).thenThrow(new java.io.IOException("offline"));service.advance(job,"lease");verify(jobs).update("job","lease","persisting",null,null,null,"AI_PHOTO_TEMPORARILY_UNAVAILABLE");verify(provider,never()).submit(any(),anyString());}
     @Test void persistedAssetBecomesReady() throws Exception {Map<String,Object> job=setup("persisting");when(provider.download(anyString())).thenReturn(new KieAiPhotoProvider.Image(new byte[]{1},"image/jpeg","jpg"));when(uploads.upload(eq("owner"),isNull(),eq("image"),eq("ai-photo.jpg"),eq("image/jpeg"),eq(1L),any(),eq("https://site"))).thenReturn(row("assetId","stored"));service.advance(job,"lease");verify(jobs).update("job","lease","ready",null,null,"stored",null);}
     @Test void recipeFingerprintIgnoresObjectKeyOrder(){assertEquals(AiPhotoRecipe.hash(node("{\"a\":1,\"b\":2}")),AiPhotoRecipe.hash(node("{\"b\":2,\"a\":1}")));assertNotEquals(AiPhotoRecipe.hash(recipe),AiPhotoRecipe.hash(node(recipe.toString().replace("保留人物","保持背景"))));}
+    Map<String,Object> setupArk(String state) {
+        ((com.fasterxml.jackson.databind.node.ObjectNode)recipe).put("provider","ark").put("model",ArkAiPhotoProvider.MODEL);
+        return setup(state);
+    }
+    @Test void arkSubmissionPersistsUrlBeforeAssetUpload() {
+        Map<String,Object> job=setupArk("submitting");
+        when(ark.generate(recipe,"https://owned/source")).thenReturn("https://ark-output/result.jpg");
+        service.advance(job,"lease");
+        verify(jobs).update("job","lease","persisting",null,"https://ark-output/result.jpg",null,null);
+        verifyNoInteractions(provider,uploads);
+    }
+    @Test void arkTimeoutBecomesUnknownAndNeverFallsBackToKie() {
+        Map<String,Object> job=setupArk("submitting");
+        when(ark.generate(any(),anyString())).thenThrow(new RuntimeException("timeout"));
+        service.advance(job,"lease");
+        verify(jobs).update("job","lease","submission_unknown",null,null,null,"AI_PHOTO_TEMPORARILY_UNAVAILABLE");
+        verify(ark,times(1)).generate(any(),anyString());verifyNoInteractions(provider,uploads);
+    }
+    @Test void arkPersistenceRetryNeverGeneratesAgain() throws Exception {
+        Map<String,Object> job=setupArk("persisting");
+        when(ark.download(anyString())).thenThrow(new java.io.IOException("offline"));
+        service.advance(job,"lease");
+        verify(jobs).update("job","lease","persisting",null,null,null,"AI_PHOTO_TEMPORARILY_UNAVAILABLE");
+        verify(ark,never()).generate(any(),anyString());verifyNoInteractions(provider);
+    }
+    @Test void arkResultUsesExistingAssetOwnershipAndBinding() throws Exception {
+        Map<String,Object> job=setupArk("persisting");
+        when(ark.download(anyString())).thenReturn(new KieAiPhotoProvider.Image(new byte[]{1},"image/jpeg","jpg"));
+        when(uploads.upload(eq("owner"),isNull(),eq("image"),eq("ai-photo.jpg"),eq("image/jpeg"),eq(1L),any(),eq("https://site"))).thenReturn(row("assetId","stored"));
+        service.advance(job,"lease");verify(jobs).update("job","lease","ready",null,null,"stored",null);
+        job.put("status","ready");
+        assertEquals("https://owned/result",service.resolve("owner","template","version","photo_1","job",AiPhotoJobService.asset(asset("source","a")),recipe).getUrl());
+        assertThrows(ApiException.class,()->service.resolve("owner","template","version","photo_1","job",AiPhotoJobService.asset(asset("new","c")),recipe));
+        verifyNoInteractions(provider);
+    }
+    @Test void arkWorkerDoesNotClaimDisabledKieJobs() {
+        Map<String,Object> job=setup("queued");when(ark.enabled()).thenReturn(true);
+        when(jobs.pending()).thenReturn(Arrays.asList(job));service.tick();
+        verify(jobs,never()).claim(anyString(),anyString(),anyString());
+    }
 }

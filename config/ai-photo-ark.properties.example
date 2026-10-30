@@ -1,0 +1,5 @@
+# 复制到 secrets/music-mv-ark.properties，仅在本机或服务器填写密钥，不提交真实文件。
+# 服务启动时通过 spring.config.additional-location 加载此文件。
+music-mv.ai-photo.ark.enabled=false
+music-mv.ai-photo.ark.api-key=
+music-mv.ai-photo.ark.output-hosts=ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com

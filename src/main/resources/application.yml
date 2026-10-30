@@ -255,6 +255,12 @@ music-mv:
       account-id: ${MUSIC_MV_CLOUDFLARE_STREAM_ACCOUNT_ID:${MUSIC_MV_CLOUDFLARE_ACCOUNT_ID:}}
       api-token: ${MUSIC_MV_CLOUDFLARE_STREAM_API_TOKEN:${MUSIC_MV_CLOUDFLARE_API_TOKEN:}}
       delivery-base-url: ${MUSIC_MV_CLOUDFLARE_STREAM_DELIVERY_BASE_URL:${MUSIC_MV_STREAM_DELIVERY_URL:}}
+  ai-photo:
+    # 方舟与历史 Kie 开关独立，未配置密钥时不启用生成。
+    ark:
+      enabled: ${MUSIC_MV_AI_PHOTO_ARK_ENABLED:false}
+      api-key: ${MUSIC_MV_AI_PHOTO_ARK_API_KEY:${ARK_API_KEY:}}
+      output-hosts: ${MUSIC_MV_AI_PHOTO_ARK_OUTPUT_HOSTS:ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com}
   ai-music:
     provider: ${MUSIC_MV_AI_PROVIDER:sunoapi}
     task-token-secret: ${MUSIC_MV_AI_TASK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_CALLBACK_TOKEN_SECRET:${MUSIC_MV_SUNOAPI_API_KEY:}}}
