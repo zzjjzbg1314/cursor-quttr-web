@@ -1,8 +1,8 @@
 {
   "schemaVersion": "ai-photo-recipe-v1",
-  "revision": "ark-seedream45-v1",
+  "revision": "ark-seedream50pro-v1",
   "provider": "ark",
-  "model": "doubao-seedream-4-5-251128",
+  "model": "doubao-seedream-5-0-pro-260628",
   "prompt": "以参考图中的人物为主体，完整保留原图的背景、场景、服装、光影和色调风格。\n在主体人物周围，环绕8个与参考图人物特征、服装完全一致的Q版迷你小人，每个小人都做不同的可爱动作：骑小自行车、趴在地上玩手机、坐在台阶上举相机拍照、戴耳机捧着咖啡托脸、拎购物袋走路、盘腿做拉伸、坐在主体肩膀上、坐在台阶上托脸发呆。\n画面添加手绘星星、爱心、音符、线条涂鸦装饰，整体风格与原图统一，不改变原图主体，只增加迷你小人与涂鸦元素，8K高清，画面干净温馨，无多余元素。",
   "parameters": {
     "size": "2K"

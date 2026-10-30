@@ -18,7 +18,7 @@ import java.util.*;
 @Service
 @ConditionalOnProperty(prefix="music-mv", name="enabled", havingValue="true")
 public class ArkAiPhotoProvider {
-    static final String MODEL="doubao-seedream-4-5-251128";
+    static final String MODEL="doubao-seedream-5-0-pro-260628";
     static final String ENDPOINT="https://ark.cn-beijing.volces.com/api/v3/images/generations";
     private final boolean enabled;
     private final String key;
@@ -59,12 +59,13 @@ public class ArkAiPhotoProvider {
             if (!"size".equals(k)) throw AiPhotoRecipe.error("AI_PHOTO_PARAMETERS_UNSUPPORTED");
         });
         String size=params.path("size").asText("2K");
-        if (!Arrays.asList("2K","4K").contains(size)) throw AiPhotoRecipe.error("AI_PHOTO_PARAMETERS_UNSUPPORTED");
+        if (!Arrays.asList("1K","1.5K","2K").contains(size)) throw AiPhotoRecipe.error("AI_PHOTO_PARAMETERS_UNSUPPORTED");
         String prompt=recipe.path("prompt").asText();
         if (prompt.trim().isEmpty() || prompt.length()>10000) throw AiPhotoRecipe.error("AI_PHOTO_RECIPE_INVALID");
         ObjectNode body=new ObjectMapper().createObjectNode();
         body.put("model",MODEL);body.put("prompt",prompt);body.put("image",input);body.put("size",size);
-        body.put("sequential_image_generation","disabled");body.put("stream",false);
+        // Pro 不支持组图与流式参数，显式关闭图层拆分以保持单张结果合同。
+        body.put("layer_decomposition",false);
         body.put("response_format","url");body.put("watermark",true);
         return body;
     }

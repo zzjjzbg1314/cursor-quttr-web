@@ -22,8 +22,10 @@ class ArkAiPhotoProviderTest {
     JsonNode response(String tail) throws Exception {return json.readTree("{\"model\":\""+ArkAiPhotoProvider.MODEL+"\",\"data\":"+tail+"}");}
     @Test void postsOfficialContractAndReturnsOneImage() {
         ObjectNode body=ArkAiPhotoProvider.requestBody(recipe("保留人物"),"https://owned/photo");
-        assertEquals("disabled",body.path("sequential_image_generation").asText());
-        assertTrue(body.path("watermark").asBoolean());assertFalse(body.path("stream").asBoolean());
+        assertEquals("doubao-seedream-5-0-pro-260628",body.path("model").asText());
+        assertFalse(body.has("sequential_image_generation"));assertFalse(body.has("stream"));
+        assertTrue(body.has("layer_decomposition"));assertFalse(body.path("layer_decomposition").asBoolean());
+        assertTrue(body.path("watermark").asBoolean());assertFalse(body.has("tools"));
         assertEquals("url",body.path("response_format").asText());assertFalse(body.has("denoise"));assertFalse(body.has("seed"));
         server.expect(requestTo(ArkAiPhotoProvider.ENDPOINT)).andExpect(method(HttpMethod.POST))
             .andExpect(header("Authorization","Bearer test-secret")).andExpect(content().json(body.toString()))
@@ -37,7 +39,7 @@ class ArkAiPhotoProviderTest {
     @Test void rejectsForeignModelsAndUndocumentedParameters() {
         ObjectNode r=recipe("x");r.put("model","aip_high_aes_general_v43s_jm");
         assertThrows(RuntimeException.class,()->provider.requireConfigured(r));
-        for(String key:new String[]{"denoise","seed","stream","image","model","watermark","sequential_image_generation"}) {
+        for(String key:new String[]{"denoise","seed","stream","image","model","watermark","sequential_image_generation","layer_decomposition","tools"}) {
             ObjectNode bad=recipe("x");((ObjectNode)bad.get("parameters")).put(key,"unexpected");
             assertThrows(RuntimeException.class,()->provider.requireConfigured(bad));
         }
@@ -62,5 +64,17 @@ class ArkAiPhotoProviderTest {
     @Test void preservesAllPromptLanguages() {
         for(String prompt:new String[]{"keep the face","保留人物","保留人物與背景","人物を保持","인물 유지","conservar persona","preservar pessoa","garder le visage","Person beibehalten","mantieni persona","اختبار"})
             assertEquals(prompt,ArkAiPhotoProvider.requestBody(recipe(prompt),"https://owned/photo").path("prompt").asText());
+    }
+    @Test void supportsProSizesAndRejectsLegacyRecipe() {
+        for (String size:new String[]{"1K","1.5K","2K"}) {
+            ObjectNode r=recipe("x");((ObjectNode)r.get("parameters")).put("size",size);
+            assertEquals(size,ArkAiPhotoProvider.requestBody(r,"https://owned/photo").path("size").asText());
+        }
+        ObjectNode old=recipe("x");old.put("model","doubao-seedream-4-5-251128");
+        assertThrows(RuntimeException.class,()->provider.requireConfigured(old));
+        ObjectNode high=recipe("x");((ObjectNode)high.get("parameters")).put("size","4K");
+        assertThrows(RuntimeException.class,()->provider.requireConfigured(high));
+        ObjectNode defaultSize=recipe("x");((ObjectNode)defaultSize.get("parameters")).remove("size");
+        assertEquals("2K",ArkAiPhotoProvider.requestBody(defaultSize,"https://owned/photo").path("size").asText());
     }
 }

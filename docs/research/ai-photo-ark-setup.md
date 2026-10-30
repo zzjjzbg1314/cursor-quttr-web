@@ -5,13 +5,13 @@
 ## 申请模型和密钥
 
 1. 登录 https://console.volcengine.com/ark ，选择用于 StoryAI 的项目。
-2. 开通 **Doubao Seedream 4.5**，Model ID 为 `doubao-seedream-4-5-251128`，支持参考图编辑。当前适配器只接受此精确模型，不自动切换其他版本或自定义接入点。
+2. 开通 **Doubao Seedream 5.0 Pro**，Model ID 为 `doubao-seedream-5-0-pro-260628`，支持参考图编辑。当前适配器只接受此精确模型，不自动切换其他版本或自定义接入点。
 3. 在同一项目的 API Key 管理中创建密钥并授权该模型。若启用 IP 白名单，包含网站后端的出口 IP。
 4. 配置在后端服务器；不要填写到前端、浏览器或模板 JSON 中。
 
 官方依据：
 - 图片教程：https://docs.volcengine.com/docs/ark/image-generation-tutorial?lang=zh
-- API：https://api.volcengine.com/api-docs/view?action=ImageGenerations&serviceCode=ark&version=2024-01-01
+- API：https://docs.volcengine.com/docs/ark/image-generation-api?lang=zh
 - 密钥权限：https://docs.volcengine.com/docs/ark/manage-api-keys?lang=zh
 
 这属于公开 API 替代模型，不代表剪映内部 `aip_high_aes_general_v43s_jm`。原模板提示词保留；内部 `denoise` 和历史 `seed` 不映射、不发送到此适配器。
@@ -41,9 +41,9 @@ ARK_API_KEY=在服务器填写真实密钥
 
 ## 模板配方
 
-`ai-photo-ark-recipe.example.json` 是该研究模板的完整替代配方，需绑定到受保护的模板版本场景 `aiPhotoRecipes[实际slotKey]`，并同步到网站后端。配置密钥本身不会自动发布模板、转换 Kie 配方或修改旧生成结果。参数当前只支持 `size=2K` 或 `4K`；建议先用 2K。配方变更后旧输入指纹失效，不复用旧结果冒充新生成。
+`ai-photo-ark-recipe.example.json` 是该研究模板的完整替代配方，需绑定到受保护的模板版本场景 `aiPhotoRecipes[实际slotKey]`，并同步到网站后端。配置密钥本身不会自动发布模板、转换旧 4.5 或 Kie 配方或修改旧生成结果。参数当前支持 `size=1K`、`1.5K` 或 `2K`，不支持 4K；建议先用 2K。配方变更后旧输入指纹失效，不复用旧结果冒充新生成。
 
-请求为 `POST https://ark.cn-beijing.volces.com/api/v3/images/generations`，带 Bearer 密钥、原图 HTTPS URL、原提示词、指定模型和尺寸；固定 `sequential_image_generation=disabled`、`stream=false`、`response_format=url`、`watermark=true`，只接受一张有效结果。
+请求为 `POST https://ark.cn-beijing.volces.com/api/v3/images/generations`，带 Bearer 密钥、原图 HTTPS URL、原提示词、指定模型和尺寸；省略 Pro 不支持的 `sequential_image_generation` 和 `stream`；固定 `layer_decomposition=false`、`response_format=url`、`watermark=true`，只接受一张有效结果。
 
 后台任务先从 submitting 保存结果 URL 并进入 persisting，之后下载、验证 JPEG/PNG、登记自有资产，最后 ready。没有伪造远端 taskId 或使用 Kie 查询接口。生成请求超时/异常进入 submission_unknown，不自动重新扣费；已保存 URL 的下载或入库暂时失败只重试持久化。超过租约的中断提交沿用现有待核实机制。结果仍受资产归属、原图内容哈希、模板版本、配方和槽位校验；取消后的迟到更新由数据库条件更新拒绝。
 
@@ -53,4 +53,4 @@ ARK_API_KEY=在服务器填写真实密钥
 
 对外接口和错误码保持不变，复用客户前端现有十语言生成中/失败文案。提示词按原文发送，测试覆盖十种网站语言与其他语言；不根据界面语言改写素材提示词。
 
-检查结果：`ArkAiPhotoProviderTest` 6 项、`AiPhotoJobServiceTest` 16 项、`KieAiPhotoProviderTest` 6 项、`AiPhotoJobControllerTest` 2 项、`AiPhotoRenderBindingTest` 1 项、`OrdinaryTemplateRenderRegressionTest` 1 项、`MusicMvRenderJobServiceTest` 37 项，共 69 项通过，零失败。`git diff --check` 通过。
+检查结果：本次共发现 70 项测试，68 项通过，零失败；2 项因未提供本地场景夹具跳过（普通模板三案例回归、捕获动画场景合同）。方舟提供方 7 项、AI 任务 16 项、Kie 提供方 6 项、控制器 2 项及 AI 结果绑定 1 项均执行通过；渲染服务其余 36 项通过。未启动真实渲染或 SSIM。`git diff --check` 通过。此前将发现的测试总数写为全部通过不准确，以此执行/跳过明细为准。
