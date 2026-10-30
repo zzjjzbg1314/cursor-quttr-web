@@ -37,7 +37,7 @@ ARK_API_KEY=在服务器填写真实密钥
 
 如果已有 additional-location，追加逗号分隔的新文件路径，保留旧配置来源。也可通过 `SPRING_CONFIG_ADDITIONAL_LOCATION` 指定。文件包含真实密钥后应只对运行服务的用户开放读取权限。
 
-默认仅允许精确域名 `ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com` 下载生成图。不同账号/地域若实际返回其他域名，核对提供方响应后通过 `MUSIC_MV_AI_PHOTO_ARK_OUTPUT_HOSTS` 或 `music-mv.ai-photo.ark.output-hosts` 添加精确域名，多个用逗号分隔；不接受通配符。域名不匹配时阻断，不会为此重复提交生成。此默认域名尚未以本账号真实生成响应验收。
+默认仅允许精确域名 `ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com` 下载生成图。不同账号/地域若实际返回其他域名，核对提供方响应后通过 `MUSIC_MV_AI_PHOTO_ARK_OUTPUT_HOSTS` 或 `music-mv.ai-photo.ark.output-hosts` 添加精确域名，多个用逗号分隔；不接受通配符。域名不匹配时阻断，不会为此重复提交生成。2026-10-30 本账号真实调用 Seedream 5.0 Pro 成功，返回精确域名 `ark-acg-cn-beijing.tos-cn-beijing.volces.com`。配置示例已包含此域名；本机私有配置也已追加。最初在下载校验处被阻断，之后仅恢复下载同一张结果，没有重复生成。
 
 ## 模板配方
 

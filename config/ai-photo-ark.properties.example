@@ -2,4 +2,4 @@
 # 服务启动时通过 spring.config.additional-location 加载此文件。
 music-mv.ai-photo.ark.enabled=false
 music-mv.ai-photo.ark.api-key=
-music-mv.ai-photo.ark.output-hosts=ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com
+music-mv.ai-photo.ark.output-hosts=ark-content-generation-v2-cn-beijing.tos-cn-beijing.volces.com,ark-acg-cn-beijing.tos-cn-beijing.volces.com
