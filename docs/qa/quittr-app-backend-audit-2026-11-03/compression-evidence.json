@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/api/white-noises",
+    "exit": 0,
+    "received_bytes": 44226,
+    "gzip_header_present": false,
+    "local_gzip6_bytes": 14838,
+    "note": "local compression comparison, not deployed speedup"
+  },
+  {
+    "path": "/api/pure-musics",
+    "exit": 0,
+    "received_bytes": 24673,
+    "gzip_header_present": false,
+    "local_gzip6_bytes": 8497,
+    "note": "local compression comparison, not deployed speedup"
+  },
+  {
+    "path": "/api/sister-motivation-videos/list",
+    "exit": 0,
+    "received_bytes": 31793,
+    "gzip_header_present": false,
+    "local_gzip6_bytes": 10471,
+    "note": "local compression comparison, not deployed speedup"
+  }
+]

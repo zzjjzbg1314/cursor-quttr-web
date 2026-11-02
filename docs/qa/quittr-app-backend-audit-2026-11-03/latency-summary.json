@@ -1,0 +1,362 @@
+[
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/articles/grouped-by-type",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1750.5,
+    "min_ms": 1741.6,
+    "max_ms": 1998.3,
+    "decoded_bytes": 5476
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/bootstrap",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2548.0,
+    "min_ms": 1794.1,
+    "max_ms": 2834.8,
+    "decoded_bytes": 978
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/breathe/getAllBreathe",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1952.7,
+    "min_ms": 1899.8,
+    "max_ms": 2799.8,
+    "decoded_bytes": 1130
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/meditate-videos/getAllMeditateVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2816.1,
+    "min_ms": 1790.4,
+    "max_ms": 8426.3,
+    "decoded_bytes": 7646
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/music/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2072.7,
+    "min_ms": 2029.4,
+    "max_ms": 2237.7,
+    "decoded_bytes": 7378
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/posts/getAllPosts?page=0&size=5",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2040.3,
+    "min_ms": 1961.5,
+    "max_ms": 2272.1,
+    "decoded_bytes": 11971
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/pure-musics",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1930.2,
+    "min_ms": 1915.5,
+    "max_ms": 2102.7,
+    "decoded_bytes": 24673
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/quotes/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2108.2,
+    "min_ms": 1941.6,
+    "max_ms": 2130.6,
+    "decoded_bytes": 2474
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/sister-motivation-videos/list",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2013.6,
+    "min_ms": 1987.2,
+    "max_ms": 2154.3,
+    "decoded_bytes": 31793
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/video-scenarios/getAllVideoScenarios?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1833.2,
+    "min_ms": 1787.8,
+    "max_ms": 2189.2,
+    "decoded_bytes": 7446
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/videos/getAllVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1905.1,
+    "min_ms": 1752.0,
+    "max_ms": 2377.5,
+    "decoded_bytes": 3069
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/white-noises",
+    "n": 3,
+    "success": 3,
+    "median_ms": 2654.8,
+    "min_ms": 2290.5,
+    "max_ms": 3623.1,
+    "decoded_bytes": 44226
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/articles/grouped-by-type",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1145.3,
+    "min_ms": 1057.8,
+    "max_ms": 1520.7,
+    "decoded_bytes": 5476
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/bootstrap",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1410.1,
+    "min_ms": 1112.1,
+    "max_ms": 1559.7,
+    "decoded_bytes": 977
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/breathe/getAllBreathe",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1727.1,
+    "min_ms": 1272.9,
+    "max_ms": 2125.2,
+    "decoded_bytes": 1130
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/meditate-videos/getAllMeditateVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1082.3,
+    "min_ms": 1077.9,
+    "max_ms": 2293.9,
+    "decoded_bytes": 7646
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/music/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1296.5,
+    "min_ms": 1253.1,
+    "max_ms": 7872.1,
+    "decoded_bytes": 7378
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/posts/getAllPosts?page=0&size=5",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1300.3,
+    "min_ms": 1241.9,
+    "max_ms": 2690.2,
+    "decoded_bytes": 11971
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/pure-musics",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1267.7,
+    "min_ms": 1171.2,
+    "max_ms": 2393.8,
+    "decoded_bytes": 24673
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/quotes/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1377.5,
+    "min_ms": 1173.1,
+    "max_ms": 1406.7,
+    "decoded_bytes": 2474
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/sister-motivation-videos/list",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1523.0,
+    "min_ms": 1313.7,
+    "max_ms": 1538.4,
+    "decoded_bytes": 31793
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/video-scenarios/getAllVideoScenarios?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1257.0,
+    "min_ms": 1021.4,
+    "max_ms": 3620.7,
+    "decoded_bytes": 7446
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/videos/getAllVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1405.0,
+    "min_ms": 1204.0,
+    "max_ms": 6593.7,
+    "decoded_bytes": 3069
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/white-noises",
+    "n": 3,
+    "success": 3,
+    "median_ms": 1271.2,
+    "min_ms": 1181.8,
+    "max_ms": 1297.3,
+    "decoded_bytes": 44226
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/articles/grouped-by-type",
+    "n": 3,
+    "success": 3,
+    "median_ms": 67.0,
+    "min_ms": 61.1,
+    "max_ms": 514.3,
+    "decoded_bytes": 5476
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/bootstrap",
+    "n": 3,
+    "success": 3,
+    "median_ms": 59.0,
+    "min_ms": 54.6,
+    "max_ms": 133.3,
+    "decoded_bytes": 970
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/breathe/getAllBreathe",
+    "n": 3,
+    "success": 3,
+    "median_ms": 65.9,
+    "min_ms": 62.6,
+    "max_ms": 69.3,
+    "decoded_bytes": 1130
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/meditate-videos/getAllMeditateVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 69.6,
+    "min_ms": 65.0,
+    "max_ms": 1777.9,
+    "decoded_bytes": 7646
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/music/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 496.1,
+    "min_ms": 490.4,
+    "max_ms": 806.6,
+    "decoded_bytes": 7378
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/posts/getAllPosts?page=0&size=5",
+    "n": 3,
+    "success": 3,
+    "median_ms": 570.2,
+    "min_ms": 569.1,
+    "max_ms": 580.4,
+    "decoded_bytes": 11971
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/pure-musics",
+    "n": 3,
+    "success": 3,
+    "median_ms": 73.1,
+    "min_ms": 71.9,
+    "max_ms": 83.6,
+    "decoded_bytes": 24673
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/quotes/page?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 489.8,
+    "min_ms": 455.6,
+    "max_ms": 519.9,
+    "decoded_bytes": 2474
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/sister-motivation-videos/list",
+    "n": 3,
+    "success": 3,
+    "median_ms": 78.2,
+    "min_ms": 76.2,
+    "max_ms": 78.3,
+    "decoded_bytes": 31793
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/video-scenarios/getAllVideoScenarios?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 70.9,
+    "min_ms": 61.4,
+    "max_ms": 491.6,
+    "decoded_bytes": 7446
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/videos/getAllVideos?page=0&size=10",
+    "n": 3,
+    "success": 3,
+    "median_ms": 65.8,
+    "min_ms": 64.1,
+    "max_ms": 465.5,
+    "decoded_bytes": 3069
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/white-noises",
+    "n": 3,
+    "success": 3,
+    "median_ms": 80.5,
+    "min_ms": 75.1,
+    "max_ms": 84.1,
+    "decoded_bytes": 44226
+  }
+]

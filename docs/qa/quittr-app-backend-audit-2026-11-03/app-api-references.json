@@ -1,0 +1,326 @@
+[
+  {
+    "file": "lib/utils/locale_utils.dart",
+    "line": 337,
+    "path": "/api/articles",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/utils/locale_utils.dart",
+    "line": 352,
+    "path": "/api/article-sections",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/book_service.dart",
+    "line": 13,
+    "path": "/api/books/getAllBooks",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 105,
+    "path": "/api/posts",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 107,
+    "path": "/api/comments",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 237,
+    "path": "/api/wechat/login",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 321,
+    "path": "/api/auth/apple/login",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 395,
+    "path": "/api/auth/google/login",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 460,
+    "path": "/api/posts/getAllPosts",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 507,
+    "path": "/api/posts/user/{dynamic}/page",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 567,
+    "path": "/api/comments/post/{dynamic}/with-replies/page",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 688,
+    "path": "/api/comments/post/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 771,
+    "path": "/api/comments/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 820,
+    "path": "/api/comments/reply",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 877,
+    "path": "/api/posts/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 917,
+    "path": "/api/posts/{dynamic}/delete",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 951,
+    "path": "/api/users/leaderboard/page",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 986,
+    "path": "/api/users/leaderboard/page",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1019,
+    "path": "/api/users/{dynamic}/rank",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1059,
+    "path": "/api/users/{dynamic}/relapse-history",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1109,
+    "path": "/api/users/{dynamic}/challenge-rank",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1154,
+    "path": "/api/users/challenge-days/leaderboard",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1191,
+    "path": "/api/users/{dynamic}/last-login-time",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1222,
+    "path": "/api/videos",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1264,
+    "path": "/api/sister-motivation-videos/list",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1337,
+    "path": "/api/users/init",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1341,
+    "path": "/api/users/init",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1385,
+    "path": "/api/users/bind-phone",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1458,
+    "path": "/api/users/{dynamic}/challenge-start-time",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1497,
+    "path": "/api/users/{dynamic}/quit-reason",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1530,
+    "path": "/api/change-reasons/user/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1554,
+    "path": "/api/change-reasons",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1707,
+    "path": "/api/white-noises",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1772,
+    "path": "/api/pure-musics",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1917,
+    "path": "/api/post-likes/{dynamic}/like",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1951,
+    "path": "/api/recover-journey/user/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 1987,
+    "path": "/api/app-block-schedules",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2049,
+    "path": "/api/recover-journey/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2086,
+    "path": "/api/users/{dynamic}/reset-challenge",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2124,
+    "path": "/api/users/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2204,
+    "path": "/api/users/{dynamic}/basic-info",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2255,
+    "path": "/api/users/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2331,
+    "path": "/api/users/avatar",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2397,
+    "path": "/api/post-reports/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2474,
+    "path": "/api/user-reports/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2586,
+    "path": "/api/feedback/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2590,
+    "path": "/api/feedback/create",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2647,
+    "path": "/api/channels/all",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2818,
+    "path": "/api/rtm/send-system-message",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2852,
+    "path": "/api/rtm/token",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/api_service.dart",
+    "line": 2899,
+    "path": "/api/channels/{dynamic}/messages",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/video_service.dart",
+    "line": 16,
+    "path": "/api/videos",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/apple_auth_service.dart",
+    "line": 231,
+    "path": "/api/users/{dynamic}",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  },
+  {
+    "file": "lib/services/apple_auth_service.dart",
+    "line": 256,
+    "path": "/api/auth/apple/login",
+    "note": "静态字符串引用；可能是路径片段，不代表调用频率或最终完整路由"
+  }
+]

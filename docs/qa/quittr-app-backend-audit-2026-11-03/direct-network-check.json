@@ -1,0 +1,20 @@
+[
+  {
+    "host": "https://kejiapi.cn",
+    "exit": 0,
+    "metrics": "200 0.111456 0.111521",
+    "error": ""
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "exit": 0,
+    "metrics": "200 2.500367 2.500443",
+    "error": ""
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "exit": 0,
+    "metrics": "200 0.716257 0.717925",
+    "error": ""
+  }
+]

@@ -1,0 +1,6592 @@
+[
+  {
+    "caseIndex": 159,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/.well-known/apple-app-site-association",
+    "controller": "AppleAppSiteAssociationController",
+    "handler": "getAppleAppSiteAssociation",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 343,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/",
+    "controller": "HomeController",
+    "handler": "home",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 40,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/app-block-schedules/create",
+    "controller": "AppBlockScheduleController",
+    "handler": "createAppBlockSchedule",
+    "parameters": [
+      "CreateAppBlockScheduleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 129,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/app-block-schedules/page",
+    "controller": "AppBlockScheduleController",
+    "handler": "getAppBlockSchedulesPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 286,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/app-block-schedules/{id}",
+    "controller": "AppBlockScheduleController",
+    "handler": "deleteAppBlockSchedule",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 463,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/app-block-schedules/{id}",
+    "controller": "AppBlockScheduleController",
+    "handler": "getAppBlockSchedule",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 11,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/app-block-schedules/{id}",
+    "controller": "AppBlockScheduleController",
+    "handler": "updateAppBlockSchedule",
+    "parameters": [
+      "UUID id",
+      "UpdateAppBlockScheduleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 98,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/app-block-schedules",
+    "controller": "AppBlockScheduleController",
+    "handler": "getAllAppBlockSchedules",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 270,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/article-sections/article/{articleId}",
+    "controller": "ArticleSectionController",
+    "handler": "deleteSectionsByArticleId",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 504,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/article-sections/article/{articleId}",
+    "controller": "ArticleSectionController",
+    "handler": "getSectionsByArticleId",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 71,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/article-sections/cn/article/{articleId}",
+    "controller": "ArticleSectionCnController",
+    "handler": "deleteSectionsByArticleId",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 436,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/article-sections/cn/article/{articleId}",
+    "controller": "ArticleSectionCnController",
+    "handler": "getSectionsByArticleId",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 58,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/cn/create-multiple",
+    "controller": "ArticleSectionCnController",
+    "handler": "createMultipleSections",
+    "parameters": [
+      "CreateMultipleArticleSectionsRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 64,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/cn/create",
+    "controller": "ArticleSectionCnController",
+    "handler": "createSection",
+    "parameters": [
+      "CreateArticleSectionRequest request",
+      "String articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 281,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/cn/{articleId}/reorder",
+    "controller": "ArticleSectionCnController",
+    "handler": "reorderSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 258,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/cn/{id}/move",
+    "controller": "ArticleSectionCnController",
+    "handler": "moveSection",
+    "parameters": [
+      "UUID id",
+      "Integer newIndex"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 194,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/article-sections/cn/{id}",
+    "controller": "ArticleSectionCnController",
+    "handler": "deleteSection",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 37,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/article-sections/cn/{id}",
+    "controller": "ArticleSectionCnController",
+    "handler": "getSectionById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 298,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/article-sections/cn/{id}",
+    "controller": "ArticleSectionCnController",
+    "handler": "updateSection",
+    "parameters": [
+      "UUID id",
+      "UpdateArticleSectionRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 296,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/create-multiple",
+    "controller": "ArticleSectionController",
+    "handler": "createMultipleSections",
+    "parameters": [
+      "CreateMultipleArticleSectionsRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 15,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/create",
+    "controller": "ArticleSectionController",
+    "handler": "createSection",
+    "parameters": [
+      "CreateArticleSectionRequest request",
+      "String articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 22,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/{articleId}/reorder",
+    "controller": "ArticleSectionController",
+    "handler": "reorderSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 495,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/article-sections/{id}/move",
+    "controller": "ArticleSectionController",
+    "handler": "moveSection",
+    "parameters": [
+      "UUID id",
+      "Integer newIndex"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 440,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/article-sections/{id}",
+    "controller": "ArticleSectionController",
+    "handler": "deleteSection",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 246,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/article-sections/{id}",
+    "controller": "ArticleSectionController",
+    "handler": "getSectionById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 39,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/article-sections/{id}",
+    "controller": "ArticleSectionController",
+    "handler": "updateSection",
+    "parameters": [
+      "UUID id",
+      "UpdateArticleSectionRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 469,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/active/all",
+    "controller": "ArticleController",
+    "handler": "getAllActiveArticles",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 416,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/active",
+    "controller": "ArticleController",
+    "handler": "getActiveArticles",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 43,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/all",
+    "controller": "ArticleController",
+    "handler": "getAllArticles",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 412,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/active/all",
+    "controller": "ArticleCnController",
+    "handler": "getAllActiveArticles",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 191,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/active",
+    "controller": "ArticleCnController",
+    "handler": "getActiveArticles",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 16,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/all",
+    "controller": "ArticleCnController",
+    "handler": "getAllArticles",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 450,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/color/{color}",
+    "controller": "ArticleCnController",
+    "handler": "getArticlesByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 36,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/count/timerange",
+    "controller": "ArticleCnController",
+    "handler": "countArticlesByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 314,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/count/type/{type}",
+    "controller": "ArticleCnController",
+    "handler": "countArticlesByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 321,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/articles/cn/create",
+    "controller": "ArticleCnController",
+    "handler": "createArticle",
+    "parameters": [
+      "CreateArticleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 261,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/grouped-by-type",
+    "controller": "ArticleCnController",
+    "handler": "getAllArticlesGroupedByType",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 380,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/search/title",
+    "controller": "ArticleCnController",
+    "handler": "searchArticlesByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 109,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/timerange",
+    "controller": "ArticleCnController",
+    "handler": "getArticlesByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 267,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/type/{type}/page",
+    "controller": "ArticleCnController",
+    "handler": "getArticlesByTypePage",
+    "parameters": [
+      "String type",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 7,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/type/{type}/with-sections",
+    "controller": "ArticleCnController",
+    "handler": "getArticlesWithSectionsByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 208,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/type/{type}",
+    "controller": "ArticleCnController",
+    "handler": "getArticlesByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 478,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/with-sections/all",
+    "controller": "ArticleCnController",
+    "handler": "getAllArticlesWithSections",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 428,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/articles/cn/{articleId}/delete",
+    "controller": "ArticleCnController",
+    "handler": "deleteArticle",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 456,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/articles/cn/{articleId}/status",
+    "controller": "ArticleCnController",
+    "handler": "updateArticleStatus",
+    "parameters": [
+      "UUID articleId",
+      "String status"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 106,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/articles/cn/{articleId}/update",
+    "controller": "ArticleCnController",
+    "handler": "updateArticle",
+    "parameters": [
+      "UUID articleId",
+      "UpdateArticleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 376,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/{articleId}/with-detailed-sections",
+    "controller": "ArticleCnController",
+    "handler": "getArticleWithDetailedSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 82,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/{articleId}/with-sections",
+    "controller": "ArticleCnController",
+    "handler": "getArticleWithSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 220,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/cn/{articleId}",
+    "controller": "ArticleCnController",
+    "handler": "getArticle",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 180,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/color/{color}",
+    "controller": "ArticleController",
+    "handler": "getArticlesByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 196,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/count/timerange",
+    "controller": "ArticleController",
+    "handler": "countArticlesByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 249,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/count/type/{type}",
+    "controller": "ArticleController",
+    "handler": "countArticlesByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 167,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/articles/create",
+    "controller": "ArticleController",
+    "handler": "createArticle",
+    "parameters": [
+      "CreateArticleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 502,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/grouped-by-type",
+    "controller": "ArticleController",
+    "handler": "getAllArticlesGroupedByType",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 431,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/search/title",
+    "controller": "ArticleController",
+    "handler": "searchArticlesByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 230,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/timerange",
+    "controller": "ArticleController",
+    "handler": "getArticlesByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 398,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/type/{type}/page",
+    "controller": "ArticleController",
+    "handler": "getArticlesByTypePage",
+    "parameters": [
+      "String type",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 19,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/type/{type}/with-sections",
+    "controller": "ArticleController",
+    "handler": "getArticlesWithSectionsByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 451,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/type/{type}",
+    "controller": "ArticleController",
+    "handler": "getArticlesByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 413,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/with-sections/all",
+    "controller": "ArticleController",
+    "handler": "getAllArticlesWithSections",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 447,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/articles/{articleId}/delete",
+    "controller": "ArticleController",
+    "handler": "deleteArticle",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 427,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/articles/{articleId}/status",
+    "controller": "ArticleController",
+    "handler": "updateArticleStatus",
+    "parameters": [
+      "UUID articleId",
+      "String status"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 353,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/articles/{articleId}/update",
+    "controller": "ArticleController",
+    "handler": "updateArticle",
+    "parameters": [
+      "UUID articleId",
+      "UpdateArticleRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 115,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/{articleId}/with-detailed-sections",
+    "controller": "ArticleController",
+    "handler": "getArticleWithDetailedSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 87,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/{articleId}/with-sections",
+    "controller": "ArticleController",
+    "handler": "getArticleWithSections",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 401,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/articles/{articleId}",
+    "controller": "ArticleController",
+    "handler": "getArticle",
+    "parameters": [
+      "UUID articleId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 141,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/auth/apple/health",
+    "controller": "AppleAuthController",
+    "handler": "health",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 173,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/auth/apple/login",
+    "controller": "AppleAuthController",
+    "handler": "login",
+    "parameters": [
+      "AppleLoginRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 223,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/auth/apple/verify",
+    "controller": "AppleAuthController",
+    "handler": "verifyToken",
+    "parameters": [
+      "Map request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 63,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/auth/google/health",
+    "controller": "GoogleAuthController",
+    "handler": "health",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 289,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/auth/google/login",
+    "controller": "GoogleAuthController",
+    "handler": "login",
+    "parameters": [
+      "GoogleLoginRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 219,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/auth/google/verify",
+    "controller": "GoogleAuthController",
+    "handler": "verifyToken",
+    "parameters": [
+      "Map request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 396,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/create-time",
+    "controller": "BookController",
+    "handler": "getBooksByCreateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 213,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/books/create",
+    "controller": "BookController",
+    "handler": "createBook",
+    "parameters": [
+      "CreateBookRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 414,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/getAllBooks",
+    "controller": "BookController",
+    "handler": "getAllBooks",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 377,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/latest",
+    "controller": "BookController",
+    "handler": "getLatestBooks",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 102,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/page",
+    "controller": "BookController",
+    "handler": "getBooksPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 195,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/search/keyword",
+    "controller": "BookController",
+    "handler": "searchBooksByKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 319,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/search/page",
+    "controller": "BookController",
+    "handler": "searchBooksPage",
+    "parameters": [
+      "String title",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 97,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/search",
+    "controller": "BookController",
+    "handler": "searchBooks",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 221,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/stats/create-time",
+    "controller": "BookController",
+    "handler": "getCreateTimeStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 318,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/title/{title}",
+    "controller": "BookController",
+    "handler": "getBookByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 54,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/update-time",
+    "controller": "BookController",
+    "handler": "getBooksByUpdateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 458,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/with-pdf-url",
+    "controller": "BookController",
+    "handler": "getBooksWithPdfUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 57,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/with-post-url",
+    "controller": "BookController",
+    "handler": "getBooksWithPostUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 244,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/books/{id}/pdf-url",
+    "controller": "BookController",
+    "handler": "updatePdfUrl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 484,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/books/{id}/post-url",
+    "controller": "BookController",
+    "handler": "updatePostUrl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 265,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/books/{id}",
+    "controller": "BookController",
+    "handler": "deleteBook",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 350,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/books/{id}",
+    "controller": "BookController",
+    "handler": "getBookById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 464,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/books/{id}",
+    "controller": "BookController",
+    "handler": "updateBook",
+    "parameters": [
+      "UUID id",
+      "UpdateBookRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 354,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/bootstrap",
+    "controller": "BootstrapController",
+    "handler": "bootstrap",
+    "parameters": [
+      "HttpServletRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 216,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/count",
+    "controller": "BreatheController",
+    "handler": "countBreathe",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 25,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/create-time",
+    "controller": "BreatheController",
+    "handler": "getBreatheByCreateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 156,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/breathe/create",
+    "controller": "BreatheController",
+    "handler": "createBreathe",
+    "parameters": [
+      "CreateBreatheRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 438,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/getAllBreathe",
+    "controller": "BreatheController",
+    "handler": "getAllBreathe",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 73,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/latest",
+    "controller": "BreatheController",
+    "handler": "getLatestBreathe",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 198,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/page",
+    "controller": "BreatheController",
+    "handler": "getBreathePage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 407,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/search/keyword/title",
+    "controller": "BreatheController",
+    "handler": "searchBreatheByTitleKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 475,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/search/title/page",
+    "controller": "BreatheController",
+    "handler": "searchBreatheByTitlePage",
+    "parameters": [
+      "String title",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 410,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/search/title",
+    "controller": "BreatheController",
+    "handler": "searchBreatheByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 424,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/stats/create-time",
+    "controller": "BreatheController",
+    "handler": "getCreateTimeStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 243,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/title/{title}",
+    "controller": "BreatheController",
+    "handler": "getBreatheByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 251,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/update-time",
+    "controller": "BreatheController",
+    "handler": "getBreatheByUpdateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 435,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/with-audio-url",
+    "controller": "BreatheController",
+    "handler": "getBreatheWithAudiourl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 275,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/breathe/{id}/audio-url",
+    "controller": "BreatheController",
+    "handler": "updateAudiourl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 454,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/breathe/{id}",
+    "controller": "BreatheController",
+    "handler": "deleteBreathe",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 386,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/breathe/{id}",
+    "controller": "BreatheController",
+    "handler": "getBreatheById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 166,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/breathe/{id}",
+    "controller": "BreatheController",
+    "handler": "updateBreathe",
+    "parameters": [
+      "UUID id",
+      "UpdateBreatheRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 94,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/change-reasons/user/{userId}/count",
+    "controller": "ChangeReasonController",
+    "handler": "countChangeReasonsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 345,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/change-reasons/user/{userId}/latest",
+    "controller": "ChangeReasonController",
+    "handler": "getLatestChangeReasonByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 228,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/change-reasons/user/{userId}",
+    "controller": "ChangeReasonController",
+    "handler": "deleteChangeReasonsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 347,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/change-reasons/user/{userId}",
+    "controller": "ChangeReasonController",
+    "handler": "getChangeReasonsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 302,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/change-reasons/{id}",
+    "controller": "ChangeReasonController",
+    "handler": "deleteChangeReason",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 477,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/change-reasons/{id}",
+    "controller": "ChangeReasonController",
+    "handler": "getChangeReasonById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 90,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/change-reasons",
+    "controller": "ChangeReasonController",
+    "handler": "createChangeReason",
+    "parameters": [
+      "CreateChangeReasonRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 426,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/change-reasons",
+    "controller": "ChangeReasonController",
+    "handler": "updateChangeReason",
+    "parameters": [
+      "UpdateChangeReasonRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 24,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/channels/all",
+    "controller": "ChannelController",
+    "handler": "getAllChannels",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 259,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/channels/count",
+    "controller": "ChannelController",
+    "handler": "countChannels",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 151,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/channels/create",
+    "controller": "ChannelController",
+    "handler": "createChannel",
+    "parameters": [
+      "CreateChannelRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 355,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/channels/page",
+    "controller": "ChannelController",
+    "handler": "getChannelPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 44,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/channels/search",
+    "controller": "ChannelController",
+    "handler": "searchChannels",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 310,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/channels/{id}",
+    "controller": "ChannelController",
+    "handler": "deleteChannel",
+    "parameters": [
+      "Integer id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 274,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/channels/{id}",
+    "controller": "ChannelController",
+    "handler": "getChannelById",
+    "parameters": [
+      "Integer id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 9,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/channels/{id}",
+    "controller": "ChannelController",
+    "handler": "updateChannel",
+    "parameters": [
+      "Integer id",
+      "UpdateChannelRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 421,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/count/post/{postId}",
+    "controller": "CommentController",
+    "handler": "countCommentsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 104,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/count/time-range",
+    "controller": "CommentController",
+    "handler": "countCommentsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 403,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/count/user/{userId}",
+    "controller": "CommentController",
+    "handler": "countCommentsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 197,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/comments/create",
+    "controller": "CommentController",
+    "handler": "createComment",
+    "parameters": [
+      "CreateCommentRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 74,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/getAllComments",
+    "controller": "CommentController",
+    "handler": "getAllComments",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 300,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/nickname/{userNickname}",
+    "controller": "CommentController",
+    "handler": "getCommentsByUserNickname",
+    "parameters": [
+      "String userNickname"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 21,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}/page",
+    "controller": "CommentController",
+    "handler": "getCommentsByPostIdPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 461,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}/top-level/page",
+    "controller": "CommentController",
+    "handler": "getTopLevelCommentsPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 29,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}/top-level",
+    "controller": "CommentController",
+    "handler": "getTopLevelComments",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 470,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}/with-replies/page",
+    "controller": "CommentController",
+    "handler": "getCommentsWithRepliesPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 204,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}/with-replies",
+    "controller": "CommentController",
+    "handler": "getCommentsWithReplies",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 433,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/post/{postId}",
+    "controller": "CommentController",
+    "handler": "getCommentsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 501,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/comments/reply",
+    "controller": "CommentController",
+    "handler": "createReply",
+    "parameters": [
+      "CreateReplyRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 188,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/search/content",
+    "controller": "CommentController",
+    "handler": "searchCommentsByContent",
+    "parameters": [
+      "String content"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 260,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/stage/{userStage}",
+    "controller": "CommentController",
+    "handler": "getCommentsByUserStage",
+    "parameters": [
+      "String userStage"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 295,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/time-range",
+    "controller": "CommentController",
+    "handler": "getCommentsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 432,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/user/{userId}",
+    "controller": "CommentController",
+    "handler": "getCommentsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 339,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/comments/{commentId}/delete-with-replies",
+    "controller": "CommentController",
+    "handler": "deleteCommentAndReplies",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 112,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/comments/{commentId}/delete",
+    "controller": "CommentController",
+    "handler": "deleteComment",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 49,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/comments/{commentId}/update",
+    "controller": "CommentController",
+    "handler": "updateComment",
+    "parameters": [
+      "UUID commentId",
+      "UpdateCommentRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 462,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/{commentId}",
+    "controller": "CommentController",
+    "handler": "getComment",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 154,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/{rootCommentId}/replies/count",
+    "controller": "CommentController",
+    "handler": "countRepliesByRootCommentId",
+    "parameters": [
+      "UUID rootCommentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 84,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/comments/{rootCommentId}/replies",
+    "controller": "CommentController",
+    "handler": "getRepliesByRootCommentId",
+    "parameters": [
+      "UUID rootCommentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 449,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/all",
+    "controller": "FeedbackController",
+    "handler": "getAllFeedbacks",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 184,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/count/time-range",
+    "controller": "FeedbackController",
+    "handler": "countFeedbacksByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 287,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/count/type/{feedbackType}",
+    "controller": "FeedbackController",
+    "handler": "countFeedbacksByType",
+    "parameters": [
+      "String feedbackType"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 192,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/count/user/{userId}",
+    "controller": "FeedbackController",
+    "handler": "countFeedbacksByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 390,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/count",
+    "controller": "FeedbackController",
+    "handler": "countFeedbacks",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 139,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/feedback/create",
+    "controller": "FeedbackController",
+    "handler": "createFeedback",
+    "parameters": [
+      "CreateFeedbackRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 181,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/time-range",
+    "controller": "FeedbackController",
+    "handler": "getFeedbacksByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 236,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/type/{feedbackType}/page",
+    "controller": "FeedbackController",
+    "handler": "getFeedbacksByTypePage",
+    "parameters": [
+      "String feedbackType",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 283,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/type/{feedbackType}",
+    "controller": "FeedbackController",
+    "handler": "getFeedbacksByType",
+    "parameters": [
+      "String feedbackType"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 182,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/user/{userId}/page",
+    "controller": "FeedbackController",
+    "handler": "getFeedbacksByUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 241,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/user/{userId}",
+    "controller": "FeedbackController",
+    "handler": "getFeedbacksByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 189,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/feedback/{id}",
+    "controller": "FeedbackController",
+    "handler": "getFeedback",
+    "parameters": [
+      "Long id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 72,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comment-reports/check",
+    "controller": "GlCommentReportController",
+    "handler": "hasUserReportedComment",
+    "parameters": [
+      "UUID commentId",
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 113,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comment-reports/comment/{commentId}",
+    "controller": "GlCommentReportController",
+    "handler": "getReportsByCommentId",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 480,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comment-reports/count/comment/{commentId}",
+    "controller": "GlCommentReportController",
+    "handler": "countReportsByCommentId",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 415,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/comment-reports/create",
+    "controller": "GlCommentReportController",
+    "handler": "createReport",
+    "parameters": [
+      "CreateCommentReportRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 255,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comment-reports/{reportId}",
+    "controller": "GlCommentReportController",
+    "handler": "getReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 254,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/count/post/{postId}",
+    "controller": "GlCommentController",
+    "handler": "countCommentsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 145,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/count/time-range",
+    "controller": "GlCommentController",
+    "handler": "countCommentsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 5,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/count/user/{userId}",
+    "controller": "GlCommentController",
+    "handler": "countCommentsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 325,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/comments/create",
+    "controller": "GlCommentController",
+    "handler": "createComment",
+    "parameters": [
+      "CreateCommentRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 420,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/getAllComments",
+    "controller": "GlCommentController",
+    "handler": "getAllComments",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 69,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/nickname/{userNickname}",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByUserNickname",
+    "parameters": [
+      "String userNickname"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 315,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}/page",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByPostIdPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 214,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}/top-level/page",
+    "controller": "GlCommentController",
+    "handler": "getTopLevelCommentsPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 222,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}/top-level",
+    "controller": "GlCommentController",
+    "handler": "getTopLevelComments",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 13,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}/with-replies/page",
+    "controller": "GlCommentController",
+    "handler": "getCommentsWithRepliesPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 105,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}/with-replies",
+    "controller": "GlCommentController",
+    "handler": "getCommentsWithReplies",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 130,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/post/{postId}",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 124,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/comments/reply",
+    "controller": "GlCommentController",
+    "handler": "createReply",
+    "parameters": [
+      "CreateReplyRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 96,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/search/content",
+    "controller": "GlCommentController",
+    "handler": "searchCommentsByContent",
+    "parameters": [
+      "String content"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 122,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/stage/{userStage}",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByUserStage",
+    "parameters": [
+      "String userStage"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 316,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/time-range",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 143,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/user/{userId}",
+    "controller": "GlCommentController",
+    "handler": "getCommentsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 142,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/gl/comments/{commentId}/delete-with-replies",
+    "controller": "GlCommentController",
+    "handler": "deleteCommentAndReplies",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 430,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/gl/comments/{commentId}/delete",
+    "controller": "GlCommentController",
+    "handler": "deleteComment",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 331,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/gl/comments/{commentId}/update",
+    "controller": "GlCommentController",
+    "handler": "updateComment",
+    "parameters": [
+      "UUID commentId",
+      "UpdateCommentRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 481,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/{commentId}",
+    "controller": "GlCommentController",
+    "handler": "getComment",
+    "parameters": [
+      "UUID commentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 342,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/{rootCommentId}/replies/count",
+    "controller": "GlCommentController",
+    "handler": "countRepliesByRootCommentId",
+    "parameters": [
+      "UUID rootCommentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 499,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/comments/{rootCommentId}/replies",
+    "controller": "GlCommentController",
+    "handler": "getRepliesByRootCommentId",
+    "parameters": [
+      "UUID rootCommentId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 256,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/community-sync/cn-to-gl",
+    "controller": "CommunityCnToGlSyncController",
+    "handler": "syncCnToGl",
+    "parameters": [
+      "CommunityCnToGlSyncRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 179,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/post-likes/batch",
+    "controller": "GlPostLikeController",
+    "handler": "createPostLikesForPosts",
+    "parameters": [
+      "List postIds"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 324,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/greater-than",
+    "controller": "GlPostLikeController",
+    "handler": "findByLikeCountGreaterThan",
+    "parameters": [
+      "Integer minCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 155,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/less-than",
+    "controller": "GlPostLikeController",
+    "handler": "findByLikeCountLessThan",
+    "parameters": [
+      "Integer maxCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 305,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/range",
+    "controller": "GlPostLikeController",
+    "handler": "findByLikeCountRange",
+    "parameters": [
+      "Integer minCount",
+      "Integer maxCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 333,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/stats/average",
+    "controller": "GlPostLikeController",
+    "handler": "getAverageLikeCount",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 203,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/stats/total",
+    "controller": "GlPostLikeController",
+    "handler": "getTotalLikeCount",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 131,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/time-range",
+    "controller": "GlPostLikeController",
+    "handler": "findByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 467,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/top",
+    "controller": "GlPostLikeController",
+    "handler": "getTopLikedPosts",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 55,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/{postId}/count",
+    "controller": "GlPostLikeController",
+    "handler": "getLikeCount",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 149,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/gl/post-likes/{postId}/count",
+    "controller": "GlPostLikeController",
+    "handler": "setLikeCount",
+    "parameters": [
+      "UUID postId",
+      "Integer likeCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 402,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/post-likes/{postId}/like",
+    "controller": "GlPostLikeController",
+    "handler": "likePost",
+    "parameters": [
+      "String postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 317,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/gl/post-likes/{postId}/reset",
+    "controller": "GlPostLikeController",
+    "handler": "resetLikeCount",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 75,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/post-likes/{postId}/unlike",
+    "controller": "GlPostLikeController",
+    "handler": "unlikePost",
+    "parameters": [
+      "String postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 262,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/gl/post-likes/{postId}",
+    "controller": "GlPostLikeController",
+    "handler": "deletePostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 351,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-likes/{postId}",
+    "controller": "GlPostLikeController",
+    "handler": "getPostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 127,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/post-likes/{postId}",
+    "controller": "GlPostLikeController",
+    "handler": "createPostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 341,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-reports/check",
+    "controller": "GlPostReportController",
+    "handler": "hasUserReportedPost",
+    "parameters": [
+      "UUID postId",
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 465,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-reports/count/post/{postId}",
+    "controller": "GlPostReportController",
+    "handler": "countReportsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 471,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/post-reports/create",
+    "controller": "GlPostReportController",
+    "handler": "createReport",
+    "parameters": [
+      "CreatePostReportRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 10,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-reports/post/{postId}",
+    "controller": "GlPostReportController",
+    "handler": "getReportsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 103,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/post-reports/{reportId}",
+    "controller": "GlPostReportController",
+    "handler": "getReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 79,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/count/time-range",
+    "controller": "GlPostController",
+    "handler": "countPostsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 482,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/count/user/{userId}",
+    "controller": "GlPostController",
+    "handler": "countPostsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 439,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/gl/posts/create",
+    "controller": "GlPostController",
+    "handler": "createPost",
+    "parameters": [
+      "CreatePostRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 264,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/getAllPosts",
+    "controller": "GlPostController",
+    "handler": "getAllPosts",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 253,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/getAllPostsList",
+    "controller": "GlPostController",
+    "handler": "getAllPostsList",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 297,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/nickname/{userNickname}",
+    "controller": "GlPostController",
+    "handler": "getPostsByUserNickname",
+    "parameters": [
+      "String userNickname"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 486,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/search/content",
+    "controller": "GlPostController",
+    "handler": "searchPostsByContent",
+    "parameters": [
+      "String content"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 422,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/stage/{userStage}",
+    "controller": "GlPostController",
+    "handler": "getPostsByUserStage",
+    "parameters": [
+      "String userStage"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 344,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/time-range",
+    "controller": "GlPostController",
+    "handler": "getPostsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 359,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/user/{userId}/page",
+    "controller": "GlPostController",
+    "handler": "getPostsByUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 3,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/user/{userId}",
+    "controller": "GlPostController",
+    "handler": "getPostsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 293,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/gl/posts/{postId}/delete",
+    "controller": "GlPostController",
+    "handler": "deletePost",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 233,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/gl/posts/{postId}/update",
+    "controller": "GlPostController",
+    "handler": "updatePost",
+    "parameters": [
+      "UUID postId",
+      "UpdatePostRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 110,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/gl/posts/{postId}",
+    "controller": "GlPostController",
+    "handler": "getPost",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 201,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/health",
+    "controller": "HelloController",
+    "handler": "health",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 42,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/hello",
+    "controller": "HelloController",
+    "handler": "hello",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 41,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/logs/files",
+    "controller": "LogController",
+    "handler": "getLogFiles",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 373,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/logs/level",
+    "controller": "LogController",
+    "handler": "getLogLevel",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 266,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/logs/level",
+    "controller": "LogController",
+    "handler": "setLogLevel",
+    "parameters": [
+      "String loggerName",
+      "String level"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 466,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/color/{color}",
+    "controller": "MeditateVideoCnController",
+    "handler": "getMeditateVideosByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 118,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/count",
+    "controller": "MeditateVideoCnController",
+    "handler": "countMeditateVideos",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 309,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/meditate-videos/cn/create",
+    "controller": "MeditateVideoCnController",
+    "handler": "createMeditateVideo",
+    "parameters": [
+      "CreateMeditateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 291,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/getAllMeditateVideos",
+    "controller": "MeditateVideoCnController",
+    "handler": "getAllMeditateVideos",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 356,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/search/title",
+    "controller": "MeditateVideoCnController",
+    "handler": "searchMeditateVideosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 239,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/with-audio-url",
+    "controller": "MeditateVideoCnController",
+    "handler": "getMeditateVideosWithAudioUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 46,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/with-image",
+    "controller": "MeditateVideoCnController",
+    "handler": "getMeditateVideosWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 364,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/with-video-url",
+    "controller": "MeditateVideoCnController",
+    "handler": "getMeditateVideosWithVideoUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 225,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/meditate-videos/cn/{id}",
+    "controller": "MeditateVideoCnController",
+    "handler": "deleteMeditateVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 99,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/cn/{id}",
+    "controller": "MeditateVideoCnController",
+    "handler": "getMeditateVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 385,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/meditate-videos/cn/{id}",
+    "controller": "MeditateVideoCnController",
+    "handler": "updateMeditateVideo",
+    "parameters": [
+      "UUID id",
+      "UpdateMeditateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 162,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/color/{color}",
+    "controller": "MeditateVideoController",
+    "handler": "getMeditateVideosByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 35,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/count",
+    "controller": "MeditateVideoController",
+    "handler": "countMeditateVideos",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 234,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/meditate-videos/create",
+    "controller": "MeditateVideoController",
+    "handler": "createMeditateVideo",
+    "parameters": [
+      "CreateMeditateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 47,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/getAllMeditateVideos",
+    "controller": "MeditateVideoController",
+    "handler": "getAllMeditateVideos",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 498,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/search/title",
+    "controller": "MeditateVideoController",
+    "handler": "searchMeditateVideosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 299,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/with-audio-url",
+    "controller": "MeditateVideoController",
+    "handler": "getMeditateVideosWithAudioUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 199,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/with-image",
+    "controller": "MeditateVideoController",
+    "handler": "getMeditateVideosWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 335,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/with-video-url",
+    "controller": "MeditateVideoController",
+    "handler": "getMeditateVideosWithVideoUrl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 65,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/meditate-videos/{id}",
+    "controller": "MeditateVideoController",
+    "handler": "deleteMeditateVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 397,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/meditate-videos/{id}",
+    "controller": "MeditateVideoController",
+    "handler": "getMeditateVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 404,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/meditate-videos/{id}",
+    "controller": "MeditateVideoController",
+    "handler": "updateMeditateVideo",
+    "parameters": [
+      "UUID id",
+      "UpdateMeditateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 60,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/author/{author}",
+    "controller": "MusicController",
+    "handler": "getMusicByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 391,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/author/{author}",
+    "controller": "MusicCnController",
+    "handler": "getMusicByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 472,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/count",
+    "controller": "MusicCnController",
+    "handler": "countMusic",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 169,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/create-time",
+    "controller": "MusicCnController",
+    "handler": "getMusicByCreateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 128,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/music/cn/create",
+    "controller": "MusicCnController",
+    "handler": "createMusic",
+    "parameters": [
+      "CreateMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 245,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/getAllMusic",
+    "controller": "MusicCnController",
+    "handler": "getAllMusic",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 263,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/latest",
+    "controller": "MusicCnController",
+    "handler": "getLatestMusic",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 269,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/page",
+    "controller": "MusicCnController",
+    "handler": "getMusicPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 313,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/author/page",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByAuthorPage",
+    "parameters": [
+      "String author",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 160,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/author",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 31,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/keyword/author",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByAuthorKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 136,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/keyword/title",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByTitleKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 419,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/title/page",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByTitlePage",
+    "parameters": [
+      "String title",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 312,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/search/title",
+    "controller": "MusicCnController",
+    "handler": "searchMusicByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 487,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/stats/create-time",
+    "controller": "MusicCnController",
+    "handler": "getCreateTimeStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 348,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/title/{title}",
+    "controller": "MusicCnController",
+    "handler": "getMusicByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 457,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/update-time",
+    "controller": "MusicCnController",
+    "handler": "getMusicByUpdateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 140,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/with-audio-url",
+    "controller": "MusicCnController",
+    "handler": "getMusicWithAudiourl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 483,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/with-image",
+    "controller": "MusicCnController",
+    "handler": "getMusicWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 496,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/with-video-url",
+    "controller": "MusicCnController",
+    "handler": "getMusicWithVideourl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 252,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/cn/{id}/audio-url",
+    "controller": "MusicCnController",
+    "handler": "updateAudiourl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 144,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/cn/{id}/color",
+    "controller": "MusicCnController",
+    "handler": "updateColor",
+    "parameters": [
+      "UUID id",
+      "UpdateColorRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 276,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/cn/{id}/image",
+    "controller": "MusicCnController",
+    "handler": "updateImage",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 334,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/cn/{id}/video-url",
+    "controller": "MusicCnController",
+    "handler": "updateVideourl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 133,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/music/cn/{id}",
+    "controller": "MusicCnController",
+    "handler": "deleteMusic",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 190,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/cn/{id}",
+    "controller": "MusicCnController",
+    "handler": "getMusicById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 91,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/cn/{id}",
+    "controller": "MusicCnController",
+    "handler": "updateMusic",
+    "parameters": [
+      "UUID id",
+      "UpdateMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 95,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/count",
+    "controller": "MusicController",
+    "handler": "countMusic",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 485,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/create-time",
+    "controller": "MusicController",
+    "handler": "getMusicByCreateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 360,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/music/create",
+    "controller": "MusicController",
+    "handler": "createMusic",
+    "parameters": [
+      "CreateMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 322,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/getAllMusic",
+    "controller": "MusicController",
+    "handler": "getAllMusic",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 492,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/latest",
+    "controller": "MusicController",
+    "handler": "getLatestMusic",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 320,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/page",
+    "controller": "MusicController",
+    "handler": "getMusicPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 455,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/author/page",
+    "controller": "MusicController",
+    "handler": "searchMusicByAuthorPage",
+    "parameters": [
+      "String author",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 294,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/author",
+    "controller": "MusicController",
+    "handler": "searchMusicByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 400,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/keyword/author",
+    "controller": "MusicController",
+    "handler": "searchMusicByAuthorKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 279,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/keyword/title",
+    "controller": "MusicController",
+    "handler": "searchMusicByTitleKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 59,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/title/page",
+    "controller": "MusicController",
+    "handler": "searchMusicByTitlePage",
+    "parameters": [
+      "String title",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 111,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/search/title",
+    "controller": "MusicController",
+    "handler": "searchMusicByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 61,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/stats/create-time",
+    "controller": "MusicController",
+    "handler": "getCreateTimeStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 229,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/title/{title}",
+    "controller": "MusicController",
+    "handler": "getMusicByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 247,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/update-time",
+    "controller": "MusicController",
+    "handler": "getMusicByUpdateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 238,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/with-audio-url",
+    "controller": "MusicController",
+    "handler": "getMusicWithAudiourl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 119,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/with-image",
+    "controller": "MusicController",
+    "handler": "getMusicWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 346,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/with-video-url",
+    "controller": "MusicController",
+    "handler": "getMusicWithVideourl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 388,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/{id}/audio-url",
+    "controller": "MusicController",
+    "handler": "updateAudiourl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 453,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/{id}/color",
+    "controller": "MusicController",
+    "handler": "updateColor",
+    "parameters": [
+      "UUID id",
+      "UpdateColorRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 66,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/{id}/image",
+    "controller": "MusicController",
+    "handler": "updateImage",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 215,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/{id}/video-url",
+    "controller": "MusicController",
+    "handler": "updateVideourl",
+    "parameters": [
+      "UUID id",
+      "UpdateUrlRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 328,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/music/{id}",
+    "controller": "MusicController",
+    "handler": "deleteMusic",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 242,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/music/{id}",
+    "controller": "MusicController",
+    "handler": "getMusicById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 33,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/music/{id}",
+    "controller": "MusicController",
+    "handler": "updateMusic",
+    "parameters": [
+      "UUID id",
+      "UpdateMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 473,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/post-likes/batch",
+    "controller": "PostLikeController",
+    "handler": "createPostLikesForPosts",
+    "parameters": [
+      "List postIds"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 474,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/greater-than",
+    "controller": "PostLikeController",
+    "handler": "findByLikeCountGreaterThan",
+    "parameters": [
+      "Integer minCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 67,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/less-than",
+    "controller": "PostLikeController",
+    "handler": "findByLikeCountLessThan",
+    "parameters": [
+      "Integer maxCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 409,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/range",
+    "controller": "PostLikeController",
+    "handler": "findByLikeCountRange",
+    "parameters": [
+      "Integer minCount",
+      "Integer maxCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 301,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/stats/average",
+    "controller": "PostLikeController",
+    "handler": "getAverageLikeCount",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 80,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/stats/total",
+    "controller": "PostLikeController",
+    "handler": "getTotalLikeCount",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 349,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/time-range",
+    "controller": "PostLikeController",
+    "handler": "findByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 27,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/top",
+    "controller": "PostLikeController",
+    "handler": "getTopLikedPosts",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 2,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/{postId}/count",
+    "controller": "PostLikeController",
+    "handler": "getLikeCount",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 277,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/post-likes/{postId}/count",
+    "controller": "PostLikeController",
+    "handler": "setLikeCount",
+    "parameters": [
+      "UUID postId",
+      "Integer likeCount"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 370,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/post-likes/{postId}/like",
+    "controller": "PostLikeController",
+    "handler": "likePost",
+    "parameters": [
+      "String postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 126,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/post-likes/{postId}/reset",
+    "controller": "PostLikeController",
+    "handler": "resetLikeCount",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 153,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/post-likes/{postId}/unlike",
+    "controller": "PostLikeController",
+    "handler": "unlikePost",
+    "parameters": [
+      "String postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 148,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/post-likes/{postId}",
+    "controller": "PostLikeController",
+    "handler": "deletePostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 53,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-likes/{postId}",
+    "controller": "PostLikeController",
+    "handler": "getPostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 32,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/post-likes/{postId}",
+    "controller": "PostLikeController",
+    "handler": "createPostLike",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 83,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/check",
+    "controller": "PostReportController",
+    "handler": "checkUserReported",
+    "parameters": [
+      "UUID postId",
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 394,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/count/post/{postId}",
+    "controller": "PostReportController",
+    "handler": "countReportsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 399,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/count/user/{userId}",
+    "controller": "PostReportController",
+    "handler": "countReportsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 408,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/post-reports/create",
+    "controller": "PostReportController",
+    "handler": "createReport",
+    "parameters": [
+      "CreatePostReportRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 250,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/most-reported/page",
+    "controller": "PostReportController",
+    "handler": "getMostReportedPostsPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 146,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/most-reported",
+    "controller": "PostReportController",
+    "handler": "getMostReportedPosts",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 77,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/post/{postId}/page",
+    "controller": "PostReportController",
+    "handler": "getReportsByPostIdPage",
+    "parameters": [
+      "UUID postId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 384,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/post/{postId}",
+    "controller": "PostReportController",
+    "handler": "getReportsByPostId",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 290,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/reason",
+    "controller": "PostReportController",
+    "handler": "getReportsByReason",
+    "parameters": [
+      "String reason"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 257,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/time-range",
+    "controller": "PostReportController",
+    "handler": "getReportsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 476,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/user/{userId}/page",
+    "controller": "PostReportController",
+    "handler": "getReportsByUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 411,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/user/{userId}",
+    "controller": "PostReportController",
+    "handler": "getReportsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 100,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/post-reports/{reportId}",
+    "controller": "PostReportController",
+    "handler": "deleteReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 459,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports/{reportId}",
+    "controller": "PostReportController",
+    "handler": "getReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 206,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/post-reports",
+    "controller": "PostReportController",
+    "handler": "getAllReports",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 210,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/count/time-range",
+    "controller": "PostController",
+    "handler": "countPostsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 165,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/count/user/{userId}",
+    "controller": "PostController",
+    "handler": "countPostsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 393,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/posts/create",
+    "controller": "PostController",
+    "handler": "createPost",
+    "parameters": [
+      "CreatePostRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 357,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/getAllPosts",
+    "controller": "PostController",
+    "handler": "getAllPosts",
+    "parameters": [
+      "int page",
+      "int size",
+      "String sortBy",
+      "String sortDir"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 137,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/getAllPostsList",
+    "controller": "PostController",
+    "handler": "getAllPostsList",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 429,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/nickname/{userNickname}",
+    "controller": "PostController",
+    "handler": "getPostsByUserNickname",
+    "parameters": [
+      "String userNickname"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 383,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/search/content",
+    "controller": "PostController",
+    "handler": "searchPostsByContent",
+    "parameters": [
+      "String content"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 176,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/stage/{userStage}",
+    "controller": "PostController",
+    "handler": "getPostsByUserStage",
+    "parameters": [
+      "String userStage"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 311,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/time-range",
+    "controller": "PostController",
+    "handler": "getPostsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 358,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/user/{userId}/page",
+    "controller": "PostController",
+    "handler": "getPostsByUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 217,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/user/{userId}",
+    "controller": "PostController",
+    "handler": "getPostsByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 372,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/posts/{postId}/delete",
+    "controller": "PostController",
+    "handler": "deletePost",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 50,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/posts/{postId}/update",
+    "controller": "PostController",
+    "handler": "updatePost",
+    "parameters": [
+      "UUID postId",
+      "UpdatePostRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 209,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/posts/{postId}",
+    "controller": "PostController",
+    "handler": "getPost",
+    "parameters": [
+      "UUID postId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 85,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/pure-musics/create",
+    "controller": "PureMusicController",
+    "handler": "createPureMusic",
+    "parameters": [
+      "CreatePureMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 158,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/pure-musics/{videoId}/context/{lang}",
+    "controller": "PureMusicController",
+    "handler": "getPureMusicContextByLang",
+    "parameters": [
+      "UUID videoId",
+      "String lang"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 490,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/pure-musics/{videoId}",
+    "controller": "PureMusicController",
+    "handler": "deletePureMusic",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 329,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/pure-musics/{videoId}",
+    "controller": "PureMusicController",
+    "handler": "getPureMusic",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 12,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/pure-musics/{videoId}",
+    "controller": "PureMusicController",
+    "handler": "updatePureMusic",
+    "parameters": [
+      "UUID videoId",
+      "UpdatePureMusicRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 406,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/pure-musics",
+    "controller": "PureMusicController",
+    "handler": "getAllPureMusics",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 132,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/push/cancel",
+    "controller": "PushController",
+    "handler": "cancelPush",
+    "parameters": [
+      "CancelPushRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 271,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/push/schedule",
+    "controller": "PushController",
+    "handler": "schedulePush",
+    "parameters": [
+      "SchedulePushRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 18,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/count",
+    "controller": "QuoteController",
+    "handler": "countQuotes",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 479,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/create-time",
+    "controller": "QuoteController",
+    "handler": "getQuoteByCreateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 231,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/quotes/create",
+    "controller": "QuoteController",
+    "handler": "createQuote",
+    "parameters": [
+      "CreateQuoteRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 38,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/getAllQuotes",
+    "controller": "QuoteController",
+    "handler": "getAllQuotes",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 379,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/latest",
+    "controller": "QuoteController",
+    "handler": "getLatestQuotes",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 163,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/page",
+    "controller": "QuoteController",
+    "handler": "getQuotePage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 89,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/search/keyword/page",
+    "controller": "QuoteController",
+    "handler": "searchQuotesByKeywordPage",
+    "parameters": [
+      "String keyword",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 26,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/search/keyword",
+    "controller": "QuoteController",
+    "handler": "searchQuotesByKeyword",
+    "parameters": [
+      "String keyword"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 368,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/search/quote-cn",
+    "controller": "QuoteController",
+    "handler": "searchQuoteByQuoteCn",
+    "parameters": [
+      "String quoteCn"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 278,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/search/quote",
+    "controller": "QuoteController",
+    "handler": "searchQuoteByQuote",
+    "parameters": [
+      "String quote"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 164,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/stats/create-time",
+    "controller": "QuoteController",
+    "handler": "getCreateTimeStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 172,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/update-time",
+    "controller": "QuoteController",
+    "handler": "getQuoteByUpdateTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 365,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/quotes/{id}",
+    "controller": "QuoteController",
+    "handler": "deleteQuote",
+    "parameters": [
+      "Long id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 488,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/quotes/{id}",
+    "controller": "QuoteController",
+    "handler": "getQuoteById",
+    "parameters": [
+      "Long id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 68,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/quotes/{id}",
+    "controller": "QuoteController",
+    "handler": "updateQuote",
+    "parameters": [
+      "Long id",
+      "UpdateQuoteRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 443,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/recover-journey/create",
+    "controller": "RecoverJourneyController",
+    "handler": "createRecoverJourney",
+    "parameters": [
+      "CreateRecoverJourneyRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 1,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/recover-journey/search",
+    "controller": "RecoverJourneyController",
+    "handler": "searchByFellContent",
+    "parameters": [
+      "String content"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 81,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/recover-journey/user/{userId}/latest",
+    "controller": "RecoverJourneyController",
+    "handler": "getLatestRecoverJourneyByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 114,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/recover-journey/user/{userId}/statistics",
+    "controller": "RecoverJourneyController",
+    "handler": "getUserRecoverJourneyStatistics",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 117,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/recover-journey/user/{userId}",
+    "controller": "RecoverJourneyController",
+    "handler": "getRecoverJourneysByUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 157,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/recover-journey/{id}/fell-content",
+    "controller": "RecoverJourneyController",
+    "handler": "updateFellContent",
+    "parameters": [
+      "UUID id",
+      "String fellContent"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 78,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/recover-journey/{id}",
+    "controller": "RecoverJourneyController",
+    "handler": "deleteRecoverJourney",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 497,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/recover-journey/{id}",
+    "controller": "RecoverJourneyController",
+    "handler": "getRecoverJourney",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 366,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/recover-journey/{id}",
+    "controller": "RecoverJourneyController",
+    "handler": "updateRecoverJourney",
+    "parameters": [
+      "UUID id",
+      "UpdateRecoverJourneyRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 56,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/rtm/send-system-message",
+    "controller": "RtmController",
+    "handler": "sendSystemMessage",
+    "parameters": [
+      "SendSystemMessageRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 284,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/rtm/token",
+    "controller": "RtmController",
+    "handler": "getToken",
+    "parameters": [
+      "String userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 491,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/sister-motivation-videos/count",
+    "controller": "SisterMotivationVideoController",
+    "handler": "countVideos",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 20,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/sister-motivation-videos/create",
+    "controller": "SisterMotivationVideoController",
+    "handler": "createVideo",
+    "parameters": [
+      "CreateSisterMotivationVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 417,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/sister-motivation-videos/getAllVideos",
+    "controller": "SisterMotivationVideoController",
+    "handler": "getAllVideos",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 237,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/sister-motivation-videos/list",
+    "controller": "SisterMotivationVideoController",
+    "handler": "getAllVideosList",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 337,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/sister-motivation-videos/search/title",
+    "controller": "SisterMotivationVideoController",
+    "handler": "searchVideosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 135,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/sister-motivation-videos/{videoId}",
+    "controller": "SisterMotivationVideoController",
+    "handler": "deleteVideo",
+    "parameters": [
+      "String videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 308,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/sister-motivation-videos/{videoId}",
+    "controller": "SisterMotivationVideoController",
+    "handler": "getVideo",
+    "parameters": [
+      "String videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 441,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/sister-motivation-videos/{videoId}",
+    "controller": "SisterMotivationVideoController",
+    "handler": "updateVideo",
+    "parameters": [
+      "String videoId",
+      "UpdateSisterMotivationVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 489,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/ssl/info",
+    "controller": "SslController",
+    "handler": "getSslInfo",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 434,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/ssl/status",
+    "controller": "SslController",
+    "handler": "getSslStatus",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 303,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-identities/find-user",
+    "controller": "UserIdentityController",
+    "handler": "findUserByIdentity",
+    "parameters": [
+      "String identityType",
+      "String identityId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 363,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/user-identities/{userId}/bind",
+    "controller": "UserIdentityController",
+    "handler": "bindIdentity",
+    "parameters": [
+      "String userId",
+      "BindIdentityRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 389,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-identities/{userId}/count",
+    "controller": "UserIdentityController",
+    "handler": "countUserIdentities",
+    "parameters": [
+      "String userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 285,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/user-identities/{userId}/type/{identityType}",
+    "controller": "UserIdentityController",
+    "handler": "deleteIdentityByType",
+    "parameters": [
+      "String userId",
+      "String identityType"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 494,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-identities/{userId}/type/{identityType}",
+    "controller": "UserIdentityController",
+    "handler": "getUserIdentityByType",
+    "parameters": [
+      "String userId",
+      "String identityType"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 107,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/user-identities/{userId}",
+    "controller": "UserIdentityController",
+    "handler": "deleteAllIdentities",
+    "parameters": [
+      "String userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 211,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-identities/{userId}",
+    "controller": "UserIdentityController",
+    "handler": "getUserIdentities",
+    "parameters": [
+      "String userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 352,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/check",
+    "controller": "UserReportController",
+    "handler": "checkUserReported",
+    "parameters": [
+      "UUID reportedUserId",
+      "UUID reporterUserId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 93,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/count/reported/{userId}",
+    "controller": "UserReportController",
+    "handler": "countReportsByReportedUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 268,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/count/reporter/{userId}",
+    "controller": "UserReportController",
+    "handler": "countReportsByReporterUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 326,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/user-reports/create",
+    "controller": "UserReportController",
+    "handler": "createReport",
+    "parameters": [
+      "CreateUserReportRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 226,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/most-reported/page",
+    "controller": "UserReportController",
+    "handler": "getMostReportedUsersPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 108,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/most-reported",
+    "controller": "UserReportController",
+    "handler": "getMostReportedUsers",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 218,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/reason",
+    "controller": "UserReportController",
+    "handler": "getReportsByReason",
+    "parameters": [
+      "String reason"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 444,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/reported/{userId}/page",
+    "controller": "UserReportController",
+    "handler": "getReportsByReportedUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 202,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/reported/{userId}",
+    "controller": "UserReportController",
+    "handler": "getReportsByReportedUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 340,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/reporter/{userId}/page",
+    "controller": "UserReportController",
+    "handler": "getReportsByReporterUserIdPage",
+    "parameters": [
+      "UUID userId",
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 292,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/reporter/{userId}",
+    "controller": "UserReportController",
+    "handler": "getReportsByReporterUserId",
+    "parameters": [
+      "UUID userId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 448,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/time-range",
+    "controller": "UserReportController",
+    "handler": "getReportsByTimeRange",
+    "parameters": [
+      "String startTime",
+      "String endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 330,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/user-reports/{reportId}",
+    "controller": "UserReportController",
+    "handler": "deleteReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 248,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports/{reportId}",
+    "controller": "UserReportController",
+    "handler": "getReport",
+    "parameters": [
+      "UUID reportId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 186,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/user-reports",
+    "controller": "UserReportController",
+    "handler": "getAllReports",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 323,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/avatar",
+    "controller": "UserController",
+    "handler": "uploadAvatar",
+    "parameters": [
+      "MultipartFile file"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 101,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/best-record/range",
+    "controller": "UserController",
+    "handler": "getUsersByBestRecordRange",
+    "parameters": [
+      "Integer minRecord",
+      "Integer maxRecord"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 306,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/bind-phone",
+    "controller": "UserController",
+    "handler": "bindPhoneNumber",
+    "parameters": [
+      "BindPhoneRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 170,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/challenge-days/leaderboard",
+    "controller": "UserController",
+    "handler": "getChallengeDaysLeaderboardTop200",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 178,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/init",
+    "controller": "UserController",
+    "handler": "initUser",
+    "parameters": [
+      "InitUserRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 174,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/leaderboard/page",
+    "controller": "UserController",
+    "handler": "getChallengeLeaderboardPage",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 273,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/leaderboard",
+    "controller": "UserController",
+    "handler": "getChallengeLeaderboard",
+    "parameters": [
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 168,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/one-click-login",
+    "controller": "UserController",
+    "handler": "oneClickLogin",
+    "parameters": [
+      "OneClickLoginRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 232,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/phone/{phoneNumber}",
+    "controller": "UserController",
+    "handler": "getUserByPhoneNumber",
+    "parameters": [
+      "String phoneNumber"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 280,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/registration-time",
+    "controller": "UserController",
+    "handler": "getUsersByRegistrationTime",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 227,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/search",
+    "controller": "UserController",
+    "handler": "searchUsers",
+    "parameters": [
+      "String nickname"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 336,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/stats/best-record",
+    "controller": "UserController",
+    "handler": "getBestRecordStats",
+    "parameters": [
+      "Integer minRecord"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 437,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/stats/gender",
+    "controller": "UserController",
+    "handler": "getGenderStats",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 468,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/stats/registration",
+    "controller": "UserController",
+    "handler": "getRegistrationStats",
+    "parameters": [
+      "OffsetDateTime startTime",
+      "OffsetDateTime endTime"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 240,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/{id}/basic-info",
+    "controller": "UserController",
+    "handler": "updateUserBasicInfo",
+    "parameters": [
+      "UUID id",
+      "UpdateUserBasicInfoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 224,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}/best-record",
+    "controller": "UserController",
+    "handler": "getUserBestRecord",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 62,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/users/{id}/best-record",
+    "controller": "UserController",
+    "handler": "updateUserBestRecord",
+    "parameters": [
+      "UUID id",
+      "UpdateBestRecordRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 503,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}/challenge-rank",
+    "controller": "UserController",
+    "handler": "getUserChallengeRank",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 187,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}/challenge-start-time",
+    "controller": "UserController",
+    "handler": "getChallengeStartTime",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 374,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/users/{id}/challenge-start-time",
+    "controller": "UserController",
+    "handler": "updateChallengeStartTime",
+    "parameters": [
+      "String id",
+      "UpdateChallengeStartTimeRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 23,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/{id}/check-best-record",
+    "controller": "UserController",
+    "handler": "checkAndUpdateBestRecord",
+    "parameters": [
+      "UUID id",
+      "UpdateBestRecordRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 382,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/{id}/last-login-time",
+    "controller": "UserController",
+    "handler": "updateLastLoginTime",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 381,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/users/{id}/last-login-time",
+    "controller": "UserController",
+    "handler": "updateLastLoginTime",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 327,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/users/{id}/quit-reason",
+    "controller": "UserController",
+    "handler": "updateQuitReason",
+    "parameters": [
+      "UUID id",
+      "UpdateQuitReasonRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 134,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}/rank",
+    "controller": "UserController",
+    "handler": "getUserRankInLeaderboard",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 387,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}/relapse-history",
+    "controller": "UserController",
+    "handler": "getUserRelapseHistory",
+    "parameters": [
+      "UUID id",
+      "int limit"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 362,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users/{id}/reset-challenge",
+    "controller": "UserController",
+    "handler": "resetUserChallengeTime",
+    "parameters": [
+      "String id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 6,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/users/{id}",
+    "controller": "UserController",
+    "handler": "deleteUser",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 445,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/users/{id}",
+    "controller": "UserController",
+    "handler": "getUserById",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 288,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/users/{id}",
+    "controller": "UserController",
+    "handler": "updateUser",
+    "parameters": [
+      "UUID id",
+      "UpdateUserRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 272,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/users",
+    "controller": "UserController",
+    "handler": "createUser",
+    "parameters": [
+      "CreateUserRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 460,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/author/{author}",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 123,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/author/{author}",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosByAuthor",
+    "parameters": [
+      "String author"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 28,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/color/{color}",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 193,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/count/type/{type}",
+    "controller": "VideoScenarioCnController",
+    "handler": "countVideoScenariosByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 452,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/video-scenarios/cn/create",
+    "controller": "VideoScenarioCnController",
+    "handler": "createVideoScenario",
+    "parameters": [
+      "CreateVideoScenarioRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 367,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/getAllVideoScenarios",
+    "controller": "VideoScenarioCnController",
+    "handler": "getAllVideoScenarios",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 150,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/search/subtitle",
+    "controller": "VideoScenarioCnController",
+    "handler": "searchVideoScenariosBySubtitle",
+    "parameters": [
+      "String subtitle"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 17,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/search/title",
+    "controller": "VideoScenarioCnController",
+    "handler": "searchVideoScenariosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 183,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/type/{type}",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 235,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/with-audio",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosWithAudio",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 207,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/with-image",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 361,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/with-video",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenariosWithVideo",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 138,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/video-scenarios/cn/{videoId}",
+    "controller": "VideoScenarioCnController",
+    "handler": "deleteVideoScenario",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 51,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/cn/{videoId}",
+    "controller": "VideoScenarioCnController",
+    "handler": "getVideoScenario",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 442,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/video-scenarios/cn/{videoId}",
+    "controller": "VideoScenarioCnController",
+    "handler": "updateVideoScenario",
+    "parameters": [
+      "UUID videoId",
+      "UpdateVideoScenarioRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 425,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/color/{color}",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosByColor",
+    "parameters": [
+      "String color"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 48,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/count/type/{type}",
+    "controller": "VideoScenarioController",
+    "handler": "countVideoScenariosByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 30,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/video-scenarios/create",
+    "controller": "VideoScenarioController",
+    "handler": "createVideoScenario",
+    "parameters": [
+      "CreateVideoScenarioRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 185,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/getAllVideoScenarios",
+    "controller": "VideoScenarioController",
+    "handler": "getAllVideoScenarios",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 76,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/search/subtitle",
+    "controller": "VideoScenarioController",
+    "handler": "searchVideoScenariosBySubtitle",
+    "parameters": [
+      "String subtitle"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 177,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/search/title",
+    "controller": "VideoScenarioController",
+    "handler": "searchVideoScenariosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 125,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/type/{type}",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosByType",
+    "parameters": [
+      "String type"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 395,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/with-audio",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosWithAudio",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 423,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/with-image",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosWithImage",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 34,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/with-video",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenariosWithVideo",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 205,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/video-scenarios/{videoId}",
+    "controller": "VideoScenarioController",
+    "handler": "deleteVideoScenario",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 369,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/video-scenarios/{videoId}",
+    "controller": "VideoScenarioController",
+    "handler": "getVideoScenario",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 493,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/video-scenarios/{videoId}",
+    "controller": "VideoScenarioController",
+    "handler": "updateVideoScenario",
+    "parameters": [
+      "UUID videoId",
+      "UpdateVideoScenarioRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 446,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/count",
+    "controller": "VideoCnController",
+    "handler": "countVideos",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 116,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/videos/cn/create",
+    "controller": "VideoCnController",
+    "handler": "createVideo",
+    "parameters": [
+      "CreateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 161,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/getAllVideos",
+    "controller": "VideoCnController",
+    "handler": "getAllVideos",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 500,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/playurl/{playurl}",
+    "controller": "VideoCnController",
+    "handler": "getVideoByPlayurl",
+    "parameters": [
+      "String playurl"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 152,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/posturl/{posturl}",
+    "controller": "VideoCnController",
+    "handler": "getVideoByPosturl",
+    "parameters": [
+      "String posturl"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 338,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/search/title",
+    "controller": "VideoCnController",
+    "handler": "searchVideosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 200,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/with-playurl",
+    "controller": "VideoCnController",
+    "handler": "getVideosWithPlayurl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 171,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/with-posturl",
+    "controller": "VideoCnController",
+    "handler": "getVideosWithPosturl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 405,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/videos/cn/{id}",
+    "controller": "VideoCnController",
+    "handler": "deleteVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 307,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/cn/{id}",
+    "controller": "VideoCnController",
+    "handler": "getVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 175,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/videos/cn/{id}",
+    "controller": "VideoCnController",
+    "handler": "updateVideo",
+    "parameters": [
+      "UUID id",
+      "UpdateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 378,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/count",
+    "controller": "VideoController",
+    "handler": "countVideos",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 88,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/videos/create",
+    "controller": "VideoController",
+    "handler": "createVideo",
+    "parameters": [
+      "CreateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 121,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/getAllVideos",
+    "controller": "VideoController",
+    "handler": "getAllVideos",
+    "parameters": [
+      "int page",
+      "int size"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 304,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/playurl/{playurl}",
+    "controller": "VideoController",
+    "handler": "getVideoByPlayurl",
+    "parameters": [
+      "String playurl"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 14,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/posturl/{posturl}",
+    "controller": "VideoController",
+    "handler": "getVideoByPosturl",
+    "parameters": [
+      "String posturl"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 45,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/search/title",
+    "controller": "VideoController",
+    "handler": "searchVideosByTitle",
+    "parameters": [
+      "String title"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 147,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/with-playurl",
+    "controller": "VideoController",
+    "handler": "getVideosWithPlayurl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 212,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/with-posturl",
+    "controller": "VideoController",
+    "handler": "getVideosWithPosturl",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 70,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/videos/{id}",
+    "controller": "VideoController",
+    "handler": "deleteVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 392,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/videos/{id}",
+    "controller": "VideoController",
+    "handler": "getVideo",
+    "parameters": [
+      "UUID id"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 418,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/videos/{id}",
+    "controller": "VideoController",
+    "handler": "updateVideo",
+    "parameters": [
+      "UUID id",
+      "UpdateVideoRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 86,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/wechat/health",
+    "controller": "WechatController",
+    "handler": "health",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 92,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/wechat/login",
+    "controller": "WechatController",
+    "handler": "login",
+    "parameters": [
+      "WechatLoginRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 371,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "POST",
+    "path": "/api/white-noises/create",
+    "controller": "WhiteNoiseController",
+    "handler": "createWhiteNoise",
+    "parameters": [
+      "CreateWhiteNoiseRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 52,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "DELETE",
+    "path": "/api/white-noises/{videoId}",
+    "controller": "WhiteNoiseController",
+    "handler": "deleteWhiteNoise",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 8,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/white-noises/{videoId}",
+    "controller": "WhiteNoiseController",
+    "handler": "getWhiteNoise",
+    "parameters": [
+      "UUID videoId"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 282,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "PUT",
+    "path": "/api/white-noises/{videoId}",
+    "controller": "WhiteNoiseController",
+    "handler": "updateWhiteNoise",
+    "parameters": [
+      "UUID videoId",
+      "UpdateWhiteNoiseRequest request"
+    ],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 332,
+    "produces": "[]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/api/white-noises",
+    "controller": "WhiteNoiseController",
+    "handler": "getAllWhiteNoises",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 120,
+    "produces": "[application/json]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/privacy",
+    "controller": "PrivacyController",
+    "handler": "getPrivacyPolicy",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 375,
+    "produces": "[text/html]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/privacy",
+    "controller": "PrivacyController",
+    "handler": "getPrivacyPolicyHtml",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  },
+  {
+    "caseIndex": 4,
+    "produces": "[text/html]",
+    "consumes": "[]",
+    "method": "GET",
+    "path": "/support",
+    "controller": "SupportController",
+    "handler": "getSupport",
+    "parameters": [],
+    "verification": "local-routing-only; controller mocked, no business or database execution"
+  }
+]
