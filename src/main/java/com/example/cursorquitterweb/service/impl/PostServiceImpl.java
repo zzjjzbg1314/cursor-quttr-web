@@ -226,39 +226,28 @@ public class PostServiceImpl implements PostService {
     
     @Override
     public PostPageResult getAllPostsWithUpvotesAndCount(int page, int size, String sortBy, String sortDir) {
-        // 性能优化：使用单次SQL查询，通过LEFT JOIN一次性获取帖子、点赞数和评论数
-        // 这样可以减少数据库查询次数（从3次减少到1次），大幅提升性能
+        // 保持单次 SQL 查询，避免分页后逐条获取统计。
         String validSortBy = validateSortField(sortBy);
         String validSortDir = sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
         
-        // 使用窗口函数 COUNT(*) OVER() 获取总数，同时通过LEFT JOIN获取点赞数和评论数
-        // 明确指定字段名，避免字段冲突
+        // 先确定当前页，仅汇总本页评论；保持一次 D1 请求及窗口总数语义。
         String sql = String.format(
-            "SELECT " +
-            "p.post_id, p.user_id, p.user_nickname, p.user_stage, p.avatar_url, " +
-            "p.content, p.is_deleted, p.created_at, p.updated_at, " +
-            "p.original_language, p.content_zh, p.content_en, p.content_ja, p.content_ko, " +
-            "p.content_de, p.content_fr, p.content_pt, p.content_es, p.translation_status, " +
-            "p.translated_at, p.emojiCountry, " +
-            "COALESCE(pl.like_count, 0) as upvotes, " +
-            "COALESCE(comment_counts.comment_count, 0) as comment_count, " +
-            "COUNT(*) OVER() as total_count " +
-            "FROM posts p " +
-            "LEFT JOIN post_likes pl ON p.post_id = pl.post_id " +
-            "LEFT JOIN ( " +
-            "    SELECT post_id, COUNT(*) as comment_count " +
-            "    FROM comments " +
-            "    WHERE is_deleted = ? " +
-            "    GROUP BY post_id " +
-            ") comment_counts ON p.post_id = comment_counts.post_id " +
-            "WHERE p.is_deleted = ? " +
-            "ORDER BY p.%s %s " +
-            "LIMIT ? OFFSET ?",
-            validSortBy, validSortDir
+            "WITH paged_posts AS (SELECT p.post_id, p.user_id, p.user_nickname, p.user_stage, p.avatar_url, p.content, p.is_deleted, p.created_at, p.updated_at, p.original_language, p.content_zh, p.content_en, p.content_ja, p.content_ko, p.content_de, p.content_fr, p.content_pt, p.content_es, p.translation_status, p.translated_at, p.emojiCountry, COALESCE(pl.like_count, 0) as upvotes, COUNT(*) OVER() as total_count" +
+            " FROM posts p" +
+            " LEFT JOIN post_likes pl ON p.post_id = pl.post_id" +
+            " WHERE p.is_deleted = ?" +
+            " ORDER BY p.%s %s LIMIT ? OFFSET ?) SELECT p.*, COALESCE(comment_counts.comment_count, 0) as comment_count" +
+            " FROM paged_posts p" +
+            " LEFT JOIN (SELECT post_id, COUNT(*) as comment_count" +
+            " FROM comments" +
+            " WHERE is_deleted = ? AND post_id IN (SELECT post_id" +
+            " FROM paged_posts) GROUP BY post_id) comment_counts ON p.post_id = comment_counts.post_id" +
+            " ORDER BY p.%s %s",
+            validSortBy, validSortDir, validSortBy, validSortDir
         );
         
         int offset = page * size;
-        List<Map<String, Object>> rows = d1Util.queryList(sql, false, false, size, offset);
+        List<Map<String, Object>> rows = d1Util.queryList(sql, false, size, offset, false);
         
         long totalElements = 0;
         List<PostWithUpvotesDto> content = new ArrayList<>();

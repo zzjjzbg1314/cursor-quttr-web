@@ -1,0 +1,1370 @@
+{
+  "sqlite_version": "3.53.4",
+  "dataset": {
+    "posts": 10000,
+    "comments": 100000,
+    "music": 10000
+  },
+  "boundary": "合成数据本地SQLite执行时间，非D1端到端延迟；每组9次热缓存样本，非P95",
+  "equivalence_checks": 136,
+  "posts": [
+    {
+      "indexed": false,
+      "size": 5,
+      "page": 0,
+      "before": {
+        "median_ms": 44.519,
+        "samples_ms": [
+          44.519,
+          44.806,
+          44.438,
+          44.924,
+          43.905,
+          44.36,
+          44.05,
+          45.358,
+          45.588
+        ]
+      },
+      "after": {
+        "median_ms": 32.804,
+        "samples_ms": [
+          32.804,
+          33.488,
+          32.671,
+          32.644,
+          32.421,
+          32.345,
+          32.824,
+          33.046,
+          34.25
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 17,
+          "parent": 6,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 61,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 80,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 131,
+          "parent": 0,
+          "notused": 239,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 227,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 10,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 14,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 62,
+          "parent": 3,
+          "notused": 196,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 156,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 167,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 174,
+          "parent": 167,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 181,
+          "parent": 167,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 181,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 191,
+          "parent": 181,
+          "notused": 0,
+          "detail": "CREATE BLOOM FILTER"
+        },
+        {
+          "id": 200,
+          "parent": 167,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 240,
+          "parent": 0,
+          "notused": 39,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 253,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": false,
+      "size": 10,
+      "page": 1,
+      "before": {
+        "median_ms": 47.944,
+        "samples_ms": [
+          48.572,
+          51.117,
+          50.303,
+          47.099,
+          47.886,
+          47.367,
+          47.944,
+          47.817,
+          48.783
+        ]
+      },
+      "after": {
+        "median_ms": 37.235,
+        "samples_ms": [
+          37.533,
+          37.449,
+          42.403,
+          51.089,
+          36.49,
+          35.796,
+          36.691,
+          37.206,
+          37.235
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 17,
+          "parent": 6,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 61,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 80,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 131,
+          "parent": 0,
+          "notused": 239,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 227,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 10,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 14,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 62,
+          "parent": 3,
+          "notused": 196,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 156,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 167,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 174,
+          "parent": 167,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 181,
+          "parent": 167,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 181,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 191,
+          "parent": 181,
+          "notused": 0,
+          "detail": "CREATE BLOOM FILTER"
+        },
+        {
+          "id": 200,
+          "parent": 167,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 240,
+          "parent": 0,
+          "notused": 49,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 253,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": false,
+      "size": 50,
+      "page": 20,
+      "before": {
+        "median_ms": 52.423,
+        "samples_ms": [
+          52.249,
+          52.332,
+          52.622,
+          52.703,
+          52.602,
+          52.173,
+          53.633,
+          51.828,
+          52.423
+        ]
+      },
+      "after": {
+        "median_ms": 42.39,
+        "samples_ms": [
+          42.048,
+          48.84,
+          41.92,
+          41.972,
+          42.662,
+          42.407,
+          45.491,
+          41.722,
+          42.39
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 17,
+          "parent": 6,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 61,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 80,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 131,
+          "parent": 0,
+          "notused": 239,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 227,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 10,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 14,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 62,
+          "parent": 3,
+          "notused": 196,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 156,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 167,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 174,
+          "parent": 167,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 181,
+          "parent": 167,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 181,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 191,
+          "parent": 181,
+          "notused": 0,
+          "detail": "CREATE BLOOM FILTER"
+        },
+        {
+          "id": 200,
+          "parent": 167,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 240,
+          "parent": 0,
+          "notused": 72,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 253,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": false,
+      "size": 1000,
+      "page": 0,
+      "before": {
+        "median_ms": 60.854,
+        "samples_ms": [
+          62.316,
+          60.854,
+          62.885,
+          59.833,
+          59.947,
+          60.851,
+          59.409,
+          61.985,
+          61.669
+        ]
+      },
+      "after": {
+        "median_ms": 55.195,
+        "samples_ms": [
+          57.763,
+          54.699,
+          56.655,
+          54.45,
+          54.174,
+          55.195,
+          54.683,
+          57.689,
+          58.534
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 17,
+          "parent": 6,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 61,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 80,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 131,
+          "parent": 0,
+          "notused": 239,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 227,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 10,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 14,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 62,
+          "parent": 3,
+          "notused": 196,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 156,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 167,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 174,
+          "parent": 167,
+          "notused": 216,
+          "detail": "SCAN comments"
+        },
+        {
+          "id": 181,
+          "parent": 167,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 181,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 191,
+          "parent": 181,
+          "notused": 0,
+          "detail": "CREATE BLOOM FILTER"
+        },
+        {
+          "id": 200,
+          "parent": 167,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR GROUP BY"
+        },
+        {
+          "id": 240,
+          "parent": 0,
+          "notused": 115,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 253,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": true,
+      "size": 5,
+      "page": 0,
+      "before": {
+        "median_ms": 36.421,
+        "samples_ms": [
+          34.084,
+          41.998,
+          41.11,
+          34.043,
+          34.377,
+          34.598,
+          41.786,
+          36.421,
+          67.772
+        ]
+      },
+      "after": {
+        "median_ms": 31.368,
+        "samples_ms": [
+          28.27,
+          31.368,
+          35.821,
+          69.511,
+          34.425,
+          30.752,
+          30.311,
+          31.433,
+          29.342
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments USING COVERING INDEX idx_comments_post_id_is_deleted"
+        },
+        {
+          "id": 50,
+          "parent": 3,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 76,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 127,
+          "parent": 0,
+          "notused": 92,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 223,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 11,
+          "parent": 6,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 18,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 66,
+          "parent": 3,
+          "notused": 49,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 160,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 171,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 178,
+          "parent": 171,
+          "notused": 102,
+          "detail": "SEARCH comments USING COVERING INDEX idx_comments_post_id_is_deleted (post_id=? AND is_deleted=?)"
+        },
+        {
+          "id": 182,
+          "parent": 171,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 182,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 234,
+          "parent": 0,
+          "notused": 39,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 247,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": true,
+      "size": 10,
+      "page": 1,
+      "before": {
+        "median_ms": 33.31,
+        "samples_ms": [
+          32.917,
+          33.855,
+          32.795,
+          33.31,
+          32.583,
+          33.794,
+          35.337,
+          33.095,
+          33.584
+        ]
+      },
+      "after": {
+        "median_ms": 29.038,
+        "samples_ms": [
+          28.46,
+          27.128,
+          32.789,
+          29.363,
+          28.134,
+          29.95,
+          30.43,
+          27.172,
+          29.038
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments USING COVERING INDEX idx_comments_post_id_is_deleted"
+        },
+        {
+          "id": 50,
+          "parent": 3,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 76,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 127,
+          "parent": 0,
+          "notused": 92,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 223,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 11,
+          "parent": 6,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 18,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 66,
+          "parent": 3,
+          "notused": 49,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 160,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 171,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 178,
+          "parent": 171,
+          "notused": 102,
+          "detail": "SEARCH comments USING COVERING INDEX idx_comments_post_id_is_deleted (post_id=? AND is_deleted=?)"
+        },
+        {
+          "id": 182,
+          "parent": 171,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 182,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 234,
+          "parent": 0,
+          "notused": 49,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 247,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": true,
+      "size": 50,
+      "page": 20,
+      "before": {
+        "median_ms": 36.547,
+        "samples_ms": [
+          33.163,
+          34.119,
+          34.19,
+          34.646,
+          38.538,
+          40.69,
+          36.547,
+          38.355,
+          43.797
+        ]
+      },
+      "after": {
+        "median_ms": 30.69,
+        "samples_ms": [
+          29.407,
+          27.562,
+          29.104,
+          29.475,
+          30.692,
+          35.412,
+          34.602,
+          30.69,
+          31.05
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments USING COVERING INDEX idx_comments_post_id_is_deleted"
+        },
+        {
+          "id": 50,
+          "parent": 3,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 76,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 127,
+          "parent": 0,
+          "notused": 92,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 223,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 11,
+          "parent": 6,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 18,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 66,
+          "parent": 3,
+          "notused": 49,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 160,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 171,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 178,
+          "parent": 171,
+          "notused": 102,
+          "detail": "SEARCH comments USING COVERING INDEX idx_comments_post_id_is_deleted (post_id=? AND is_deleted=?)"
+        },
+        {
+          "id": 182,
+          "parent": 171,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 182,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 234,
+          "parent": 0,
+          "notused": 49,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 247,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    },
+    {
+      "indexed": true,
+      "size": 1000,
+      "page": 0,
+      "before": {
+        "median_ms": 44.189,
+        "samples_ms": [
+          48.549,
+          41.488,
+          46.397,
+          41.061,
+          44.189,
+          58.614,
+          44.373,
+          41.774,
+          43.407
+        ]
+      },
+      "after": {
+        "median_ms": 38.667,
+        "samples_ms": [
+          36.442,
+          36.272,
+          39.084,
+          37.841,
+          38.667,
+          42.34,
+          35.403,
+          39.012,
+          53.596
+        ]
+      },
+      "before_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-3)"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 13,
+          "parent": 6,
+          "notused": 216,
+          "detail": "SCAN comments USING COVERING INDEX idx_comments_post_id_is_deleted"
+        },
+        {
+          "id": 50,
+          "parent": 3,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 57,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 76,
+          "parent": 3,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 127,
+          "parent": 0,
+          "notused": 92,
+          "detail": "SCAN (subquery-3)"
+        },
+        {
+          "id": 223,
+          "parent": 0,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        }
+      ],
+      "after_plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE paged_posts"
+        },
+        {
+          "id": 6,
+          "parent": 3,
+          "notused": 0,
+          "detail": "CO-ROUTINE (subquery-5)"
+        },
+        {
+          "id": 11,
+          "parent": 6,
+          "notused": 61,
+          "detail": "SEARCH p USING INDEX idx_posts_is_deleted_created_at (is_deleted=?)"
+        },
+        {
+          "id": 18,
+          "parent": 6,
+          "notused": 47,
+          "detail": "SEARCH pl USING INDEX sqlite_autoindex_post_likes_1 (post_id=?) LEFT-JOIN"
+        },
+        {
+          "id": 66,
+          "parent": 3,
+          "notused": 49,
+          "detail": "SCAN (subquery-5)"
+        },
+        {
+          "id": 160,
+          "parent": 3,
+          "notused": 0,
+          "detail": "USE TEMP B-TREE FOR ORDER BY"
+        },
+        {
+          "id": 171,
+          "parent": 0,
+          "notused": 0,
+          "detail": "MATERIALIZE comment_counts"
+        },
+        {
+          "id": 178,
+          "parent": 171,
+          "notused": 102,
+          "detail": "SEARCH comments USING COVERING INDEX idx_comments_post_id_is_deleted (post_id=? AND is_deleted=?)"
+        },
+        {
+          "id": 182,
+          "parent": 171,
+          "notused": 0,
+          "detail": "LIST SUBQUERY 2"
+        },
+        {
+          "id": 185,
+          "parent": 182,
+          "notused": 216,
+          "detail": "SCAN paged_posts"
+        },
+        {
+          "id": 234,
+          "parent": 0,
+          "notused": 49,
+          "detail": "SCAN p"
+        },
+        {
+          "id": 247,
+          "parent": 0,
+          "notused": 47,
+          "detail": "SEARCH comment_counts USING AUTOMATIC COVERING INDEX (post_id=?) LEFT-JOIN"
+        }
+      ]
+    }
+  ],
+  "music_candidate_index": {
+    "before": {
+      "median_ms": 1.27,
+      "samples_ms": [
+        2.91,
+        1.293,
+        1.282,
+        1.27,
+        1.26,
+        1.261,
+        1.26,
+        1.248,
+        1.368
+      ]
+    },
+    "after": {
+      "median_ms": 0.01,
+      "samples_ms": [
+        0.013,
+        0.011,
+        0.01,
+        0.01,
+        0.01,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ]
+    }
+  }
+}
