@@ -1,0 +1,6 @@
+{
+  "compared_route_variants": 504,
+  "matching_route_keys": true,
+  "record_differences": [],
+  "boundary": "真实控制器配合模拟依赖的响应记录一致，不代表真实数据库业务验收"
+}

@@ -161,7 +161,7 @@ public class MeditateVideoCnController {
      * 使用缓存，缓存键包含 page、size、sortBy 和 sortDir 参数
      */
     @GetMapping("/getAllMeditateVideos")
-    @Cacheable(value = "meditateVideos", key = "'cn_' + #page + '_' + #size + '_' + #sortBy + '_' + #sortDir")
+    @Cacheable(value = "meditateVideos", key = "'cn_' + #page + '_' + #size + '_' + #sortBy + '_' + #sortDir", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<PageResponse<MeditateVideoCnDto>>> getAllMeditateVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,

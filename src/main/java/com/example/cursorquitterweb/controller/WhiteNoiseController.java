@@ -98,7 +98,7 @@ public class WhiteNoiseController {
     }
 
     @GetMapping
-    @Cacheable(value = "whiteNoises", key = "'all'")
+    @Cacheable(value = "whiteNoises", key = "'all'", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<List<WhiteNoiseDto>>> getAllWhiteNoises() {
         try {
             logger.info("获取所有白噪音内容");

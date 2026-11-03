@@ -115,7 +115,7 @@ public class PureMusicController {
     }
 
     @GetMapping
-    @Cacheable(value = "pureMusics", key = "'all'")
+    @Cacheable(value = "pureMusics", key = "'all'", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<List<PureMusicDto>>> getAllPureMusics() {
         try {
             logger.info("获取所有纯音乐内容");

@@ -1,6 +1,12 @@
 package com.example.cursorquitterweb.aspect;
 
 import com.example.cursorquitterweb.util.LogUtil;
+import com.example.cursorquitterweb.util.RequestPerformanceTrace;
+import com.example.cursorquitterweb.dto.ApiResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import java.util.concurrent.TimeUnit;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -18,6 +24,7 @@ import java.lang.reflect.Method;
  */
 @Aspect
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class ControllerPerformanceAspect {
     
     private static final Logger logger = LogUtil.getLogger(ControllerPerformanceAspect.class);
@@ -33,7 +40,7 @@ public class ControllerPerformanceAspect {
      */
     @Around("controllerPointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         
         // 获取类名和方法名
         String className = joinPoint.getTarget().getClass().getSimpleName();
@@ -52,6 +59,7 @@ public class ControllerPerformanceAspect {
         Object result = null;
         Throwable exception = null;
         
+        RequestPerformanceTrace trace = RequestPerformanceTrace.open();
         try {
             // 执行方法
             result = joinPoint.proceed();
@@ -60,16 +68,25 @@ public class ControllerPerformanceAspect {
             exception = e;
             throw e;
         } finally {
-            // 计算耗时
-            long endTime = System.currentTimeMillis();
-            long duration = endTime - startTime;
-            
-            // 记录到性能日志文件
-            if (exception != null) {
-                logger.info("❌ {} | 耗时: {}ms | 异常: {}", 
-                    apiInfo, duration, exception.getClass().getSimpleName());
-            } else {
-                logger.info("✅ {} | 耗时: {}ms", apiInfo, duration);
+            try {
+                long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                Object body = result;
+                int status = 200;
+                if (result instanceof ResponseEntity) {
+                    ResponseEntity<?> response = (ResponseEntity<?>) result;
+                    status = response.getStatusCodeValue();
+                    body = response.getBody();
+                }
+                String outcome = exception != null ? "exception"
+                        : status >= 400 ? "http_failure"
+                        : body instanceof ApiResponse && !((ApiResponse<?>) body).isSuccess()
+                        ? "business_failure" : "success";
+                logger.info("API性能 {} | traceId={} | outcome={} | responseStatus={} | durationMs={} | d1QueryCalls={} | d1QueryFailures={} | d1QueryMs={} | exceptionType={}",
+                        apiInfo, trace.getTraceId(), outcome, exception == null ? status : "unresolved",
+                        duration, trace.getD1Calls(), trace.getD1Failures(), trace.getD1Millis(),
+                        exception == null ? "none" : exception.getClass().getSimpleName());
+            } finally {
+                trace.close();
             }
         }
     }

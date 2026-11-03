@@ -103,7 +103,7 @@ public class SisterMotivationVideoController {
     }
 
     @GetMapping("/getAllVideos")
-    @Cacheable(value = "sisterMotivationVideos", key = "#page + '_' + #size")
+    @Cacheable(value = "sisterMotivationVideos", key = "#page + '_' + #size", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<PageResponse<SisterMotivationVideoDto>>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
@@ -125,7 +125,7 @@ public class SisterMotivationVideoController {
     }
 
     @GetMapping("/list")
-    @Cacheable(value = "sisterMotivationVideos", key = "'list'")
+    @Cacheable(value = "sisterMotivationVideos", key = "'list'", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<List<SisterMotivationVideoDto>>> getAllVideosList() {
         try {
             List<SisterMotivationVideo> videos = sisterMotivationVideoService.getAllVideos();

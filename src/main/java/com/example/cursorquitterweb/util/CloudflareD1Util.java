@@ -59,6 +59,9 @@ public class CloudflareD1Util {
      * @return 查询结果
      */
     public JsonNode query(String sql, List<Object> params) {
+        RequestPerformanceTrace trace = RequestPerformanceTrace.current();
+        long started = trace == null ? 0L : System.nanoTime();
+        boolean successful = false;
         try {
             String url = getQueryUrl();
             
@@ -77,8 +80,10 @@ public class CloudflareD1Util {
                 if (responseNode.has("success") && responseNode.get("success").asBoolean()) {
                     JsonNode resultArray = responseNode.get("result");
                     if (resultArray != null && resultArray.isArray() && resultArray.size() > 0) {
+                        successful = true;
                         return resultArray.get(0).get("results");
                     }
+                    successful = true;
                     return null;
                 } else {
                     JsonNode errors = responseNode.get("errors");
@@ -92,6 +97,9 @@ public class CloudflareD1Util {
         } catch (Exception e) {
             log.error("D1查询异常", e);
             throw new RuntimeException("D1查询异常", e);
+        } finally {
+            // 包含 HTTP 等待与响应解析，不等同于数据库内部 SQL 执行时间。
+            if (trace != null) trace.recordD1(System.nanoTime() - started, successful);
         }
     }
 

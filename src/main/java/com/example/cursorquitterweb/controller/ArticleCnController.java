@@ -249,7 +249,7 @@ public class ArticleCnController {
      * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/all")
-    @Cacheable(value = "articles", key = "'cn_' + #page + '_' + #size")
+    @Cacheable(value = "articles", key = "'cn_' + #page + '_' + #size", unless = "#result == null || !#result.success")
     public ApiResponse<PageResponse<ArticleCn>> getAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -384,7 +384,7 @@ public class ArticleCnController {
      * 使用缓存，缓存键固定为'grouped-by-type-cn'
      */
     @GetMapping("/grouped-by-type")
-    @Cacheable(value = "articles", key = "'grouped-by-type-cn'")
+    @Cacheable(value = "articles", key = "'grouped-by-type-cn'", unless = "#result == null || !#result.success")
     public ApiResponse<ArticlesGroupedByTypeCnDto> getAllArticlesGroupedByType() {
         try {
             ArticlesGroupedByTypeCnDto articlesGroupedByType = articleCnService.getAllArticlesGroupedByType();
