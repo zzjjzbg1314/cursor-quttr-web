@@ -1,0 +1,32 @@
+[
+  {
+    "host": "https://kejiapi.cn",
+    "requests": 78,
+    "success": 77,
+    "network_failures": 1,
+    "successful_paths": 26,
+    "median_ms": 333.5,
+    "max_ms": 2250.2,
+    "gzip_responses": 77
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "requests": 78,
+    "success": 78,
+    "network_failures": 0,
+    "successful_paths": 26,
+    "median_ms": 636.2,
+    "max_ms": 1137.7,
+    "gzip_responses": 78
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "requests": 78,
+    "success": 78,
+    "network_failures": 0,
+    "successful_paths": 26,
+    "median_ms": 821.0,
+    "max_ms": 1530.4,
+    "gzip_responses": 78
+  }
+]

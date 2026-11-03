@@ -1,0 +1,173 @@
+[
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/posts/getAllPosts?page=1&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://kejiapi.cn",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=asc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/posts/getAllPosts?page=1&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.asia",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=asc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/posts/getAllPosts?page=1&size=5&sortBy=created_at&sortDir=desc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  },
+  {
+    "host": "https://globalkejiapi.top",
+    "path": "/api/posts/getAllPosts?page=0&size=5&sortBy=created_at&sortDir=asc",
+    "curl_exit": 0,
+    "checks": {
+      "business_success": true,
+      "page_number": true,
+      "page_size": true,
+      "page_length": true,
+      "total_consistency": true,
+      "unique_ids": true,
+      "statistics_nonnegative": true,
+      "not_deleted": true,
+      "sort_order": true
+    },
+    "items": 5,
+    "total": 1834,
+    "pass": true
+  }
+]
