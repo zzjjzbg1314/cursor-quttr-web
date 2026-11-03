@@ -128,8 +128,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostWithUpvotesDto> findByUserIdWithUpvotes(UUID userId, int page, int size) {
         List<Post> posts = findByUserId(userId, page, size);
+        Map<UUID, Integer> likeCounts = new HashMap<>();
+        Map<UUID, Long> commentCounts = new HashMap<>();
+        // 分批控制 SQL 参数数量，兼容旧客户端的大分页；评论查询还需一个删除标记参数。
+        final int batchSize = 90;
+        for (int offset = 0; offset < posts.size(); offset += batchSize) {
+            List<UUID> ids = posts.subList(offset, Math.min(offset + batchSize, posts.size()))
+                    .stream().map(Post::getPostId).collect(Collectors.toList());
+            likeCounts.putAll(postLikeService.getLikeCountsBatch(ids));
+            commentCounts.putAll(commentService.countByPostIdsBatch(ids));
+        }
         return posts.stream()
-                .map(this::convertToPostWithUpvotesDto)
+                .map(post -> convertToPostWithUpvotesDto(post, likeCounts, commentCounts))
                 .collect(Collectors.toList());
     }
     

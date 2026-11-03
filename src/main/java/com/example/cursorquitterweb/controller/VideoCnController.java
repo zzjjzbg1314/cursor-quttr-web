@@ -151,7 +151,7 @@ public class VideoCnController {
      * 使用缓存，缓存键包含 page 和 size 参数
      */
     @GetMapping("/getAllVideos")
-    @Cacheable(value = "videos", key = "'cn_' + #page + '_' + #size")
+    @Cacheable(value = "videos", key = "'cn_' + #page + '_' + #size", unless = "#result == null || !#result.statusCode.is2xxSuccessful() || #result.body == null || !#result.body.success")
     public ResponseEntity<ApiResponse<PageResponse<VideoCnDto>>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {

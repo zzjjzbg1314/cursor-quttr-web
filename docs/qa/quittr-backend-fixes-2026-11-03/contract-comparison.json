@@ -1,0 +1,7 @@
+{
+  "baseline": "../quittr-app-backend-audit-2026-11-03/endpoint-contracts.json",
+  "compared_route_variants": 504,
+  "matching_route_keys": true,
+  "record_differences": [],
+  "boundary": "模拟服务和最小输入的响应记录一致，不代表真实数据库业务验收"
+}
